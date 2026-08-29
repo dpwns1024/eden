@@ -34,8 +34,12 @@ function BackupPageInner() {
   useEffect(() => {
     if (menuLoaded && !viewInit) { setView(menuSet.backupView); setViewInit(true); }
   }, [menuLoaded, viewInit, menuSet.backupView]);
-  const { st: boardSet } = useBoardSettings(); // 유형 뱃지 색 (환경설정 > 게시판 관리)
-  const typeBadge = (t: 'log' | 'single' | 'vlist') => boardSet.gallery.find(b => b.id === t);
+
+  const { st: boardSet } = useBoardSettings(); // 뱃지 색 (환경설정 > 게시판 관리)
+  // 갤러리 말머리(ORIGINAL, 낙서, 커미션 등) 정보를 찾아서 스타일에 적용
+  const prefixList = (boardSet as any).galleryPrefixes ?? (boardSet as any).prefixes ?? (boardSet as any).galleryCategories ?? (boardSet as any).categories ?? [];
+  const prefixBadge = (cat?: string) => prefixList.find((b: any) => b.label === cat || b.id === cat || b.name === cat);
+
   const [q, setQ] = useState('');
   const [unveiled, setUnveiled] = useState<Record<string, boolean>>({});
 
@@ -91,9 +95,10 @@ function BackupPageInner() {
                   <div style={{ position: 'absolute', inset: 0 }}>
                     <CroppedBlobImg fileRef={p.images[0]} crop={p.thumbCrop} ph={p.phList[0] ?? 'cool'} />
                   </div>
-                  {!folded && (
-                    <span className="typ" style={boardBadgeStyle(typeBadge(p.type))}>
-                      {typeBadge(p.type)?.label}
+                  {/* 갤러리 유형 대신 갤러리 말머리(p.category) 뱃지 출력 */}
+                  {!folded && p.category && (
+                    <span className="typ" style={boardBadgeStyle(prefixBadge(p.category))}>
+                      {prefixBadge(p.category)?.label || p.category}
                     </span>
                   )}
                   {folded && (
@@ -127,7 +132,7 @@ function BackupPageInner() {
                   {p.title}
                   {p.fold
                     ? <span className="pill red" style={{ marginLeft: 6 }}>접힘</span>
-                    : <span style={{ ...boardBadgeStyle(typeBadge(p.type)), marginLeft: 6 }}>{typeBadge(p.type)?.label}</span>}
+                    : p.category && <span style={{ ...boardBadgeStyle(prefixBadge(p.category)), marginLeft: 6 }}>{prefixBadge(p.category)?.label || p.category}</span>}
                 </b>
                 <small>
                   {meta(p)}
