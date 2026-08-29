@@ -63,11 +63,12 @@ export default function RelsPage() {
                   {r.name}
                   {r.visibility === 'member' && <span className="pill" style={{ marginLeft: 6 }}>멤버</span>}
                 </b>
-                <span>
-                  {priv ? '관리자에게만 표시됨'
-                    : memberLocked ? '로그인 시 열람 가능'
-                    : `${r.catchphrase.replace(/ /g, '')} · ${r.members.length}인`}
-                </span>
+                {/* 권한 안내 문구만 필요 시 표시 (캐치프레이즈·인원 수 제거) */}
+                {(priv || memberLocked) && (
+                  <span>
+                    {priv ? '관리자에게만 표시됨' : '로그인 시 열람 가능'}
+                  </span>
+                )}
                 {r.members.length > 0 && (
                   <div className="who">
                     {r.members.map(m => <i key={m.charId} style={{ background: colorOf(m.charId) }} />)}
