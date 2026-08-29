@@ -153,7 +153,7 @@ export function RichEditor({ value, onChange, placeholder }: {
           borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
           display: 'flex', gap: 8, alignItems: 'center'
         }}>
-          {['#17171a', '#e03131', '#2f9e44', '#1971c2', '#f59f00', '#9c36b5'].map(c => (
+          {['#17171a', '#D11C20', '#2f9e44', '#607CA0', '#f59f00', '#9c36b5'].map(c => (
             <button
               key={c}
               type="button"
