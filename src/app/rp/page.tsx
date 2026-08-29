@@ -1,7 +1,6 @@
 'use client';
 // 역극 (4.9) — 실시간 채팅형. 방 개설(자관 기반/자유) · 참여자에게만 존재 노출 ·
 // 캐릭터 선택 발화(테마색 말풍선) · 지문(/desc) · 메시지 수정/삭제 · 완결/공개 전환 · HTML 내보내기 · 말풍선 좌우 위치 전환(⇆)
-// ※ 실시간 송수신·입력 중 표시·참여자 전원 동의는 Supabase Realtime 연동 시 활성화 (현재 localStorage)
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useLocalList, newId } from '@/lib/postStore';
@@ -15,6 +14,8 @@ import { KInput, KTextarea, KSelect, KCheck } from '@/components/ui/Kit';
 import { CroppedBlobImg } from '@/components/ui/CropEditor';
 import { EditableDesc, PageTitle } from '@/components/ui/PageText';
 import { useToast } from '@/components/ui/Toast';
+import { useMembers } from '@/lib/members';
+import { pushNotif } from '@/lib/notifStore';
 
 /** 캐릭터 얼굴 칩 (썸네일 or 데모 플레이스홀더) */
 function Face({ ch, className }: { ch?: Character; className: string }) {
@@ -29,9 +30,6 @@ const fmtHM = (iso: string) => {
   const d = new Date(iso);
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 };
-
-import { useMembers } from '@/lib/members';
-import { pushNotif } from '@/lib/notifStore';
 
 export default function RpPage() {
   const { user, isAdmin } = useAuth();
@@ -48,11 +46,15 @@ export default function RpPage() {
   const [mListOpen, setMListOpen] = useState(false);
   const [mFocus, setMFocus] = useState(false);
 
-  const allMine = useMemo(() => (user
-    ? rooms.filter(r => memberIdsOf(r).includes(user.id))
-      .sort((a, b) => rpLastDate(b, messagesFor(msgRows, b.id, b.messages))
-        .localeCompare(rpLastDate(a, messagesFor(msgRows, a.id, a.messages))))
-    : []), [rooms, user, msgRows, rels, chars]);
+  // 로그인 상태면 본인 참여 방 + (관리자면 전체), 비로그인이면 공개된 방 목록 표시
+  const allMine = useMemo(() => {
+    const list = user
+      ? rooms.filter(r => memberIdsOf(r).includes(user.id) || isAdmin)
+      : rooms.filter(r => r.isPublic);
+    return list.sort((a, b) => rpLastDate(b, messagesFor(msgRows, b.id, b.messages))
+      .localeCompare(rpLastDate(a, messagesFor(msgRows, a.id, a.messages))));
+  }, [rooms, user, isAdmin, msgRows, rels, chars]);
+
   const myRooms = useMemo(() => allMine.filter(r => fStatus === 'all' || r.status === fStatus), [allMine, fStatus]);
   const sel = myRooms.find(r => r.id === selId) ?? myRooms[0];
   const cntS = (s: 'all' | 'ongoing' | 'done') =>
@@ -65,12 +67,13 @@ export default function RpPage() {
     [chars, auCharKey],
   );
   const speakChars = useMemo(() => {
+    if (!user) return [];
     if (rel) {
       const members = rel.members.map(m => rpChars.find(c => c.id === m.charId)).filter(Boolean) as Character[];
-      return isAdmin ? members : members.filter(c => !!charGrant(c, user?.id));
+      return isAdmin ? members : members.filter(c => !!charGrant(c, user.id));
     }
-    return isAdmin ? rpChars.filter(c => c.own) : rpChars.filter(c => !!charGrant(c, user?.id));
-  }, [rel, rpChars, isAdmin, user?.id]);
+    return isAdmin ? rpChars.filter(c => c.own) : rpChars.filter(c => !!charGrant(c, user.id));
+  }, [rel, rpChars, isAdmin, user]);
 
   const [speaker, setSpeaker] = useState<string>('');
   const [pickOpen, setPickOpen] = useState(false);
@@ -163,10 +166,10 @@ export default function RpPage() {
   const [nMembers, setNMembers] = useState<string[]>([]);
   const pool = useMembers();
   const newRelGrantNames = (() => {
-    if (nRel === 'none') return [] as string[];
+    if (nRel === 'none' || !user) return [] as string[];
     const ids = rpMemberIds(
-      { relId: nRel, createdBy: user?.id ?? '', memberIds: [] } as unknown as RpRoom, rels, chars);
-    return ids.filter(id => id !== user?.id)
+      { relId: nRel, createdBy: user.id, memberIds: [] } as unknown as RpRoom, rels, chars);
+    return ids.filter(id => id !== user.id)
       .map(id => pool.find(pp => pp.id === id)?.nickname ?? id);
   })();
   const newRelAus = (rels.find(r => r.id === nRel)?.aus ?? []).filter(a => a.id !== 'base');
@@ -186,7 +189,7 @@ export default function RpPage() {
     setNTitle(''); setNRel('none'); setNMembers([]);
   };
 
-  const canManage = sel && user && (sel.createdBy === user.id || isAdmin);
+  const canManage = Boolean(sel && user && (sel.createdBy === user.id || isAdmin));
   const [endAsk, setEndAsk] = useState(false);
 
   const brokenChars = useMemo(() => {
@@ -264,15 +267,6 @@ ${rows}
 
   if (!loaded) return <section className="page" />;
 
-  if (!user) {
-    return (
-      <section className="page">
-        <div className="page-head"><PageTitle>ROLEPLAY</PageTitle>
-          <EditableDesc k="rp-gate-desc" def="역극은 로그인한 참여자에게만 표시됩니다" always /></div>
-      </section>
-    );
-  }
-
   const relCharNames = (relId?: string) => {
     const rel = rels.find(r => r.id === relId);
     if (!rel) return [];
@@ -312,20 +306,24 @@ ${rows}
         <div className="panel rp-rooms">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px 12px', flexShrink: 0 }}>
             <b style={{ fontSize: 12, letterSpacing: '.1em', color: 'var(--sub)' }}>MY ROOMS</b>
-            <button className="btn btn-dark" style={{ padding: '0 12px', height: 30, fontSize: 11 }}
-              onClick={() => setNewOpen(true)}>＋ NEW ROOM</button>
+            {user && (
+              <button className="btn btn-dark" style={{ padding: '0 12px', height: 30, fontSize: 11 }}
+                onClick={() => setNewOpen(true)}>＋ NEW ROOM</button>
+            )}
           </div>
           <div className="rp-rooms-list">
             {myRooms.map(r => (
               <div key={r.id} className={`rp-room ${sel?.id === r.id ? 'on' : ''}`}
                 onClick={() => { setSelId(r.id); setMListOpen(false); }}>
-                <b>{r.title} {rpHasNew(r, user.id, msgsOf(r)) && sel?.id !== r.id && <span className="new">N</span>}</b>
+                <b>{r.title} {rpHasNew(r, user?.id ?? '', msgsOf(r)) && sel?.id !== r.id && <span className="new">N</span>}</b>
                 <small>{roomSub(r)}</small>
               </div>
             ))}
             {myRooms.length === 0 && (
               <p className="hint" style={{ padding: '10px 6px 0' }}>
-                {fStatus === 'all' ? '참여 중인 방이 없습니다' : '이 상태의 방이 없습니다'}
+                {!user
+                  ? '공개된 역극 방이 없습니다'
+                  : (fStatus === 'all' ? '참여 중인 방이 없습니다' : '이 상태의 방이 없습니다')}
               </p>
             )}
           </div>
@@ -371,7 +369,7 @@ ${rows}
 
               <div className="rp-msgs" ref={msgsRef}>
                 {msgsOf(sel).map(m => {
-                  const mine = m.authorId === user.id;
+                  const mine = user ? m.authorId === user.id : false;
                   if (m.kind === 'desc') {
                     return (
                       <div key={m.id} className="msg-desc">
@@ -390,7 +388,7 @@ ${rows}
                   
                   // 위치 판별 (m.align 설정이 있다면 우선 반영, 없으면 기본 설정)
                   const defaultRight = ch
-                    ? (!!charGrant(ch, user.id) || (!!ch.own && isAdmin))
+                    ? (user ? (!!charGrant(ch, user.id) || (!!ch.own && isAdmin)) : false)
                     : (!!m.charOwn && isAdmin);
                   const mAlign = (m as unknown as { align?: 'left' | 'right' }).align;
                   const rightSide = mAlign ? mAlign === 'right' : defaultRight;
@@ -419,37 +417,43 @@ ${rows}
               </div>
 
               {sel.status === 'ongoing' && (
-                <div className="rp-input">
-                  <div className="char-pick" onClick={() => setPickOpen(o => !o)}>
-                    {speaker === 'desc'
-                      ? <div className="f" style={{ display: 'grid', placeItems: 'center', fontSize: 13, color: 'var(--sub)' }}>❝</div>
-                      : <Face ch={speakerChar} className="f" />}
-                    <small>{speakerLabel} ▾</small>
-                    {pickOpen && (
-                      <div className="rp-pick-pop" onClick={e => e.stopPropagation()}>
-                        {speakChars.map(c => (
-                          <button key={c.id} onClick={() => { setSpeaker(c.id); setPickOpen(false); }}>
-                            <Face ch={c} className="f" />{c.name}
+                user ? (
+                  <div className="rp-input">
+                    <div className="char-pick" onClick={() => setPickOpen(o => !o)}>
+                      {speaker === 'desc'
+                        ? <div className="f" style={{ display: 'grid', placeItems: 'center', fontSize: 13, color: 'var(--sub)' }}>❝</div>
+                        : <Face ch={speakerChar} className="f" />}
+                      <small>{speakerLabel} ▾</small>
+                      {pickOpen && (
+                        <div className="rp-pick-pop" onClick={e => e.stopPropagation()}>
+                          {speakChars.map(c => (
+                            <button key={c.id} onClick={() => { setSpeaker(c.id); setPickOpen(false); }}>
+                              <Face ch={c} className="f" />{c.name}
+                            </button>
+                          ))}
+                          <button onClick={() => { setSpeaker('desc'); setPickOpen(false); }}>
+                            <span className="f" style={{ display: 'grid', placeItems: 'center', color: 'var(--sub)' }}>❝</span>
+                            지문 (DESC)
                           </button>
-                        ))}
-                        <button onClick={() => { setSpeaker('desc'); setPickOpen(false); }}>
-                          <span className="f" style={{ display: 'grid', placeItems: 'center', color: 'var(--sub)' }}>❝</span>
-                          지문 (DESC)
-                        </button>
-                      </div>
-                    )}
+                        </div>
+                      )}
+                    </div>
+                    <KTextarea style={{ minHeight: 44 }} value={text} onChange={e => setText(e.target.value)}
+                      onFocus={() => setMFocus(true)}
+                      onBlur={() => setTimeout(() => setMFocus(false), 180)}
+                      onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} />
+                    <button className="btn btn-dark" onClick={send}>SEND</button>
                   </div>
-                  <KTextarea style={{ minHeight: 44 }} value={text} onChange={e => setText(e.target.value)}
-                    onFocus={() => setMFocus(true)}
-                    onBlur={() => setTimeout(() => setMFocus(false), 180)}
-                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} />
-                  <button className="btn btn-dark" onClick={send}>SEND</button>
-                </div>
+                ) : (
+                  <div className="rp-input-guest" style={{ padding: '14px 16px', textAlign: 'center', color: 'var(--sub)', fontSize: 12.5, borderTop: '1px solid var(--border)' }}>
+                    🔒 메시지를 작성하려면 로그인이 필요합니다.
+                  </div>
+                )
               )}
             </>
           ) : (
             <div style={{ display: 'grid', placeItems: 'center', flex: 1 }}>
-              <p className="hint">방을 개설하면 여기에 채팅이 표시됩니다</p>
+              <p className="hint">방을 개설하거나 선택하면 여기에 채팅이 표시됩니다</p>
             </div>
           )}
         </div>
@@ -470,50 +474,52 @@ ${rows}
       </div>
 
       {/* 방 개설 모달 */}
-      <Modal open={newOpen} onClose={() => setNewOpen(false)} small title="역극 방 개설"
-        desc="비참여자에게는 방의 존재가 보이지 않습니다" dirty
-        actions={<>
-          <button className="btn btn-ghost" onClick={() => setNewOpen(false)}>CANCEL</button>
-          <button className="btn btn-dark" onClick={createRoom}>ADD</button>
-        </>}>
-        <div style={{ display: 'grid', gap: 11 }}>
-          <div>
-            <label className="k-label" style={{ marginBottom: 5 }}>Title</label>
-            <KInput value={nTitle} onChange={e => setNTitle(e.target.value)} />
-          </div>
-          <div>
-            <label className="k-label" style={{ marginBottom: 5 }}>기반 자관 (선택)</label>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <KSelect value={nRel} onChange={v => { setNRel(v); setNAu('base'); }}
-                minWidth={160}
-                options={[{ value: 'none', label: '자유 개설 (자관 없음)' }, ...rels.map(r => ({ value: r.id, label: r.name }))]} />
-              {newRelAus.length > 0 && (
-                <KSelect value={nAu} onChange={setNAu} minWidth={140}
-                  options={[{ value: 'base', label: '원래 설정' },
-                    ...newRelAus.map(a => ({ value: a.id, label: a.label || 'AU' }))]} />
+      {user && (
+        <Modal open={newOpen} onClose={() => setNewOpen(false)} small title="역극 방 개설"
+          desc="비참여자에게는 방의 존재가 보이지 않습니다" dirty
+          actions={<>
+            <button className="btn btn-ghost" onClick={() => setNewOpen(false)}>CANCEL</button>
+            <button className="btn btn-dark" onClick={createRoom}>ADD</button>
+          </>}>
+          <div style={{ display: 'grid', gap: 11 }}>
+            <div>
+              <label className="k-label" style={{ marginBottom: 5 }}>Title</label>
+              <KInput value={nTitle} onChange={e => setNTitle(e.target.value)} />
+            </div>
+            <div>
+              <label className="k-label" style={{ marginBottom: 5 }}>기반 자관 (선택)</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <KSelect value={nRel} onChange={v => { setNRel(v); setNAu('base'); }}
+                  minWidth={160}
+                  options={[{ value: 'none', label: '자유 개설 (자관 없음)' }, ...rels.map(r => ({ value: r.id, label: r.name }))]} />
+                {newRelAus.length > 0 && (
+                  <KSelect value={nAu} onChange={setNAu} minWidth={140}
+                    options={[{ value: 'base', label: '원래 설정' },
+                      ...newRelAus.map(a => ({ value: a.id, label: a.label || 'AU' }))]} />
+                )}
+              </div>
+            </div>
+            <div>
+              <label className="k-label" style={{ marginBottom: 7 }}>참여 회원</label>
+              {nRel === 'none' ? (
+                <div style={{ display: 'grid', gap: 8 }}>
+                  {pool.filter(p => p.id !== user.id).map(p => (
+                    <KCheck key={p.id} label={p.nickname}
+                      checked={nMembers.includes(p.id)}
+                      onChange={v => setNMembers(ms => v ? [...ms, p.id] : ms.filter(x => x !== p.id))} />
+                  ))}
+                </div>
+              ) : (
+                <p className="hint" style={{ margin: 0 }}>
+                  {newRelGrantNames.length
+                    ? `이 자관 캐릭터에 권한이 있는 회원이 자동으로 참여합니다 — ${newRelGrantNames.join(' · ')}`
+                    : '아직 이 자관 캐릭터에 권한을 준 회원이 없습니다 — 캐릭터 수정의 「회원 권한」에서 지정하면 이 방에도 자동으로 반영됩니다'}
+                </p>
               )}
             </div>
           </div>
-          <div>
-            <label className="k-label" style={{ marginBottom: 7 }}>참여 회원</label>
-            {nRel === 'none' ? (
-              <div style={{ display: 'grid', gap: 8 }}>
-                {pool.filter(p => p.id !== user.id).map(p => (
-                  <KCheck key={p.id} label={p.nickname}
-                    checked={nMembers.includes(p.id)}
-                    onChange={v => setNMembers(ms => v ? [...ms, p.id] : ms.filter(x => x !== p.id))} />
-                ))}
-              </div>
-            ) : (
-              <p className="hint" style={{ margin: 0 }}>
-                {newRelGrantNames.length
-                  ? `이 자관 캐릭터에 권한이 있는 회원이 자동으로 참여합니다 — ${newRelGrantNames.join(' · ')}`
-                  : '아직 이 자관 캐릭터에 권한을 준 회원이 없습니다 — 캐릭터 수정의 「회원 권한」에서 지정하면 이 방에도 자동으로 반영됩니다'}
-              </p>
-            )}
-          </div>
-        </div>
-      </Modal>
+        </Modal>
+      )}
 
       {/* 메시지 수정 모달 */}
       <Modal open={editMsg !== null} onClose={() => setEditMsg(null)} small title="메시지 수정" dirty
