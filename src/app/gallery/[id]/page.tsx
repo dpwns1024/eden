@@ -22,14 +22,54 @@ export default function BackupDetailPage() {
   const [cur, setCur] = useState(0);
   const [delAsk, setDelAsk] = useState(false);
   const [lbOpen, setLbOpen] = useState(false); // 단일형 — 클릭 확대 보기
-  const { st: boardSet } = useBoardSettings(); // 유형 뱃지 색 (환경설정 > 게시판 관리)
+  const { st: boardSet } = useBoardSettings(); // 환경설정 > 게시판 관리 설정
 
   const p = posts.find(x => x.id === id);
-  /* 이 글이 속한 곳이 비공개면 주소로 들어와도 열리지 않게 (v2.0 사용자 요청).
-     글 주소에는 섹션이 없어 MenuGuard가 못 막는다 — 글을 읽어 소속을 알아낸 여기서 판정한다.
-     **다른 early return보다 먼저 불러야 한다**(훅이므로 렌더마다 개수가 같아야 한다) */
+
+  // 말머리 설정 탐색 및 알약 모양 배경/테두리 스타일 적용
+  const findPrefixBadge = (cat?: string) => {
+    if (!cat || !boardSet) return undefined;
+    let found: any = undefined;
+    const search = (obj: any) => {
+      if (!obj || found) return;
+      if (Array.isArray(obj)) {
+        for (const item of obj) {
+          if (item && typeof item === 'object' && (item.label === cat || item.name === cat || item.id === cat)) {
+            found = item;
+            return;
+          }
+          search(item);
+        }
+      } else if (typeof obj === 'object') {
+        for (const k of Object.keys(obj)) search(obj[k]);
+      }
+    };
+    search(boardSet);
+    return found;
+  };
+
+  const getPrefixStyle = (cat?: string) => {
+    const b = findPrefixBadge(cat);
+    const customStyle = b ? boardBadgeStyle(b) : {};
+    return {
+      backgroundColor: b?.bg || b?.backgroundColor || '#eef0f2',
+      borderColor: b?.border || b?.borderColor || '#607ca0',
+      color: b?.color || b?.textColor || '#607ca0',
+      borderWidth: '1px',
+      borderStyle: 'solid',
+      borderRadius: '12px',
+      padding: '2px 10px',
+      fontSize: '11px',
+      fontWeight: 600,
+      display: 'inline-flex',
+      alignItems: 'center',
+      lineHeight: '1.2',
+      ...customStyle,
+    };
+  };
+
+  /* 이 글이 속한 곳이 비공개면 주소로 들어와도 열리지 않게 (v2.0 사용자 요청) */
   const blocked = useHrefBlock(p && sectionHref('gallery', p.secId ?? MAIN_SEC));
-  // 큰 글씨 — 추가 섹션이면 그 이름, 눌렀을 때도 그 목록으로 (v2.0 사용자 제보)
   const tt = useSectionTitle('gallery', p?.secId, 'GALLERY');
   if (blocked) return blocked;
   if (!loaded) return <section className="page" />;
@@ -44,18 +84,12 @@ export default function BackupDetailPage() {
   const imgs: { url?: string; ph?: string }[] = p.images.length
     ? p.images.map(u => ({ url: u }))
     : p.phList.map(c => ({ ph: c }));
-  /* 글쓴이 확인 (v2.0 발견) — **둘 다 없을 때 같다고 보면 안 된다.**
-     예전 글이나 손님이 쓴 글은 authorId가 없는데, 비로그인 방문자도 user?.id가 없어
-     `undefined === undefined`로 통과했다 — 아무나 남의 글을 고치고 지울 수 있었다 */
+
   const canManage = isAdmin || (!!p.authorId && p.authorId === user?.id);
 
-  // 파일 id/URL 모두 지원 — blobStore에서 로드 (새로고침에도 유지)
-  // natural: 고정 프레임 안에서 확대 없이 원본 크기 그대로 가운데 (단일형 — 프레임보다 크면 축소만)
   const Img = ({ im, ratio, natural }: { im: { url?: string; ph?: string }; ratio?: string; natural?: boolean }) => {
     const u = useBlobUrl(im.url);
     if (u) {
-      // eslint-disable-next-line @next/next/no-img-element
-      // 원본보다 크게 늘리지 않는다 — 폭이 모자랄 때만 줄이고, 작은 그림은 작은 그대로 (v2.0 사용자 확정)
       return <img src={u} alt="" style={natural
         ? { maxWidth: '100%', maxHeight: '100%', display: 'block' }
         : { maxWidth: '100%', height: 'auto', display: 'block', margin: '0 auto' }} />;
@@ -70,7 +104,6 @@ export default function BackupDetailPage() {
         <PageTitle href={tt.href}>{tt.title}</PageTitle>
         <p>
           {p.category} · {p.author} · {fmtDate(p.date)}{p.madeDate ? ` · 제작 ${p.madeDate}` : ''}
-          {/* 태그 (v2.0 사용자 요청) — 목록과 같은 표기 */}
           {(p.tags ?? []).map(t => <i key={t} className="tag-in">#{t}</i>)}
         </p>
         <div className="head-actions">
@@ -79,14 +112,15 @@ export default function BackupDetailPage() {
         </div>
       </div>
 
-      {/* 본문만 폭 제한 — 헤더는 풀폭 위치 유지 */}
       <div className="panel" style={{ padding: 20, maxWidth: 960, margin: '0 auto' }}>
-        {/* 제목·뱃지 세로 중앙 정렬 + 아래 여백 확보 */}
+        {/* 제목 옆에 갤러리 유형(단일) 대신 말머리(p.category) 뱃지와 설정한 색상 노출 */}
         <h2 style={{ fontSize: 18, marginBottom: p.desc ? 8 : 16, display: 'flex', alignItems: 'center', gap: 8 }}>
           {p.title}
-          <span style={boardBadgeStyle(boardSet.gallery.find(b => b.id === p.type))}>
-            {boardSet.gallery.find(b => b.id === p.type)?.label}
-          </span>
+          {p.category && (
+            <span style={getPrefixStyle(p.category)}>
+              {p.category}
+            </span>
+          )}
         </h2>
         {p.desc && (
           <div className="post-body" style={{ fontSize: 12.5, margin: '0 0 16px' }}
@@ -94,12 +128,10 @@ export default function BackupDetailPage() {
         )}
 
         {p.type === 'log' ? (
-          /* 로그형 — 웹툰식 세로 스크롤 · 이미지 사이 틈 없이 이어 붙임 (만화 연결) */
           <div style={{ borderRadius: 10, overflow: 'hidden' }}>
             {imgs.map((im, i) => <Img key={i} im={im} />)}
           </div>
         ) : p.type === 'vlist' ? (
-          /* 단일(세로정렬) (v1.9) — 로그와 달리 이미지 사이 갭을 두고 세로로 나열, 클릭 확대 */
           <div style={{ display: 'grid', gap: 14 }}>
             {imgs.map((im, i) => (
               <div key={i} style={{ borderRadius: 10, overflow: 'hidden', cursor: im.url ? 'zoom-in' : undefined }}
@@ -109,11 +141,8 @@ export default function BackupDetailPage() {
             ))}
           </div>
         ) : (
-          /* 단일형 — 큰 이미지 + 좌우 넘김 + 썸네일 스트립 */
           <>
             <div className="single-viewer">
-              {/* 고정 16:10 프레임 안 가운데 배치 — 실제 이미지일 때만 클릭 확대.
-                  grid는 암시적 row가 콘텐츠 높이로 늘어나 max-height:100%가 무력화됨(세로 긴 그림 잘림) → flex (v1.9) */}
               <div style={{
                 position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 cursor: imgs[cur].url ? 'zoom-in' : undefined,
@@ -143,7 +172,6 @@ export default function BackupDetailPage() {
         )}
       </div>
 
-      {/* 단일형·단일(세로) 확대 보기 — 뷰어와 같은 순번에서 시작, ‹ ›로 이어 넘김 */}
       {lbOpen && (p.type === 'single' || p.type === 'vlist') && p.images.length > 0 && (
         <Lightbox srcs={p.images} index={cur} onClose={() => setLbOpen(false)} />
       )}
