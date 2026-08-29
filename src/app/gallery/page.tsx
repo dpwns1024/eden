@@ -35,30 +35,38 @@ function BackupPageInner() {
 
   const { st: boardSet } = useBoardSettings();
 
-  // 말머리 색상/스타일 정보 정밀 탐색
+  // 말머리 설정 탐색 및 알약 모양 배경/테두리 스타일 보장
   const findPrefixBadge = (cat?: string) => {
     if (!cat || !boardSet) return undefined;
-    const all: any[] = [];
-    const collect = (val: any) => {
-      if (!val) return;
-      if (Array.isArray(val)) val.forEach(v => collect(v));
-      else if (typeof val === 'object') Object.values(val).forEach(v => collect(v));
+    let found: any = undefined;
+    const search = (obj: any) => {
+      if (!obj || found) return;
+      if (Array.isArray(obj)) {
+        for (const item of obj) {
+          if (item && typeof item === 'object' && (item.label === cat || item.name === cat || item.id === cat)) {
+            found = item;
+            return;
+          }
+          search(item);
+        }
+      } else if (typeof obj === 'object') {
+        for (const k of Object.keys(obj)) search(obj[k]);
+      }
     };
-    collect((boardSet as any).prefixes);
-    collect((boardSet as any).galleryPrefixes);
-    collect((boardSet as any).categories);
-    return all.find(b => b && typeof b === 'object' && (b.label === cat || b.name === cat || b.id === cat));
+    search(boardSet);
+    return found;
   };
 
   const getPrefixStyle = (cat?: string) => {
     const b = findPrefixBadge(cat);
-    if (!b) return {};
-    const base = boardBadgeStyle(b);
+    const customStyle = b ? boardBadgeStyle(b) : {};
     return {
-      ...base,
-      backgroundColor: b.bg || b.backgroundColor || base.backgroundColor,
-      borderColor: b.border || b.borderColor || base.borderColor,
-      color: b.color || b.textColor || base.color,
+      backgroundColor: b?.bg || b?.backgroundColor || '#eef0f2',
+      borderColor: b?.border || b?.borderColor || '#607ca0',
+      color: b?.color || b?.textColor || '#607ca0',
+      borderWidth: '1px',
+      borderStyle: 'solid',
+      ...customStyle,
     };
   };
 
