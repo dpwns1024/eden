@@ -122,5 +122,34 @@ export function rpHasNew(r: RpRoom, userId: string, msgs: RpMessage[]): boolean 
   return msgs.some(m => m.authorId !== userId && m.date > seen);
 }
 
-/* ---------- 시드 (프로토타입 데모 계승 — admin·guest 참여) ---------- */
-export const RP_SEED: RpRoom[] = [];
+/* ---------- 시드 (샘플 공개 방 포함) ---------- */
+export const RP_SEED: RpRoom[] = [
+  {
+    id: 'sample-room-1',
+    title: '샘플 공개 역극 방',
+    status: 'done',
+    isPublic: true, // ★ 게스트(비로그인) 사용자에게 노출되는 공개 방
+    createdBy: 'admin',
+    created: '2026-08-30T00:00:00.000Z',
+    memberIds: ['admin'],
+    lastRead: {},
+    messages: [
+      {
+        id: 'msg-1',
+        kind: 'desc',
+        authorId: 'admin',
+        text: '공개된 역극 기록을 읽을 수 있는 방입니다.',
+        date: '2026-08-30T00:01:00.000Z',
+      },
+      {
+        id: 'msg-2',
+        kind: 'char',
+        charId: 'sample-char-1',
+        charOwn: true,
+        authorId: 'admin',
+        text: '비로그인 사용자도 공개 전환된 대화 내용을 자유롭게 감상할 수 있습니다.',
+        date: '2026-08-30T00:02:00.000Z',
+      },
+    ],
+  },
+];
