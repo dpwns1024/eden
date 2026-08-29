@@ -1,14 +1,35 @@
 'use client';
 // 리치 텍스트 에디터 (TipTap) — 프로필 탭 등 HTML 콘텐츠 작성용
-// 자체 스타일 툴바 (7장 — 기본 UI 금지) · 출력은 HTML, 저장 시 새니타이즈는 렌더 쪽에서 (6.3)
 import React, { useEffect, useRef, useState } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, Mark, mergeAttributes } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import { putBlob } from '@/lib/blobStore';
 import { useToast } from '@/components/ui/Toast';
 
-/** 로컬 모드용 — 파일을 그대로 본문에 심는다 (서버가 없어 올릴 곳이 없을 때) */
+// 외부 패키지 설치 없이 작동하는 자체 글자 색상 마크
+const TextColor = Mark.create({
+  name: 'textColor',
+  addAttributes() {
+    return {
+      color: {
+        default: null,
+        parseHTML: element => (element as HTMLElement).style.color || null,
+        renderHTML: attributes => {
+          if (!attributes.color) return {};
+          return { style: `color: ${attributes.color}` };
+        },
+      },
+    };
+  },
+  parseHTML() {
+    return [{ tag: 'span[style*="color"]' }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['span', mergeAttributes(HTMLAttributes), 0];
+  },
+});
+
 function toDataUrl(f: File): Promise<string> {
   return new Promise((res, rej) => {
     const r = new FileReader();
@@ -35,8 +56,15 @@ export function RichEditor({ value, onChange, placeholder }: {
   const toast = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [currentColor, setCurrentColor] = useState('#e03131');
+
   const editor = useEditor({
-    extensions: [StarterKit, Image],
+    extensions: [
+      StarterKit,
+      Image,
+      TextColor,
+    ],
     content: value || '<p></p>',
     immediatelyRender: false,
     editorProps: {
@@ -45,20 +73,14 @@ export function RichEditor({ value, onChange, placeholder }: {
     onUpdate: ({ editor: e }) => onChange(e.getHTML()),
   });
 
-  // 외부 값이 완전히 바뀐 경우(탭 전환) 동기화
   useEffect(() => {
     if (editor && value !== editor.getHTML() && !editor.isFocused) {
       editor.commands.setContent(value || '<p></p>', { emitUpdate: false });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, editor]);
 
   if (!editor) return <div className="re-wrap" style={{ minHeight: 200 }} />;
 
-  /* 이미지는 **올려서** 넣는다 (v2.0 사용자 요청 — 예전엔 URL을 직접 적게 했다).
-     다른 이미지들과 같은 경로(putBlob)를 타므로 서버 모드면 저장소에 올라가고 공개 주소가 나온다.
-     서버가 없는 로컬 모드에서는 그 주소가 이 브라우저 안에서만 뜻이 있는 파일 id라
-     <img>가 읽지 못한다 — 그때만 본문에 그대로 심는다(개발·오프라인용). */
   const insertImage = async (f?: File) => {
     if (!f) return;
     setBusy(true);
@@ -67,14 +89,21 @@ export function RichEditor({ value, onChange, placeholder }: {
       const src = /^https?:/.test(ref) ? ref : await toDataUrl(f);
       editor.chain().focus().setImage({ src }).run();
     } catch (e) {
-      // 조용히 실패하면 「올렸는데 왜 안 들어가지」가 된다 — 사유를 그대로 보여 준다
       toast(`이미지를 올리지 못했습니다 — ${e instanceof Error ? e.message : String(e)}`);
     }
     setBusy(false);
   };
 
+  const handleColorChange = (color: string) => {
+    setCurrentColor(color);
+    if (editor) {
+      editor.chain().focus().setMark('textColor', { color }).run();
+    }
+    setShowColorPicker(false);
+  };
+
   return (
-    <div className="re-wrap">
+    <div className="re-wrap" style={{ position: 'relative' }}>
       <div className="re-toolbar">
         <TBtn title="굵게" label={<b>B</b>} on={editor.isActive('bold')}
           onClick={() => editor.chain().focus().toggleBold().run()} />
@@ -82,6 +111,14 @@ export function RichEditor({ value, onChange, placeholder }: {
           onClick={() => editor.chain().focus().toggleItalic().run()} />
         <TBtn title="취소선" label={<s>S</s>} on={editor.isActive('strike')}
           onClick={() => editor.chain().focus().toggleStrike().run()} />
+        
+        {/* 글자 색상 버튼 */}
+        <TBtn
+          title="글자 색상"
+          label={<span style={{ borderBottom: `3px solid ${currentColor}`, fontWeight: 'bold' }}>A</span>}
+          onClick={() => setShowColorPicker(!showColorPicker)}
+        />
+
         <span className="re-sep" />
         <TBtn title="제목" label="H2" on={editor.isActive('heading', { level: 2 })}
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} />
@@ -100,17 +137,41 @@ export function RichEditor({ value, onChange, placeholder }: {
           onClick={() => { if (!busy) fileRef.current?.click(); }} />
         <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }}
           onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; void insertImage(f); }} />
-        {/* 실행 취소·다시 실행은 모바일에서 숨김 — 툴바가 두 줄로 넘어가 본문 영역을 침범 (v1.9 사용자 확정)
-            (단축키 Ctrl+Z / Ctrl+Shift+Z는 그대로 동작) */}
+        
         <span className="re-sep re-hide-m" />
         <span className="re-hide-m" style={{ display: 'contents' }}>
           <TBtn title="실행 취소" label="↶" onClick={() => editor.chain().focus().undo().run()} />
           <TBtn title="다시 실행" label="↷" onClick={() => editor.chain().focus().redo().run()} />
         </span>
       </div>
-      {/* 플레이스홀더는 본문 영역 기준으로 — 툴바가 두 줄이 돼도 안 밀림 (v1.9 사용자 발견) */}
+
+      {/* 팔레트 레이어 */}
+      {showColorPicker && (
+        <div style={{
+          position: 'absolute', top: 45, left: 100, zIndex: 10,
+          background: '#fff', border: '1px solid #ccc', padding: 10,
+          borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          display: 'flex', gap: 8, alignItems: 'center'
+        }}>
+          {['#17171a', '#e03131', '#2f9e44', '#1971c2', '#f59f00', '#9c36b5'].map(c => (
+            <button
+              key={c}
+              type="button"
+              style={{ width: 22, height: 22, borderRadius: '50%', backgroundColor: c, border: 'none', cursor: 'pointer' }}
+              onClick={() => handleColorChange(c)}
+            />
+          ))}
+          <input
+            type="color"
+            value={currentColor}
+            onChange={e => handleColorChange(e.target.value)}
+            style={{ width: 28, height: 28, border: 'none', cursor: 'pointer', background: 'transparent' }}
+          />
+        </div>
+      )}
+
       <div className="re-body">
-        <EditorContent editor={editor} />
+        <EditorContent editor={editor} style={{ maxHeight: '400px', overflowY: 'auto' }} />
         {placeholder && editor.isEmpty && <div className="re-ph">{placeholder}</div>}
       </div>
     </div>
