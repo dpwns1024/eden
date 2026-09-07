@@ -46,27 +46,24 @@ export function GlobalHeader() {
     return i === -1 ? 99 : i;
   };
 
-  const absMode = headerWidgets.length > 0 && headerWidgets.every(w => w.ax != null && w.ay != null);
-
-  // 헤더 내부 그리드의 전체 높이 계산 (위젯 하단 최댓값)
-  const getHeaderHeight = () => {
-    if (!absMode) return undefined;
-
+  // 모든 위젯 중 최하단 Y축 위치 계산 (헤더 최소 높이 보장)
+  const calculateTotalHeight = () => {
     let maxBottom = 0;
 
     headerWidgets.forEach(w => {
       const top = w.ay ?? 0;
-      const height = (w.type === 'menu' || (w.type as string) === 'menu_pc') ? 44 : (w.h ?? 200);
+      const isMenu = w.type === 'menu' || (w.type as string) === 'menu_pc';
+      const height = isMenu ? 44 : (w.h ?? 200);
       const bottom = top + height;
       if (bottom > maxBottom) {
         maxBottom = bottom;
       }
     });
 
-    return maxBottom > 0 ? maxBottom + 8 : undefined;
+    return maxBottom > 0 ? maxBottom + 16 : 300; // 하단 여백 포함
   };
 
-  const headerCanvasH = getHeaderHeight();
+  const headerHeight = calculateTotalHeight();
 
   return (
     <header
@@ -75,21 +72,21 @@ export function GlobalHeader() {
       style={{
         width: '100%',
         margin: '0 auto',
-        paddingTop: 'var(--main-top-gap, 16px)', // 메인 페이지와 동일한 상단 여백 보장
-        paddingBottom: 0,
+        padding: 0,
         position: 'relative',
-        zIndex: 100,
+        zIndex: 10,
+        display: 'block',
+        clear: 'both',
       }}
     >
       <div
-        className={`main-grid ${absMode ? 'abs' : ''}`}
+        className="main-grid abs"
         style={{
           position: 'relative',
           width: '100%',
+          height: `${headerHeight}px`,
           marginTop: 0,
           padding: 0,
-          paddingBottom: 0,
-          ...(headerCanvasH ? { height: `${headerCanvasH}px` } : {}),
         }}
       >
         {headerWidgets.map(w => (
