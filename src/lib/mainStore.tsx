@@ -59,13 +59,17 @@ export const WIDGET_META: Record<WidgetType, { title: string; desc: string }> = 
 /** 같은 종류를 여러 개 추가할 수 있는 위젯 (v1.9 사용자 확정 — 나머지는 하나만) */
 export const MULTI_TYPES: WidgetType[] = ['freetext', 'deco'];
 
+/** 위젯 메타데이터 안전 조회 (WIDGET_META에 없는 타입이 들어와도 title, desc 참조 에러 방지) */
+export function getWidgetMeta(type: WidgetType) {
+  return WIDGET_META[type] ?? { title: String(type ?? '위젯').toUpperCase(), desc: '' };
+}
+
 /** 위젯 표시 이름 — 중복 추가 가능한 위젯이 2개 이상이면 번호를 붙여 구분 (v1.9) */
 export function widgetLabel(widgets: WidgetConf[], w: WidgetConf): string {
   if (!w) return '위젯';
   
-  // WIDGET_META에 해당 타입이 없거나 w.type이 예외적일 때 옵셔널 체이닝과 기본값으로 안전하게 방어
-  const meta = WIDGET_META[w.type];
-  const t = meta?.title ?? (w.type ? String(w.type).toUpperCase() : '위젯');
+  const meta = getWidgetMeta(w.type);
+  const t = meta.title;
 
   if (!w.type || !MULTI_TYPES.includes(w.type)) return t;
   
