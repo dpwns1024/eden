@@ -739,7 +739,7 @@ export function renderWidget(conf: WidgetConf) {
     case 'memoboard': return <MemoBoardWidget />;
     case 'apply': return <ApplyWidget conf={conf} />;
     default: {
-      const meta = WIDGET_META && WIDGET_META[rawType];
+      const meta = typeof WIDGET_META !== 'undefined' && WIDGET_META ? WIDGET_META[rawType] : undefined;
       const metaTitle = meta?.title ?? rawType;
       return <div className="panel widget"><h4>{metaTitle}</h4></div>;
     }
