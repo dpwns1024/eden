@@ -33,13 +33,11 @@ export function GlobalHeader() {
 
   return (
     <header
-      className="global-header-wrap"
+      className="global-header-wrap page"
       onClick={() => setCtx(null)}
       style={{
         width: '100%',
-        maxWidth: '1200px',
         margin: '0 auto 12px auto',
-        padding: '0 16px',
         display: 'flex',
         flexDirection: 'column',
         gap: 10,
@@ -50,8 +48,10 @@ export function GlobalHeader() {
       {topBanner.map(w => (
         <div
           key={w.id}
-          className={`global-wgt-item ${getWidgetClass(w.type)}`}
+          data-wid={w.id}
+          className={`wgt wgt-banner ${getWidgetClass(w.type)}`}
           onContextMenu={e => handleContextMenu(e, w.id)}
+          style={{ width: '100%', position: 'relative' }}
         >
           {renderWidget(w)}
         </div>
@@ -60,8 +60,10 @@ export function GlobalHeader() {
       {topMenu.map(w => (
         <div
           key={w.id}
-          className={`global-wgt-item ${getWidgetClass(w.type)}`}
+          data-wid={w.id}
+          className={`wgt wgt-menu ${getWidgetClass(w.type)}`}
           onContextMenu={e => handleContextMenu(e, w.id)}
+          style={{ width: '100%', position: 'relative' }}
         >
           {renderWidget(w)}
         </div>
