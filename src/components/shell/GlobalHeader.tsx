@@ -46,21 +46,21 @@ export function GlobalHeader() {
     return i === -1 ? 99 : i;
   };
 
-  // [수정 포인트 1] 서브 페이지에서 높이 값이 튀거나 찌그러지지 않도록 안전하게 고정
+  // 메인 페이지와 동일한 배너 및 헤더 높이 수치 보장
   const calculateTotalHeight = () => {
     let maxBottom = 0;
 
     headerWidgets.forEach(w => {
       const top = w.ay ?? 0;
       const isMenu = w.type === 'menu' || (w.type as string) === 'menu_pc';
-      const height = isMenu ? 44 : (w.h ?? 280); 
+      const height = isMenu ? 44 : (w.h ?? 320); 
       const bottom = top + height;
       if (bottom > maxBottom) {
         maxBottom = bottom;
       }
     });
 
-    return maxBottom > 0 ? maxBottom : 300;
+    return maxBottom > 0 ? maxBottom : 360; 
   };
 
   const headerHeight = calculateTotalHeight();
@@ -70,7 +70,8 @@ export function GlobalHeader() {
       className="global-header-wrap page"
       onClick={() => setCtx(null)}
       style={{
-        width: '100%',
+        width: '100vw',
+        maxWidth: '100%',
         margin: '0 auto',
         padding: 0,
         position: 'relative',
@@ -79,7 +80,6 @@ export function GlobalHeader() {
         clear: 'both',
       }}
     >
-      {/* [수정 포인트 2] overflow: 'hidden'을 추가하여 서브 페이지에서 내부 요소가 튀어나가 위치가 어긋나는 현상 원천 차단 */}
       <div
         className="main-grid abs"
         style={{
@@ -89,7 +89,6 @@ export function GlobalHeader() {
           minHeight: `${headerHeight}px`,
           marginTop: 0,
           padding: 0,
-          overflow: 'hidden', 
         }}
       >
         {headerWidgets.map(w => (
