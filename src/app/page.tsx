@@ -112,7 +112,7 @@ export default function MainPage() {
     ? Math.max(400, ...enabled.map(w => (w.ay ?? 0) + (w.h ?? 200))) + 40
     : undefined;
 
-  // 상단 고정 처리할 위젯 구별
+  // 상단 고정 대상 위젯 구별 변수 정의
   const isTopWidget = (w: WidgetConf) => w.type === 'banner' || w.type === 'menu' || w.type === 'menu_pc';
   const topBanner = enabled.filter(w => w.type === 'banner');
   const topMenu = enabled.filter(w => w.type === 'menu' || w.type === 'menu_pc');
