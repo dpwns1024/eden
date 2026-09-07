@@ -1,6 +1,6 @@
 'use client';
 
-// 상단 바 — 우측 알림(종) · 프로필만 남긴 완전 투명 헤더 (+ 편집모드 토글 복원)
+// 상단 바 — 우측 알림(종) · 프로필 + 위젯/그리드/편집 플래그 유지 완전 투명 헤더
 import React, { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
@@ -23,7 +23,7 @@ const BellIcon = () => (
 
 export function TopBar() {
   const { user, isAdmin, logout } = useAuth();
-  const { editOn, editAvailable, toggleEdit } = useMainStore();
+  const { editOn, editAvailable, gridOn, setGridOn, toggleEdit, requestExit } = useMainStore();
   const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -43,7 +43,7 @@ export function TopBar() {
     return () => document.removeEventListener('mousedown', close);
   }, [menuOpen, notifOpen]);
 
-  // 알림 (4.13) — 발생 지점의 커스텀 이벤트로 갱신
+  // 알림 — 발생 지점의 커스텀 이벤트로 갱신
   const [notifs, setNotifs] = useState<Notif[]>([]);
   const [notifVer, setNotifVer] = useState(0);
   useEffect(() => {
@@ -85,6 +85,12 @@ export function TopBar() {
     <header
       className="topbar"
       style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
+        width: '100%',
         background: 'transparent',
         backgroundColor: 'transparent',
         boxShadow: 'none',
@@ -97,8 +103,33 @@ export function TopBar() {
         display: 'flex',
         justifyContent: 'flex-end',
         alignItems: 'center',
+        gap: '8px',
       }}
     >
+      {/* 위젯 추가 — 메인에서 편집모드일 때 */}
+      {editOn && pathname === '/' && (
+        <button
+          className="btn btn-ghost"
+          style={{ height: 27, padding: '0 11px', fontSize: 10.5, whiteSpace: 'nowrap' }}
+          onClick={() => window.dispatchEvent(new Event('ohome-add-widget'))}
+        >
+          ＋ 위젯
+        </button>
+      )}
+
+      {/* 그리드 토글 — 메인에서 편집모드일 때 */}
+      <KToggle
+        className={`grid-chip ${editOn && pathname === '/' ? 'show' : ''}`}
+        label="그리드"
+        checked={gridOn}
+        onChange={setGridOn}
+      />
+
+      {/* 편집중 표시 — 클릭 시 종료 확인 */}
+      <span className={`edit-flag ${editOn ? 'show' : ''}`} onClick={() => requestExit()}>
+        ✎ 편집중
+      </span>
+
       {/* 사용자 영역 — 비로그인: 로그인 버튼 / 로그인: 알림 + 프로필 드롭다운 */}
       {user ? (
         <div className="user-wrap" ref={userRef}>
