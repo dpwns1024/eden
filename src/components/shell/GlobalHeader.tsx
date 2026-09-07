@@ -48,40 +48,26 @@ export function GlobalHeader() {
 
   const absMode = headerWidgets.length > 0 && headerWidgets.every(w => w.ax != null && w.ay != null);
 
-  // 메뉴 버튼 시작 Y 위치 및 하단 위치 측정
-  const menuYList = topMenu.map(w => w.ay ?? 0);
-  const minMenuY = menuYList.length > 0 ? Math.min(...menuYList) : null;
-
-  const menuBottomList = topMenu.map(w => (w.ay ?? 0) + (w.h && w.h < 100 ? w.h : 44));
-  const maxMenuBottom = menuBottomList.length > 0 ? Math.max(...menuBottomList) : null;
-
-  // 헤더 전체 높이 (메뉴 하단선 + 여백 8px)
+  // 위젯 변경 없이 실제 배치된 위젯들의 하단 최댓값(Bottom)을 측정해서 헤더 높이로 지정
   const getHeaderHeight = () => {
     if (!absMode) return undefined;
-    if (maxMenuBottom !== null) {
-      return maxMenuBottom + 8;
-    }
-    if (topBanner.length > 0) {
-      return Math.max(...topBanner.map(w => (w.ay ?? 0) + (w.h ?? 200)));
-    }
-    return undefined;
+
+    let maxBottom = 0;
+
+    headerWidgets.forEach(w => {
+      const top = w.ay ?? 0;
+      // 메뉴는 44px 고정, 배너 등 기타 위젯은 원래 설정된 높이(w.h) 사용
+      const height = (w.type === 'menu' || (w.type as string) === 'menu_pc') ? 44 : (w.h ?? 200);
+      const bottom = top + height;
+      if (bottom > maxBottom) {
+        maxBottom = bottom;
+      }
+    });
+
+    return maxBottom > 0 ? maxBottom + 8 : undefined;
   };
 
   const headerCanvasH = getHeaderHeight();
-
-  // 배너가 길어져서 메뉴를 침범하지 않도록 높이를 메뉴 위치에 맞게 자동 커스텀
-  const getAdjustedConf = (w: WidgetConf): WidgetConf => {
-    if (w.type === 'banner' && minMenuY !== null) {
-      const bannerTop = w.ay ?? 0;
-      // 메뉴 시작선 + 16px (메인 페이지처럼 살짝 겹치는 정도)
-      const targetH = Math.max(minMenuY - bannerTop + 16, 100);
-      return { ...w, h: targetH };
-    }
-    if (w.type === 'menu' || (w.type as string) === 'menu_pc') {
-      return { ...w, h: w.h && w.h < 100 ? w.h : 44 };
-    }
-    return w;
-  };
 
   return (
     <header
@@ -107,26 +93,23 @@ export function GlobalHeader() {
           ...(headerCanvasH ? { height: `${headerCanvasH}px` } : {}),
         }}
       >
-        {headerWidgets.map(w => {
-          const confToUse = getAdjustedConf(w);
-          return (
-            <WidgetFrame
-              key={w.id}
-              conf={confToUse}
-              mobileOrder={mOrder(w.id)}
-              className={getWidgetClass(w.type)}
-              onCtx={(id, x, y) => {
-                if (state.widgets.find(v => v.id === id)?.z == null) {
-                  const zs = enabled.map(v => v.z ?? 0);
-                  updateWidget(id, { z: Math.max(...zs, 0) + 1 });
-                }
-                setCtx({ id, x, y });
-              }}
-            >
-              {renderWidget(w)}
-            </WidgetFrame>
-          );
-        })}
+        {headerWidgets.map(w => (
+          <WidgetFrame
+            key={w.id}
+            conf={w}
+            mobileOrder={mOrder(w.id)}
+            className={getWidgetClass(w.type)}
+            onCtx={(id, x, y) => {
+              if (state.widgets.find(v => v.id === id)?.z == null) {
+                const zs = enabled.map(v => v.z ?? 0);
+                updateWidget(id, { z: Math.max(...zs, 0) + 1 });
+              }
+              setCtx({ id, x, y });
+            }}
+          >
+            {renderWidget(w)}
+          </WidgetFrame>
+        ))}
       </div>
 
       {ctx && (() => {
