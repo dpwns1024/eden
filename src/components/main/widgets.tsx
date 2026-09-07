@@ -63,27 +63,38 @@ export function BannerWidget({ conf }: { conf: WidgetConf }) {
   return (
     <div className="banner" style={{ cursor: s?.link && !editOn ? 'pointer' : undefined }} onClick={go}>
       <style>{`
-        /* 모바일 반응형 배너 비율 및 높이 보정 */
+        /* 배너 스타일 및 완벽 비율 보정 */
+        .banner {
+          position: relative !important;
+          width: 100% !important;
+          aspect-ratio: 16 / 9 !important;
+          border-radius: var(--radius, 12px) !important;
+          overflow: hidden !important;
+          background: rgba(0, 0, 0, 0.03);
+        }
+        .banner .slide {
+          position: absolute !important;
+          inset: 0 !important;
+          width: 100% !important;
+          height: 100% !important;
+        }
+        /* CroppedBlobImg 및 내부 모든 이미지/자식 요소 가득 채우기 (여백 완전히 제거) */
+        .banner .slide img,
+        .banner .slide canvas,
+        .banner .slide div,
+        .banner .slide > * {
+          width: 100% !important;
+          height: 100% !important;
+          object-fit: cover !important;
+          display: block !important;
+        }
+
         @media (max-width: 768px) {
+          /* 모바일 화면에서 배너를 최상단으로 우선 끌어올림 */
+          div:has(> .banner),
           .banner {
-            position: relative !important;
-            width: 100% !important;
-            aspect-ratio: 16 / 8 !important;
-            min-height: 140px !important;
-            margin: 0 auto 12px auto !important;
-            border-radius: var(--radius, 12px) !important;
-            overflow: hidden !important;
-          }
-          .banner .slide {
-            position: absolute !important;
-            inset: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-          }
-          .banner .slide img {
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: cover !important;
+            order: -1 !important;
+            margin-bottom: 12px !important;
           }
         }
       `}</style>
@@ -221,7 +232,7 @@ export function MenuListWidget() {
           color: var(--submenu-hover-color, var(--sub-hover, #000000));
         }
 
-        /* 모바일 모드 최적화 (숨김 해제 및 반응형 사이즈) */
+        /* 모바일 최적화 및 중복 메뉴 자동 숨김 */
         @media (max-width: 768px) {
           .pc-menu-widget {
             display: flex !important;
@@ -231,6 +242,11 @@ export function MenuListWidget() {
           .pc-menu-widget .menu-pill {
             padding: 6px 13px !important;
             font-size: 12px !important;
+          }
+          /* 위젯 설정상 동일 화면 내 중복 생성된 두 번째 메뉴 위젯 숨김 */
+          div:has(> .pc-menu-widget) ~ div:has(> .pc-menu-widget),
+          .pc-menu-widget ~ .pc-menu-widget {
+            display: none !important;
           }
         }
       `}</style>
