@@ -1,5 +1,4 @@
 'use client';
-
 // 메인 위젯 렌더러 (4.0) — DIARY/LATEST/UPCOMING 등은 해당 기능(2·3차) 전까지 데모 데이터
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -101,33 +100,37 @@ export function BannerWidget({ conf }: { conf: WidgetConf }) {
   );
 }
 
-/* ---------- 메뉴리스트 (모바일/PC 공용 렌더러) ---------- */
-export function MenuListWidget({ conf }: { conf?: WidgetConf } = {}) {
+/* ---------- 메뉴리스트 (모바일 / PC 공용 위젯) ---------- */
+export function MenuListWidget() {
   const router = useRouter();
   const [open, setOpen] = useState<string | null>(null);
   const [menuSet, , menuLoaded] = useMenuSettings(); // 메뉴 관리 (5.2) 반영
   const { boards, loaded: boardsLoaded } = useBoards(); // 다중 게시판 (5.2)
   const { user: wUser, isAdmin: wIsAdmin } = useAuth(); // 공개범위 필터 (v1.9)
-  const { map: wSecMap } = useSections();      // 여러 개로 만든 섹션 (v2.0 — 빠져 있었다)
+  const { map: wSecMap } = useSections();     // 여러 개로 만든 섹션 (v2.0)
   const { links: wLinks } = useCustomLinks();  // 커스텀 링크 (v2.0)
 
-  const isPc = conf?.type === 'menu_pc';
+  const menuItems = menuLoaded && boardsLoaded
+    ? buildMenu(menuSet, [...boardEntries(boards), ...sectionMenuEntries(wSecMap), ...linkEntries(wLinks)], { loggedIn: !!wUser, isAdmin: wIsAdmin })
+    : [];
 
   return (
-    <div className={`panel menu-list ${isPc ? 'wgt-menu-pc' : 'wgt-menu'}`}>
-      {(menuLoaded && boardsLoaded
-        ? buildMenu(menuSet, [...boardEntries(boards), ...sectionMenuEntries(wSecMap), ...linkEntries(wLinks)], { loggedIn: !!wUser, isAdmin: wIsAdmin })
-        : []).map(m =>
-        m.children ? (
-          <div key={m.label} className={`mgrp ${open === m.label ? 'open' : ''}`}>
-            <a onClick={() => setOpen(o => (o === m.label ? null : m.label))}>{m.label}</a>
-            <div className="msub">
-              {m.children.map(c => <a key={c.href} onClick={() => router.push(c.href)}>{c.label}</a>)}
+    <div className="panel menu-list wgt-menu">
+      {menuItems.length > 0 ? (
+        menuItems.map(m =>
+          m.children ? (
+            <div key={m.label} className={`mgrp ${open === m.label ? 'open' : ''}`}>
+              <a onClick={() => setOpen(o => (o === m.label ? null : m.label))}>{m.label}</a>
+              <div className="msub">
+                {m.children.map(c => <a key={c.href} onClick={() => router.push(c.href)}>{c.label}</a>)}
+              </div>
             </div>
-          </div>
-        ) : (
-          <a key={m.label} onClick={() => router.push(m.href!)}>{m.label}</a>
+          ) : (
+            <a key={m.label} onClick={() => router.push(m.href!)}>{m.label}</a>
+          )
         )
+      ) : (
+        <p className="hint">등록된 메뉴가 없습니다</p>
       )}
     </div>
   );
@@ -166,17 +169,15 @@ export function DiaryWidget() {
   const { user, isAdmin } = useAuth();
   const [posts] = useLocalList<DiaryPost>('ohome.diary.v1', DIARY_SEED);
   const [moods] = useLocalList<Mood>('ohome.moods.v1', MOOD_SEED);
-  // 메뉴에서 비공개로 둔 다이어리는 위젯에도 안 나온다 (v2.0 사용자 발견 — 위젯으로 새던 것)
   const [menuSet] = useMenuSettings();
   const viewer = { loggedIn: !!user, isAdmin };
   const canSee = canViewHref(menuSet, '/diary', viewer);
-  // 비공개 일기는 위젯에 절대 노출되지 않음 — 관리자여도 (4.14)
   const latest = posts
     .filter(p => canViewHref(menuSet, sectionHref('diary', p.secId ?? MAIN_SEC), viewer))
     .filter(p => p.visibility === 'public' || (p.visibility === 'member' && !!user))
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 3);
-  if (!canSee) return null;   // 메뉴가 비공개면 위젯 자체를 띄우지 않는다 (v2.0)
+  if (!canSee) return null;   // 메뉴가 비공개면 위젯 자체를 띄우지 않는다
   return (
     <div className="panel widget" style={{ margin: 0 }}>
       <h4>DIARY <span className="more" onClick={() => router.push('/diary')}>더보기 ›</span></h4>
@@ -200,8 +201,6 @@ export function LatestWidget() {
   const { user, isAdmin } = useAuth();
   const [roads] = useLocalList<RoadItem>('ohome.road.v1', ROAD_SEED);
   const [backups] = useLocalList<BackupPost>('ohome.backup.v1', BACKUP_SEED);
-  /* 메뉴에서 비공개로 둔 곳은 빼고 모은다 (v2.0 사용자 발견) — 로드비와 갤러리를 함께 보여 주는
-     위젯이라 **소스별로** 따진다. 한쪽만 비공개면 나머지는 그대로 나온다. */
   const [menuSet] = useMenuSettings();
   const viewer = { loggedIn: !!user, isAdmin };
   const seeRoad = canViewHref(menuSet, '/loadb', viewer);
@@ -211,7 +210,6 @@ export function LatestWidget() {
       id: `r-${it.id}`, date: it.date, ref: it.imgId ?? it.imgUrl, ph: it.ph,
       href: '/loadb', tip: `로드비 · No.${String(it.no ?? 0).padStart(3, '0')}`,
     })),
-    // 갤러리 — 전체공개 + 접기 없는 게시물의 대표(첫) 이미지
     ...(seeGal ? backups : [])
       .filter(p => canViewHref(menuSet, sectionHref('gallery', p.secId ?? MAIN_SEC), viewer))
       .filter(p => p.visibility === 'public' && !p.fold).map(p => ({
@@ -220,7 +218,7 @@ export function LatestWidget() {
     })),
   ].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
   const phFallback = ['cool', 'warm', 'red'];
-  if (!seeRoad && !seeGal) return null;   // 둘 다 비공개면 위젯 자체를 띄우지 않는다 (v2.0)
+  if (!seeRoad && !seeGal) return null;   // 둘 다 비공개면 위젯 자체를 띄우지 않는다
   return (
     <div className="panel widget" style={{ margin: 0 }}>
       <h4>LATEST <span className="more" onClick={() => router.push('/gallery')}>더보기 ›</span></h4>
@@ -245,7 +243,6 @@ function ddayLabel(date: string, plusOne?: boolean): { label: string; passed: bo
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const d = new Date(date + 'T00:00:00');
   const diff = Math.round((d.getTime() - today.getTime()) / 86400000);
-  // +1 Day: 시작일을 1일로 세는 기념일 카운트 (커플 기념일 등) — 당일 = D+1
   if (plusOne && diff <= 0) return { label: `D+${-diff + 1}`, passed: true, near: false };
   if (diff === 0) return { label: 'D-DAY', passed: false, near: true };
   return diff > 0
@@ -259,11 +256,9 @@ export function DdayWidget({ conf }: { conf: WidgetConf }) {
   const { familyOf } = useFonts();
   const [open, setOpen] = useState(false);
   const items = (conf.settings.items as DdayItem[]) ?? [];
-  // 날짜 표시(D-2·D+3 등) 폰트·색 — 미지정이면 기존 세리프 기본값 그대로 (v2.0 사용자 요청)
-  // 'serif'는 폰트 라이브러리의 실제(잠금) 폰트라 편집기의 기본 옵션과 값이 늘 일치한다
   const dFontId = (conf.settings.fontId as string | undefined) ?? 'serif';
   const dColor = conf.settings.color as string | undefined;
-  useEditEvent(conf.id, () => setOpen(true));   // 편집모드 우클릭 → 설정 (v1.9)
+  useEditEvent(conf.id, () => setOpen(true));   // 편집모드 우클릭 → 설정
   return (
     <div className="panel widget" style={{ cursor: isAdmin ? 'pointer' : undefined }}
       onClick={e => { if ((e.target as HTMLElement).closest('.modal-ov')) return; if (isAdmin && !editOn) setOpen(true); }}>
@@ -295,7 +290,7 @@ export function TodoWidget({ conf }: { conf: WidgetConf }) {
   const { editOn, updateWidget } = useMainStore();
   const [open, setOpen] = useState(false);
   const items = (conf.settings.items as TodoSetItem[]) ?? [];
-  useEditEvent(conf.id, () => setOpen(true));   // 편집모드 우클릭 → 설정 (v1.9)
+  useEditEvent(conf.id, () => setOpen(true));
 
   const setItems = (next: TodoSetItem[]) => {
     updateWidget(conf.id, { settings: { ...conf.settings, items: next } }, { persist: true });
@@ -334,10 +329,7 @@ export function TodoWidget({ conf }: { conf: WidgetConf }) {
 export function UpcomingWidget() {
   const router = useRouter();
   const { user, isAdmin } = useAuth();
-  const { st } = useSched();   // 인자 없이 = 모든 스케줄러 (v2.0 — 어느 것이든 다가오는 일정은 다가온다)
-  /* 메뉴에서 비공개로 둔 스케줄러는 위젯에도 안 나온다 (v2.0).
-     스케줄러를 여러 개 만들 수 있으므로 **일정마다 그 스케줄러 기준**으로 따지고,
-     볼 수 있는 스케줄러가 하나도 없을 때만 위젯을 통째로 감춘다. */
+  const { st } = useSched();
   const [menuSet] = useMenuSettings();
   const { list } = useSections();
   const viewer = { loggedIn: !!user, isAdmin };
@@ -345,7 +337,6 @@ export function UpcomingWidget() {
   const canSee = list('sched').some(s => seeSec(s.id));
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-  // 오늘 포함 이후 일정 — 매년 반복은 올해 날짜로 환산해 가장 가까운 3개
   const upcoming = st.events
     .filter(e => seeSec(e.secId))
     .filter(e => isAdmin || e.visibility === 'public' || (e.visibility === 'member' && !!user))
@@ -360,7 +351,7 @@ export function UpcomingWidget() {
     .filter(x => x.d >= todayStr)
     .sort((a, b) => a.d.localeCompare(b.d))
     .slice(0, 3);
-  if (!canSee) return null;   // 메뉴가 비공개면 위젯 자체를 띄우지 않는다 (v2.0)
+  if (!canSee) return null;
   return (
     <div className="panel widget" style={{ cursor: 'var(--cur-pointer,pointer)' }} onClick={() => router.push('/cal')}>
       <h4>UPCOMING <span className="more">더보기 ›</span></h4>
@@ -464,7 +455,6 @@ export function DecoWidget({ conf }: { conf: WidgetConf }) {
     const t = setInterval(() => setIdx(i => (i + 1) % slides.length), Math.max(1, sec) * 1000);
     return () => clearInterval(t);
   }, [slides.length, sec, editOn, open]);
-
   useEffect(() => { if (idx >= slides.length) setIdx(0); }, [slides.length, idx]);
   useEditEvent(conf.id, () => setOpen(true));
 
@@ -476,7 +466,6 @@ export function DecoWidget({ conf }: { conf: WidgetConf }) {
       else router.push(l);
     }
   };
-
   return (
     <div className="deco-wgt"
       style={{
@@ -512,7 +501,7 @@ export function DecoWidget({ conf }: { conf: WidgetConf }) {
   );
 }
 
-/* ---------- 스티커 메모 미니보드 (4.6) ---------- */
+/* ---------- 스티커 메모 미니보드 (4.6) — 읽기 전용 축소 보드, 클릭 시 /memo ---------- */
 export function MemoBoardWidget() {
   const router = useRouter();
   const { user, isAdmin } = useAuth();
@@ -602,15 +591,10 @@ export function ApplyWidget({ conf }: { conf: WidgetConf }) {
 
 /* ---------- 타입 → 렌더러 ---------- */
 export function renderWidget(conf: WidgetConf) {
-  if (!conf || !conf.type) return null;
-
-  // TypeScript 객체 인덱싱 타입 에러 방지 안전 캐스팅
-  const metaMap = WIDGET_META as Record<string, { title?: string }>;
-
   switch (conf.type) {
     case 'banner': return <BannerWidget conf={conf} />;
     case 'menu':
-    case 'menu_pc': return <MenuListWidget conf={conf} />;
+    case 'menu_pc': return <MenuListWidget />; // menu_pc 타입 핸들러 추가
     case 'memo': return <MemoWidget conf={conf} />;
     case 'diary': return <DiaryWidget />;
     case 'latest': return <LatestWidget />;
@@ -621,8 +605,6 @@ export function renderWidget(conf: WidgetConf) {
     case 'deco': return <DecoWidget conf={conf} />;
     case 'memoboard': return <MemoBoardWidget />;
     case 'apply': return <ApplyWidget conf={conf} />;
-    default: return <div className="panel widget"><h4>{metaMap[conf.type]?.title ?? conf.type}</h4></div>;
+    default: return <div className="panel widget"><h4>{WIDGET_META[conf.type]?.title ?? conf.type}</h4></div>;
   }
 }
-
-export default renderWidget;
