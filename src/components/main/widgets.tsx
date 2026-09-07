@@ -96,7 +96,7 @@ export function BannerWidget({ conf }: { conf: WidgetConf }) {
   );
 }
 
-/* ---------- 메뉴리스트 (가로 버튼형 + 디자인 통일 + 가변 박스 사이즈) ---------- */
+/* ---------- 메뉴리스트 (환경설정 색상 연동) ---------- */
 export function MenuListWidget() {
   const router = useRouter();
   const [open, setOpen] = useState<string | null>(null);
@@ -124,25 +124,15 @@ export function MenuListWidget() {
       width: '100%',
     }}>
       <style>{`
-        /* 위젯 배경 반투명 유리 효과 */
-        .panel.widget, .panel.menu-list, .panel {
-          background: rgba(255, 255, 255, 0.75) !important;
-          backdrop-filter: blur(12px) !important;
-          -webkit-backdrop-filter: blur(12px) !important;
-          border: 1px solid rgba(255, 255, 255, 0.6) !important;
-          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04) !important;
-        }
-
-        /* 메인 상단 메뉴 버튼 스타일 */
+        /* 메인 상단 메뉴 버튼 스타일 - 디자인 환경설정 색상 연동 */
         .pc-menu-widget .menu-pill {
           display: inline-flex;
           align-items: center;
           justify-content: center;
           padding: 7px 18px;
           border-radius: 999px;
-          background: rgba(255, 255, 255, 0.85);
-          backdrop-filter: blur(8px);
-          color: #4a4e57;
+          background: var(--topmenu-bg, var(--menu-bg, #f7f7f8));
+          color: var(--topmenu-color, var(--menu-color, #5a6068));
           font-size: 13px;
           font-weight: 600;
           box-shadow: 0 2px 8px rgba(0,0,0,0.04);
@@ -154,18 +144,18 @@ export function MenuListWidget() {
 
         .pc-menu-widget .menu-pill:hover,
         .pc-menu-widget .menu-pill.active {
-          background: rgba(255, 255, 255, 0.98);
-          color: #111418;
+          background: var(--topmenu-hover-bg, var(--topmenu-bg, #ffffff));
+          color: var(--topmenu-hover-color, var(--topmenu-hover, #485e79));
           box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
 
-        /* 서브메뉴 드롭다운 박스 - 글자 길이에 맞춰 가변 너비 적용 */
+        /* 서브메뉴 드롭다운 박스 - 가변 너비 및 배경색 연동 */
         .pc-menu-widget .msub-card {
           position: absolute;
           top: calc(100% + 6px);
           left: 50%;
           transform: translateX(-50%);
-          background: rgba(255, 255, 255, 0.92);
+          background: var(--submenu-bg, var(--sub-bg, #fafafa));
           backdrop-filter: blur(12px);
           border-radius: 18px;
           box-shadow: 0 8px 24px rgba(0,0,0,0.1);
@@ -176,18 +166,18 @@ export function MenuListWidget() {
           z-index: 100;
           width: max-content;
           min-width: 100%;
-          border: 1px solid rgba(255, 255, 255, 0.8);
+          border: 1px solid rgba(0, 0, 0, 0.05);
           box-sizing: border-box;
         }
 
-        /* 서브메뉴 항목 - 메인 카테고리와 동일한 글꼴 및 알약 모양 커서 강조 적용 */
+        /* 서브메뉴 항목 - 디자인 환경설정 색상 연동 */
         .pc-menu-widget .msub-item {
           display: block;
           padding: 6px 14px;
           border-radius: 999px;
           font-size: 13px;
           font-weight: 600;
-          color: #4a4e57;
+          color: var(--submenu-color, var(--sub-color, #474c52));
           cursor: pointer;
           white-space: nowrap;
           text-align: center;
@@ -195,8 +185,8 @@ export function MenuListWidget() {
         }
 
         .pc-menu-widget .msub-item:hover {
-          background: rgba(0, 0, 0, 0.06);
-          color: #111418;
+          background: rgba(0, 0, 0, 0.04);
+          color: var(--submenu-hover-color, var(--sub-hover, #000000));
         }
       `}</style>
 
