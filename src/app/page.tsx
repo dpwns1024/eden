@@ -1,5 +1,5 @@
 'use client';
-// 메인 페이지 (4.0 위젯 시스템)
+
 import React, { useEffect, useState } from 'react';
 import { useMainStore, WidgetConf, WidgetType, WIDGET_META, MULTI_TYPES, widgetLabel } from '@/lib/mainStore';
 import { WidgetFrame } from '@/components/main/WidgetFrame';
@@ -13,7 +13,7 @@ const ADDABLE: (WidgetType | 'menu_pc')[] = ['menu_pc', 'menu', 'memo', 'dday', 
 const EDITABLE: (WidgetType | 'menu_pc')[] = ['banner', 'menu_pc', 'menu', 'memo', 'dday', 'todo', 'freetext', 'deco', 'apply'];
 
 export default function MainPage() {
-  const { state, editOn, gridOn, updateWidget, addWidget, removeWidget } = useMainStore();
+  const { state, gridOn, updateWidget, addWidget, removeWidget } = useMainStore();
   const toast = useToast();
   const [ctx, setCtx] = useState<{ id: string; x: number; y: number } | null>(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -28,12 +28,37 @@ export default function MainPage() {
   }, []);
 
   const enabled = state.widgets.filter(w => w.enabled);
+
   const byCol = (c: 1 | 2 | 3) => enabled.filter(w => w.col === c);
   const mOrder = (id: string) => {
     const list = state.mobileOrder || [];
     const i = list.indexOf(id);
     return i === -1 ? 99 : i;
   };
+
+  const getWidgetClass = (type: string) => {
+    if (type === 'menu') return 'wgt-hide-pc';
+    if (type === 'menu_pc') return 'wgt-hide-mobile';
+    return undefined;
+  };
+
+  const frame = (w: WidgetConf, className?: string) => (
+    <WidgetFrame
+      key={w.id}
+      conf={w}
+      mobileOrder={mOrder(w.id)}
+      className={className ?? getWidgetClass(w.type)}
+      onCtx={(id, x, y) => {
+        if (state.widgets.find(v => v.id === id)?.z == null) {
+          const zs = enabled.map(v => v.z ?? 0);
+          updateWidget(id, { z: Math.max(...zs, 0) + 1 });
+        }
+        setCtx({ id, x, y });
+      }}
+    >
+      {renderWidget(w)}
+    </WidgetFrame>
+  );
 
   const zOp = (mode: 'top' | 'bottom' | 'up' | 'down') => {
     if (!ctx) return;
@@ -65,27 +90,9 @@ export default function MainPage() {
     setCtx(null);
   };
 
-  const getWidgetClass = (type: string) => {
-    if (type === 'menu') return 'wgt-hide-pc';
-    if (type === 'menu_pc') return 'wgt-hide-mobile';
-    return undefined;
-  };
-
-  const frame = (w: WidgetConf, className?: string) => (
-    <WidgetFrame key={w.id} conf={w} mobileOrder={mOrder(w.id)} className={className ?? getWidgetClass(w.type)}
-      onCtx={(id, x, y) => {
-        if (state.widgets.find(v => v.id === id)?.z == null) {
-          const zs = enabled.map(v => v.z ?? 0);
-          updateWidget(id, { z: Math.max(...zs, 0) + 1 });
-        }
-        setCtx({ id, x, y });
-      }}>
-      {renderWidget(w)}
-    </WidgetFrame>
-  );
-
   const absMode = enabled.length > 0 && enabled.every(w => w.ax != null && w.ay != null);
   const gridRef = React.useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (absMode) return;
     const t = setTimeout(() => {
@@ -97,9 +104,12 @@ export default function MainPage() {
         if (!el) return;
         const r = el.getBoundingClientRect();
         updateWidget(w.id, {
-          ax: Math.round(r.left - gr.left), ay: Math.round(r.top - gr.top),
-          w: w.w ?? Math.max(160, Math.round(r.width)), h: w.h ?? Math.max(80, Math.round(r.height)),
-          tx: 0, ty: 0,
+          ax: Math.round(r.left - gr.left),
+          ay: Math.round(r.top - gr.top),
+          w: w.w ?? Math.max(160, Math.round(r.width)),
+          h: w.h ?? Math.max(80, Math.round(r.height)),
+          tx: 0,
+          ty: 0,
         }, { persist: true });
       });
     }, 250);
@@ -107,35 +117,39 @@ export default function MainPage() {
   }, [absMode, enabled.length]);
 
   const canvasH = absMode
-    ? Math.max(400, ...enabled.map(w => (w.ay ?? 0) + (w.h ?? 200))) + 40
+    ? Math.max(300, ...enabled.map(w => (w.ay ?? 0) + (w.h ?? 200))) + 40
     : undefined;
-
-  // 상단 헤더로 이동된 위젯 메인 중복 방지 조건
-  const isTopWidget = (w: WidgetConf) => w.type === 'banner' || w.type === 'menu' || (w.type as string) === 'menu_pc';
 
   return (
     <section className="page page-main-wrap" onClick={() => setCtx(null)}>
-      <div ref={gridRef} className={`main-grid ${absMode ? 'abs' : ''} ${gridOn ? 'gridlines' : ''}`}
-        style={{ marginTop: 12, ...(canvasH ? { height: canvasH } : {}) }}>
+      <div
+        ref={gridRef}
+        className={`main-grid ${absMode ? 'abs' : ''} ${gridOn ? 'gridlines' : ''}`}
+        style={{ marginTop: 0, ...(canvasH ? { height: canvasH } : {}) }}
+      >
         {absMode ? (
-          enabled.filter(w => !isTopWidget(w)).map(w =>
-            w.type === 'member'
-              ? <WidgetFrame key={w.id} conf={w} mobileOrder={-1} onCtx={(id, x, y) => setCtx({ id, x, y })}><MemberBox /></WidgetFrame>
-              : frame(w)
+          enabled.map(w =>
+            w.type === 'member' ? (
+              <WidgetFrame key={w.id} conf={w} mobileOrder={-1} onCtx={(id, x, y) => setCtx({ id, x, y })}>
+                <MemberBox />
+              </WidgetFrame>
+            ) : (
+              frame(w)
+            )
           )
         ) : (
           <>
+            <div>{byCol(1).map(w => frame(w))}</div>
+            <div>{byCol(2).map(w => frame(w))}</div>
             <div>
-              {byCol(1).filter(w => !isTopWidget(w)).map(w => frame(w))}
-            </div>
-            <div>
-              {byCol(2).filter(w => !isTopWidget(w)).map(w => frame(w))}
-            </div>
-            <div>
-              {byCol(3).filter(w => !isTopWidget(w)).map(w =>
-                w.type === 'member'
-                  ? <WidgetFrame key={w.id} conf={w} mobileOrder={-1} onCtx={(id, x, y) => setCtx({ id, x, y })}><MemberBox /></WidgetFrame>
-                  : frame(w)
+              {byCol(3).map(w =>
+                w.type === 'member' ? (
+                  <WidgetFrame key={w.id} conf={w} mobileOrder={-1} onCtx={(id, x, y) => setCtx({ id, x, y })}>
+                    <MemberBox />
+                  </WidgetFrame>
+                ) : (
+                  frame(w)
+                )
               )}
             </div>
           </>
@@ -170,26 +184,35 @@ export default function MainPage() {
         );
       })()}
 
-      <ConfirmModal open={delAsk !== null}
+      <ConfirmModal
+        open={delAsk !== null}
         title={`「${delAsk ? widgetLabel(state.widgets, delAsk) : ''}」 위젯을 삭제할까요?`}
         body="위젯이 삭제됩니다."
         onClose={() => setDelAsk(null)}
         buttons={[
           { label: 'DELETE', kind: 'accent', onClick: () => { if (delAsk) removeWidget(delAsk.id); setDelAsk(null); toast('위젯이 삭제되었습니다'); } },
           { label: 'CANCEL', kind: 'ghost', onClick: () => setDelAsk(null) },
-        ]} />
+        ]}
+      />
 
-      <Modal open={addOpen} onClose={() => setAddOpen(false)} small
-        title="위젯 추가" desc="종류와 배치 열을 선택하세요"
-        actions={<>
-          <button className="btn btn-ghost" onClick={() => setAddOpen(false)}>CANCEL</button>
-          <button className="btn btn-dark" onClick={() => {
-            const id = addWidget(addType as WidgetType, Number(addCol) as 1 | 2 | 3);
-            setAddOpen(false);
-            toast('위젯이 추가되었습니다');
-            setTimeout(() => document.querySelector(`[data-wid="${id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
-          }}>ADD</button>
-        </>}>
+      <Modal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        small
+        title="위젯 추가"
+        desc="종류와 배치 열을 선택하세요"
+        actions={
+          <>
+            <button className="btn btn-ghost" onClick={() => setAddOpen(false)}>CANCEL</button>
+            <button className="btn btn-dark" onClick={() => {
+              const id = addWidget(addType as WidgetType, Number(addCol) as 1 | 2 | 3);
+              setAddOpen(false);
+              toast('위젯이 추가되었습니다');
+              setTimeout(() => document.querySelector(`[data-wid="${id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
+            }}>ADD</button>
+          </>
+        }
+      >
         <div style={{ display: 'grid', gap: 7, marginBottom: 14 }}>
           {ADDABLE.map(t => {
             const isMenuPc = t === 'menu_pc';
@@ -210,7 +233,7 @@ export default function MainPage() {
         </div>
         <div style={{ display: 'flex', gap: 16 }}>
           <KRadio name="wgt-col" value="1" current={addCol} onChange={v => setAddCol(v as '1')} label="왼쪽 열" />
-          <KRadio name="wgt-col" value="2" current={addCol} onChange={v => setAddCol(v as '2')} label="중앙 (배너 아래)" />
+          <KRadio name="wgt-col" value="2" current={addCol} onChange={v => setAddCol(v as '2')} label="중앙" />
           <KRadio name="wgt-col" value="3" current={addCol} onChange={v => setAddCol(v as '3')} label="오른쪽 열" />
         </div>
       </Modal>
