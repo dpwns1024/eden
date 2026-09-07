@@ -28,8 +28,11 @@ export default function MainPage() {
   }, []);
 
   const enabled = state.widgets.filter(w => w.enabled);
+  
+  // 1. 상단 GlobalHeader에서 출력하는 배너/메뉴는 메인페이지 그리드에서 제외 (중복 제거)
+  const mainWidgets = enabled.filter(w => w.type !== 'banner' && w.type !== 'menu' && (w.type as string) !== 'menu_pc');
 
-  const byCol = (c: 1 | 2 | 3) => enabled.filter(w => w.col === c);
+  const byCol = (c: 1 | 2 | 3) => mainWidgets.filter(w => w.col === c);
   const mOrder = (id: string) => {
     const list = state.mobileOrder || [];
     const i = list.indexOf(id);
@@ -42,23 +45,40 @@ export default function MainPage() {
     return undefined;
   };
 
-  const frame = (w: WidgetConf, className?: string) => (
-    <WidgetFrame
-      key={w.id}
-      conf={w}
-      mobileOrder={mOrder(w.id)}
-      className={className ?? getWidgetClass(w.type)}
-      onCtx={(id, x, y) => {
-        if (state.widgets.find(v => v.id === id)?.z == null) {
-          const zs = enabled.map(v => v.z ?? 0);
-          updateWidget(id, { z: Math.max(...zs, 0) + 1 });
-        }
-        setCtx({ id, x, y });
-      }}
-    >
-      {renderWidget(w)}
-    </WidgetFrame>
-  );
+  const absMode = mainWidgets.length > 0 && mainWidgets.every(w => w.ax != null && w.ay != null);
+
+  // 2. 배너/메뉴가 빠지면서 생긴 상단 빈 공백(minY)을 계산해 남은 위젯들을 위로 바짝 끌어올림
+  const minY = absMode && mainWidgets.length > 0
+    ? Math.min(...mainWidgets.map(w => w.ay ?? 0))
+    : 0;
+
+  const getAdjustedConf = (w: WidgetConf) => {
+    if (absMode && minY > 0 && w.ay != null) {
+      return { ...w, ay: Math.max(0, w.ay - minY) };
+    }
+    return w;
+  };
+
+  const frame = (w: WidgetConf, className?: string) => {
+    const adjW = getAdjustedConf(w);
+    return (
+      <WidgetFrame
+        key={w.id}
+        conf={adjW}
+        mobileOrder={mOrder(w.id)}
+        className={className ?? getWidgetClass(w.type)}
+        onCtx={(id, x, y) => {
+          if (state.widgets.find(v => v.id === id)?.z == null) {
+            const zs = enabled.map(v => v.z ?? 0);
+            updateWidget(id, { z: Math.max(...zs, 0) + 1 });
+          }
+          setCtx({ id, x, y });
+        }}
+      >
+        {renderWidget(w)}
+      </WidgetFrame>
+    );
+  };
 
   const zOp = (mode: 'top' | 'bottom' | 'up' | 'down') => {
     if (!ctx) return;
@@ -90,7 +110,6 @@ export default function MainPage() {
     setCtx(null);
   };
 
-  const absMode = enabled.length > 0 && enabled.every(w => w.ax != null && w.ay != null);
   const gridRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -98,7 +117,7 @@ export default function MainPage() {
     const t = setTimeout(() => {
       const gr = gridRef.current?.getBoundingClientRect();
       if (!gr || gr.width < 100) return;
-      enabled.forEach(w => {
+      mainWidgets.forEach(w => {
         if (w.ax != null) return;
         const el = document.querySelector(`[data-wid="${w.id}"]`);
         if (!el) return;
@@ -114,10 +133,10 @@ export default function MainPage() {
       });
     }, 250);
     return () => clearTimeout(t);
-  }, [absMode, enabled.length]);
+  }, [absMode, mainWidgets.length]);
 
   const canvasH = absMode
-    ? Math.max(300, ...enabled.map(w => (w.ay ?? 0) + (w.h ?? 200))) + 40
+    ? Math.max(300, ...mainWidgets.map(w => Math.max(0, (w.ay ?? 0) - minY) + (w.h ?? 200))) + 40
     : undefined;
 
   return (
@@ -128,9 +147,9 @@ export default function MainPage() {
         style={{ marginTop: 0, ...(canvasH ? { height: canvasH } : {}) }}
       >
         {absMode ? (
-          enabled.map(w =>
+          mainWidgets.map(w =>
             w.type === 'member' ? (
-              <WidgetFrame key={w.id} conf={w} mobileOrder={-1} onCtx={(id, x, y) => setCtx({ id, x, y })}>
+              <WidgetFrame key={w.id} conf={getAdjustedConf(w)} mobileOrder={-1} onCtx={(id, x, y) => setCtx({ id, x, y })}>
                 <MemberBox />
               </WidgetFrame>
             ) : (
@@ -144,7 +163,7 @@ export default function MainPage() {
             <div>
               {byCol(3).map(w =>
                 w.type === 'member' ? (
-                  <WidgetFrame key={w.id} conf={w} mobileOrder={-1} onCtx={(id, x, y) => setCtx({ id, x, y })}>
+                  <WidgetFrame key={w.id} conf={getAdjustedConf(w)} mobileOrder={-1} onCtx={(id, x, y) => setCtx({ id, x, y })}>
                     <MemberBox />
                   </WidgetFrame>
                 ) : (
