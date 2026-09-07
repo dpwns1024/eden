@@ -9,19 +9,17 @@ import { Modal, ConfirmModal } from '@/components/ui/Modal';
 import { KRadio } from '@/components/ui/Kit';
 import { useToast } from '@/components/ui/Toast';
 
-const ADDABLE: WidgetType[] = ['menu', 'memo', 'dday', 'todo', 'upcoming', 'freetext', 'deco', 'diary', 'latest', 'apply'];
-const EDITABLE: WidgetType[] = ['banner', 'menu', 'memo', 'dday', 'todo', 'freetext', 'deco', 'apply'];
-
-// 메뉴 위젯도 중복 허용 목록에 포함
-const ALLOW_MULTI = [...MULTI_TYPES, 'menu'];
+// 'menu_pc' (PC 전용 메뉴) 추가
+const ADDABLE: (WidgetType | 'menu_pc')[] = ['menu_pc', 'menu', 'memo', 'dday', 'todo', 'upcoming', 'freetext', 'deco', 'diary', 'latest', 'apply'];
+const EDITABLE: (WidgetType | 'menu_pc')[] = ['banner', 'menu_pc', 'menu', 'memo', 'dday', 'todo', 'freetext', 'deco', 'apply'];
 
 export default function MainPage() {
   const { state, editOn, gridOn, updateWidget, addWidget, removeWidget } = useMainStore();
   const toast = useToast();
   const [ctx, setCtx] = useState<{ id: string; x: number; y: number } | null>(null);
   const [addOpen, setAddOpen] = useState(false);
-  const [addType, setAddType] = useState<WidgetType>('menu');
-  const [addCol, setAddCol] = useState<'1' | '2' | '3'>('2'); // 중앙 열 기본 지정
+  const [addType, setAddType] = useState<WidgetType | 'menu_pc'>('menu_pc');
+  const [addCol, setAddCol] = useState<'1' | '2' | '3'>('2');
   const [delAsk, setDelAsk] = useState<WidgetConf | null>(null);
 
   useEffect(() => {
@@ -67,8 +65,16 @@ export default function MainPage() {
     setCtx(null);
   };
 
+  // 모바일 메뉴(menu)는 PC에서 숨김(wgt-hide-pc)
+  // PC 메뉴(menu_pc)는 모바일에서 숨김(wgt-hide-mobile)
+  const getWidgetClass = (type: string) => {
+    if (type === 'menu') return 'wgt-hide-pc';
+    if (type === 'menu_pc') return 'wgt-hide-mobile';
+    return undefined;
+  };
+
   const frame = (w: WidgetConf, className?: string) => (
-    <WidgetFrame key={w.id} conf={w} mobileOrder={mOrder(w.id)} className={className}
+    <WidgetFrame key={w.id} conf={w} mobileOrder={mOrder(w.id)} className={className ?? getWidgetClass(w.type)}
       onCtx={(id, x, y) => {
         if (state.widgets.find(v => v.id === id)?.z == null) {
           const zs = enabled.map(v => v.z ?? 0);
@@ -122,7 +128,6 @@ export default function MainPage() {
               {byCol(1).map(w => frame(w))}
             </div>
             <div>
-              {/* 중앙 열: 배너 바로 아래에 메뉴 위젯 배치 */}
               {byCol(2).map(w =>
                 w.type === 'banner' ? frame(w) : null
               )}
@@ -155,8 +160,8 @@ export default function MainPage() {
             <button onClick={() => { updateWidget(me.id, { freeMove: !me.freeMove }); setCtx(null); }}>
               {me.freeMove ? '그리드 반영' : '그리드 무시'}
             </button>
-            {(EDITABLE.includes(me.type) || !me.fixed) && <div className="sep" />}
-            {EDITABLE.includes(me.type) && (
+            {(EDITABLE.includes(me.type as any) || !me.fixed) && <div className="sep" />}
+            {EDITABLE.includes(me.type as any) && (
               <button onClick={() => {
                 window.dispatchEvent(new CustomEvent('ohome-widget-edit', { detail: { id: me.id } }));
                 setCtx(null);
@@ -171,20 +176,20 @@ export default function MainPage() {
 
       <ConfirmModal open={delAsk !== null}
         title={`「${delAsk ? widgetLabel(state.widgets, delAsk) : ''}」 위젯을 삭제할까요?`}
-        body="위젯이 메인에서 삭제됩니다."
+        body="위젯이 삭제됩니다."
         onClose={() => setDelAsk(null)}
         buttons={[
           { label: 'DELETE', kind: 'accent', onClick: () => { if (delAsk) removeWidget(delAsk.id); setDelAsk(null); toast('위젯이 삭제되었습니다'); } },
           { label: 'CANCEL', kind: 'ghost', onClick: () => setDelAsk(null) },
         ]} />
 
-      {/* 위젯 추가 모달 — 메뉴리스트 중복 잠금 해제됨 */}
+      {/* 위젯 추가 모달 */}
       <Modal open={addOpen} onClose={() => setAddOpen(false)} small
         title="위젯 추가" desc="종류와 배치 열을 선택하세요"
         actions={<>
           <button className="btn btn-ghost" onClick={() => setAddOpen(false)}>CANCEL</button>
           <button className="btn btn-dark" onClick={() => {
-            const id = addWidget(addType, Number(addCol) as 1 | 2 | 3);
+            const id = addWidget(addType as WidgetType, Number(addCol) as 1 | 2 | 3);
             setAddOpen(false);
             toast('위젯이 추가되었습니다');
             setTimeout(() => document.querySelector(`[data-wid="${id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
@@ -192,14 +197,17 @@ export default function MainPage() {
         </>}>
         <div style={{ display: 'grid', gap: 7, marginBottom: 14 }}>
           {ADDABLE.map(t => {
-            const isMulti = ALLOW_MULTI.includes(t);
-            const taken = !isMulti && state.widgets.some(w => w.type === t);
+            const isMenuPc = t === 'menu_pc';
+            const title = isMenuPc ? 'PC 메뉴' : (WIDGET_META[t as WidgetType]?.title ?? t);
+            const desc = isMenuPc ? 'PC 전용 — 모바일에서는 숨겨짐' : (WIDGET_META[t as WidgetType]?.desc ?? '');
+            const taken = !MULTI_TYPES.includes(t as WidgetType) && state.widgets.some(w => w.type === t);
+
             return (
               <KRadio key={t} name="wgt-type" value={t} current={addType} disabled={taken}
-                onChange={v => setAddType(v as WidgetType)}
+                onChange={v => setAddType(v as WidgetType | 'menu_pc')}
                 label={<span>
-                  <b style={{ fontSize: 12.5 }}>{WIDGET_META[t]?.title ?? t}</b>{' '}
-                  <small style={{ color: 'var(--faint)', fontSize: 10.5 }}>{WIDGET_META[t]?.desc ?? ''}</small>
+                  <b style={{ fontSize: 12.5 }}>{title}</b>{' '}
+                  <small style={{ color: 'var(--faint)', fontSize: 10.5 }}>{desc}</small>
                   {taken && <span className="pill" style={{ marginLeft: 6 }}>추가됨</span>}
                 </span>} />
             );
