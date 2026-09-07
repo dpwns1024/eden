@@ -1,5 +1,5 @@
 'use client';
-// 메인 페이지 (4.0 위젯 시스템) — 고정 요소(배너·회원정보창) + 자유 배치 위젯 + 편집모드
+// 메인 페이지 (4.0 위젯 시스템)
 import React, { useEffect, useState } from 'react';
 import { useMainStore, WidgetConf, WidgetType, WIDGET_META, MULTI_TYPES, widgetLabel } from '@/lib/mainStore';
 import { WidgetFrame } from '@/components/main/WidgetFrame';
@@ -9,32 +9,26 @@ import { Modal, ConfirmModal } from '@/components/ui/Modal';
 import { KRadio } from '@/components/ui/Kit';
 import { useToast } from '@/components/ui/Toast';
 
-// ADDABLE 목록에 'menu' 추가
 const ADDABLE: WidgetType[] = ['menu', 'memo', 'dday', 'todo', 'upcoming', 'freetext', 'deco', 'diary', 'latest', 'apply'];
-/** 내용 설정 모달이 있는 위젯 — 우클릭 「설정」 노출 대상 (v1.9) */
 const EDITABLE: WidgetType[] = ['banner', 'menu', 'memo', 'dday', 'todo', 'freetext', 'deco', 'apply'];
+
+// 메뉴 위젯도 중복 허용 목록에 포함
+const ALLOW_MULTI = [...MULTI_TYPES, 'menu'];
 
 export default function MainPage() {
   const { state, editOn, gridOn, updateWidget, addWidget, removeWidget } = useMainStore();
   const toast = useToast();
   const [ctx, setCtx] = useState<{ id: string; x: number; y: number } | null>(null);
   const [addOpen, setAddOpen] = useState(false);
-  const [addType, setAddType] = useState<WidgetType>('freetext');
-  const [addCol, setAddCol] = useState<'1' | '2' | '3'>('2'); // 메뉴/배너 기본 위치인 중앙열(2) 권장
-  const [delAsk, setDelAsk] = useState<WidgetConf | null>(null);   // 우클릭 삭제 경고 (v1.9)
+  const [addType, setAddType] = useState<WidgetType>('menu');
+  const [addCol, setAddCol] = useState<'1' | '2' | '3'>('2'); // 중앙 열 기본 지정
+  const [delAsk, setDelAsk] = useState<WidgetConf | null>(null);
 
-  // 위젯 추가 — 상단바의 [＋ 위젯] 버튼이 이벤트로 연다
   useEffect(() => {
     const open = () => setAddOpen(true);
     window.addEventListener('ohome-add-widget', open);
     return () => window.removeEventListener('ohome-add-widget', open);
   }, []);
-
-  // 모달을 열 때 선택돼 있던 종류가 이미 추가된 것이면 항상 가능한 자유 텍스트로
-  useEffect(() => {
-    if (!addOpen) return;
-    if (!MULTI_TYPES.includes(addType) && state.widgets.some(w => w.type === addType)) setAddType('freetext');
-  }, [addOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const enabled = state.widgets.filter(w => w.enabled);
   const byCol = (c: 1 | 2 | 3) => enabled.filter(w => w.col === c);
@@ -43,7 +37,6 @@ export default function MainPage() {
     return i === -1 ? 99 : i;
   };
 
-  // 우클릭 겹침 순서 조정 (v1.8)
   const zOp = (mode: 'top' | 'bottom' | 'up' | 'down') => {
     if (!ctx) return;
     const all = enabled.filter(w => w.z != null);
@@ -107,8 +100,8 @@ export default function MainPage() {
       });
     }, 250);
     return () => clearTimeout(t);
-  }, [absMode, enabled.length]); // eslint-disable-line react-hooks/exhaustive-deps
-  
+  }, [absMode, enabled.length]);
+
   const canvasH = absMode
     ? Math.max(400, ...enabled.map(w => (w.ay ?? 0) + (w.h ?? 200))) + 40
     : undefined;
@@ -118,7 +111,6 @@ export default function MainPage() {
       <div ref={gridRef} className={`main-grid ${absMode ? 'abs' : ''} ${gridOn ? 'gridlines' : ''}`}
         style={{ marginTop: 12, ...(canvasH ? { height: canvasH } : {}) }}>
         {absMode ? (
-          /* 절대배치 캔버스 — PC 숨김 클래스(wgt-hide-pc) 제거 */
           enabled.map(w =>
             w.type === 'member'
               ? <WidgetFrame key={w.id} conf={w} mobileOrder={-1} onCtx={(id, x, y) => setCtx({ id, x, y })}><MemberBox /></WidgetFrame>
@@ -126,12 +118,11 @@ export default function MainPage() {
           )
         ) : (
           <>
-            {/* 일반 그리드 레이아웃 */}
             <div>
               {byCol(1).map(w => frame(w))}
             </div>
             <div>
-              {/* 중앙열(Col 2): 배너가 최상단에 오고 그 아래 메뉴 및 기타 위젯들이 위치함 */}
+              {/* 중앙 열: 배너 바로 아래에 메뉴 위젯 배치 */}
               {byCol(2).map(w =>
                 w.type === 'banner' ? frame(w) : null
               )}
@@ -150,7 +141,6 @@ export default function MainPage() {
         )}
       </div>
 
-      {/* 우클릭 컨텍스트 메뉴 */}
       {ctx && (() => {
         const me = enabled.find(w => w.id === ctx.id);
         if (!me) return null;
@@ -179,32 +169,31 @@ export default function MainPage() {
         );
       })()}
 
-      {/* 위젯 삭제 경고 모달 */}
       <ConfirmModal open={delAsk !== null}
         title={`「${delAsk ? widgetLabel(state.widgets, delAsk) : ''}」 위젯을 삭제할까요?`}
-        body="위젯이 메인에서 삭제됩니다. 삭제는 편집 종료 시 「저장 후 종료」를 선택해야 확정되고, 「저장하지 않고 종료」를 선택하면 되돌아옵니다."
+        body="위젯이 메인에서 삭제됩니다."
         onClose={() => setDelAsk(null)}
         buttons={[
-          { label: 'DELETE', kind: 'accent', onClick: () => { if (delAsk) removeWidget(delAsk.id); setDelAsk(null); toast('위젯이 삭제되었습니다 — 편집 종료 시 저장하면 확정됩니다'); } },
+          { label: 'DELETE', kind: 'accent', onClick: () => { if (delAsk) removeWidget(delAsk.id); setDelAsk(null); toast('위젯이 삭제되었습니다'); } },
           { label: 'CANCEL', kind: 'ghost', onClick: () => setDelAsk(null) },
         ]} />
 
-      {/* 위젯 추가 모달 */}
+      {/* 위젯 추가 모달 — 메뉴리스트 중복 잠금 해제됨 */}
       <Modal open={addOpen} onClose={() => setAddOpen(false)} small
-        title="위젯 추가" desc="종류와 배치 열을 선택 — 이미 추가한 위젯은 다시 추가할 수 없음 (이미지·자유 텍스트 제외)"
+        title="위젯 추가" desc="종류와 배치 열을 선택하세요"
         actions={<>
           <button className="btn btn-ghost" onClick={() => setAddOpen(false)}>CANCEL</button>
           <button className="btn btn-dark" onClick={() => {
-            if (!MULTI_TYPES.includes(addType) && state.widgets.some(w => w.type === addType)) return;
             const id = addWidget(addType, Number(addCol) as 1 | 2 | 3);
             setAddOpen(false);
-            toast('위젯이 추가되었습니다 — 우클릭 메뉴에서 설정·삭제할 수 있습니다');
+            toast('위젯이 추가되었습니다');
             setTimeout(() => document.querySelector(`[data-wid="${id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
           }}>ADD</button>
         </>}>
         <div style={{ display: 'grid', gap: 7, marginBottom: 14 }}>
           {ADDABLE.map(t => {
-            const taken = !MULTI_TYPES.includes(t) && state.widgets.some(w => w.type === t);
+            const isMulti = ALLOW_MULTI.includes(t);
+            const taken = !isMulti && state.widgets.some(w => w.type === t);
             return (
               <KRadio key={t} name="wgt-type" value={t} current={addType} disabled={taken}
                 onChange={v => setAddType(v as WidgetType)}
@@ -212,7 +201,6 @@ export default function MainPage() {
                   <b style={{ fontSize: 12.5 }}>{WIDGET_META[t]?.title ?? t}</b>{' '}
                   <small style={{ color: 'var(--faint)', fontSize: 10.5 }}>{WIDGET_META[t]?.desc ?? ''}</small>
                   {taken && <span className="pill" style={{ marginLeft: 6 }}>추가됨</span>}
-                  {MULTI_TYPES.includes(t) && <span className="pill" style={{ marginLeft: 6 }}>중복 추가 가능</span>}
                 </span>} />
             );
           })}
