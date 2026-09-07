@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { useMainStore, WidgetConf, widgetLabel } from '@/lib/mainStore';
 import { renderWidget } from '@/components/main/widgets';
 import { ConfirmModal } from '@/components/ui/Modal';
@@ -9,10 +10,14 @@ import { useToast } from '@/components/ui/Toast';
 const EDITABLE = ['banner', 'menu_pc', 'menu'];
 
 export function GlobalHeader() {
+  const pathname = usePathname();
   const { state, removeWidget } = useMainStore();
   const toast = useToast();
   const [ctx, setCtx] = useState<{ id: string; x: number; y: number } | null>(null);
   const [delAsk, setDelAsk] = useState<WidgetConf | null>(null);
+
+  // 메인 페이지('/')에서는 page.tsx에서 직접 편집 가능한 위젯으로 처리하므로 헤더 중복 차단
+  if (pathname === '/') return null;
 
   const enabled = state.widgets.filter(w => w.enabled);
   const topBanner = enabled.filter(w => w.type === 'banner');
