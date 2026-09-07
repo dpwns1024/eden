@@ -13,7 +13,7 @@ import { KTextarea, KSelect, KStep, KCheck } from '@/components/ui/Kit';
 import { ColorField } from '@/components/ui/ColorField';
 import { useFonts } from '@/lib/fontStore';
 import { BannerEditor, BannerSlide, DEMO_SLIDES, DdayEditor, DecoEditor, TodoEditor, TodoSetItem } from '@/components/main/widgetEditors';
-import { CroppedBlobImg, CropValue } from '@/components/ui/CropEditor';
+import { CroppedBlobImg } from '@/components/ui/CropEditor';
 import { useLocalList } from '@/lib/postStore';
 import { RoadItem, ROAD_SEED, BackupPost, BACKUP_SEED } from '@/lib/galleryStore';
 import { DiaryPost, DIARY_SEED, Mood, MOOD_SEED, moodTint } from '@/lib/diaryStore';
@@ -37,7 +37,7 @@ function useEditEvent(id: string, onOpen: () => void) {
 /* ---------- 슬라이드 배너 (모바일 반응형 사이즈 수정) ---------- */
 export function BannerWidget({ conf }: { conf: WidgetConf }) {
   const { isAdmin } = useAuth();
-  const { editOn, updateWidget } = useMainStore();
+  const { editOn } = useMainStore();
   const router = useRouter();
   const [cur, setCur] = useState(0);
   const [mngOpen, setMngOpen] = useState(false);
@@ -52,16 +52,16 @@ export function BannerWidget({ conf }: { conf: WidgetConf }) {
     return () => clearInterval(t);
   }, [slides.length, interval]);
 
-  const s = slides[Math.min(cur, slides.length - 1)];
+  const s = slides[Math.min(cur, slides.length - 1)] || DEMO_SLIDES[0];
   const go = () => {
-    if (editOn || !s.link) return;
+    if (editOn || !s?.link) return;
     const l = normalizeInternalLink(s.link);
     if (/^https?:\/\//.test(l)) window.open(l, '_blank');
     else router.push(l);
   };
 
   return (
-    <div className="banner" style={{ cursor: s.link && !editOn ? 'pointer' : undefined }} onClick={go}>
+    <div className="banner" style={{ cursor: s?.link && !editOn ? 'pointer' : undefined }} onClick={go}>
       <style>{`
         /* 모바일 모드 반응형 메인 배너 스타일 */
         @media (max-width: 768px) {
@@ -88,7 +88,7 @@ export function BannerWidget({ conf }: { conf: WidgetConf }) {
               : <div className={`ph ${sl.cls ?? ''}`} style={{ position: 'absolute', inset: 0 }}><span>SLIDE BANNER {String(i + 1).padStart(2, '0')}</span></div>}
         </div>
       ))}
-      <div className="cap"><b>{s.cap}</b><span>{s.sub}</span></div>
+      <div className="cap"><b>{s?.cap}</b><span>{s?.sub}</span></div>
       <div className="dots" onClick={e => e.stopPropagation()}>
         {slides.map((sl, i) => (
           <i key={sl.id} className={i === Math.min(cur, slides.length - 1) ? 'on' : ''} onClick={() => setCur(i)} />
@@ -112,7 +112,7 @@ export function BannerWidget({ conf }: { conf: WidgetConf }) {
   );
 }
 
-/* ---------- 메뉴리스트 (모바일 전용 숨김 처리) ---------- */
+/* ---------- 메뉴리스트 (모바일 전용 숨김 처리 및 style 속성명 수정) ---------- */
 export function MenuListWidget() {
   const router = useRouter();
   const [open, setOpen] = useState<string | null>(null);
@@ -136,7 +136,7 @@ export function MenuListWidget() {
       flexWrap: 'wrap',
       gap: '8px',
       alignItems: 'center',
-      justify-content: 'center',
+      justifyContent: 'center',
       width: '100%',
     }}>
       <style>{`
