@@ -48,7 +48,7 @@ export function GlobalHeader() {
 
   const absMode = headerWidgets.length > 0 && headerWidgets.every(w => w.ax != null && w.ay != null);
 
-  // 위젯 변경 없이 실제 배치된 위젯들의 하단 최댓값(Bottom)을 측정해서 헤더 높이로 지정
+  // 헤더 내부 그리드의 전체 높이 계산 (위젯 하단 최댓값)
   const getHeaderHeight = () => {
     if (!absMode) return undefined;
 
@@ -56,7 +56,6 @@ export function GlobalHeader() {
 
     headerWidgets.forEach(w => {
       const top = w.ay ?? 0;
-      // 메뉴는 44px 고정, 배너 등 기타 위젯은 원래 설정된 높이(w.h) 사용
       const height = (w.type === 'menu' || (w.type as string) === 'menu_pc') ? 44 : (w.h ?? 200);
       const bottom = top + height;
       if (bottom > maxBottom) {
@@ -75,8 +74,8 @@ export function GlobalHeader() {
       onClick={() => setCtx(null)}
       style={{
         width: '100%',
-        margin: '0 auto 8px auto',
-        padding: 0,
+        margin: '0 auto',
+        paddingTop: 'var(--main-top-gap, 16px)', // 메인 페이지와 동일한 상단 여백 보장
         paddingBottom: 0,
         position: 'relative',
         zIndex: 100,
