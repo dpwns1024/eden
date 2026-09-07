@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { useMainStore, WidgetConf, widgetLabel } from '@/lib/mainStore';
 import { WidgetFrame } from '@/components/main/WidgetFrame';
@@ -18,20 +18,66 @@ export function GlobalHeader() {
   const [ctx, setCtx] = useState<{ id: string; x: number; y: number } | null>(null);
   const [delAsk, setDelAsk] = useState<WidgetConf | null>(null);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [contentHeight, setContentHeight] = useState<number | null>(null);
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // 마운트 전(SSR/초기 로딩)이거나 메인 페이지('/')일 경우 상단 헤더 출력 완전히 차단
-  if (!mounted || !pathname || pathname === '/' || pathname === '') {
-    return null;
-  }
-
   const enabled = state.widgets.filter(w => w.enabled);
   const topBanner = enabled.filter(w => w.type === 'banner');
   const topMenu = enabled.filter(w => w.type === 'menu' || (w.type as string) === 'menu_pc');
-
   const headerWidgets = [...topBanner, ...topMenu];
+
+  const absMode = headerWidgets.length > 0 && headerWidgets.every(w => w.ax != null && w.ay != null);
+
+  // 화면에 실제 렌더링된 요소의 하단 Y좌표를 측정하여 헤더 높이로 설정
+  useEffect(() => {
+    if (!mounted || !containerRef.current || !absMode) return;
+
+    const measure = () => {
+      const el = containerRef.current;
+      if (!el) return;
+
+      const children = Array.from(el.children) as HTMLElement[];
+      if (children.length === 0) return;
+
+      let maxBottom = 0;
+      const containerTop = el.getBoundingClientRect().top;
+
+      children.forEach(child => {
+        const rect = child.getBoundingClientRect();
+        const bottom = rect.bottom - containerTop;
+        if (bottom > maxBottom) {
+          maxBottom = bottom;
+        }
+      });
+
+      if (maxBottom > 0) {
+        setContentHeight(Math.ceil(maxBottom) + 8);
+      }
+    };
+
+    measure();
+
+    const ro = new ResizeObserver(() => measure());
+    ro.observe(containerRef.current);
+    Array.from(containerRef.current.children).forEach(c => ro.observe(c));
+
+    const imgs = containerRef.current.querySelectorAll('img');
+    imgs.forEach(img => {
+      if (!img.complete) {
+        img.addEventListener('load', measure, { once: true });
+      }
+    });
+
+    return () => ro.disconnect();
+  }, [mounted, pathname, headerWidgets, absMode]);
+
+  if (!mounted || !pathname || pathname === '/' || pathname === '') {
+    return null;
+  }
 
   if (headerWidgets.length === 0) return null;
 
@@ -47,31 +93,25 @@ export function GlobalHeader() {
     return i === -1 ? 99 : i;
   };
 
-  const absMode = headerWidgets.length > 0 && headerWidgets.every(w => w.ax != null && w.ay != null);
-
-  // 배너와 메뉴의 실제 배치 높이(ay + h) 전체 반영 (잘림 현상 제거)
-  const headerCanvasH = absMode
-    ? Math.max(...headerWidgets.map(w => (w.ay ?? 0) + (w.h ?? 200)))
-    : undefined;
-
   return (
     <header
       className="global-header-wrap page"
       onClick={() => setCtx(null)}
       style={{
         width: '100%',
-        margin: '0 auto 0 auto',
+        margin: '0 auto',
         position: 'relative',
         zIndex: 100,
       }}
     >
       <div
+        ref={containerRef}
         className={`main-grid ${absMode ? 'abs' : ''}`}
         style={{
           position: 'relative',
           width: '100%',
           marginTop: 0,
-          ...(headerCanvasH ? { height: headerCanvasH } : {}),
+          ...(absMode && contentHeight ? { height: contentHeight } : {}),
         }}
       >
         {headerWidgets.map(w => (
