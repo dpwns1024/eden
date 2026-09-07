@@ -28,10 +28,7 @@ import {
 /* 편집모드 우클릭 「설정」 → 해당 위젯의 설정 모달 열기 */
 function useEditEvent(id: string, onOpen: () => void) {
   useEffect(() => {
-    const h = (e: Event) => {
-      const customEv = e as CustomEvent;
-      if (customEv?.detail?.id === id) onOpen();
-    };
+    const h = (e: Event) => { if ((e as CustomEvent).detail?.id === id) onOpen(); };
     window.addEventListener('ohome-widget-edit', h);
     return () => window.removeEventListener('ohome-widget-edit', h);
   }, [id, onOpen]);
@@ -45,10 +42,9 @@ export function BannerWidget({ conf }: { conf: WidgetConf }) {
   const [cur, setCur] = useState(0);
   const [mngOpen, setMngOpen] = useState(false);
   useEditEvent(conf.id, () => setMngOpen(true));
-
-  const rawSlides = conf?.settings?.slides as BannerSlide[] | undefined;
-  const slides = (rawSlides && rawSlides.length > 0) ? rawSlides : DEMO_SLIDES;
-  const interval = (conf?.settings?.interval as number) ?? 4;
+  const slides = ((conf.settings.slides as BannerSlide[]) ?? []).length > 0
+    ? (conf.settings.slides as BannerSlide[]) : DEMO_SLIDES;
+  const interval = (conf.settings.interval as number) ?? 4;
 
   useEffect(() => {
     if (slides.length < 2) return;
@@ -67,10 +63,11 @@ export function BannerWidget({ conf }: { conf: WidgetConf }) {
   return (
     <div className="banner" style={{ cursor: s?.link && !editOn ? 'pointer' : undefined }} onClick={go}>
       {slides.map((sl, i) => (
-        <div key={sl.id ?? i} className={`slide ${i === Math.min(cur, slides.length - 1) ? 'on' : ''}`}>
+        <div key={sl.id} className={`slide ${i === Math.min(cur, slides.length - 1) ? 'on' : ''}`}>
           {sl.imgId
             ? <CroppedBlobImg fileRef={sl.imgId} crop={sl.crop} ph="" />
             : sl.img
+              // eslint-disable-next-line @next/next/no-img-element
               ? <img src={sl.img} alt="" />
               : <div className={`ph ${sl.cls ?? ''}`}><span>SLIDE BANNER {String(i + 1).padStart(2, '0')}</span></div>}
         </div>
@@ -78,7 +75,7 @@ export function BannerWidget({ conf }: { conf: WidgetConf }) {
       <div className="cap"><b>{s?.cap}</b><span>{s?.sub}</span></div>
       <div className="dots" onClick={e => e.stopPropagation()}>
         {slides.map((sl, i) => (
-          <i key={sl.id ?? i} className={i === Math.min(cur, slides.length - 1) ? 'on' : ''} onClick={() => setCur(i)} />
+          <i key={sl.id} className={i === Math.min(cur, slides.length - 1) ? 'on' : ''} onClick={() => setCur(i)} />
         ))}
       </div>
       {isAdmin && !editOn && (
@@ -268,10 +265,9 @@ export function MemoWidget({ conf }: { conf: WidgetConf }) {
   const { isAdmin } = useAuth();
   const { editOn, updateWidget } = useMainStore();
   const [open, setOpen] = useState(false);
-  const text = (conf?.settings?.text as string) ?? '';
+  const [draft, setDraft] = useState('');
+  const text = (conf.settings.text as string) ?? '';
   useEditEvent(conf.id, () => { setDraft(text); setOpen(true); });
-  const [draft, setDraft] = useState(text);
-
   return (
     <div className="panel widget" style={{ cursor: isAdmin ? 'pointer' : undefined }}
       onClick={e => { if ((e.target as HTMLElement).closest('.modal-ov')) return; if (isAdmin && !editOn) { setDraft(text); setOpen(true); } }}>
@@ -300,7 +296,7 @@ export function DiaryWidget() {
   const [menuSet] = useMenuSettings();
   const viewer = { loggedIn: !!user, isAdmin };
   const canSee = canViewHref(menuSet, '/diary', viewer);
-  const latest = (posts || [])
+  const latest = posts
     .filter(p => canViewHref(menuSet, sectionHref('diary', p.secId ?? MAIN_SEC), viewer))
     .filter(p => p.visibility === 'public' || (p.visibility === 'member' && !!user))
     .sort((a, b) => b.date.localeCompare(a.date))
@@ -310,7 +306,7 @@ export function DiaryWidget() {
     <div className="panel widget" style={{ margin: 0 }}>
       <h4>DIARY <span className="more" onClick={() => router.push('/diary')}>더보기 ›</span></h4>
       {latest.map(p => {
-        const m = moods?.find(x => x.id === p.moodId);
+        const m = moods.find(x => x.id === p.moodId);
         return (
           <div key={p.id} className="diary-mini" onClick={() => router.push(`/diary#${p.id}`)}>
             <div className="mood" style={{ background: moodTint(m?.color ?? '#888'), color: m?.color }}>{m?.icon ?? '·'}</div>
@@ -334,14 +330,14 @@ export function LatestWidget() {
   const seeRoad = canViewHref(menuSet, '/loadb', viewer);
   const seeGal = canViewHref(menuSet, '/gallery', viewer);
   const latest = [
-    ...(seeRoad ? (roads || []) : []).filter(it => canViewHref(menuSet, sectionHref('roadview', it.secId ?? MAIN_SEC), viewer)).map(it => ({
+    ...(seeRoad ? roads : []).filter(it => canViewHref(menuSet, sectionHref('roadview', it.secId ?? MAIN_SEC), viewer)).map(it => ({
       id: `r-${it.id}`, date: it.date, ref: it.imgId ?? it.imgUrl, ph: it.ph,
       href: '/loadb', tip: `로드비 · No.${String(it.no ?? 0).padStart(3, '0')}`,
     })),
-    ...(seeGal ? (backups || []) : [])
+    ...(seeGal ? backups : [])
       .filter(p => canViewHref(menuSet, sectionHref('gallery', p.secId ?? MAIN_SEC), viewer))
       .filter(p => p.visibility === 'public' && !p.fold).map(p => ({
-      id: `b-${p.id}`, date: p.date, ref: p.images[0], ph: p.phList?.[0] ?? 'cool',
+      id: `b-${p.id}`, date: p.date, ref: p.images[0], ph: p.phList[0] ?? 'cool',
       href: `/gallery/${p.id}`, tip: `갤러리 · ${p.title}`,
     })),
   ].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
@@ -368,7 +364,6 @@ export function LatestWidget() {
 /* ---------- D-DAY ---------- */
 interface DdayItem { title: string; date: string; plusOne?: boolean }
 function ddayLabel(date: string, plusOne?: boolean): { label: string; passed: boolean; near: boolean } {
-  if (!date) return { label: 'D-DAY', passed: false, near: false };
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const d = new Date(date + 'T00:00:00');
   const diff = Math.round((d.getTime() - today.getTime()) / 86400000);
@@ -384,21 +379,21 @@ export function DdayWidget({ conf }: { conf: WidgetConf }) {
   const { editOn } = useMainStore();
   const { familyOf } = useFonts();
   const [open, setOpen] = useState(false);
-  const items = (conf?.settings?.items as DdayItem[]) ?? [];
-  const dFontId = (conf?.settings?.fontId as string | undefined) ?? 'serif';
-  const dColor = conf?.settings?.color as string | undefined;
+  const items = (conf.settings.items as DdayItem[]) ?? [];
+  const dFontId = (conf.settings.fontId as string | undefined) ?? 'serif';
+  const dColor = conf.settings.color as string | undefined;
   useEditEvent(conf.id, () => setOpen(true));
   return (
     <div className="panel widget" style={{ cursor: isAdmin ? 'pointer' : undefined }}
       onClick={e => { if ((e.target as HTMLElement).closest('.modal-ov')) return; if (isAdmin && !editOn) setOpen(true); }}>
       <h4>D-DAY {isAdmin && <span className="more">관리 ›</span>}</h4>
-      {items.map((it, idx) => {
+      {items.map(it => {
         const d = ddayLabel(it.date, it.plusOne);
         return (
-          <div className="dday-row" key={it.title || idx}>
+          <div className="dday-row" key={it.title}>
             <span>{it.title}</span>
             <b className={d.near && !dColor ? 'd-red' : ''}
-              style={{ fontFamily: familyOf?.(dFontId) ?? 'inherit', color: dColor }}>{d.label}</b>
+              style={{ fontFamily: familyOf(dFontId), color: dColor }}>{d.label}</b>
           </div>
         );
       })}
@@ -418,7 +413,7 @@ export function TodoWidget({ conf }: { conf: WidgetConf }) {
   const { isAdmin } = useAuth();
   const { editOn, updateWidget } = useMainStore();
   const [open, setOpen] = useState(false);
-  const items = (conf?.settings?.items as TodoSetItem[]) ?? [];
+  const items = (conf.settings.items as TodoSetItem[]) ?? [];
   useEditEvent(conf.id, () => setOpen(true));
 
   const setItems = (next: TodoSetItem[]) => {
@@ -466,7 +461,7 @@ export function UpcomingWidget() {
   const canSee = list('sched').some(s => seeSec(s.id));
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-  const upcoming = (st?.events || [])
+  const upcoming = st.events
     .filter(e => seeSec(e.secId))
     .filter(e => isAdmin || e.visibility === 'public' || (e.visibility === 'member' && !!user))
     .map(e => {
@@ -501,13 +496,13 @@ export function FreeTextWidget({ conf }: { conf: WidgetConf }) {
   const { updateWidget } = useMainStore();
   const { fonts, familyOf } = useFonts();
   const [open, setOpen] = useState(false);
-  const s = (conf?.settings ?? {}) as { text?: string; fontId?: string; size?: number; color?: string; align?: 'left' | 'center' | 'right'; bold?: boolean };
+  const s = conf.settings as { text?: string; fontId?: string; size?: number; color?: string; align?: 'left' | 'center' | 'right'; bold?: boolean };
   const [draft, setDraft] = useState(s);
   useEditEvent(conf.id, () => { setDraft({ ...s }); setOpen(true); });
   return (
     <div>
       <p style={{
-        fontFamily: familyOf?.(s.fontId) ?? 'var(--sans)',
+        fontFamily: familyOf(s.fontId) ?? 'var(--sans)',
         fontSize: s.size ?? 15, color: s.color ?? 'var(--page-desc)',
         textAlign: s.align ?? 'left', fontWeight: s.bold ? 700 : 400,
         lineHeight: 1.7, whiteSpace: 'pre-line', margin: 0, wordBreak: 'keep-all',
@@ -527,7 +522,7 @@ export function FreeTextWidget({ conf }: { conf: WidgetConf }) {
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
             <KSelect minWidth={170} value={draft.fontId ?? 'default'}
               onChange={v => setDraft(d => ({ ...d, fontId: v }))}
-              options={(fonts || []).map(f => ({ value: f.id, label: <span style={{ fontFamily: familyOf?.(f.id) }}>{f.name}</span> }))} />
+              options={fonts.map(f => ({ value: f.id, label: <span style={{ fontFamily: familyOf(f.id) }}>{f.name}</span> }))} />
             <span className="cp-lb">크기</span>
             <KStep value={draft.size ?? 15} min={10} max={64} step={1} suffix="px"
               onChange={v => setDraft(d => ({ ...d, size: v }))} />
@@ -572,10 +567,10 @@ export function DecoWidget({ conf }: { conf: WidgetConf }) {
   const { editOn } = useMainStore();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const rounded = (conf?.settings?.rounded as boolean) ?? true;
-  const fit = (conf?.settings?.fit as 'cover' | 'contain') ?? 'cover';
-  const slides = decoSlides(conf?.settings) || [];
-  const sec = (conf?.settings?.interval as number) ?? 5;
+  const rounded = (conf.settings.rounded as boolean) ?? true;
+  const fit = (conf.settings.fit as 'cover' | 'contain') ?? 'cover';
+  const slides = decoSlides(conf.settings);
+  const sec = (conf.settings.interval as number) ?? 5;
   const [idx, setIdx] = useState(0);
   const cur = slides[Math.min(idx, slides.length - 1)];
 
@@ -616,7 +611,7 @@ export function DecoWidget({ conf }: { conf: WidgetConf }) {
       {slides.length > 1 && !editOn && (
         <div className="deco-dots" onClick={e => e.stopPropagation()}>
           {slides.map((sl, i) => (
-            <i key={sl.id ?? i} className={i === idx ? 'on' : ''} onClick={() => setIdx(i)} />
+            <i key={sl.id} className={i === idx ? 'on' : ''} onClick={() => setIdx(i)} />
           ))}
         </div>
       )}
@@ -642,14 +637,14 @@ export function MemoBoardWidget() {
     <div className="panel widget" style={{ display: 'flex', flexDirection: 'column' }}>
       <h4>STICKY</h4>
       <div className="memo-mini" onClick={() => router.push('/memo')}>
-        {(memos || []).map(m => (
+        {memos.map(m => (
           <div key={m.id} className="postit"
             style={{
               left: `${m.x}%`, top: `${m.y}%`, zIndex: m.z,
               transform: `rotate(${m.rot}deg)`, background: m.color,
               width: Math.round(MEMO_SIZE_W[m.size] * 0.53),
             }}>
-            {settings?.showAuthor && <b>{m.author}</b>}
+            {settings.showAuthor && <b>{m.author}</b>}
             {m.text}
           </div>
         ))}
@@ -669,10 +664,10 @@ export function ApplyWidget({ conf }: { conf: WidgetConf }) {
   const [open, setOpen] = useState(false);
   useEditEvent(conf.id, () => setOpen(true));
 
-  const max = Math.max(1, Math.min(20, (conf?.settings?.count as number) ?? 5));
+  const max = Math.max(1, Math.min(20, (conf.settings.count as number) ?? 5));
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-  const shown = (apps || [])
+  const shown = apps
     .filter(a => !inTrash(a) && !!a.deadline && a.deadline >= todayStr)
     .sort((a, b) => (a.deadline ?? '').localeCompare(b.deadline ?? ''))
     .slice(0, max);
@@ -694,12 +689,12 @@ export function ApplyWidget({ conf }: { conf: WidgetConf }) {
       }}>
       <h4>COMMISSION <span className="more" onClick={e => { e.stopPropagation(); router.push('/comm-apply'); }}>전체 ›</span></h4>
       {shown.map(a => {
-        const badge = settings?.applyBadges?.find(b => b.id === a.badgeId);
+        const badge = settings.applyBadges.find(b => b.id === a.badgeId);
         return (
           <div className="apply-row" key={a.id}>
             <b>{dleft(a.deadline!)}</b>
             <span>{isAdmin ? a.name : maskName(a.name, a.nameOpen ?? 1)}</span>
-            {badge && <i style={badgeStyle(badge, settings?.badgeShape)}>{badge.label}</i>}
+            {badge && <i style={badgeStyle(badge, settings.badgeShape)}>{badge.label}</i>}
           </div>
         );
       })}
@@ -709,7 +704,7 @@ export function ApplyWidget({ conf }: { conf: WidgetConf }) {
         desc="마감이 가까운 순으로 보여 줍니다">
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <span className="cp-lb">몇 명까지</span>
-          <KStep value={(conf?.settings?.count as number) ?? 5} min={1} max={20} suffix="명"
+          <KStep value={(conf.settings.count as number) ?? 5} min={1} max={20} suffix="명"
             onChange={v => updateWidget(conf.id, { settings: { ...conf.settings, count: v } }, { persist: true })} />
         </div>
       </Modal>
@@ -720,8 +715,7 @@ export function ApplyWidget({ conf }: { conf: WidgetConf }) {
 /* ---------- 타입 → 렌더러 ---------- */
 export function renderWidget(conf: WidgetConf) {
   if (!conf || !conf.type) return null;
-  const rawType = String(conf.type);
-  const normalizedType = rawType.toLowerCase().replace(/[-_]/g, '');
+  const normalizedType = conf.type.toLowerCase().replace(/[-_]/g, '');
 
   switch (normalizedType) {
     case 'banner': return <BannerWidget conf={conf} />;
@@ -739,8 +733,7 @@ export function renderWidget(conf: WidgetConf) {
     case 'memoboard': return <MemoBoardWidget />;
     case 'apply': return <ApplyWidget conf={conf} />;
     default: {
-      const meta = WIDGET_META && WIDGET_META[rawType];
-      const metaTitle = meta?.title ?? rawType;
+      const metaTitle = WIDGET_META?.[conf.type]?.title ?? conf.type;
       return <div className="panel widget"><h4>{metaTitle}</h4></div>;
     }
   }
