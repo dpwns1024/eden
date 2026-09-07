@@ -9,7 +9,6 @@ import { Modal, ConfirmModal } from '@/components/ui/Modal';
 import { KRadio } from '@/components/ui/Kit';
 import { useToast } from '@/components/ui/Toast';
 
-// 'menu_pc' (PC 전용 메뉴) 추가
 const ADDABLE: (WidgetType | 'menu_pc')[] = ['menu_pc', 'menu', 'memo', 'dday', 'todo', 'upcoming', 'freetext', 'deco', 'diary', 'latest', 'apply'];
 const EDITABLE: (WidgetType | 'menu_pc')[] = ['banner', 'menu_pc', 'menu', 'memo', 'dday', 'todo', 'freetext', 'deco', 'apply'];
 
@@ -31,7 +30,8 @@ export default function MainPage() {
   const enabled = state.widgets.filter(w => w.enabled);
   const byCol = (c: 1 | 2 | 3) => enabled.filter(w => w.col === c);
   const mOrder = (id: string) => {
-    const i = state.mobileOrder.indexOf(id);
+    const list = state.mobileOrder || [];
+    const i = list.indexOf(id);
     return i === -1 ? 99 : i;
   };
 
@@ -65,8 +65,6 @@ export default function MainPage() {
     setCtx(null);
   };
 
-  // 모바일 메뉴(menu)는 PC에서 숨김(wgt-hide-pc)
-  // PC 메뉴(menu_pc)는 모바일에서 숨김(wgt-hide-mobile)
   const getWidgetClass = (type: string) => {
     if (type === 'menu') return 'wgt-hide-pc';
     if (type === 'menu_pc') return 'wgt-hide-mobile';
@@ -112,43 +110,27 @@ export default function MainPage() {
     ? Math.max(400, ...enabled.map(w => (w.ay ?? 0) + (w.h ?? 200))) + 40
     : undefined;
 
-  // 상단 고정 대상 위젯 구별
+  // 상단 헤더로 이동된 위젯 메인 중복 방지 조건
   const isTopWidget = (w: WidgetConf) => w.type === 'banner' || w.type === 'menu' || (w.type as string) === 'menu_pc';
-  const topBannerWidgets = enabled.filter(w => w.type === 'banner');
-  const topMenuWidgets = enabled.filter(w => w.type === 'menu' || (w.type as string) === 'menu_pc');
 
   return (
     <section className="page page-main-wrap" onClick={() => setCtx(null)}>
-      {/* 1. 상단 고정 영역: 배너 및 메뉴 위젯 */}
-      {(topBannerWidgets.length > 0 || topMenuWidgets.length > 0) && (
-        <div className="top-fixed-widgets" style={{ marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {topBannerWidgets.map(w => frame(w))}
-          {topMenuWidgets.map(w => frame(w))}
-        </div>
-      )}
-
-      {/* 2. 3열 그리드 영역 */}
       <div ref={gridRef} className={`main-grid ${absMode ? 'abs' : ''} ${gridOn ? 'gridlines' : ''}`}
         style={{ marginTop: 12, ...(canvasH ? { height: canvasH } : {}) }}>
         {absMode ? (
-          enabled.map(w =>
+          enabled.filter(w => !isTopWidget(w)).map(w =>
             w.type === 'member'
               ? <WidgetFrame key={w.id} conf={w} mobileOrder={-1} onCtx={(id, x, y) => setCtx({ id, x, y })}><MemberBox /></WidgetFrame>
               : frame(w)
           )
         ) : (
           <>
-            {/* 1열 (왼쪽) */}
             <div>
               {byCol(1).filter(w => !isTopWidget(w)).map(w => frame(w))}
             </div>
-
-            {/* 2열 (중앙) */}
             <div>
               {byCol(2).filter(w => !isTopWidget(w)).map(w => frame(w))}
             </div>
-
-            {/* 3열 (오른쪽) */}
             <div>
               {byCol(3).filter(w => !isTopWidget(w)).map(w =>
                 w.type === 'member'
@@ -197,7 +179,6 @@ export default function MainPage() {
           { label: 'CANCEL', kind: 'ghost', onClick: () => setDelAsk(null) },
         ]} />
 
-      {/* 위젯 추가 모달 */}
       <Modal open={addOpen} onClose={() => setAddOpen(false)} small
         title="위젯 추가" desc="종류와 배치 열을 선택하세요"
         actions={<>
