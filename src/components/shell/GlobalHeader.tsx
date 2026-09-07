@@ -48,35 +48,26 @@ export function GlobalHeader() {
 
   const absMode = headerWidgets.length > 0 && headerWidgets.every(w => w.ax != null && w.ay != null);
 
-  // 메뉴 버튼의 Y 위치(ay) + 메뉴 높이(44px)를 기준으로 실제 헤더 높이 계산
-  const getCalculatedHeaderHeight = () => {
+  // 배너 및 메뉴의 실제 시각적 하단 위치 계산 (배너 이미지와 메뉴 버튼이 모두 수용되는 높이)
+  const getHeaderHeight = () => {
     if (!absMode) return undefined;
 
-    const menuYList = topMenu.map(w => w.ay ?? 0);
-    if (menuYList.length > 0) {
-      const maxMenuY = Math.max(...menuYList);
-      return maxMenuY + 44; // 메뉴 버튼 하단선 + 여백 4px
-    }
+    let maxBottom = 0;
 
-    // 메뉴가 없을 경우 배너 높이 기본값 적용
-    const bannerYList = topBanner.map(w => (w.ay ?? 0) + 200);
-    return bannerYList.length > 0 ? Math.max(...bannerYList) : undefined;
+    topBanner.forEach(w => {
+      const bottom = (w.ay ?? 0) + (w.h ?? 200);
+      if (bottom > maxBottom) maxBottom = bottom;
+    });
+
+    topMenu.forEach(w => {
+      const bottom = (w.ay ?? 0) + 44;
+      if (bottom > maxBottom) maxBottom = bottom;
+    });
+
+    return maxBottom > 0 ? maxBottom + 8 : undefined;
   };
 
-  const headerCanvasH = getCalculatedHeaderHeight();
-
-  // WidgetFrame에 574px 같은 과도한 높이가 전달되지 않도록 높이값 재조정
-  const getAdjustedConf = (w: WidgetConf): WidgetConf => {
-    const isMenu = w.type === 'menu' || (w.type as string) === 'menu_pc';
-    if (isMenu) {
-      return { ...w, h: 44 };
-    }
-    if (w.type === 'banner') {
-      const menuY = topMenu.length > 0 ? (topMenu[0].ay ?? 200) : 200;
-      return { ...w, h: menuY };
-    }
-    return w;
-  };
+  const headerCanvasH = getHeaderHeight();
 
   return (
     <header
@@ -84,7 +75,9 @@ export function GlobalHeader() {
       onClick={() => setCtx(null)}
       style={{
         width: '100%',
-        margin: '0 auto',
+        margin: '0 auto 8px auto',
+        padding: 0,
+        paddingBottom: 0,
         position: 'relative',
         zIndex: 100,
       }}
@@ -95,15 +88,19 @@ export function GlobalHeader() {
           position: 'relative',
           width: '100%',
           marginTop: 0,
+          padding: 0,
+          paddingBottom: 0,
           ...(headerCanvasH ? { height: `${headerCanvasH}px` } : {}),
         }}
       >
         {headerWidgets.map(w => {
-          const adjustedConf = getAdjustedConf(w);
+          const isMenu = w.type === 'menu' || (w.type as string) === 'menu_pc';
+          const confToUse = isMenu ? { ...w, h: 44 } : w;
+
           return (
             <WidgetFrame
               key={w.id}
-              conf={adjustedConf}
+              conf={confToUse}
               mobileOrder={mOrder(w.id)}
               className={getWidgetClass(w.type)}
               onCtx={(id, x, y) => {
