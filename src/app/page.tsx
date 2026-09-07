@@ -112,8 +112,22 @@ export default function MainPage() {
     ? Math.max(400, ...enabled.map(w => (w.ay ?? 0) + (w.h ?? 200))) + 40
     : undefined;
 
+  // 상단 고정 대상 위젯 구별
+  const isTopWidget = (w: WidgetConf) => w.type === 'banner' || w.type === 'menu' || (w.type as string) === 'menu_pc';
+  const topBannerWidgets = enabled.filter(w => w.type === 'banner');
+  const topMenuWidgets = enabled.filter(w => w.type === 'menu' || (w.type as string) === 'menu_pc');
+
   return (
     <section className="page page-main-wrap" onClick={() => setCtx(null)}>
+      {/* 1. 상단 고정 영역: 배너 및 메뉴 위젯 */}
+      {(topBannerWidgets.length > 0 || topMenuWidgets.length > 0) && (
+        <div className="top-fixed-widgets" style={{ marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {topBannerWidgets.map(w => frame(w))}
+          {topMenuWidgets.map(w => frame(w))}
+        </div>
+      )}
+
+      {/* 2. 3열 그리드 영역 */}
       <div ref={gridRef} className={`main-grid ${absMode ? 'abs' : ''} ${gridOn ? 'gridlines' : ''}`}
         style={{ marginTop: 12, ...(canvasH ? { height: canvasH } : {}) }}>
         {absMode ? (
@@ -126,21 +140,17 @@ export default function MainPage() {
           <>
             {/* 1열 (왼쪽) */}
             <div>
-              {byCol(1).map(w => frame(w))}
+              {byCol(1).filter(w => !isTopWidget(w)).map(w => frame(w))}
             </div>
 
-            {/* 2열 (중앙: 상단 배너, 메뉴 상단 고정 후 기타 위젯 배치) */}
+            {/* 2열 (중앙) */}
             <div>
-              {byCol(2).map(w => w.type === 'banner' ? frame(w) : null)}
-              {byCol(2).map(w => (w.type === 'menu' || (w.type as string) === 'menu_pc') ? frame(w) : null)}
-              <div className="g2" style={{ marginTop: 10 }}>
-                {byCol(2).filter(w => w.type !== 'banner' && w.type !== 'menu' && (w.type as string) !== 'menu_pc').map(w => frame(w))}
-              </div>
+              {byCol(2).filter(w => !isTopWidget(w)).map(w => frame(w))}
             </div>
 
             {/* 3열 (오른쪽) */}
             <div>
-              {byCol(3).map(w =>
+              {byCol(3).filter(w => !isTopWidget(w)).map(w =>
                 w.type === 'member'
                   ? <WidgetFrame key={w.id} conf={w} mobileOrder={-1} onCtx={(id, x, y) => setCtx({ id, x, y })}><MemberBox /></WidgetFrame>
                   : frame(w)
