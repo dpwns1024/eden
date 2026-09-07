@@ -1,9 +1,10 @@
 'use client';
 
-// 상단 바 — 우측 알림(종) · 프로필만 남긴 완전 투명 헤더
+// 상단 바 — 우측 알림(종) · 프로필만 남긴 완전 투명 헤더 (+ 편집모드 토글 복원)
 import React, { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
+import { useMainStore } from '@/lib/mainStore';
 import { useBlobUrl } from '@/lib/blobStore';
 import { refreshPage } from '@/lib/pageRefresh';
 import { KToggle } from '@/components/ui/Kit';
@@ -22,6 +23,7 @@ const BellIcon = () => (
 
 export function TopBar() {
   const { user, isAdmin, logout } = useAuth();
+  const { editOn, editAvailable, toggleEdit } = useMainStore();
   const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -161,7 +163,14 @@ export function TopBar() {
           <div className={`user-menu ${menuOpen ? 'open' : ''}`}>
             <button onClick={() => { setMenuOpen(false); nav('/mypage'); }}>정보수정</button>
             {isAdmin && (
-              <button onClick={() => { setMenuOpen(false); nav('/settings'); }}>환경설정</button>
+              <>
+                {(editAvailable || editOn) && (
+                  <button onClick={() => { setMenuOpen(false); toggleEdit(); }}>
+                    편집모드 {editOn ? '끄기' : '켜기'}
+                  </button>
+                )}
+                <button onClick={() => { setMenuOpen(false); nav('/settings'); }}>환경설정</button>
+              </>
             )}
             <button onClick={() => { setMenuOpen(false); logout(); }}>로그아웃</button>
           </div>
