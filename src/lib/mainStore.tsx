@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 // 메인 위젯 시스템 + 편집모드 상태 (기획서 4.0)
 // 저장소: localStorage → 추후 Supabase site_settings 로 이전
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
@@ -8,7 +8,7 @@ import { useAuth } from './auth';
 import { getRawSetting, setSetting } from './settingStore';
 
 export type WidgetType =
-  | 'banner' | 'member'                 // 고정 요소 (삭제 불가)
+  | 'banner' | 'member'                  // 고정 요소 (삭제 불가)
   | 'menu' | 'memo' | 'diary' | 'latest'
   | 'dday' | 'todo' | 'upcoming' | 'freetext' | 'deco' | 'memoboard'
   | 'apply';   // 'image'는 deco(장식 이미지+링크)로 일원화 (v1.9) · apply = 커미션 신청자 (v2.0)
@@ -16,9 +16,9 @@ export type WidgetType =
 export interface WidgetConf {
   id: string;
   type: WidgetType;
-  col: 1 | 2 | 3;                       // PC 배치 열
+  col: 1 | 2 | 3;                        // PC 배치 열
   enabled: boolean;
-  fixed?: boolean;                      // 고정 요소 여부
+  fixed?: boolean;                       // 고정 요소 여부
   // 편집모드 배치값 (그리드 원점 = 첫 위치, v1.8)
   tx: number; ty: number;
   w?: number; h?: number; z?: number;
@@ -36,8 +36,8 @@ export type LayoutMode = 'fixed' | 'fluid'; // 고정 캔버스(기본) / 반응
 interface MainState {
   layoutMode: LayoutMode;
   widgets: WidgetConf[];
-  mobileOrder: string[];                // 모바일 세로 나열 순서 (위젯 id)
-  removedIds?: string[];                // 삭제한 기본 위젯 id — 로드 시 기본값 병합에서 되살아나지 않게 (v1.9)
+  mobileOrder: string[];                 // 모바일 세로 나열 순서 (위젯 id)
+  removedIds?: string[];                 // 삭제한 기본 위젯 id — 로드 시 기본값 병합에서 되살아나지 않게 (v1.9)
 }
 
 export const WIDGET_META: Record<WidgetType, { title: string; desc: string }> = {
@@ -61,10 +61,18 @@ export const MULTI_TYPES: WidgetType[] = ['freetext', 'deco'];
 
 /** 위젯 표시 이름 — 중복 추가 가능한 위젯이 2개 이상이면 번호를 붙여 구분 (v1.9) */
 export function widgetLabel(widgets: WidgetConf[], w: WidgetConf): string {
-  const t = WIDGET_META[w.type].title;
-  if (!MULTI_TYPES.includes(w.type)) return t;
-  const same = widgets.filter(x => x.type === w.type);
-  return same.length > 1 ? `${t} ${same.findIndex(x => x.id === w.id) + 1}` : t;
+  if (!w) return '위젯';
+  
+  // WIDGET_META에 해당 타입이 없거나 w.type이 예외적일 때 옵셔널 체이닝과 기본값으로 안전하게 방어
+  const meta = WIDGET_META[w.type];
+  const t = meta?.title ?? (w.type ? String(w.type).toUpperCase() : '위젯');
+
+  if (!w.type || !MULTI_TYPES.includes(w.type)) return t;
+  
+  const same = (widgets || []).filter(x => x && x.type === w.type);
+  const index = same.findIndex(x => x.id === w.id);
+  
+  return same.length > 1 && index !== -1 ? `${t} ${index + 1}` : t;
 }
 
 // 기본 배치는 절대 좌표로 못 박음 (v1.9 사용자 피드백) — 예전에는 흐름 렌더를 측정해 스냅샷했는데
