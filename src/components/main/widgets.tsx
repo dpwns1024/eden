@@ -96,7 +96,7 @@ export function BannerWidget({ conf }: { conf: WidgetConf }) {
   );
 }
 
-/* ---------- 메뉴리스트 (마우스 호버 지원 + 불투명도 통일) ---------- */
+/* ---------- 메뉴리스트 (완전 불투명 배경 스타일 적용) ---------- */
 export function MenuListWidget() {
   const router = useRouter();
   const [open, setOpen] = useState<string | null>(null);
@@ -124,20 +124,18 @@ export function MenuListWidget() {
       width: '100%',
     }}>
       <style>{`
-        /* 메인 상단 메뉴 버튼 스타일 - 하단 위젯들과 불투명도 및 글래스모피즘 통일 */
+        /* 메인 상단 메뉴 버튼 스타일 - 하단 위젯들과 완전 불투명(Solid White) 통일 */
         .pc-menu-widget .menu-pill {
           display: inline-flex;
           align-items: center;
           justify-content: center;
           padding: 7px 18px;
           border-radius: 999px;
-          background: var(--topmenu-bg, var(--menu-bg, rgba(255, 255, 255, 0.75)));
+          background: var(--topmenu-bg, var(--menu-bg, #ffffff));
           color: var(--topmenu-color, var(--menu-color, #5a6068));
           font-size: 13px;
           font-weight: 600;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
           cursor: pointer;
           user-select: none;
           white-space: nowrap;
@@ -147,30 +145,28 @@ export function MenuListWidget() {
         .pc-menu-widget .menu-pill:hover,
         .pc-menu-widget .menu-pill.active,
         .pc-menu-widget .mgrp:hover .menu-pill {
-          background: var(--topmenu-hover-bg, rgba(255, 255, 255, 0.9));
-          color: var(--topmenu-hover-color, var(--topmenu-hover, #485e79));
-          box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+          background: var(--topmenu-hover-bg, #ffffff);
+          color: var(--topmenu-hover-color, var(--topmenu-hover, #111111));
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
-        /* 서브메뉴 드롭다운 박스 - 가변 너비 및 반투명 배경 통일 */
+        /* 서브메뉴 드롭다운 박스 - 완전 불투명 흰색 통일 */
         .pc-menu-widget .msub-card {
           position: absolute;
           top: calc(100% + 6px);
           left: 50%;
           transform: translateX(-50%);
-          background: var(--submenu-bg, var(--sub-bg, rgba(255, 255, 255, 0.85)));
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
+          background: var(--submenu-bg, var(--sub-bg, #ffffff));
           border-radius: 18px;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-          padding: 4px;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+          padding: 6px;
           display: flex;
           flex-direction: column;
           gap: 2px;
           z-index: 100;
           width: max-content;
           min-width: 100%;
-          border: 1px solid rgba(0, 0, 0, 0.05);
+          border: 1px solid rgba(0, 0, 0, 0.06);
           box-sizing: border-box;
         }
 
