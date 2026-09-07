@@ -112,10 +112,10 @@ export default function MainPage() {
     ? Math.max(400, ...enabled.map(w => (w.ay ?? 0) + (w.h ?? 200))) + 40
     : undefined;
 
-  // 상단 고정 대상 위젯 구별 변수 정의
-  const isTopWidget = (w: WidgetConf) => w.type === 'banner' || w.type === 'menu' || w.type === 'menu_pc';
+  // 상단 고정 대상 위젯 구별 (타입스크립트 호환을 위해 as string 캐스팅)
+  const isTopWidget = (w: WidgetConf) => w.type === 'banner' || w.type === 'menu' || (w.type as string) === 'menu_pc';
   const topBanner = enabled.filter(w => w.type === 'banner');
-  const topMenu = enabled.filter(w => w.type === 'menu' || w.type === 'menu_pc');
+  const topMenu = enabled.filter(w => w.type === 'menu' || (w.type as string) === 'menu_pc');
 
   return (
     <section className="page page-main-wrap" onClick={() => setCtx(null)}>
