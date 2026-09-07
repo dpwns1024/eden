@@ -12,7 +12,7 @@ import { useSections } from '@/stores/section';
 import { useCustomLinks } from '@/stores/customLink';
 import { WidgetConf, WIDGET_META } from '@/types/widget';
 
-/* --- 다른 위젯 컴포넌트 임포트 --- */
+/* --- 하위 위젯 컴포넌트 임포트 --- */
 import { BannerWidget } from './BannerWidget';
 import { MemoWidget } from './MemoWidget';
 import { DiaryWidget } from './DiaryWidget';
@@ -70,6 +70,8 @@ export function MenuListWidget({ conf }: { conf?: WidgetConf }) {
 
 /* ---------- 타입별 위젯 렌더러 스위치 ---------- */
 export function renderWidget(conf: WidgetConf) {
+  if (!conf || !conf.type) return null;
+
   switch (conf.type) {
     case 'banner':
       return <BannerWidget conf={conf} />;
@@ -99,8 +101,11 @@ export function renderWidget(conf: WidgetConf) {
     default:
       return (
         <div className="panel widget">
-          <h4>{WIDGET_META[conf.type]?.title ?? conf.type}</h4>
+          <h4>{WIDGET_META?.[conf.type]?.title ?? conf.type}</h4>
         </div>
       );
   }
 }
+
+/* Default Export 추가하여 import renderWidget 구문 지원 */
+export default renderWidget;
