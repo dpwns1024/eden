@@ -37,7 +37,7 @@ export function GlobalHeader() {
   const getWidgetClass = (type: string) => {
     if (type === 'menu') return 'wgt-hide-pc';
     if (type === 'menu_pc') return 'wgt-hide-mobile';
-    return '';
+    return undefined;
   };
 
   const mOrder = (id: string) => {
@@ -46,85 +46,50 @@ export function GlobalHeader() {
     return i === -1 ? 99 : i;
   };
 
-  // 메인과 정확히 동일한 배너+메뉴 통합 높이 계산식 (하단 여백 강제 제거)
-  const calculateTotalHeight = () => {
-    let maxBottom = 0;
-    headerWidgets.forEach(w => {
-      const top = w.ay ?? 0;
-      // h값이 잘못 들어간 경우 기본 배너/메뉴 높이 기준 보정
-      const height = w.h && w.h > 0 ? w.h : (w.type === 'banner' ? 320 : 44);
-      const bottom = top + height;
-      if (bottom > maxBottom) {
-        maxBottom = bottom;
-      }
-    });
-    return maxBottom;
-  };
-
-  const headerHeight = calculateTotalHeight();
+  // MainPage.tsx의 canvasH 계산 방식과 100% 동일하게 배너 높이 계산
+  // 메뉴 위젯 제외, 배너(topBanner)의 ay + h 기준 계산 후 + 40
+  const absMode = enabled.length > 0 && enabled.every(w => w.ax != null && w.ay != null);
+  
+  const canvasH = absMode
+    ? Math.max(300, ...topBanner.map(w => (w.ay ?? 0) + (w.h ?? 200))) + 40
+    : undefined;
 
   return (
-    <header 
-      className="global-header-wrap page" 
-      onClick={() => setCtx(null)}
-      style={{ margin: 0, padding: 0, display: 'block', clear: 'both' }}
-    >
-      <div className="main-wrap" style={{ width: '100%', margin: '0 auto', padding: 0 }}>
-        <div
-          className="main-grid abs"
-          style={{
-            position: 'relative',
-            width: '100%',
-            height: `${headerHeight}px`,
-            margin: '0 auto',
-            padding: 0,
-            overflow: 'hidden',
-          }}
-        >
-          {headerWidgets.map(w => (
-            <WidgetFrame
-              key={w.id}
-              conf={w}
-              mobileOrder={mOrder(w.id)}
-              className={getWidgetClass(w.type)}
-              onCtx={(id, x, y) => {
-                if (state.widgets.find(v => v.id === id)?.z == null) {
-                  const zs = enabled.map(v => v.z ?? 0);
-                  updateWidget(id, { z: Math.max(...zs, 0) + 1 });
-                }
-                setCtx({ id, x, y });
-              }}
-            >
-              {renderWidget(w)}
-            </WidgetFrame>
-          ))}
-        </div>
+    <section className="page page-main-wrap" onClick={() => setCtx(null)} style={{ paddingBottom: 0 }}>
+      <div
+        className={`main-grid ${absMode ? 'abs' : ''}`}
+        style={{ marginTop: 0, ...(canvasH ? { height: canvasH } : {}) }}
+      >
+        {headerWidgets.map(w => (
+          <WidgetFrame
+            key={w.id}
+            conf={w}
+            mobileOrder={mOrder(w.id)}
+            className={getWidgetClass(w.type)}
+            onCtx={(id, x, y) => {
+              if (state.widgets.find(v => v.id === id)?.z == null) {
+                const zs = enabled.map(v => v.z ?? 0);
+                updateWidget(id, { z: Math.max(...zs, 0) + 1 });
+              }
+              setCtx({ id, x, y });
+            }}
+          >
+            {renderWidget(w)}
+          </WidgetFrame>
+        ))}
       </div>
 
       {ctx && (() => {
         const me = enabled.find(w => w.id === ctx.id);
         if (!me) return null;
         return (
-          <div
-            className="ctx-menu on"
-            style={{
-              position: 'fixed',
-              left: ctx.x,
-              top: ctx.y,
-              zIndex: 9999,
-            }}
-            onClick={e => e.stopPropagation()}
-          >
+          <div className="ctx-menu on" style={{ left: ctx.x, top: ctx.y }} onClick={e => e.stopPropagation()}>
             <div className="ctx-ttl">{widgetLabel(state.widgets, me)}</div>
             <div className="sep" />
-            {EDITABLE.includes(me.type as string) && (
+            {EDITABLE.includes(me.type as any) && (
               <button
                 onClick={() => {
-                  window.dispatchEvent(
-                    new CustomEvent('ohome-widget-edit', {
-                      detail: { id: me.id },
-                    })
-                  );
+                  window.dispatchEvent(new CustomEvent('ohome-widget-edit', { detail: { id: me.id } }));
                   setCtx(null);
                 }}
               >
@@ -164,6 +129,6 @@ export function GlobalHeader() {
           { label: 'CANCEL', kind: 'ghost', onClick: () => setDelAsk(null) },
         ]}
       />
-    </header>
+    </section>
   );
 }
