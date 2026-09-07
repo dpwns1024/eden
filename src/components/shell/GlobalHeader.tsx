@@ -46,21 +46,21 @@ export function GlobalHeader() {
     return i === -1 ? 99 : i;
   };
 
-  // 메인 페이지와 동일한 배너 및 헤더 높이 수치 보장
+  // 기존 원본 높이 계산식 복원
   const calculateTotalHeight = () => {
     let maxBottom = 0;
 
     headerWidgets.forEach(w => {
       const top = w.ay ?? 0;
       const isMenu = w.type === 'menu' || (w.type as string) === 'menu_pc';
-      const height = isMenu ? 44 : (w.h ?? 320); 
+      const height = isMenu ? 44 : (w.h ?? 200);
       const bottom = top + height;
       if (bottom > maxBottom) {
         maxBottom = bottom;
       }
     });
 
-    return maxBottom > 0 ? maxBottom : 360; 
+    return maxBottom > 0 ? maxBottom + 16 : 300;
   };
 
   const headerHeight = calculateTotalHeight();
@@ -70,8 +70,7 @@ export function GlobalHeader() {
       className="global-header-wrap page"
       onClick={() => setCtx(null)}
       style={{
-        width: '100vw',
-        maxWidth: '100%',
+        width: '100%',
         margin: '0 auto',
         padding: 0,
         position: 'relative',
@@ -86,7 +85,6 @@ export function GlobalHeader() {
           position: 'relative',
           width: '100%',
           height: `${headerHeight}px`,
-          minHeight: `${headerHeight}px`,
           marginTop: 0,
           padding: 0,
         }}
