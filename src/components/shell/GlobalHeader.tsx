@@ -48,26 +48,40 @@ export function GlobalHeader() {
 
   const absMode = headerWidgets.length > 0 && headerWidgets.every(w => w.ax != null && w.ay != null);
 
-  // 배너 및 메뉴의 실제 시각적 하단 위치 계산 (배너 이미지와 메뉴 버튼이 모두 수용되는 높이)
+  // 메뉴 버튼 시작 Y 위치 및 하단 위치 측정
+  const menuYList = topMenu.map(w => w.ay ?? 0);
+  const minMenuY = menuYList.length > 0 ? Math.min(...menuYList) : null;
+
+  const menuBottomList = topMenu.map(w => (w.ay ?? 0) + (w.h && w.h < 100 ? w.h : 44));
+  const maxMenuBottom = menuBottomList.length > 0 ? Math.max(...menuBottomList) : null;
+
+  // 헤더 전체 높이 (메뉴 하단선 + 여백 8px)
   const getHeaderHeight = () => {
     if (!absMode) return undefined;
-
-    let maxBottom = 0;
-
-    topBanner.forEach(w => {
-      const bottom = (w.ay ?? 0) + (w.h ?? 200);
-      if (bottom > maxBottom) maxBottom = bottom;
-    });
-
-    topMenu.forEach(w => {
-      const bottom = (w.ay ?? 0) + 44;
-      if (bottom > maxBottom) maxBottom = bottom;
-    });
-
-    return maxBottom > 0 ? maxBottom + 8 : undefined;
+    if (maxMenuBottom !== null) {
+      return maxMenuBottom + 8;
+    }
+    if (topBanner.length > 0) {
+      return Math.max(...topBanner.map(w => (w.ay ?? 0) + (w.h ?? 200)));
+    }
+    return undefined;
   };
 
   const headerCanvasH = getHeaderHeight();
+
+  // 배너가 길어져서 메뉴를 침범하지 않도록 높이를 메뉴 위치에 맞게 자동 커스텀
+  const getAdjustedConf = (w: WidgetConf): WidgetConf => {
+    if (w.type === 'banner' && minMenuY !== null) {
+      const bannerTop = w.ay ?? 0;
+      // 메뉴 시작선 + 16px (메인 페이지처럼 살짝 겹치는 정도)
+      const targetH = Math.max(minMenuY - bannerTop + 16, 100);
+      return { ...w, h: targetH };
+    }
+    if (w.type === 'menu' || (w.type as string) === 'menu_pc') {
+      return { ...w, h: w.h && w.h < 100 ? w.h : 44 };
+    }
+    return w;
+  };
 
   return (
     <header
@@ -94,9 +108,7 @@ export function GlobalHeader() {
         }}
       >
         {headerWidgets.map(w => {
-          const isMenu = w.type === 'menu' || (w.type as string) === 'menu_pc';
-          const confToUse = isMenu ? { ...w, h: 44 } : w;
-
+          const confToUse = getAdjustedConf(w);
           return (
             <WidgetFrame
               key={w.id}
