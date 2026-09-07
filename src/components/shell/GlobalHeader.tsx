@@ -47,12 +47,20 @@ export function GlobalHeader() {
     return i === -1 ? 99 : i;
   };
 
-  // 헤더 위젯들의 절대 좌표(ax, ay) 유무 판단
   const absMode = headerWidgets.length > 0 && headerWidgets.every(w => w.ax != null && w.ay != null);
 
-  // 헤더 영역이 차지하는 실제 높이 계산 (메인 페이지 설정값 기준)
+  // 메뉴 위젯은 실제 버튼 영역 높이만 차지하므로 50px로 타이트하게 계산
+  const getWidgetHeight = (w: WidgetConf) => {
+    const isMenu = w.type === 'menu' || (w.type as string) === 'menu_pc';
+    if (isMenu) {
+      return Math.min(w.h ?? 50, 50);
+    }
+    return w.h ?? 200;
+  };
+
+  // 헤더 영역 캔버스 높이 계산 (메뉴 아래 불필요한 공백 제거)
   const headerCanvasH = absMode
-    ? Math.max(...headerWidgets.map(w => (w.ay ?? 0) + (w.h ?? 200)))
+    ? Math.max(...headerWidgets.map(w => (w.ay ?? 0) + getWidgetHeight(w))) + 8
     : undefined;
 
   return (
@@ -61,7 +69,7 @@ export function GlobalHeader() {
       onClick={() => setCtx(null)}
       style={{
         width: '100%',
-        margin: '0 auto 16px auto',
+        margin: '0 auto 8px auto',
         position: 'relative',
         zIndex: 100,
       }}
