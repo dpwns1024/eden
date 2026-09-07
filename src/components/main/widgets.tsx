@@ -34,7 +34,7 @@ function useEditEvent(id: string, onOpen: () => void) {
   }, [id, onOpen]);
 }
 
-/* ---------- 슬라이드 배너 (고정 요소, 4.0) ---------- */
+/* ---------- 슬라이드 배너 (모바일 반응형 사이즈 수정) ---------- */
 export function BannerWidget({ conf }: { conf: WidgetConf }) {
   const { isAdmin } = useAuth();
   const { editOn, updateWidget } = useMainStore();
@@ -62,6 +62,22 @@ export function BannerWidget({ conf }: { conf: WidgetConf }) {
 
   return (
     <div className="banner" style={{ cursor: s.link && !editOn ? 'pointer' : undefined }} onClick={go}>
+      <style>{`
+        /* 모바일 모드 반응형 메인 배너 스타일 */
+        @media (max-width: 768px) {
+          .banner {
+            width: 100% !important;
+            margin: 0 auto 12px auto !important;
+            border-radius: var(--radius, 12px) !important;
+            overflow: hidden !important;
+          }
+          .banner .slide img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+          }
+        }
+      `}</style>
       {slides.map((sl, i) => (
         <div key={sl.id} className={`slide ${i === Math.min(cur, slides.length - 1) ? 'on' : ''}`}>
           {sl.imgId
@@ -96,7 +112,7 @@ export function BannerWidget({ conf }: { conf: WidgetConf }) {
   );
 }
 
-/* ---------- 메뉴리스트 (블러 없는 선명한 반투명 + 환경설정 색상 연동) ---------- */
+/* ---------- 메뉴리스트 (모바일 전용 숨김 처리) ---------- */
 export function MenuListWidget() {
   const router = useRouter();
   const [open, setOpen] = useState<string | null>(null);
@@ -120,10 +136,17 @@ export function MenuListWidget() {
       flexWrap: 'wrap',
       gap: '8px',
       alignItems: 'center',
-      justifyContent: 'center',
+      justify-content: 'center',
       width: '100%',
     }}>
       <style>{`
+        /* 모바일 화면(768px 이하)에서 PC 메뉴 숨김 (중복 방지) */
+        @media (max-width: 768px) {
+          .pc-menu-widget {
+            display: none !important;
+          }
+        }
+
         /* 상단 메뉴 버튼: 블러(blur) 제거 후 선명하게 투과되는 반투명 */
         .pc-menu-widget .menu-pill {
           display: inline-flex;
