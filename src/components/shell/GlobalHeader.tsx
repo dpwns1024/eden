@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useMainStore, WidgetConf, widgetLabel } from '@/lib/mainStore';
 import { renderWidget } from '@/components/main/widgets';
@@ -11,13 +11,20 @@ const EDITABLE = ['banner', 'menu_pc', 'menu'];
 
 export function GlobalHeader() {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
   const { state, removeWidget } = useMainStore();
   const toast = useToast();
   const [ctx, setCtx] = useState<{ id: string; x: number; y: number } | null>(null);
   const [delAsk, setDelAsk] = useState<WidgetConf | null>(null);
 
-  // 메인 페이지('/')에서는 page.tsx에서 직접 편집 가능한 위젯으로 처리하므로 헤더 중복 차단
-  if (pathname === '/') return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // 마운트 전(SSR/초기 로딩)이거나 메인 페이지('/')일 경우 상단 헤더 출력 완전히 차단
+  if (!mounted || !pathname || pathname === '/' || pathname === '') {
+    return null;
+  }
 
   const enabled = state.widgets.filter(w => w.enabled);
   const topBanner = enabled.filter(w => w.type === 'banner');
