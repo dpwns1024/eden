@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { useMainStore, WidgetConf, widgetLabel } from '@/lib/mainStore';
-import { WidgetFrame } from '@/components/main/WidgetFrame';
 import { renderWidget } from '@/components/main/widgets';
 import { ConfirmModal } from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/Toast';
@@ -24,60 +23,113 @@ export function GlobalHeader() {
   const getWidgetClass = (type: string) => {
     if (type === 'menu') return 'wgt-hide-pc';
     if (type === 'menu_pc') return 'wgt-hide-mobile';
-    return undefined;
+    return '';
   };
 
-  const mOrder = (id: string) => {
-    const list = state.mobileOrder || [];
-    const i = list.indexOf(id);
-    return i === -1 ? 99 : i;
-  };
-
-  const handleCtx = (id: string, x: number, y: number) => {
-    setCtx({ id, x, y });
+  const handleContextMenu = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    setCtx({ id, x: e.clientX, y: e.clientY });
   };
 
   return (
-    <div className="global-header-wrap" onClick={() => setCtx(null)} style={{ width: '100%', maxWidth: '1200px', margin: '0 auto 12px auto', padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 10, position: 'relative' }}>
+    <header
+      className="global-header-wrap"
+      onClick={() => setCtx(null)}
+      style={{
+        width: '100%',
+        maxWidth: '1200px',
+        margin: '0 auto 12px auto',
+        padding: '0 16px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+        position: 'relative',
+        zIndex: 100,
+      }}
+    >
       {topBanner.map(w => (
-        <WidgetFrame key={w.id} conf={w} mobileOrder={mOrder(w.id)} className={getWidgetClass(w.type)} onCtx={handleCtx}>
+        <div
+          key={w.id}
+          className={`global-wgt-item ${getWidgetClass(w.type)}`}
+          onContextMenu={e => handleContextMenu(e, w.id)}
+        >
           {renderWidget(w)}
-        </WidgetFrame>
+        </div>
       ))}
+
       {topMenu.map(w => (
-        <WidgetFrame key={w.id} conf={w} mobileOrder={mOrder(w.id)} className={getWidgetClass(w.type)} onCtx={handleCtx}>
+        <div
+          key={w.id}
+          className={`global-wgt-item ${getWidgetClass(w.type)}`}
+          onContextMenu={e => handleContextMenu(e, w.id)}
+        >
           {renderWidget(w)}
-        </WidgetFrame>
+        </div>
       ))}
 
       {ctx && (() => {
         const me = enabled.find(w => w.id === ctx.id);
         if (!me) return null;
         return (
-          <div className="ctx-menu on" style={{ left: ctx.x, top: ctx.y, zIndex: 9999 }} onClick={e => e.stopPropagation()}>
+          <div
+            className="ctx-menu on"
+            style={{
+              position: 'fixed',
+              left: ctx.x,
+              top: ctx.y,
+              zIndex: 9999,
+            }}
+            onClick={e => e.stopPropagation()}
+          >
             <div className="ctx-ttl">{widgetLabel(state.widgets, me)}</div>
             <div className="sep" />
             {EDITABLE.includes(me.type as string) && (
-              <button onClick={() => {
-                window.dispatchEvent(new CustomEvent('ohome-widget-edit', { detail: { id: me.id } }));
-                setCtx(null);
-              }}>설정</button>
+              <button
+                onClick={() => {
+                  window.dispatchEvent(
+                    new CustomEvent('ohome-widget-edit', {
+                      detail: { id: me.id },
+                    })
+                  );
+                  setCtx(null);
+                }}
+              >
+                설정
+              </button>
             )}
             {!me.fixed && (
-              <button className="danger" onClick={() => { setDelAsk(me); setCtx(null); }}>위젯 삭제</button>
+              <button
+                className="danger"
+                onClick={() => {
+                  setDelAsk(me);
+                  setCtx(null);
+                }}
+              >
+                위젯 삭제
+              </button>
             )}
           </div>
         );
       })()}
 
-      <ConfirmModal open={delAsk !== null}
+      <ConfirmModal
+        open={delAsk !== null}
         title={`「${delAsk ? widgetLabel(state.widgets, delAsk) : ''}」 위젯을 삭제할까요?`}
         body="위젯이 삭제됩니다."
         onClose={() => setDelAsk(null)}
         buttons={[
-          { label: 'DELETE', kind: 'accent', onClick: () => { if (delAsk) removeWidget(delAsk.id); setDelAsk(null); toast('위젯이 삭제되었습니다'); } },
+          {
+            label: 'DELETE',
+            kind: 'accent',
+            onClick: () => {
+              if (delAsk) removeWidget(delAsk.id);
+              setDelAsk(null);
+              toast('위젯이 삭제되었습니다');
+            },
+          },
           { label: 'CANCEL', kind: 'ghost', onClick: () => setDelAsk(null) },
-        ]} />
-    </div>
+        ]}
+      />
+    </header>
   );
 }
