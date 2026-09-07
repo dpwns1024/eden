@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useMainStore, WidgetConf, widgetLabel } from '@/lib/mainStore';
 import { WidgetFrame } from '@/components/main/WidgetFrame';
@@ -18,66 +18,19 @@ export function GlobalHeader() {
   const [ctx, setCtx] = useState<{ id: string; x: number; y: number } | null>(null);
   const [delAsk, setDelAsk] = useState<WidgetConf | null>(null);
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [contentHeight, setContentHeight] = useState<number | null>(null);
-
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const enabled = state.widgets.filter(w => w.enabled);
-  const topBanner = enabled.filter(w => w.type === 'banner');
-  const topMenu = enabled.filter(w => w.type === 'menu' || (w.type as string) === 'menu_pc');
-  const headerWidgets = [...topBanner, ...topMenu];
-
-  const absMode = headerWidgets.length > 0 && headerWidgets.every(w => w.ax != null && w.ay != null);
-
-  // 화면에 실제 렌더링된 요소의 하단 Y좌표를 측정하여 헤더 높이로 설정
-  useEffect(() => {
-    if (!mounted || !containerRef.current || !absMode) return;
-
-    const measure = () => {
-      const el = containerRef.current;
-      if (!el) return;
-
-      const children = Array.from(el.children) as HTMLElement[];
-      if (children.length === 0) return;
-
-      let maxBottom = 0;
-      const containerTop = el.getBoundingClientRect().top;
-
-      children.forEach(child => {
-        const rect = child.getBoundingClientRect();
-        const bottom = rect.bottom - containerTop;
-        if (bottom > maxBottom) {
-          maxBottom = bottom;
-        }
-      });
-
-      if (maxBottom > 0) {
-        setContentHeight(Math.ceil(maxBottom) + 8);
-      }
-    };
-
-    measure();
-
-    const ro = new ResizeObserver(() => measure());
-    ro.observe(containerRef.current);
-    Array.from(containerRef.current.children).forEach(c => ro.observe(c));
-
-    const imgs = containerRef.current.querySelectorAll('img');
-    imgs.forEach(img => {
-      if (!img.complete) {
-        img.addEventListener('load', measure, { once: true });
-      }
-    });
-
-    return () => ro.disconnect();
-  }, [mounted, pathname, headerWidgets, absMode]);
-
   if (!mounted || !pathname || pathname === '/' || pathname === '') {
     return null;
   }
+
+  const enabled = state.widgets.filter(w => w.enabled);
+  const topBanner = enabled.filter(w => w.type === 'banner');
+  const topMenu = enabled.filter(w => w.type === 'menu' || (w.type as string) === 'menu_pc');
+
+  const headerWidgets = [...topBanner, ...topMenu];
 
   if (headerWidgets.length === 0) return null;
 
@@ -93,6 +46,38 @@ export function GlobalHeader() {
     return i === -1 ? 99 : i;
   };
 
+  const absMode = headerWidgets.length > 0 && headerWidgets.every(w => w.ax != null && w.ay != null);
+
+  // 메뉴 버튼의 Y 위치(ay) + 메뉴 높이(44px)를 기준으로 실제 헤더 높이 계산
+  const getCalculatedHeaderHeight = () => {
+    if (!absMode) return undefined;
+
+    const menuYList = topMenu.map(w => w.ay ?? 0);
+    if (menuYList.length > 0) {
+      const maxMenuY = Math.max(...menuYList);
+      return maxMenuY + 44; // 메뉴 버튼 하단선 + 여백 4px
+    }
+
+    // 메뉴가 없을 경우 배너 높이 기본값 적용
+    const bannerYList = topBanner.map(w => (w.ay ?? 0) + 200);
+    return bannerYList.length > 0 ? Math.max(...bannerYList) : undefined;
+  };
+
+  const headerCanvasH = getCalculatedHeaderHeight();
+
+  // WidgetFrame에 574px 같은 과도한 높이가 전달되지 않도록 높이값 재조정
+  const getAdjustedConf = (w: WidgetConf): WidgetConf => {
+    const isMenu = w.type === 'menu' || (w.type as string) === 'menu_pc';
+    if (isMenu) {
+      return { ...w, h: 44 };
+    }
+    if (w.type === 'banner') {
+      const menuY = topMenu.length > 0 ? (topMenu[0].ay ?? 200) : 200;
+      return { ...w, h: menuY };
+    }
+    return w;
+  };
+
   return (
     <header
       className="global-header-wrap page"
@@ -105,32 +90,34 @@ export function GlobalHeader() {
       }}
     >
       <div
-        ref={containerRef}
         className={`main-grid ${absMode ? 'abs' : ''}`}
         style={{
           position: 'relative',
           width: '100%',
           marginTop: 0,
-          ...(absMode && contentHeight ? { height: contentHeight } : {}),
+          ...(headerCanvasH ? { height: `${headerCanvasH}px` } : {}),
         }}
       >
-        {headerWidgets.map(w => (
-          <WidgetFrame
-            key={w.id}
-            conf={w}
-            mobileOrder={mOrder(w.id)}
-            className={getWidgetClass(w.type)}
-            onCtx={(id, x, y) => {
-              if (state.widgets.find(v => v.id === id)?.z == null) {
-                const zs = enabled.map(v => v.z ?? 0);
-                updateWidget(id, { z: Math.max(...zs, 0) + 1 });
-              }
-              setCtx({ id, x, y });
-            }}
-          >
-            {renderWidget(w)}
-          </WidgetFrame>
-        ))}
+        {headerWidgets.map(w => {
+          const adjustedConf = getAdjustedConf(w);
+          return (
+            <WidgetFrame
+              key={w.id}
+              conf={adjustedConf}
+              mobileOrder={mOrder(w.id)}
+              className={getWidgetClass(w.type)}
+              onCtx={(id, x, y) => {
+                if (state.widgets.find(v => v.id === id)?.z == null) {
+                  const zs = enabled.map(v => v.z ?? 0);
+                  updateWidget(id, { z: Math.max(...zs, 0) + 1 });
+                }
+                setCtx({ id, x, y });
+              }}
+            >
+              {renderWidget(w)}
+            </WidgetFrame>
+          );
+        })}
       </div>
 
       {ctx && (() => {
