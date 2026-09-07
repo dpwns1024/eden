@@ -46,21 +46,18 @@ export function GlobalHeader() {
     return i === -1 ? 99 : i;
   };
 
-  // 불필요한 하단 여백 제거: 위젯들의 실제 y좌표 + height 중 가장 아래쪽 값 추출
+  // 메인과 정확히 동일한 배너+메뉴 통합 높이 계산식 (하단 여백 강제 제거)
   const calculateTotalHeight = () => {
     let maxBottom = 0;
-
     headerWidgets.forEach(w => {
-      // ay(y좌표)가 없으면 0, h(높이)가 없으면 기본 위젯 높이 사용
       const top = w.ay ?? 0;
-      const height = w.h ?? (w.type === 'menu' || (w.type as string) === 'menu_pc' ? 44 : 0);
+      // h값이 잘못 들어간 경우 기본 배너/메뉴 높이 기준 보정
+      const height = w.h && w.h > 0 ? w.h : (w.type === 'banner' ? 320 : 44);
       const bottom = top + height;
       if (bottom > maxBottom) {
         maxBottom = bottom;
       }
     });
-
-    // 아무 값도 없거나 0일 때는 auto로 처리하여 여백 최소화
     return maxBottom;
   };
 
@@ -70,7 +67,7 @@ export function GlobalHeader() {
     <header 
       className="global-header-wrap page" 
       onClick={() => setCtx(null)}
-      style={{ margin: 0, padding: 0 }}
+      style={{ margin: 0, padding: 0, display: 'block', clear: 'both' }}
     >
       <div className="main-wrap" style={{ width: '100%', margin: '0 auto', padding: 0 }}>
         <div
@@ -78,10 +75,10 @@ export function GlobalHeader() {
           style={{
             position: 'relative',
             width: '100%',
-            // calculated 높이가 0보다 크면 그 높이 지정, 아니면 fit-content로 하단 밀착
-            height: headerHeight > 0 ? `${headerHeight}px` : 'auto',
-            marginBottom: 0,
-            paddingBottom: 0,
+            height: `${headerHeight}px`,
+            margin: '0 auto',
+            padding: 0,
+            overflow: 'hidden',
           }}
         >
           {headerWidgets.map(w => (
