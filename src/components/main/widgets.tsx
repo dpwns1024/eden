@@ -96,7 +96,7 @@ export function BannerWidget({ conf }: { conf: WidgetConf }) {
   );
 }
 
-/* ---------- 메뉴리스트 (하단 위젯 동일 반투명 글래스모피즘 & 환경설정 색상 완벽 연동) ---------- */
+/* ---------- 메뉴리스트 (블러 없는 선명한 반투명 + 환경설정 색상 연동) ---------- */
 export function MenuListWidget() {
   const router = useRouter();
   const [open, setOpen] = useState<string | null>(null);
@@ -124,21 +124,18 @@ export function MenuListWidget() {
       width: '100%',
     }}>
       <style>{`
-        /* 상단 메뉴 버튼: 환경설정 지정 색상 + 하단 위젯과 동일한 반투명/블러 효과 */
+        /* 상단 메뉴 버튼: 블러(blur) 제거 후 선명하게 투과되는 반투명 */
         .pc-menu-widget .menu-pill {
           display: inline-flex;
           align-items: center;
           justify-content: center;
           padding: 7px 18px;
           border-radius: 999px;
-          background: color-mix(in srgb, var(--topmenu-bg, var(--menu-bg, #ffffff)) 75%, transparent);
-          backdrop-filter: blur(14px) saturate(180%);
-          -webkit-backdrop-filter: blur(14px) saturate(180%);
+          background: color-mix(in srgb, var(--topmenu-bg, var(--menu-bg, #ffffff)) 85%, transparent);
           color: var(--topmenu-color, var(--menu-color, #5a6068));
           font-size: 13px;
           font-weight: 600;
-          border: 1px solid rgba(255, 255, 255, 0.4);
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
           cursor: pointer;
           user-select: none;
           white-space: nowrap;
@@ -148,22 +145,20 @@ export function MenuListWidget() {
         .pc-menu-widget .menu-pill:hover,
         .pc-menu-widget .menu-pill.active,
         .pc-menu-widget .mgrp:hover .menu-pill {
-          background: color-mix(in srgb, var(--topmenu-hover-bg, var(--topmenu-bg, #ffffff)) 90%, transparent);
+          background: color-mix(in srgb, var(--topmenu-hover-bg, var(--topmenu-bg, #ffffff)) 95%, transparent);
           color: var(--topmenu-hover-color, var(--topmenu-hover, #485e79));
-          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
-        /* 하위메뉴 드롭다운 박스: 환경설정 지정 배경/글씨색 + 반투명 글래스모피즘 */
+        /* 하위메뉴 드롭다운 박스: 블러(blur) 제거 후 선명하게 투과되는 반투명 */
         .pc-menu-widget .msub-card {
           position: absolute;
           top: calc(100% + 6px);
           left: 50%;
           transform: translateX(-50%);
-          background: color-mix(in srgb, var(--submenu-bg, var(--sub-bg, #ffffff)) 80%, transparent);
-          backdrop-filter: blur(16px) saturate(180%);
-          -webkit-backdrop-filter: blur(16px) saturate(180%);
+          background: color-mix(in srgb, var(--submenu-bg, var(--sub-bg, #ffffff)) 88%, transparent);
           border-radius: 18px;
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
           padding: 6px;
           display: flex;
           flex-direction: column;
@@ -171,11 +166,10 @@ export function MenuListWidget() {
           z-index: 100;
           width: max-content;
           min-width: 100%;
-          border: 1px solid rgba(255, 255, 255, 0.4);
           box-sizing: border-box;
         }
 
-        /* 마우스 이동 브릿지 영역 */
+        /* 드롭다운 브릿지 영구 영역 */
         .pc-menu-widget .msub-card::before {
           content: '';
           position: absolute;
@@ -185,7 +179,7 @@ export function MenuListWidget() {
           height: 10px;
         }
 
-        /* 서브메뉴 항목: 글씨색 및 호버 글씨색 환경설정 연동 */
+        /* 서브메뉴 항목 */
         .pc-menu-widget .msub-item {
           display: block;
           padding: 6px 14px;
