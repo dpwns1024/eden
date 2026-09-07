@@ -100,7 +100,7 @@ export function BannerWidget({ conf }: { conf: WidgetConf }) {
   );
 }
 
-/* ---------- 메뉴리스트 (PC / 모바일 공용) ---------- */
+/* ---------- 메뉴리스트 (가로 알약 버튼형 / 외부 배경 투명화) ---------- */
 export function MenuListWidget() {
   const router = useRouter();
   const [open, setOpen] = useState<string | null>(null);
@@ -115,23 +115,104 @@ export function MenuListWidget() {
     : [];
 
   return (
-    <div className="panel menu-list wgt-menu pc-menu-widget" style={{ display: 'block' }}>
-      <h4>MENU</h4>
+    <div className="wgt-menu pc-menu-widget" style={{
+      background: 'transparent',
+      boxShadow: 'none',
+      border: 'none',
+      padding: 0,
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '8px',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '100%',
+    }}>
       {menuItems.length > 0 ? (
         menuItems.map(m =>
           m.children ? (
-            <div key={m.label} className={`mgrp ${open === m.label ? 'open' : ''}`}>
-              <a onClick={() => setOpen(o => (o === m.label ? null : m.label))}>{m.label}</a>
-              <div className="msub">
-                {m.children.map(c => <a key={c.href} onClick={() => router.push(c.href)}>{c.label}</a>)}
-              </div>
+            <div key={m.label} className={`mgrp ${open === m.label ? 'open' : ''}`} style={{ position: 'relative' }}>
+              <a
+                onClick={() => setOpen(o => (o === m.label ? null : m.label))}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  padding: '7px 18px',
+                  borderRadius: '999px',
+                  background: open === m.label ? '#e55353' : '#ffffff',
+                  color: open === m.label ? '#ffffff' : '#4a4e57',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {m.label}
+              </a>
+              {open === m.label && (
+                <div className="msub" style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 6px)',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  background: '#ffffff',
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+                  padding: '6px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '2px',
+                  zIndex: 50,
+                  minWidth: '110px',
+                }}>
+                  {m.children.map(c => (
+                    <a
+                      key={c.href}
+                      onClick={() => { router.push(c.href); setOpen(null); }}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                        color: '#4a4e57',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        textAlign: 'center',
+                      }}
+                    >
+                      {c.label}
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
-            <a key={m.label} onClick={() => router.push(m.href!)}>{m.label}</a>
+            <a
+              key={m.label}
+              onClick={() => router.push(m.href!)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '7px 18px',
+                borderRadius: '999px',
+                background: '#ffffff',
+                color: '#4a4e57',
+                fontSize: '13px',
+                fontWeight: 600,
+                boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+                cursor: 'pointer',
+                userSelect: 'none',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              {m.label}
+            </a>
           )
         )
       ) : (
-        <p className="hint" style={{ padding: '10px 0', fontSize: 12, color: '#888' }}>
+        <p className="hint" style={{ padding: '8px 0', fontSize: 12, color: '#888' }}>
           {!menuLoaded || !boardsLoaded ? '메뉴 불러오는 중...' : '등록된 메뉴가 없습니다'}
         </p>
       )}
