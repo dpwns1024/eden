@@ -49,22 +49,10 @@ export function GlobalHeader() {
 
   const absMode = headerWidgets.length > 0 && headerWidgets.every(w => w.ax != null && w.ay != null);
 
-  // 헤더 영역 캔버스 높이 계산
-  // 배너의 저장된 대형 높이(w.h)를 무시하고 메뉴 버튼의 실제 하단선(ay + 44px)으로 헤더 높이를 강제 제한
-  const getHeaderHeight = () => {
-    if (!absMode) return undefined;
-
-    const menuBottoms = topMenu.map(w => (w.ay ?? 0) + 44);
-    const maxMenuBottom = menuBottoms.length > 0 ? Math.max(...menuBottoms) : 0;
-
-    if (maxMenuBottom > 0) {
-      return maxMenuBottom + 4;
-    }
-
-    return Math.max(...headerWidgets.map(w => (w.ay ?? 0) + (w.h ?? 200)));
-  };
-
-  const headerCanvasH = getHeaderHeight();
+  // 배너와 메뉴의 실제 배치 높이(ay + h) 전체 반영 (잘림 현상 제거)
+  const headerCanvasH = absMode
+    ? Math.max(...headerWidgets.map(w => (w.ay ?? 0) + (w.h ?? 200)))
+    : undefined;
 
   return (
     <header
@@ -72,7 +60,7 @@ export function GlobalHeader() {
       onClick={() => setCtx(null)}
       style={{
         width: '100%',
-        margin: '0 auto 12px auto',
+        margin: '0 auto 0 auto',
         position: 'relative',
         zIndex: 100,
       }}
@@ -83,7 +71,6 @@ export function GlobalHeader() {
           position: 'relative',
           width: '100%',
           marginTop: 0,
-          overflow: 'hidden',
           ...(headerCanvasH ? { height: headerCanvasH } : {}),
         }}
       >
