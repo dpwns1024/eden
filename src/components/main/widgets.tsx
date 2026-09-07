@@ -96,7 +96,7 @@ export function BannerWidget({ conf }: { conf: WidgetConf }) {
   );
 }
 
-/* ---------- 메뉴리스트 (환경설정 색상 연동) ---------- */
+/* ---------- 메뉴리스트 (마우스 호버 지원 + 변수 색상 연동) ---------- */
 export function MenuListWidget() {
   const router = useRouter();
   const [open, setOpen] = useState<string | null>(null);
@@ -143,7 +143,8 @@ export function MenuListWidget() {
         }
 
         .pc-menu-widget .menu-pill:hover,
-        .pc-menu-widget .menu-pill.active {
+        .pc-menu-widget .menu-pill.active,
+        .pc-menu-widget .mgrp:hover .menu-pill {
           background: var(--topmenu-hover-bg, var(--topmenu-bg, #ffffff));
           color: var(--topmenu-hover-color, var(--topmenu-hover, #485e79));
           box-shadow: 0 4px 12px rgba(0,0,0,0.08);
@@ -170,6 +171,16 @@ export function MenuListWidget() {
           box-sizing: border-box;
         }
 
+        /* 이동 중 간격으로 인해 드롭다운이 닫히지 않도록 만드는 브릿지 영구 영역 */
+        .pc-menu-widget .msub-card::before {
+          content: '';
+          position: absolute;
+          top: -10px;
+          left: 0;
+          right: 0;
+          height: 10px;
+        }
+
         /* 서브메뉴 항목 - 디자인 환경설정 색상 연동 */
         .pc-menu-widget .msub-item {
           display: block;
@@ -193,7 +204,13 @@ export function MenuListWidget() {
       {menuItems.length > 0 ? (
         menuItems.map(m =>
           m.children ? (
-            <div key={m.label} className={`mgrp ${open === m.label ? 'open' : ''}`} style={{ position: 'relative' }}>
+            <div
+              key={m.label}
+              className={`mgrp ${open === m.label ? 'open' : ''}`}
+              style={{ position: 'relative' }}
+              onMouseEnter={() => setOpen(m.label)}
+              onMouseLeave={() => setOpen(null)}
+            >
               <a
                 className={`menu-pill ${open === m.label ? 'active' : ''}`}
                 onClick={() => setOpen(o => (o === m.label ? null : m.label))}
