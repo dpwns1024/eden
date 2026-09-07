@@ -34,7 +34,7 @@ function useEditEvent(id: string, onOpen: () => void) {
   }, [id, onOpen]);
 }
 
-/* ---------- 슬라이드 배너 (모바일 반응형 사이즈 수정) ---------- */
+/* ---------- 슬라이드 배너 ---------- */
 export function BannerWidget({ conf }: { conf: WidgetConf }) {
   const { isAdmin } = useAuth();
   const { editOn } = useMainStore();
@@ -63,13 +63,22 @@ export function BannerWidget({ conf }: { conf: WidgetConf }) {
   return (
     <div className="banner" style={{ cursor: s?.link && !editOn ? 'pointer' : undefined }} onClick={go}>
       <style>{`
-        /* 모바일 모드 반응형 메인 배너 스타일 */
+        /* 모바일 반응형 배너 비율 및 높이 보정 */
         @media (max-width: 768px) {
           .banner {
+            position: relative !important;
             width: 100% !important;
+            aspect-ratio: 16 / 8 !important;
+            min-height: 140px !important;
             margin: 0 auto 12px auto !important;
             border-radius: var(--radius, 12px) !important;
             overflow: hidden !important;
+          }
+          .banner .slide {
+            position: absolute !important;
+            inset: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
           }
           .banner .slide img {
             width: 100% !important;
@@ -112,7 +121,7 @@ export function BannerWidget({ conf }: { conf: WidgetConf }) {
   );
 }
 
-/* ---------- 메뉴리스트 (모바일 전용 숨김 처리 및 style 속성명 수정) ---------- */
+/* ---------- 메뉴리스트 ---------- */
 export function MenuListWidget() {
   const router = useRouter();
   const [open, setOpen] = useState<string | null>(null);
@@ -140,14 +149,7 @@ export function MenuListWidget() {
       width: '100%',
     }}>
       <style>{`
-        /* 모바일 화면(768px 이하)에서 PC 메뉴 숨김 (중복 방지) */
-        @media (max-width: 768px) {
-          .pc-menu-widget {
-            display: none !important;
-          }
-        }
-
-        /* 상단 메뉴 버튼: 블러(blur) 제거 후 선명하게 투과되는 반투명 */
+        /* 상단 메뉴 버튼: 블러 제거 후 선명한 반투명 */
         .pc-menu-widget .menu-pill {
           display: inline-flex;
           align-items: center;
@@ -173,7 +175,7 @@ export function MenuListWidget() {
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
-        /* 하위메뉴 드롭다운 박스: 블러(blur) 제거 후 선명하게 투과되는 반투명 */
+        /* 하위메뉴 드롭다운 박스 */
         .pc-menu-widget .msub-card {
           position: absolute;
           top: calc(100% + 6px);
@@ -192,7 +194,6 @@ export function MenuListWidget() {
           box-sizing: border-box;
         }
 
-        /* 드롭다운 브릿지 영구 영역 */
         .pc-menu-widget .msub-card::before {
           content: '';
           position: absolute;
@@ -202,7 +203,6 @@ export function MenuListWidget() {
           height: 10px;
         }
 
-        /* 서브메뉴 항목 */
         .pc-menu-widget .msub-item {
           display: block;
           padding: 6px 14px;
@@ -219,6 +219,19 @@ export function MenuListWidget() {
         .pc-menu-widget .msub-item:hover {
           background: rgba(0, 0, 0, 0.05);
           color: var(--submenu-hover-color, var(--sub-hover, #000000));
+        }
+
+        /* 모바일 모드 최적화 (숨김 해제 및 반응형 사이즈) */
+        @media (max-width: 768px) {
+          .pc-menu-widget {
+            display: flex !important;
+            gap: 6px !important;
+            margin-bottom: 8px !important;
+          }
+          .pc-menu-widget .menu-pill {
+            padding: 6px 13px !important;
+            font-size: 12px !important;
+          }
         }
       `}</style>
 
