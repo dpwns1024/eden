@@ -7,6 +7,7 @@ import { BgmStoreProvider } from '@/lib/bgmStore';
 import { FontProvider } from '@/lib/fontStore';
 import { ToastProvider } from '@/components/ui/Toast';
 import { TopBar } from '@/components/shell/TopBar';
+import { GlobalHeader } from '@/components/shell/GlobalHeader';
 import { BgmPlayer } from '@/components/shell/BgmPlayer';
 import { TipLayer } from '@/components/ui/TipLayer';
 import { CursorLayer } from '@/components/shell/CursorLayer';
@@ -58,6 +59,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <BgmStoreProvider>
                   <SetupGate>
                   <TopBar />
+                  <GlobalHeader />
                   <main id="appMain"><PageFrame><MenuGuard>{children}</MenuGuard></PageFrame></main>
                   <BgmPlayer />
                   <TipLayer />
