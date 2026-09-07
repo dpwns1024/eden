@@ -45,7 +45,7 @@ export function BannerWidget({ conf }: { conf: WidgetConf }) {
   const [cur, setCur] = useState(0);
   const [mngOpen, setMngOpen] = useState(false);
   useEditEvent(conf.id, () => setMngOpen(true));
-  
+
   const rawSlides = conf?.settings?.slides as BannerSlide[] | undefined;
   const slides = (rawSlides && rawSlides.length > 0) ? rawSlides : DEMO_SLIDES;
   const interval = (conf?.settings?.interval as number) ?? 4;
@@ -739,7 +739,7 @@ export function renderWidget(conf: WidgetConf) {
     case 'memoboard': return <MemoBoardWidget />;
     case 'apply': return <ApplyWidget conf={conf} />;
     default: {
-      const meta = typeof WIDGET_META !== 'undefined' && WIDGET_META ? WIDGET_META[rawType] : undefined;
+      const meta = WIDGET_META && WIDGET_META[rawType];
       const metaTitle = meta?.title ?? rawType;
       return <div className="panel widget"><h4>{metaTitle}</h4></div>;
     }
