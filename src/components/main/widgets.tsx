@@ -96,7 +96,7 @@ export function BannerWidget({ conf }: { conf: WidgetConf }) {
   );
 }
 
-/* ---------- 메뉴리스트 (가로 버튼형 + 커서 강조 + 위젯 불투명 유리 효과) ---------- */
+/* ---------- 메뉴리스트 (가로 버튼형 + 디자인 통일 + 가변 박스 사이즈) ---------- */
 export function MenuListWidget() {
   const router = useRouter();
   const [open, setOpen] = useState<string | null>(null);
@@ -123,9 +123,8 @@ export function MenuListWidget() {
       justifyContent: 'center',
       width: '100%',
     }}>
-      {/* 위젯 반투명 유리 스타일 및 드롭다운 커서 강조 전용 CSS */}
       <style>{`
-        /* 위젯 전반적인 배경 비침 및 불투명 블러 (Glassmorphism) */
+        /* 위젯 배경 반투명 유리 효과 */
         .panel.widget, .panel.menu-list, .panel {
           background: rgba(255, 255, 255, 0.75) !important;
           backdrop-filter: blur(12px) !important;
@@ -138,7 +137,7 @@ export function MenuListWidget() {
         .pc-menu-widget .menu-pill {
           display: inline-flex;
           align-items: center;
-          gap: 4px;
+          justify-content: center;
           padding: 7px 18px;
           border-radius: 999px;
           background: rgba(255, 255, 255, 0.85);
@@ -160,7 +159,7 @@ export function MenuListWidget() {
           box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
 
-        /* 서브메뉴 드롭다운 박스 */
+        /* 서브메뉴 드롭다운 박스 - 글자 길이에 맞춰 가변 너비 적용 */
         .pc-menu-widget .msub-card {
           position: absolute;
           top: calc(100% + 6px);
@@ -168,25 +167,27 @@ export function MenuListWidget() {
           transform: translateX(-50%);
           background: rgba(255, 255, 255, 0.92);
           backdrop-filter: blur(12px);
-          border-radius: 14px;
+          border-radius: 18px;
           box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-          padding: 6px;
+          padding: 4px;
           display: flex;
-          flexDirection: column;
+          flex-direction: column;
           gap: 2px;
           z-index: 100;
-          min-width: 120px;
+          width: max-content;
+          min-width: 100%;
           border: 1px solid rgba(255, 255, 255, 0.8);
+          box-sizing: border-box;
         }
 
-        /* 서브메뉴 항목 커서 호버 시 배경 강조 블록 */
+        /* 서브메뉴 항목 - 메인 카테고리와 동일한 글꼴 및 알약 모양 커서 강조 적용 */
         .pc-menu-widget .msub-item {
           display: block;
-          padding: 8px 14px;
-          border-radius: 10px;
-          font-size: 12px;
+          padding: 6px 14px;
+          border-radius: 999px;
+          font-size: 13px;
           font-weight: 600;
-          color: #555962;
+          color: #4a4e57;
           cursor: pointer;
           white-space: nowrap;
           text-align: center;
@@ -194,7 +195,7 @@ export function MenuListWidget() {
         }
 
         .pc-menu-widget .msub-item:hover {
-          background: #e3e5e9;
+          background: rgba(0, 0, 0, 0.06);
           color: #111418;
         }
       `}</style>
@@ -207,7 +208,7 @@ export function MenuListWidget() {
                 className={`menu-pill ${open === m.label ? 'active' : ''}`}
                 onClick={() => setOpen(o => (o === m.label ? null : m.label))}
               >
-                {m.label} <span style={{ fontSize: 9, opacity: 0.6, marginLeft: 2 }}>▾</span>
+                {m.label}
               </a>
               {open === m.label && (
                 <div className="msub-card">
