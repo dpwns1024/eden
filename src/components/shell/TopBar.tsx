@@ -1,6 +1,6 @@
 'use client';
 
-// 상단 바 — 우측 알림(종) · 프로필만 남긴 투명 헤더
+// 상단 바 — 우측 알림(종) · 프로필만 남긴 완전 투명 헤더
 import React, { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
@@ -87,6 +87,11 @@ export function TopBar() {
         backgroundColor: 'transparent',
         boxShadow: 'none',
         border: 'none',
+        borderBottom: 'none',
+        borderTop: 'none',
+        backdropFilter: 'none',
+        WebkitBackdropFilter: 'none',
+        outline: 'none',
         display: 'flex',
         justifyContent: 'flex-end',
         alignItems: 'center',
