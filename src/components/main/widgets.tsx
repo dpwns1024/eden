@@ -110,7 +110,6 @@ export function MenuListWidget() {
     ? buildMenu(menuSet, [...boardEntries(boards), ...sectionMenuEntries(wSecMap), ...linkEntries(wLinks)], { loggedIn: !!wUser, isAdmin: wIsAdmin })
     : [];
 
-  // 맨 앞에 HOME 버튼 고정 추가
   const menuItems = menuLoaded && boardsLoaded
     ? [{ label: 'HOME', href: '/' }, ...fetchedItems]
     : [];
@@ -129,7 +128,6 @@ export function MenuListWidget() {
       width: '100%',
     }}>
       <style>{`
-        /* 상단 메뉴 버튼: 블러 제거 후 선명한 반투명 */
         .pc-menu-widget .menu-pill {
           display: inline-flex;
           align-items: center;
@@ -155,7 +153,6 @@ export function MenuListWidget() {
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
-        /* 하위메뉴 드롭다운 박스 */
         .pc-menu-widget .msub-card {
           position: absolute;
           top: calc(100% + 6px);
@@ -201,7 +198,6 @@ export function MenuListWidget() {
           color: var(--submenu-hover-color, var(--sub-hover, #000000));
         }
 
-        /* 모바일 최적화 */
         @media (max-width: 768px) {
           .pc-menu-widget {
             display: flex !important;
@@ -718,6 +714,7 @@ export function ApplyWidget({ conf }: { conf: WidgetConf }) {
 
 /* ---------- 타입 → 렌더러 ---------- */
 export function renderWidget(conf: WidgetConf) {
+  if (!conf || !conf.type) return null;
   const normalizedType = conf.type.toLowerCase().replace(/[-_]/g, '');
 
   switch (normalizedType) {
@@ -735,6 +732,9 @@ export function renderWidget(conf: WidgetConf) {
     case 'deco': return <DecoWidget conf={conf} />;
     case 'memoboard': return <MemoBoardWidget />;
     case 'apply': return <ApplyWidget conf={conf} />;
-    default: return <div className="panel widget"><h4>{WIDGET_META[conf.type]?.title ?? conf.type}</h4></div>;
+    default: {
+      const metaTitle = WIDGET_META?.[conf.type]?.title ?? conf.type;
+      return <div className="panel widget"><h4>{metaTitle}</h4></div>;
+    }
   }
 }
