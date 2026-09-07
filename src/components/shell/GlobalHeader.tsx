@@ -46,21 +46,21 @@ export function GlobalHeader() {
     return i === -1 ? 99 : i;
   };
 
-  // 모든 위젯 중 최하단 Y축 위치 계산 (헤더 최소 높이 보장)
+  // [수정 포인트 1] 서브 페이지에서 높이 값이 튀거나 찌그러지지 않도록 안전하게 고정
   const calculateTotalHeight = () => {
     let maxBottom = 0;
 
     headerWidgets.forEach(w => {
       const top = w.ay ?? 0;
       const isMenu = w.type === 'menu' || (w.type as string) === 'menu_pc';
-      const height = isMenu ? 44 : (w.h ?? 200);
+      const height = isMenu ? 44 : (w.h ?? 280); 
       const bottom = top + height;
       if (bottom > maxBottom) {
         maxBottom = bottom;
       }
     });
 
-    return maxBottom > 0 ? maxBottom + 16 : 300; // 하단 여백 포함
+    return maxBottom > 0 ? maxBottom : 300;
   };
 
   const headerHeight = calculateTotalHeight();
@@ -79,14 +79,17 @@ export function GlobalHeader() {
         clear: 'both',
       }}
     >
+      {/* [수정 포인트 2] overflow: 'hidden'을 추가하여 서브 페이지에서 내부 요소가 튀어나가 위치가 어긋나는 현상 원천 차단 */}
       <div
         className="main-grid abs"
         style={{
           position: 'relative',
           width: '100%',
           height: `${headerHeight}px`,
+          minHeight: `${headerHeight}px`,
           marginTop: 0,
           padding: 0,
+          overflow: 'hidden', 
         }}
       >
         {headerWidgets.map(w => (
