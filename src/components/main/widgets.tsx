@@ -62,50 +62,14 @@ export function BannerWidget({ conf }: { conf: WidgetConf }) {
 
   return (
     <div className="banner" style={{ cursor: s?.link && !editOn ? 'pointer' : undefined }} onClick={go}>
-      <style>{`
-        /* 배너 컨테이너: PC와 모바일의 반응형 비율 최적화 */
-        .banner {
-          position: relative !important;
-          width: 100% !important;
-          height: 100% !important;
-          min-height: 140px !important;
-          aspect-ratio: 2.8 / 1 !important; /* PC: 와이드 비율로 상하 잘림 방지 */
-          border-radius: var(--radius, 12px) !important;
-          overflow: hidden !important;
-          background: rgba(0, 0, 0, 0.03);
-        }
-        @media (max-width: 768px) {
-          .banner {
-            aspect-ratio: 16 / 9 !important; /* 모바일: 표준 16:9 비율 */
-            margin-bottom: 8px !important;
-          }
-        }
-        .banner .slide {
-          position: absolute !important;
-          inset: 0 !important;
-          width: 100% !important;
-          height: 100% !important;
-        }
-        /* 슬라이드 내 이미지 완벽 피팅 */
-        .banner .slide img,
-        .banner .slide canvas,
-        .banner .slide div,
-        .banner .slide > * {
-          width: 100% !important;
-          height: 100% !important;
-          object-fit: cover !important;
-          object-position: center !important;
-          display: block !important;
-        }
-      `}</style>
       {slides.map((sl, i) => (
         <div key={sl.id} className={`slide ${i === Math.min(cur, slides.length - 1) ? 'on' : ''}`}>
           {sl.imgId
             ? <CroppedBlobImg fileRef={sl.imgId} crop={sl.crop} ph="" />
             : sl.img
               // eslint-disable-next-line @next/next/no-img-element
-              ? <img src={sl.img} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
-              : <div className={`ph ${sl.cls ?? ''}`} style={{ position: 'absolute', inset: 0 }}><span>SLIDE BANNER {String(i + 1).padStart(2, '0')}</span></div>}
+              ? <img src={sl.img} alt="" />
+              : <div className={`ph ${sl.cls ?? ''}`}><span>SLIDE BANNER {String(i + 1).padStart(2, '0')}</span></div>}
         </div>
       ))}
       <div className="cap"><b>{s?.cap}</b><span>{s?.sub}</span></div>
