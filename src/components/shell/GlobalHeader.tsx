@@ -46,7 +46,7 @@ export function GlobalHeader() {
     return i === -1 ? 99 : i;
   };
 
-  // 메인 페이지의 원본 그리드 계산 방식과 동일하게 높이 반환
+  // 메인 페이지의 높이 계산 로직 복원
   const calculateTotalHeight = () => {
     let maxBottom = 0;
 
@@ -65,46 +65,35 @@ export function GlobalHeader() {
   const headerHeight = calculateTotalHeight();
 
   return (
-    <header
-      className="global-header-wrap page"
-      onClick={() => setCtx(null)}
-      style={{
-        width: '100%',
-        margin: '0 auto',
-        padding: 0,
-        position: 'relative',
-        zIndex: 10,
-        display: 'block',
-        clear: 'both',
-      }}
-    >
-      <div
-        className="main-grid abs"
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: headerHeight > 0 ? `${headerHeight}px` : 'auto',
-          marginTop: 0,
-          padding: 0,
-        }}
-      >
-        {headerWidgets.map(w => (
-          <WidgetFrame
-            key={w.id}
-            conf={w}
-            mobileOrder={mOrder(w.id)}
-            className={getWidgetClass(w.type)}
-            onCtx={(id, x, y) => {
-              if (state.widgets.find(v => v.id === id)?.z == null) {
-                const zs = enabled.map(v => v.z ?? 0);
-                updateWidget(id, { z: Math.max(...zs, 0) + 1 });
-              }
-              setCtx({ id, x, y });
-            }}
-          >
-            {renderWidget(w)}
-          </WidgetFrame>
-        ))}
+    <header className="global-header-wrap page" onClick={() => setCtx(null)}>
+      {/* 메인 페이지와 동일한 마진/패딩 컨테이너 레이아웃으로 감싸기 */}
+      <div className="main-wrap" style={{ width: '100%', margin: '0 auto' }}>
+        <div
+          className="main-grid abs"
+          style={{
+            position: 'relative',
+            width: '100%',
+            height: headerHeight > 0 ? `${headerHeight}px` : 'auto',
+          }}
+        >
+          {headerWidgets.map(w => (
+            <WidgetFrame
+              key={w.id}
+              conf={w}
+              mobileOrder={mOrder(w.id)}
+              className={getWidgetClass(w.type)}
+              onCtx={(id, x, y) => {
+                if (state.widgets.find(v => v.id === id)?.z == null) {
+                  const zs = enabled.map(v => v.z ?? 0);
+                  updateWidget(id, { z: Math.max(...zs, 0) + 1 });
+                }
+                setCtx({ id, x, y });
+              }}
+            >
+              {renderWidget(w)}
+            </WidgetFrame>
+          ))}
+        </div>
       </div>
 
       {ctx && (() => {
