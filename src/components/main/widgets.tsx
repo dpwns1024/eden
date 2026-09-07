@@ -1,4 +1,5 @@
 'use client';
+
 // 메인 위젯 렌더러 (4.0) — DIARY/LATEST/UPCOMING 등은 해당 기능(2·3차) 전까지 데모 데이터
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -100,7 +101,7 @@ export function BannerWidget({ conf }: { conf: WidgetConf }) {
   );
 }
 
-/* ---------- 메뉴리스트 (모바일/PC 공용, 8장) ---------- */
+/* ---------- 메뉴리스트 (모바일/PC 공용 렌더러) ---------- */
 export function MenuListWidget({ conf }: { conf?: WidgetConf } = {}) {
   const router = useRouter();
   const [open, setOpen] = useState<string | null>(null);
@@ -374,9 +375,7 @@ export function UpcomingWidget() {
   );
 }
 
-/* ---------- 자유 텍스트 (v1.9 개편 — 사용자 확정) ----------
-   패널 없이 문구만 — 폰트·크기·색·정렬을 지정해 장식처럼 아무 곳에나 배치(위젯 드래그·크기 공통).
-   편집은 편집모드에서만 — 우클릭 「설정」 (v1.9 사용자 확정: 평상시 클릭 편집 제거). */
+/* ---------- 자유 텍스트 (v1.9 개편 — 사용자 확정) ---------- */
 export function FreeTextWidget({ conf }: { conf: WidgetConf }) {
   const { isAdmin } = useAuth();
   const { updateWidget } = useMainStore();
@@ -433,8 +432,6 @@ export function FreeTextWidget({ conf }: { conf: WidgetConf }) {
 }
 
 /* ---------- 장식 이미지 — 패널 없이 이미지만 (장식용) ---------- */
-/** 비율 유지(안 잘림) 렌더 — cover(크롭)와 선택제 (v1.9 사용자 요청)
- *  둥근 모서리는 위젯 박스가 아니라 **이미지 크기**에 맞춰 적용 (v1.9 사용자 피드백 — 여백까지 둥글면 티가 안 남) */
 function ContainImg({ fileRef, rounded }: { fileRef: string; rounded: boolean }) {
   const url = useBlobUrl(fileRef);
   if (!url) return null;
@@ -456,21 +453,21 @@ export function DecoWidget({ conf }: { conf: WidgetConf }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const rounded = (conf.settings.rounded as boolean) ?? true;
-  const fit = (conf.settings.fit as 'cover' | 'contain') ?? 'cover';   // 꽉 채움(잘림) / 비율 유지 (v1.9)
-  // 여러 장 슬라이드 (v2.0) — 한 장만 넣던 옛 저장분도 같은 목록으로 읽힌다
+  const fit = (conf.settings.fit as 'cover' | 'contain') ?? 'cover';
   const slides = decoSlides(conf.settings);
   const sec = (conf.settings.interval as number) ?? 5;
   const [idx, setIdx] = useState(0);
   const cur = slides[Math.min(idx, slides.length - 1)];
-  // 자동 넘김 — 편집 중이거나 설정 모달이 열려 있으면 멈춘다 (위치를 맞추는 중이라)
+
   useEffect(() => {
     if (slides.length < 2 || editOn || open) return;
     const t = setInterval(() => setIdx(i => (i + 1) % slides.length), Math.max(1, sec) * 1000);
     return () => clearInterval(t);
   }, [slides.length, sec, editOn, open]);
+
   useEffect(() => { if (idx >= slides.length) setIdx(0); }, [slides.length, idx]);
-  useEditEvent(conf.id, () => setOpen(true));   // 편집은 편집모드 우클릭 「설정」 전용 (v1.9 사용자 확정)
-  // 링크 이동 (v1.9 — 이미지+링크를 위젯 테두리 없이) — 링크는 장면마다 따로 (v2.0)
+  useEditEvent(conf.id, () => setOpen(true));
+
   const onBody = () => {
     if (editOn) return;
     if (cur?.link) {
@@ -479,11 +476,12 @@ export function DecoWidget({ conf }: { conf: WidgetConf }) {
       else router.push(l);
     }
   };
+
   return (
     <div className="deco-wgt"
       style={{
         position: 'relative', width: '100%', height: '100%', minHeight: 80, overflow: 'hidden',
-        aspectRatio: conf.h == null ? '1/1' : undefined, // 크기 동결 전 기본 정사각
+        aspectRatio: conf.h == null ? '1/1' : undefined,
         borderRadius: rounded ? 'var(--radius)' : 0,
         cursor: !editOn && cur?.link ? 'var(--cur-pointer,pointer)' : undefined,
       }}
@@ -497,7 +495,6 @@ export function DecoWidget({ conf }: { conf: WidgetConf }) {
             <span style={{ fontSize: 10 }}>{isAdmin ? 'DECO — 편집모드에서 우클릭 → 설정' : 'DECO'}</span>
           </div>
         )}
-      {/* 여러 장일 때만 지금 몇 번째인지 표시 — 눌러서 바로 넘길 수도 있다 (v2.0) */}
       {slides.length > 1 && !editOn && (
         <div className="deco-dots" onClick={e => e.stopPropagation()}>
           {slides.map((sl, i) => (
@@ -515,13 +512,12 @@ export function DecoWidget({ conf }: { conf: WidgetConf }) {
   );
 }
 
-/* ---------- 스티커 메모 미니보드 (4.6) — 읽기 전용 축소 보드, 클릭 시 /memo ---------- */
+/* ---------- 스티커 메모 미니보드 (4.6) ---------- */
 export function MemoBoardWidget() {
   const router = useRouter();
   const { user, isAdmin } = useAuth();
   const [memos] = useLocalList<StickyMemo>('ohome.memo.v1', MEMO_SEED);
   const [settings] = useMemoSettings();
-  // 메뉴에서 비공개로 둔 메모장은 위젯에도 안 나온다 (v2.0)
   const [menuSet] = useMenuSettings();
   if (!canViewHref(menuSet, '/memo', { loggedIn: !!user, isAdmin })) return null;
   return (
@@ -544,15 +540,11 @@ export function MemoBoardWidget() {
   );
 }
 
-/* ---------- 커미션 신청자 (v2.0 사용자 요청) ----------
-   다가오는 마감이 빠른 순으로. 몇 명까지 볼지는 설정에서 (기본 5명).
-   이름은 신청자 리스트와 **같은 규칙**으로 가린다 — 관리자만 전체, 나머지는 앞 몇 글자만.
-   마감이 없는 신청은 「다가오는 마감」이 아니므로 넣지 않는다. 지난 마감도 뺀다. */
+/* ---------- 커미션 신청자 (v2.0 사용자 요청) ---------- */
 export function ApplyWidget({ conf }: { conf: WidgetConf }) {
   const router = useRouter();
   const { user, isAdmin } = useAuth();
   const { editOn, updateWidget } = useMainStore();
-  // 메뉴에서 비공개로 둔 신청자 리스트는 위젯에도 안 나온다 (v2.0)
   const [menuSet] = useMenuSettings();
   const [settings] = useCommSettings();
   const [apps] = useLocalList<Applicant>('ohome.commapply.v1', APPLY_SEED);
@@ -567,23 +559,19 @@ export function ApplyWidget({ conf }: { conf: WidgetConf }) {
     .sort((a, b) => (a.deadline ?? '').localeCompare(b.deadline ?? ''))
     .slice(0, max);
 
-  /** 남은 날 — 오늘이면 D-DAY */
   const dleft = (d: string) => {
     const ms = Date.parse(`${d}T00:00:00`) - Date.parse(`${todayStr}T00:00:00`);
     const n = Math.round(ms / 86400000);
     return n === 0 ? 'D-DAY' : `D-${n}`;
   };
 
-  // 훅을 모두 부른 뒤에 판정한다 — 중간에서 빠지면 렌더마다 훅 수가 달라진다
   if (!canViewHref(menuSet, '/comm-apply', { loggedIn: !!user, isAdmin })) return null;
 
   return (
-    /* 누르면 관리자든 아니든 신청자 페이지로 간다 (v2.0 사용자 요청).
-       설정은 편집모드에서 우클릭 > 설정으로만 — 목록을 보러 눌렀는데 관리 창이 뜨면 안 된다 */
     <div className="panel widget" style={{ cursor: 'var(--cur-pointer,pointer)' }}
       onClick={e => {
         if ((e.target as HTMLElement).closest('.modal-ov')) return;
-        if (editOn) return;   // 편집모드에서는 배치·우클릭 메뉴가 우선
+        if (editOn) return;
         router.push('/comm-apply');
       }}>
       <h4>COMMISSION <span className="more" onClick={e => { e.stopPropagation(); router.push('/comm-apply'); }}>전체 ›</span></h4>
