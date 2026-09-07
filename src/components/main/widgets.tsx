@@ -106,8 +106,13 @@ export function MenuListWidget() {
   const { map: wSecMap } = useSections();
   const { links: wLinks } = useCustomLinks();
 
-  const menuItems = menuLoaded && boardsLoaded
+  const fetchedItems = menuLoaded && boardsLoaded
     ? buildMenu(menuSet, [...boardEntries(boards), ...sectionMenuEntries(wSecMap), ...linkEntries(wLinks)], { loggedIn: !!wUser, isAdmin: wIsAdmin })
+    : [];
+
+  // 맨 앞에 HOME 버튼 고정 추가
+  const menuItems = menuLoaded && boardsLoaded
+    ? [{ label: 'HOME', href: '/' }, ...fetchedItems]
     : [];
 
   return (
