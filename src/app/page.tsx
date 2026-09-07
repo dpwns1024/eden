@@ -112,6 +112,11 @@ export default function MainPage() {
     ? Math.max(400, ...enabled.map(w => (w.ay ?? 0) + (w.h ?? 200))) + 40
     : undefined;
 
+  // 상단 고정 처리할 위젯 구별
+  const isTopWidget = (w: WidgetConf) => w.type === 'banner' || w.type === 'menu' || w.type === 'menu_pc';
+  const topBanner = enabled.filter(w => w.type === 'banner');
+  const topMenu = enabled.filter(w => w.type === 'menu' || w.type === 'menu_pc');
+
   return (
     <section className="page page-main-wrap" onClick={() => setCtx(null)}>
       <div ref={gridRef} className={`main-grid ${absMode ? 'abs' : ''} ${gridOn ? 'gridlines' : ''}`}
@@ -124,19 +129,22 @@ export default function MainPage() {
           )
         ) : (
           <>
-            <div>
-              {byCol(1).map(w => frame(w))}
-            </div>
-            <div>
-              {byCol(2).map(w =>
-                w.type === 'banner' ? frame(w) : null
-              )}
-              <div className="g2" style={{ marginTop: 10 }}>
-                {byCol(2).filter(w => w.type !== 'banner').map(w => frame(w))}
+            {/* 상단 고정: 배너 및 메뉴 위젯 (전체 너비 차지) */}
+            {(topBanner.length > 0 || topMenu.length > 0) && (
+              <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12 }}>
+                {topBanner.map(w => frame(w))}
+                {topMenu.map(w => frame(w))}
               </div>
+            )}
+
+            <div>
+              {byCol(1).filter(w => !isTopWidget(w)).map(w => frame(w))}
             </div>
             <div>
-              {byCol(3).map(w =>
+              {byCol(2).filter(w => !isTopWidget(w)).map(w => frame(w))}
+            </div>
+            <div>
+              {byCol(3).filter(w => !isTopWidget(w)).map(w =>
                 w.type === 'member'
                   ? <WidgetFrame key={w.id} conf={w} mobileOrder={-1} onCtx={(id, x, y) => setCtx({ id, x, y })}><MemberBox /></WidgetFrame>
                   : frame(w)
