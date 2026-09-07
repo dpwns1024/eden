@@ -46,21 +46,22 @@ export function GlobalHeader() {
     return i === -1 ? 99 : i;
   };
 
-  // 기존 원본 높이 계산식 복원
+  // 메인 배너의 실제 세로 크기(380px) 기준으로 높이 계산
   const calculateTotalHeight = () => {
     let maxBottom = 0;
 
     headerWidgets.forEach(w => {
       const top = w.ay ?? 0;
       const isMenu = w.type === 'menu' || (w.type as string) === 'menu_pc';
-      const height = isMenu ? 44 : (w.h ?? 200);
+      // w.h 값이 없거나 작을 때 메인과 동일하게 380px을 보장
+      const height = isMenu ? 44 : Math.max(w.h ?? 0, 380);
       const bottom = top + height;
       if (bottom > maxBottom) {
         maxBottom = bottom;
       }
     });
 
-    return maxBottom > 0 ? maxBottom + 16 : 300;
+    return maxBottom > 0 ? maxBottom : 434;
   };
 
   const headerHeight = calculateTotalHeight();
@@ -92,7 +93,11 @@ export function GlobalHeader() {
         {headerWidgets.map(w => (
           <WidgetFrame
             key={w.id}
-            conf={w}
+            conf={{
+              ...w,
+              // 배너 위젯의 높이 데이터가 작게 지정된 경우 380px로 강제 지정
+              h: w.type === 'banner' ? Math.max(w.h ?? 0, 380) : w.h,
+            }}
             mobileOrder={mOrder(w.id)}
             className={getWidgetClass(w.type)}
             onCtx={(id, x, y) => {
