@@ -100,22 +100,23 @@ export function BannerWidget({ conf }: { conf: WidgetConf }) {
   );
 }
 
-/* ---------- 메뉴리스트 (모바일 / PC 공용 위젯) ---------- */
+/* ---------- 메뉴리스트 (PC / 모바일 공용) ---------- */
 export function MenuListWidget() {
   const router = useRouter();
   const [open, setOpen] = useState<string | null>(null);
-  const [menuSet, , menuLoaded] = useMenuSettings(); // 메뉴 관리 (5.2) 반영
-  const { boards, loaded: boardsLoaded } = useBoards(); // 다중 게시판 (5.2)
-  const { user: wUser, isAdmin: wIsAdmin } = useAuth(); // 공개범위 필터 (v1.9)
-  const { map: wSecMap } = useSections();     // 여러 개로 만든 섹션 (v2.0)
-  const { links: wLinks } = useCustomLinks();  // 커스텀 링크 (v2.0)
+  const [menuSet, , menuLoaded] = useMenuSettings();
+  const { boards, loaded: boardsLoaded } = useBoards();
+  const { user: wUser, isAdmin: wIsAdmin } = useAuth();
+  const { map: wSecMap } = useSections();
+  const { links: wLinks } = useCustomLinks();
 
   const menuItems = menuLoaded && boardsLoaded
     ? buildMenu(menuSet, [...boardEntries(boards), ...sectionMenuEntries(wSecMap), ...linkEntries(wLinks)], { loggedIn: !!wUser, isAdmin: wIsAdmin })
     : [];
 
   return (
-    <div className="panel menu-list wgt-menu">
+    <div className="panel menu-list wgt-menu pc-menu-widget" style={{ display: 'block' }}>
+      <h4>MENU</h4>
       {menuItems.length > 0 ? (
         menuItems.map(m =>
           m.children ? (
@@ -130,7 +131,9 @@ export function MenuListWidget() {
           )
         )
       ) : (
-        <p className="hint">등록된 메뉴가 없습니다</p>
+        <p className="hint" style={{ padding: '10px 0', fontSize: 12, color: '#888' }}>
+          {!menuLoaded || !boardsLoaded ? '메뉴 불러오는 중...' : '등록된 메뉴가 없습니다'}
+        </p>
       )}
     </div>
   );
@@ -177,7 +180,7 @@ export function DiaryWidget() {
     .filter(p => p.visibility === 'public' || (p.visibility === 'member' && !!user))
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 3);
-  if (!canSee) return null;   // 메뉴가 비공개면 위젯 자체를 띄우지 않는다
+  if (!canSee) return null;   // 메뉴가 비공개면 위젯 자체를 띄우지 않는다 (v2.0)
   return (
     <div className="panel widget" style={{ margin: 0 }}>
       <h4>DIARY <span className="more" onClick={() => router.push('/diary')}>더보기 ›</span></h4>
@@ -218,7 +221,7 @@ export function LatestWidget() {
     })),
   ].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
   const phFallback = ['cool', 'warm', 'red'];
-  if (!seeRoad && !seeGal) return null;   // 둘 다 비공개면 위젯 자체를 띄우지 않는다
+  if (!seeRoad && !seeGal) return null;   // 둘 다 비공개면 위젯 자체를 띄우지 않는다 (v2.0)
   return (
     <div className="panel widget" style={{ margin: 0 }}>
       <h4>LATEST <span className="more" onClick={() => router.push('/gallery')}>더보기 ›</span></h4>
@@ -258,7 +261,7 @@ export function DdayWidget({ conf }: { conf: WidgetConf }) {
   const items = (conf.settings.items as DdayItem[]) ?? [];
   const dFontId = (conf.settings.fontId as string | undefined) ?? 'serif';
   const dColor = conf.settings.color as string | undefined;
-  useEditEvent(conf.id, () => setOpen(true));   // 편집모드 우클릭 → 설정
+  useEditEvent(conf.id, () => setOpen(true));   // 편집모드 우클릭 → 설정 (v1.9)
   return (
     <div className="panel widget" style={{ cursor: isAdmin ? 'pointer' : undefined }}
       onClick={e => { if ((e.target as HTMLElement).closest('.modal-ov')) return; if (isAdmin && !editOn) setOpen(true); }}>
@@ -290,7 +293,7 @@ export function TodoWidget({ conf }: { conf: WidgetConf }) {
   const { editOn, updateWidget } = useMainStore();
   const [open, setOpen] = useState(false);
   const items = (conf.settings.items as TodoSetItem[]) ?? [];
-  useEditEvent(conf.id, () => setOpen(true));
+  useEditEvent(conf.id, () => setOpen(true));   // 편집모드 우클릭 → 설정 (v1.9)
 
   const setItems = (next: TodoSetItem[]) => {
     updateWidget(conf.id, { settings: { ...conf.settings, items: next } }, { persist: true });
@@ -329,7 +332,7 @@ export function TodoWidget({ conf }: { conf: WidgetConf }) {
 export function UpcomingWidget() {
   const router = useRouter();
   const { user, isAdmin } = useAuth();
-  const { st } = useSched();
+  const { st } = useSched();   // 인자 없이 = 모든 스케줄러
   const [menuSet] = useMenuSettings();
   const { list } = useSections();
   const viewer = { loggedIn: !!user, isAdmin };
@@ -351,7 +354,7 @@ export function UpcomingWidget() {
     .filter(x => x.d >= todayStr)
     .sort((a, b) => a.d.localeCompare(b.d))
     .slice(0, 3);
-  if (!canSee) return null;
+  if (!canSee) return null;   // 메뉴가 비공개면 위젯 자체를 띄우지 않는다 (v2.0)
   return (
     <div className="panel widget" style={{ cursor: 'var(--cur-pointer,pointer)' }} onClick={() => router.push('/cal')}>
       <h4>UPCOMING <span className="more">더보기 ›</span></h4>
@@ -591,10 +594,14 @@ export function ApplyWidget({ conf }: { conf: WidgetConf }) {
 
 /* ---------- 타입 → 렌더러 ---------- */
 export function renderWidget(conf: WidgetConf) {
-  switch (conf.type) {
+  // 언더바, 하이픈, 대소문자 차이로 스위치문을 통과하지 못하는 현상 방지
+  const normalizedType = conf.type.toLowerCase().replace(/[-_]/g, '');
+
+  switch (normalizedType) {
     case 'banner': return <BannerWidget conf={conf} />;
     case 'menu':
-    case 'menu_pc': return <MenuListWidget />; // menu_pc 타입 핸들러 추가
+    case 'menupc':
+    case 'pcmenu': return <MenuListWidget />;
     case 'memo': return <MemoWidget conf={conf} />;
     case 'diary': return <DiaryWidget />;
     case 'latest': return <LatestWidget />;
