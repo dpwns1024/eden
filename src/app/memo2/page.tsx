@@ -190,6 +190,7 @@ export default function MemoPage() {
           </span>
           {editingId && (
             <button
+              type="button"
               onClick={handleCancelForm}
               style={{
                 border: 'none',
@@ -226,7 +227,7 @@ export default function MemoPage() {
         <div
           style={{
             display: 'flex',
-            justify: 'space-between',
+            justifyContent: 'space-between',
             alignItems: 'center',
             paddingTop: 12,
             borderTop: '1px solid #F1F5F9',
@@ -258,6 +259,7 @@ export default function MemoPage() {
           </div>
 
           <button
+            type="button"
             onClick={handleSave}
             style={{
               padding: '7px 18px',
@@ -292,6 +294,7 @@ export default function MemoPage() {
             return (
               <button
                 key={cat}
+                type="button"
                 onClick={() => setSelectedCat(cat)}
                 style={{
                   padding: '5px 14px',
@@ -382,6 +385,7 @@ export default function MemoPage() {
 
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
+                    type="button"
                     onClick={() => handleEditClick(memo)}
                     style={{
                       border: 'none',
@@ -394,6 +398,7 @@ export default function MemoPage() {
                     수정
                   </button>
                   <button
+                    type="button"
                     onClick={() => handleDeleteClick(memo.id)}
                     style={{
                       border: 'none',
@@ -438,7 +443,7 @@ export default function MemoPage() {
                       left: 0,
                       right: 0,
                       height: 32,
-                      backgroundImage: 'linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1))',
+                      background: 'linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1))',
                       pointerEvents: 'none',
                     }}
                   />
@@ -448,6 +453,7 @@ export default function MemoPage() {
               {/* 더보기 / 접기 */}
               {isLongContent && (
                 <button
+                  type="button"
                   onClick={() => toggleExpand(memo.id)}
                   style={{
                     border: 'none',
@@ -475,6 +481,7 @@ export default function MemoPage() {
                 }}
               >
                 <button
+                  type="button"
                   onClick={() => handleLikeClick(memo.id)}
                   style={{
                     border: 'none',
