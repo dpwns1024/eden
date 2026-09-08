@@ -57,7 +57,7 @@ export default function MemoPage() {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
-  // 데이터 로드 (하이드레이션 오류 방지)
+  // 로컬스토리지 데이터 로드
   useEffect(() => {
     try {
       const saved = localStorage.getItem('ohome.memos.v1');
@@ -219,7 +219,7 @@ export default function MemoPage() {
             <button
               className="btn btn-dark"
               onClick={handleAddMemo}
-              style={{ padding: '7px 20px', borderRadius 999, fontSize: 12.5 }}
+              style={{ padding: '7px 20px', borderRadius: 999, fontSize: 12.5 }}
             >
               등록
             </button>
