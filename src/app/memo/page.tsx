@@ -1,233 +1,397 @@
 'use client';
-// 스티커 메모장 (4.6) — 포스트잇 보드: 드래그 자유 배치 · 색/크기 · 랜덤 기울기 ·
-// 클릭 = 맨 위로 · 우클릭 자체 컨텍스트 메뉴(순서/수정/삭제) · 우측 메모 리스트 · 작성 권한 옵션
-import React, { useRef, useState } from 'react';
+
+import React, { useState } from 'react';
 import { useAuth } from '@/lib/auth';
-import { useLocalList, newId } from '@/lib/postStore';
-import {
-  StickyMemo, MEMO_SEED, MEMO_COLORS, MEMO_SIZE_W, useMemoSettings,
-} from '@/lib/memoStore';
-import { fmtMD } from '@/lib/threadStore';
-import { Modal, useConfirmDelete } from '@/components/ui/Modal';
-import { KTextarea } from '@/components/ui/Kit';
-import { ColorField } from '@/components/ui/ColorField';
-import { EditableDesc, PageTitle } from '@/components/ui/PageText';
+import { useLocalList, newId, fmtDate } from '@/lib/postStore';
+import { ConfirmModal } from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/Toast';
+import { PageTitle } from '@/components/ui/PageText';
+
+// 메모 데이터 타입
+export interface MemoItem {
+  id: string;
+  category: string;
+  content: string;
+  source?: string;
+  date: string;
+  authorId?: string;
+}
+
+// 기본 카테고리 목록
+const CATEGORIES = [
+  { id: 'all', label: '전체' },
+  { id: 'quote', label: ' Format 글귀', icon: '❞' },
+  { id: 'image', label: '📷 이미지', icon: '🖼' },
+  { id: 'video', label: '▶ 영상', icon: '▶' },
+  { id: 'link', label: '🔗 링크', icon: '🔗' },
+  { id: 'memo', label: '📝 일반 메모', icon: '📝' },
+];
+
+const SEED_MEMOS: MemoItem[] = [
+  {
+    id: 'memo-1',
+    category: 'quote',
+    content: `Premium editorial flat lay lookbook photography, perfect 90-degree top-down view. Select only the clothing and a few carefully chosen personal belongings that best represent the character. Do NOT illustrate every item from the description. Curate the layout like a professional stylist.`,
+    source: 'Prompt Collection',
+    date: '2026-08-09T10:00:00.000Z',
+  },
+  {
+    id: 'memo-2',
+    category: 'memo',
+    content: `내용 : npc와 pc는 다른 시간선에 살고 있습니다(npc의 1일[첫만남] / pc의 30일[연애 중]). 이게 반대가 된다는 내용이라 오푸스로 하면 많이 먹먹합니다. 개인적으로 젬이오로 했을 때도 좋았습니다!
+
+[처음]
+ooc: 이전 스토리를 종료하고 새로운 IF 세계관으로 진행한다.
+
+NPC는 우연히 자신의 이상형인 PC를 만나 첫눈에 반한다. 이름을 묻고, 함께 보내는 시간이 늘어날수록 서로의 거리는 가까워진다. 그러나 행복한 순간들 속에서도 PC는 가끔 이유를 알 수 없는 슬픈 표정을 짓거나, 이별을 앞둔 사람처럼 행동한다.`,
+    source: '',
+    date: '2026-08-09T11:30:00.000Z',
+  },
+];
 
 export default function MemoPage() {
   const { user, isAdmin } = useAuth();
   const toast = useToast();
-  const del = useConfirmDelete();
-  const [memos, setMemos, loaded] = useLocalList<StickyMemo>('ohome.memo.v1', MEMO_SEED);
-  const [settings] = useMemoSettings();
-  const boardRef = useRef<HTMLDivElement>(null);
-  const [focusId, setFocusId] = useState<string | null>(null);
 
-  const canWrite = isAdmin || (!!user && settings.allowMember);
-  const canTouch = (m: StickyMemo) => isAdmin || (!!user && m.authorId === user.id);
-  const maxZ = () => Math.max(0, ...memos.map(m => m.z));
+  const [memos, setMemos, loaded] = useLocalList<MemoItem>('ohome.memos.v1', SEED_MEMOS);
 
-  /* ---------- 드래그 (배치 저장 — 모두에게 동일) ---------- */
-  const onDown = (e: React.PointerEvent, m: StickyMemo) => {
-    if (e.button !== 0) return;
-    const el = e.currentTarget as HTMLElement;
-    const board = boardRef.current!;
-    const br = board.getBoundingClientRect();
-    const r = el.getBoundingClientRect();
-    const ox = e.clientX - r.left, oy = e.clientY - r.top;
-    const movable = canTouch(m);
-    if (movable) document.body.classList.add('drag-move');   // 드래그 중 커서 고정 (v1.9)
-    let moved = false;
-    let fx = m.x, fy = m.y;
-    const mv = (ev: PointerEvent) => {
-      if (!movable) return;
-      moved = true;
-      const px = Math.max(0, Math.min(br.width - r.width, ev.clientX - br.left - ox));
-      const py = Math.max(0, Math.min(br.height - r.height, ev.clientY - br.top - oy));
-      fx = (px / br.width) * 100;
-      fy = (py / br.height) * 100;
-      el.style.left = `${fx}%`;
-      el.style.top = `${fy}%`;
+  // 작성 및 필터 상태
+  const [selectedCat, setSelectedCat] = useState('all');
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [formCat, setFormCat] = useState('quote');
+  const [content, setContent] = useState('');
+  const [source, setSource] = useState('');
+
+  // 접기/펴기 상태 및 삭제 모달
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+
+  // 카테고리 필터링
+  const filteredMemos = memos.filter((m) =>
+    selectedCat === 'all' ? true : m.category === selectedCat
+  );
+
+  // 더보기 / 접기 토글
+  const toggleExpand = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  // 새 메모 등록
+  const handleAddMemo = () => {
+    if (!content.trim()) {
+      toast('메모 내용을 입력해 주세요.');
+      return;
+    }
+
+    const newMemo: MemoItem = {
+      id: newId(),
+      category: formCat,
+      content: content.trim(),
+      source: source.trim(),
+      date: new Date().toISOString(),
+      authorId: user?.id || '',
     };
-    const up = () => {
-      document.body.classList.remove('drag-move');
-      window.removeEventListener('pointermove', mv);
-      window.removeEventListener('pointerup', up);
-      // 이동 커밋 + 맨 위로 (클릭만 해도 맨 위로 — 4.6 겹침 순서)
-      setMemos(memos.map(x => x.id === m.id ? { ...x, x: fx, y: fy, z: maxZ() + 1 } : x));
-    };
-    window.addEventListener('pointermove', mv);
-    window.addEventListener('pointerup', up);
-    e.preventDefault();
+
+    setMemos([newMemo, ...memos]);
+    setContent('');
+    setSource('');
+    setIsFormOpen(false);
+    toast('새 메모가 등록되었습니다.');
   };
 
-  /* ---------- 우클릭 컨텍스트 메뉴 (자체 스타일 — 4.6 v1.8) ---------- */
-  // list: 우측 리스트에서 열림 — 순서 항목 없이 수정/삭제만
-  const [ctx, setCtx] = useState<{ id: string; x: number; y: number; list?: boolean } | null>(null);
-  const onCtx = (e: React.MouseEvent, m: StickyMemo, list = false) => {
-    e.preventDefault();
-    if (!canTouch(m)) return;
-    setCtx({ id: m.id, x: e.clientX, y: e.clientY, list });
-  };
-  const zOrder = (mode: 'up' | 'down' | 'top' | 'bottom') => {
-    if (!ctx) return;
-    const cur = memos.find(m => m.id === ctx.id);
-    if (!cur) return;
-    const zs = memos.map(m => m.z);
-    let next = memos;
-    if (mode === 'top') next = memos.map(m => m.id === cur.id ? { ...m, z: Math.max(...zs) + 1 } : m);
-    if (mode === 'bottom') next = memos.map(m => m.id === cur.id ? { ...m, z: Math.min(...zs) - 1 } : m);
-    if (mode === 'up') {
-      const hi = zs.filter(z => z > cur.z);
-      if (hi.length) {
-        const nz = Math.min(...hi);
-        next = memos.map(m => m.z === nz ? { ...m, z: cur.z } : m.id === cur.id ? { ...m, z: nz } : m);
-      }
-    }
-    if (mode === 'down') {
-      const lo = zs.filter(z => z < cur.z);
-      if (lo.length) {
-        const nz = Math.max(...lo);
-        next = memos.map(m => m.z === nz ? { ...m, z: cur.z } : m.id === cur.id ? { ...m, z: nz } : m);
-      }
-    }
-    setMemos(next);
-    setCtx(null);
-  };
-
-  /* ---------- 등록/수정 모달 ---------- */
-  const [mOpen, setMOpen] = useState(false);
-  const [mId, setMId] = useState<string | null>(null); // null = 새 메모
-  const [mText, setMText] = useState('');
-  const [mColor, setMColor] = useState(MEMO_COLORS[0]);
-  const [mSize, setMSize] = useState<StickyMemo['size']>('m');
-  const openNew = () => {
-    setMId(null); setMText('');
-    setMColor(MEMO_COLORS[memos.length % MEMO_COLORS.length]); setMSize('m');
-    setMOpen(true);
-  };
-  const openEdit = (m: StickyMemo) => {
-    setMId(m.id); setMText(m.text); setMColor(m.color); setMSize(m.size);
-    setMOpen(true); setCtx(null);
-  };
-  const save = () => {
-    if (!mText.trim()) { toast('내용을 입력해 주세요'); return; }
-    if (mId) {
-      setMemos(memos.map(m => m.id === mId ? { ...m, text: mText.trim(), color: mColor, size: mSize } : m));
-    } else {
-      const m: StickyMemo = {
-        id: newId(), text: mText.trim(),
-        author: user?.nickname ?? '관리자', authorId: user?.id ?? 'admin',
-        color: mColor, size: mSize,
-        x: 6 + Math.random() * 55, y: 6 + Math.random() * 55,
-        rot: Math.round((Math.random() * 6 - 3) * 10) / 10, // 랜덤 기울기 (4.6)
-        z: maxZ() + 1, date: new Date().toISOString(),
-      };
-      setMemos([...memos, m]);
-    }
-    setMOpen(false);
-  };
-  const remove = (m: StickyMemo) => {
-    setCtx(null);
-    del.ask('메모를 삭제하시겠습니까?', () => setMemos(memos.filter(x => x.id !== m.id)));
-  };
-
-  const focus = (id: string) => {
-    setMemos(memos.map(m => m.id === id ? { ...m, z: maxZ() + 1 } : m));
-    setFocusId(id);
-    setTimeout(() => setFocusId(f => (f === id ? null : f)), 900);
+  // 메모 삭제
+  const handleDelete = () => {
+    if (!deleteTargetId) return;
+    setMemos(memos.filter((m) => m.id !== deleteTargetId));
+    setDeleteTargetId(null);
+    toast('메모가 삭제되었습니다.');
   };
 
   if (!loaded) return <section className="page" />;
 
-  const sorted = [...memos].sort((a, b) => b.date.localeCompare(a.date));
-
   return (
-    <section className="page" onClick={() => setCtx(null)}>
-      <div className="page-head">
-        <PageTitle>STICKY NOTES</PageTitle>
-        <EditableDesc k="memo-desc" def="드래그 자유 배치 · 색상/기울기 · 작성 권한 옵션" />
-      </div>
-      <div className="memo-layout">
-        {/* 보드 — 배치·순서 저장, 모두에게 동일 (4.6) */}
-        <div className="memoboard" ref={boardRef}
-          onContextMenu={e => { if (!(e.target as Element).closest('.postit')) setCtx(null); }}>
-          {memos.map(m => (
-            <div key={m.id}
-              className={`postit ${focusId === m.id ? 'hl' : ''} ${canTouch(m) ? '' : 'ro'}`}
-              style={{
-                left: `${m.x}%`, top: `${m.y}%`, zIndex: m.z,
-                transform: `rotate(${m.rot}deg)`, background: m.color, width: MEMO_SIZE_W[m.size],
-              }}
-              onPointerDown={e => onDown(e, m)}
-              onContextMenu={e => onCtx(e, m)}>
-              {settings.showAuthor && <b>{m.author}</b>}
-              {m.text}
-            </div>
-          ))}
+    <section className="page" style={{ maxWidth: 1100, margin: '0 auto' }}>
+      {/* 헤더 영역 */}
+      <div className="page-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <PageTitle>MEMO</PageTitle>
+          <p style={{ marginTop: 4, fontSize: 13, color: 'var(--faint)' }}>
+            총 <span style={{ color: 'var(--accent)', fontWeight: 'bold' }}>{filteredMemos.length}</span>개
+          </p>
         </div>
-        {/* 우측 메모 리스트 (v1.8) — 클릭 시 보드의 메모가 맨 위로 + 하이라이트 */}
-        <div className="panel" style={{ padding: 12 }}>
-          <h4 style={{ fontSize: 11, letterSpacing: '.14em', color: 'var(--faint)', padding: '4px 6px 10px' }}>MEMO LIST</h4>
-          {sorted.map(m => (
-            <div key={m.id} className="memo-list-item" onClick={() => focus(m.id)}
-              onContextMenu={e => onCtx(e, m, true)}>
-              <span className="cdot" style={{ background: m.color }} />
-              <div style={{ minWidth: 0 }}>
-                <b>{m.author} · {fmtMD(m.date)}</b>
-                <p>{m.text}</p>
-              </div>
-            </div>
-          ))}
-          {canWrite && (
-            <button className="btn btn-ghost" style={{ width: '100%', justifyContent: 'center', marginTop: 8 }}
-              onClick={openNew}>＋ MEMO</button>
-          )}
-        </div>
+        <button
+          className="btn btn-dark"
+          onClick={() => setIsFormOpen(!isFormOpen)}
+          style={{ padding: '8px 18px', borderRadius: 999, fontSize: 13 }}
+        >
+          {isFormOpen ? '✕ 닫기' : '+ 새 메모'}
+        </button>
       </div>
 
-      {/* 우클릭 순서 메뉴 — 위로/아래로/맨위로/맨아래로 + 수정/삭제 (권한자) */}
-      {ctx && (
-        <div className="ctx-menu on" style={{ left: ctx.x, top: ctx.y }} onClick={e => e.stopPropagation()}>
-          {/* 순서 항목은 보드에서 열었을 때만 — 리스트에서는 수정/삭제만 */}
-          {!ctx.list && (
-            <>
-              <button onClick={() => zOrder('up')}>위로</button>
-              <button onClick={() => zOrder('down')}>아래로</button>
-              <div className="sep" />
-              <button onClick={() => zOrder('top')}>맨위로</button>
-              <button onClick={() => zOrder('bottom')}>맨아래로</button>
-              <div className="sep" />
-            </>
-          )}
-          <button onClick={() => { const m = memos.find(x => x.id === ctx.id); if (m) openEdit(m); }}>수정</button>
-          <button onClick={() => { const m = memos.find(x => x.id === ctx.id); if (m) remove(m); }}>삭제</button>
+      {/* 작성 폼 (상단 펼침) */}
+      {isFormOpen && (
+        <div className="panel" style={{ padding: 22, marginBottom: 24, borderRadius: 16 }}>
+          {/* 카테고리 선택 버튼들 */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+            {CATEGORIES.filter((c) => c.id !== 'all').map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setFormCat(cat.id)}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: 999,
+                  border: 'none',
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  backgroundColor: formCat === cat.id ? 'var(--accent, #5c6b73)' : 'var(--bg-sub, #f0f0f0)',
+                  color: formCat === cat.id ? '#ffffff' : 'var(--faint, #666666)',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
+          {/* 입력창 */}
+          <textarea
+            placeholder="기록하고 싶은 내용을 입력하세요..."
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            rows={4}
+            style={{
+              width: '100%',
+              padding: '12px 14px',
+              borderRadius: 10,
+              border: '1px solid var(--line, #e5e5e5)',
+              backgroundColor: 'var(--bg-sub, #f9f9f9)',
+              color: 'var(--fg, #333333)',
+              fontSize: 13.5,
+              lineHeight: 1.6,
+              resize: 'vertical',
+              outline: 'none',
+              marginBottom: 10,
+            }}
+          />
+
+          <input
+            type="text"
+            placeholder="출처/참고 (선택사항 - 작가, 링크, 출처 등)"
+            value={source}
+            onChange={(e) => setSource(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '10px 14px',
+              borderRadius: 10,
+              border: '1px solid var(--line, #e5e5e5)',
+              backgroundColor: 'var(--bg-sub, #f9f9f9)',
+              color: 'var(--fg, #333333)',
+              fontSize: 12.5,
+              outline: 'none',
+              marginBottom: 16,
+            }}
+          />
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <button
+              className="btn btn-ghost"
+              onClick={() => setIsFormOpen(false)}
+              style={{ padding: '7px 16px', borderRadius: 999, fontSize: 12.5 }}
+            >
+              취소
+            </button>
+            <button
+              className="btn btn-dark"
+              onClick={handleAddMemo}
+              style={{ padding: '7px 20px', borderRadius: 999, fontSize: 12.5 }}
+            >
+              등록
+            </button>
+          </div>
         </div>
       )}
 
-      {/* 메모 등록/수정 모달 — 내용 + 색 + 크기 */}
-      <Modal open={mOpen} onClose={() => setMOpen(false)} small title={mId ? '메모 수정' : '메모 붙이기'} dirty
-        actions={<>
-          <button className="btn btn-ghost" onClick={() => setMOpen(false)}>CANCEL</button>
-          <button className="btn btn-dark" onClick={save}>{mId ? 'SAVE' : 'ADD'}</button>
-        </>}>
-        <div style={{ display: 'grid', gap: 12 }}>
-          <KTextarea style={{ minHeight: 90 }} value={mText} onChange={e => setMText(e.target.value)} />
-          <div className="memo-chips">
-            {MEMO_COLORS.map(c => (
-              <span key={c} className={`c ${mColor === c ? 'on' : ''}`} style={{ background: c }}
-                onClick={() => setMColor(c)} />
-            ))}
-            <ColorField value={mColor} onChange={setMColor} />
-          </div>
-          <div className="mini-seg" style={{ justifySelf: 'start' }}>
-            <button className={mSize === 's' ? 'on' : ''} onClick={() => setMSize('s')}>작게</button>
-            <button className={mSize === 'm' ? 'on' : ''} onClick={() => setMSize('m')}>보통</button>
-            <button className={mSize === 'l' ? 'on' : ''} onClick={() => setMSize('l')}>크게</button>
-          </div>
+      {/* 카테고리 필터 탭 */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => setSelectedCat(cat.id)}
+            style={{
+              padding: '6px 14px',
+              borderRadius: 999,
+              border: 'none',
+              fontSize: 12,
+              fontWeight: selectedCat === cat.id ? 700 : 500,
+              cursor: 'pointer',
+              backgroundColor: selectedCat === cat.id ? 'var(--accent, #4a5568)' : 'var(--bg-sub, #e2e8f0)',
+              color: selectedCat === cat.id ? '#ffffff' : 'var(--faint, #4a5568)',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {/* 메모 카드 리스트 (그리드 레이아웃) */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+          gap: 16,
+          alignItems: 'start',
+        }}
+      >
+        {filteredMemos.map((item) => {
+          const isExpanded = expandedIds.has(item.id);
+          const isLongText = item.content.length > 180 || item.content.split('\n').length > 6;
+          const categoryObj = CATEGORIES.find((c) => c.id === item.category);
+
+          return (
+            <div
+              key={item.id}
+              className="panel"
+              style={{
+                padding: '20px 22px',
+                borderRadius: 16,
+                display: 'flex',
+                flexDirection: 'column',
+                justify: 'space-between',
+                position: 'relative',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+              }}
+            >
+              {/* 카테고리 태그 */}
+              <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 600,
+                    padding: '3px 8px',
+                    borderRadius: 6,
+                    backgroundColor: 'var(--bg-sub, #f0f0f0)',
+                    color: 'var(--faint, #666666)',
+                  }}
+                >
+                  {categoryObj?.label || '기타'}
+                </span>
+                <span style={{ fontSize: 11, color: 'var(--faint, #aaa)' }}>{fmtDate(item.date)}</span>
+              </div>
+
+              {/* 본문 (접기/펴기 로직) */}
+              <div
+                style={{
+                  fontSize: 13,
+                  lineHeight: 1.65,
+                  color: 'var(--fg, #222)',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  maxHeight: isExpanded || !isLongText ? 'none' : '150px',
+                  overflow: 'hidden',
+                  position: 'relative',
+                }}
+              >
+                {item.content}
+
+                {/* 긴 글일 때 하단 안개 효과 */}
+                {isLongText && !isExpanded && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: 50,
+                      background: 'linear-gradient(transparent, var(--panel-bg, #ffffff))',
+                      pointerEvents: 'none',
+                    }}
+                  />
+                )}
+              </div>
+
+              {/* 접기 / 더보기 버튼 */}
+              {isLongText && (
+                <button
+                  type="button"
+                  onClick={() => toggleExpand(item.id)}
+                  style={{
+                    marginTop: 8,
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--accent, #673AB7)',
+                    fontSize: 12,
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    padding: 0,
+                    textAlign: 'left',
+                  }}
+                >
+                  {isExpanded ? '▲ 접기' : '▼ 더보기'}
+                </button>
+              )}
+
+              {/* 출처 및 하단 버튼 */}
+              <div
+                style={{
+                  marginTop: 16,
+                  paddingTop: 10,
+                  borderTop: '1px solid var(--line, #f0f0f0)',
+                  display: 'flex',
+                  justify: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <span style={{ fontSize: 11.5, color: 'var(--faint, #888)', fontStyle: 'italic' }}>
+                  {item.source ? `— ${item.source}` : ''}
+                </span>
+
+                {/* 작성자/관리자만 삭제 가능 */}
+                {(isAdmin || (user && item.authorId === user.id)) && (
+                  <button
+                    onClick={() => setDeleteTargetId(item.id)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--faint, #aaa)',
+                      fontSize: 11.5,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    삭제
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* 등록된 메모가 없을 때 */}
+      {filteredMemos.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--faint)' }}>
+          <p style={{ fontSize: 13 }}>등록된 메모가 없습니다.</p>
         </div>
-      </Modal>
-      {del.element}
+      )}
+
+      {/* 삭제 확인 모달 */}
+      <ConfirmModal
+        open={!!deleteTargetId}
+        title="메모 삭제"
+        body="이 메모를 삭제하시겠습니까?"
+        onClose={() => setDeleteTargetId(null)}
+        buttons={[
+          { label: 'DELETE', kind: 'accent', onClick: handleDelete },
+          { label: 'CANCEL', kind: 'ghost', onClick: () => setDeleteTargetId(null) },
+        ]}
+      />
     </section>
   );
 }
