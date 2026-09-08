@@ -1,13 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
-import { useLocalList, newId, fmtDate } from '@/lib/postStore';
-import { ConfirmModal } from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/Toast';
 import { PageTitle } from '@/components/ui/PageText';
+import { ConfirmModal } from '@/components/ui/Modal';
 
-// 메모 데이터 타입
 export interface MemoItem {
   id: string;
   category: string;
@@ -17,14 +15,13 @@ export interface MemoItem {
   authorId?: string;
 }
 
-// 기본 카테고리 목록
 const CATEGORIES = [
   { id: 'all', label: '전체' },
-  { id: 'quote', label: ' Format 글귀', icon: '❞' },
-  { id: 'image', label: '📷 이미지', icon: '🖼' },
-  { id: 'video', label: '▶ 영상', icon: '▶' },
-  { id: 'link', label: '🔗 링크', icon: '🔗' },
-  { id: 'memo', label: '📝 일반 메모', icon: '📝' },
+  { id: 'quote', label: '❝ 글귀' },
+  { id: 'image', label: '📷 이미지' },
+  { id: 'video', label: '▶ 영상' },
+  { id: 'link', label: '🔗 링크' },
+  { id: 'memo', label: '📝 메모' },
 ];
 
 const SEED_MEMOS: MemoItem[] = [
@@ -38,12 +35,7 @@ const SEED_MEMOS: MemoItem[] = [
   {
     id: 'memo-2',
     category: 'memo',
-    content: `내용 : npc와 pc는 다른 시간선에 살고 있습니다(npc의 1일[첫만남] / pc의 30일[연애 중]). 이게 반대가 된다는 내용이라 오푸스로 하면 많이 먹먹합니다. 개인적으로 젬이오로 했을 때도 좋았습니다!
-
-[처음]
-ooc: 이전 스토리를 종료하고 새로운 IF 세계관으로 진행한다.
-
-NPC는 우연히 자신의 이상형인 PC를 만나 첫눈에 반한다. 이름을 묻고, 함께 보내는 시간이 늘어날수록 서로의 거리는 가까워진다. 그러나 행복한 순간들 속에서도 PC는 가끔 이유를 알 수 없는 슬픈 표정을 짓거나, 이별을 앞둔 사람처럼 행동한다.`,
+    content: `내용 : npc와 pc는 다른 시간선에 살고 있습니다(npc의 1일[첫만남] / pc의 30일[연애 중]). 이게 반대가 된다는 내용이라 오푸스로 하면 많이 먹먹합니다.\n\n[처음]\nooc: 이전 스토리를 종료하고 새로운 IF 세계관으로 진행한다.`,
     source: '',
     date: '2026-08-09T11:30:00.000Z',
   },
@@ -53,25 +45,48 @@ export default function MemoPage() {
   const { user, isAdmin } = useAuth();
   const toast = useToast();
 
-  const [memos, setMemos, loaded] = useLocalList<MemoItem>('ohome.memos.v1', SEED_MEMOS);
+  const [memos, setMemos] = useState<MemoItem[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
-  // 작성 및 필터 상태
   const [selectedCat, setSelectedCat] = useState('all');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formCat, setFormCat] = useState('quote');
   const [content, setContent] = useState('');
   const [source, setSource] = useState('');
 
-  // 접기/펴기 상태 및 삭제 모달
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
-  // 카테고리 필터링
+  // 데이터 로드 (하이드레이션 오류 방지)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('ohome.memos.v1');
+      if (saved) {
+        setMemos(JSON.parse(saved));
+      } else {
+        setMemos(SEED_MEMOS);
+      }
+    } catch (e) {
+      console.error(e);
+      setMemos(SEED_MEMOS);
+    } finally {
+      setLoaded(true);
+    }
+  }, []);
+
+  const saveMemos = (newMemos: MemoItem[]) => {
+    setMemos(newMemos);
+    try {
+      localStorage.setItem('ohome.memos.v1', JSON.stringify(newMemos));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const filteredMemos = memos.filter((m) =>
     selectedCat === 'all' ? true : m.category === selectedCat
   );
 
-  // 더보기 / 접기 토글
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) => {
       const next = new Set(prev);
@@ -81,7 +96,6 @@ export default function MemoPage() {
     });
   };
 
-  // 새 메모 등록
   const handleAddMemo = () => {
     if (!content.trim()) {
       toast('메모 내용을 입력해 주세요.');
@@ -89,7 +103,7 @@ export default function MemoPage() {
     }
 
     const newMemo: MemoItem = {
-      id: newId(),
+      id: Date.now().toString(36) + Math.random().toString(36).substring(2, 5),
       category: formCat,
       content: content.trim(),
       source: source.trim(),
@@ -97,17 +111,16 @@ export default function MemoPage() {
       authorId: user?.id || '',
     };
 
-    setMemos([newMemo, ...memos]);
+    saveMemos([newMemo, ...memos]);
     setContent('');
     setSource('');
     setIsFormOpen(false);
     toast('새 메모가 등록되었습니다.');
   };
 
-  // 메모 삭제
   const handleDelete = () => {
     if (!deleteTargetId) return;
-    setMemos(memos.filter((m) => m.id !== deleteTargetId));
+    saveMemos(memos.filter((m) => m.id !== deleteTargetId));
     setDeleteTargetId(null);
     toast('메모가 삭제되었습니다.');
   };
@@ -116,7 +129,6 @@ export default function MemoPage() {
 
   return (
     <section className="page" style={{ maxWidth: 1100, margin: '0 auto' }}>
-      {/* 헤더 영역 */}
       <div className="page-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <PageTitle>MEMO</PageTitle>
@@ -133,10 +145,9 @@ export default function MemoPage() {
         </button>
       </div>
 
-      {/* 작성 폼 (상단 펼침) */}
+      {/* 작성 폼 */}
       {isFormOpen && (
         <div className="panel" style={{ padding: 22, marginBottom: 24, borderRadius: 16 }}>
-          {/* 카테고리 선택 버튼들 */}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
             {CATEGORIES.filter((c) => c.id !== 'all').map((cat) => (
               <button
@@ -152,7 +163,6 @@ export default function MemoPage() {
                   cursor: 'pointer',
                   backgroundColor: formCat === cat.id ? 'var(--accent, #5c6b73)' : 'var(--bg-sub, #f0f0f0)',
                   color: formCat === cat.id ? '#ffffff' : 'var(--faint, #666666)',
-                  transition: 'all 0.15s ease',
                 }}
               >
                 {cat.label}
@@ -160,7 +170,6 @@ export default function MemoPage() {
             ))}
           </div>
 
-          {/* 입력창 */}
           <textarea
             placeholder="기록하고 싶은 내용을 입력하세요..."
             value={content}
@@ -183,7 +192,7 @@ export default function MemoPage() {
 
           <input
             type="text"
-            placeholder="출처/참고 (선택사항 - 작가, 링크, 출처 등)"
+            placeholder="출처/참고 (선택사항 - 작가, 책 제목 등)"
             value={source}
             onChange={(e) => setSource(e.target.value)}
             style={{
@@ -210,7 +219,7 @@ export default function MemoPage() {
             <button
               className="btn btn-dark"
               onClick={handleAddMemo}
-              style={{ padding: '7px 20px', borderRadius: 999, fontSize: 12.5 }}
+              style={{ padding: '7px 20px', borderRadius 999, fontSize: 12.5 }}
             >
               등록
             </button>
@@ -233,7 +242,6 @@ export default function MemoPage() {
               cursor: 'pointer',
               backgroundColor: selectedCat === cat.id ? 'var(--accent, #4a5568)' : 'var(--bg-sub, #e2e8f0)',
               color: selectedCat === cat.id ? '#ffffff' : 'var(--faint, #4a5568)',
-              transition: 'all 0.15s ease',
             }}
           >
             {cat.label}
@@ -241,7 +249,7 @@ export default function MemoPage() {
         ))}
       </div>
 
-      {/* 메모 카드 리스트 (그리드 레이아웃) */}
+      {/* 메모 카드 리스트 */}
       <div
         style={{
           display: 'grid',
@@ -252,8 +260,9 @@ export default function MemoPage() {
       >
         {filteredMemos.map((item) => {
           const isExpanded = expandedIds.has(item.id);
-          const isLongText = item.content.length > 180 || item.content.split('\n').length > 6;
+          const isLongText = item.content.length > 150 || item.content.split('\n').length > 5;
           const categoryObj = CATEGORIES.find((c) => c.id === item.category);
+          const displayDate = item.date ? item.date.slice(0, 10).replace(/-/g, '.') : '';
 
           return (
             <div
@@ -266,10 +275,8 @@ export default function MemoPage() {
                 flexDirection: 'column',
                 justify: 'space-between',
                 position: 'relative',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
               }}
             >
-              {/* 카테고리 태그 */}
               <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span
                   style={{
@@ -283,10 +290,10 @@ export default function MemoPage() {
                 >
                   {categoryObj?.label || '기타'}
                 </span>
-                <span style={{ fontSize: 11, color: 'var(--faint, #aaa)' }}>{fmtDate(item.date)}</span>
+                <span style={{ fontSize: 11, color: 'var(--faint, #aaa)' }}>{displayDate}</span>
               </div>
 
-              {/* 본문 (접기/펴기 로직) */}
+              {/* 본문 높이 제어 */}
               <div
                 style={{
                   fontSize: 13,
@@ -294,14 +301,13 @@ export default function MemoPage() {
                   color: 'var(--fg, #222)',
                   whiteSpace: 'pre-wrap',
                   wordBreak: 'break-word',
-                  maxHeight: isExpanded || !isLongText ? 'none' : '150px',
+                  maxHeight: isExpanded || !isLongText ? 'none' : '140px',
                   overflow: 'hidden',
                   position: 'relative',
                 }}
               >
                 {item.content}
 
-                {/* 긴 글일 때 하단 안개 효과 */}
                 {isLongText && !isExpanded && (
                   <div
                     style={{
@@ -309,7 +315,7 @@ export default function MemoPage() {
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      height: 50,
+                      height: 40,
                       background: 'linear-gradient(transparent, var(--panel-bg, #ffffff))',
                       pointerEvents: 'none',
                     }}
@@ -317,7 +323,6 @@ export default function MemoPage() {
                 )}
               </div>
 
-              {/* 접기 / 더보기 버튼 */}
               {isLongText && (
                 <button
                   type="button"
@@ -338,7 +343,6 @@ export default function MemoPage() {
                 </button>
               )}
 
-              {/* 출처 및 하단 버튼 */}
               <div
                 style={{
                   marginTop: 16,
@@ -353,7 +357,6 @@ export default function MemoPage() {
                   {item.source ? `— ${item.source}` : ''}
                 </span>
 
-                {/* 작성자/관리자만 삭제 가능 */}
                 {(isAdmin || (user && item.authorId === user.id)) && (
                   <button
                     onClick={() => setDeleteTargetId(item.id)}
@@ -374,14 +377,12 @@ export default function MemoPage() {
         })}
       </div>
 
-      {/* 등록된 메모가 없을 때 */}
       {filteredMemos.length === 0 && (
         <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--faint)' }}>
           <p style={{ fontSize: 13 }}>등록된 메모가 없습니다.</p>
         </div>
       )}
 
-      {/* 삭제 확인 모달 */}
       <ConfirmModal
         open={!!deleteTargetId}
         title="메모 삭제"
