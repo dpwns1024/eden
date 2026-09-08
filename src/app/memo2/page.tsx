@@ -45,13 +45,13 @@ export default function MemoPage() {
   const [inputCategory, setInputCategory] = useState('공지');
   const [inputContent, setInputContent] = useState('');
 
-  // 접기/펴기 상태 관리 (각 메모 ID별)
+  // 접기/펴기 상태 관리
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     setMounted(true);
     try {
-      const saved = localStorage.getItem('ohome_grid_memos_v3');
+      const saved = localStorage.getItem('ohome_grid_memos_v4');
       if (saved) {
         setMemos(JSON.parse(saved));
       } else {
@@ -65,13 +65,12 @@ export default function MemoPage() {
   const saveMemos = (newList: MemoItem[]) => {
     setMemos(newList);
     try {
-      localStorage.setItem('ohome_grid_memos_v3', JSON.stringify(newList));
+      localStorage.setItem('ohome_grid_memos_v4', JSON.stringify(newList));
     } catch (e) {
       console.error(e);
     }
   };
 
-  // 접기/펴기 토글
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) => ({ ...prev, [id]: !prev[id] }));
   };
@@ -140,17 +139,16 @@ export default function MemoPage() {
   if (!mounted) return null;
 
   return (
-    // 배너 박스 폭에 맞춰 maxWidth: 960 적용
-    <div style={{ maxWidth: 960, margin: '0 auto', padding: '30px 16px', fontFamily: 'sans-serif' }}>
-      {/* 1. 컨트롤 바 (개수 + 카테고리 탭 + 새 메모 버튼) */}
+    // width: 100%로 설정하여 상단 배너 가로폭에 정확히 1:1 맞춤
+    <div style={{ width: '100%', padding: '20px 0', fontFamily: 'sans-serif' }}>
+      {/* 1. 상단 컨트롤 바 (개수 + 카테고리 탭 + 새 메모 버튼) */}
       <div
         style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           marginBottom: 20,
-          flexWrap: 'wrap',
-          gap: 12,
+          width: '100%',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -241,6 +239,8 @@ export default function MemoPage() {
             marginBottom: 20,
             border: '1px solid #E5E7EB',
             boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+            width: '100%',
+            boxSizing: 'border-box',
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -324,18 +324,19 @@ export default function MemoPage() {
         </div>
       )}
 
-      {/* 3. 메모 카드 그리드 (배너 폭 안에서 3열 배치) */}
+      {/* 3. 메모 카드 그리드 (배너 가로 폭에 맞춰 5열로 가득 채움) */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+          gridTemplateColumns: 'repeat(5, 1fr)',
           gap: 16,
           alignItems: 'start',
+          width: '100%',
         }}
       >
         {filteredMemos.map((memo) => {
           const isExpanded = !!expandedIds[memo.id];
-          const isLongContent = memo.content.length > 90 || memo.content.split('\n').length > 5;
+          const isLongContent = memo.content.length > 80 || memo.content.split('\n').length > 4;
 
           return (
             <div
@@ -349,6 +350,7 @@ export default function MemoPage() {
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
+                boxSizing: 'border-box',
               }}
             >
               <div>
@@ -368,18 +370,18 @@ export default function MemoPage() {
                   </span>
                 </div>
 
-                {/* 메모 본문 영역 (접기/펴기 세로 고정) */}
+                {/* 메모 본문 영역 (고정 세로 길이 + 페이드) */}
                 <div
                   style={{
                     position: 'relative',
-                    maxHeight: isExpanded ? 'none' : '150px',
+                    maxHeight: isExpanded ? 'none' : '140px',
                     overflow: 'hidden',
                     transition: 'max-height 0.25s ease',
                   }}
                 >
                   <div
                     style={{
-                      fontSize: 13,
+                      fontSize: 12.5,
                       lineHeight: 1.6,
                       color: '#333333',
                       whiteSpace: 'pre-wrap',
@@ -389,7 +391,7 @@ export default function MemoPage() {
                     {memo.content}
                   </div>
 
-                  {/* 접혀 있을 때 하단 페이드 그라데이션 */}
+                  {/* 접혀 있을 때 하단 그라데이션 페이드 */}
                   {!isExpanded && isLongContent && (
                     <div
                       style={{
@@ -397,7 +399,7 @@ export default function MemoPage() {
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        height: 40,
+                        height: 36,
                         background: 'linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1))',
                         pointerEvents: 'none',
                       }}
@@ -405,7 +407,7 @@ export default function MemoPage() {
                   )}
                 </div>
 
-                {/* 접기 / 더보기 토글 버튼 */}
+                {/* 접기 / 더보기 버튼 */}
                 {isLongContent && (
                   <button
                     onClick={() => toggleExpand(memo.id)}
@@ -413,10 +415,10 @@ export default function MemoPage() {
                       border: 'none',
                       background: 'none',
                       color: '#78818B',
-                      fontSize: 11.5,
+                      fontSize: 11,
                       fontWeight: 600,
                       cursor: 'pointer',
-                      padding: '6px 0 0 0',
+                      padding: '4px 0 0 0',
                     }}
                   >
                     {isExpanded ? '접기 ▲' : '더보기 ▼'}
@@ -430,12 +432,12 @@ export default function MemoPage() {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  paddingTop: 12,
-                  marginTop: 12,
+                  paddingTop: 10,
+                  marginTop: 10,
                   borderTop: '1px solid #F3F4F6',
                 }}
               >
-                <span style={{ fontSize: 11.5, color: '#A0A5AA' }}>{memo.date}</span>
+                <span style={{ fontSize: 11, color: '#A0A5AA' }}>{memo.date}</span>
 
                 <div style={{ display: 'flex', gap: 4 }}>
                   <button
@@ -444,8 +446,8 @@ export default function MemoPage() {
                       border: 'none',
                       backgroundColor: '#F3F4F6',
                       color: '#6B7280',
-                      fontSize: 11.5,
-                      padding: '2px 8px',
+                      fontSize: 11,
+                      padding: '2px 7px',
                       borderRadius: 4,
                       cursor: 'pointer',
                     }}
@@ -458,8 +460,8 @@ export default function MemoPage() {
                       border: 'none',
                       backgroundColor: '#F3F4F6',
                       color: '#6B7280',
-                      fontSize: 11.5,
-                      padding: '2px 8px',
+                      fontSize: 11,
+                      padding: '2px 7px',
                       borderRadius: 4,
                       cursor: 'pointer',
                     }}
