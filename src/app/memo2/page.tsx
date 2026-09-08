@@ -9,7 +9,6 @@ export interface MemoItem {
   date: string;
 }
 
-// 1. 카테고리 정의 (전체, OOC, 프롬, 기타)
 const CATEGORIES = ['전체', 'OOC', '프롬', '기타'];
 const VALID_CATEGORIES = ['OOC', '프롬', '기타'];
 const STORAGE_KEY = 'ohome_memos_final';
@@ -27,7 +26,6 @@ export default function MemoPage() {
 
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
 
-  // 기존 저장된 메모 불러오기 및 구 카테고리 자동 변환
   useEffect(() => {
     setMounted(true);
     
@@ -60,7 +58,6 @@ export default function MemoPage() {
     }
 
     if (recoveredData) {
-      // 구 카테고리(공지, ORIGINAL, 설정 등)를 OOC / 프롬 / 기타 로 자동 마이그레이션
       const cleanedData = recoveredData.map((m) => {
         let cat = m.category;
         if (!VALID_CATEGORIES.includes(cat)) {
@@ -157,8 +154,8 @@ export default function MemoPage() {
   if (!mounted) return null;
 
   return (
-    // 상단 배너 폭에 맞춰 자동 확장/축소되는 외부 래퍼
-    <div style={{ width: '100%', boxSizing: 'border-box', fontFamily: 'sans-serif' }}>
+    /* 좌우 padding(0 44px)을 추가하여 상단 배너 이미지 라인 안으로 폭을 좁혀 넣습니다 */
+    <div style={{ width: '100%', padding: '0 44px', boxSizing: 'border-box', fontFamily: 'sans-serif' }}>
       
       {/* 1. 상단 컨트롤 바 */}
       <div
@@ -370,7 +367,7 @@ export default function MemoPage() {
                 justifyContent: 'space-between',
                 boxSizing: 'border-box',
                 minWidth: 0,
-                minHeight: '210px', // 짧은 메모도 두 번째 카드 높이만큼 세로 사이즈 고정
+                minHeight: '210px',
               }}
             >
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -444,7 +441,6 @@ export default function MemoPage() {
                 )}
               </div>
 
-              {/* 하단 일직선 정렬 영역 */}
               <div
                 style={{
                   display: 'flex',
