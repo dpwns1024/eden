@@ -102,7 +102,7 @@ export default function BoardPage() {
     setContent('');
     setAuthor('');
     setIsWriting(false);
-    setOpenPostId(newPost.id); // 작성한 글 바로 열어주기
+    setOpenPostId(newPost.id);
   };
 
   // 글 삭제
@@ -265,7 +265,7 @@ export default function BoardPage() {
       <div
         style={{
           display: 'flex',
-          justify: 'space-between',
+          justifyContent: 'space-between',
           alignItems: 'center',
           gap: 12,
           marginBottom: 16,
@@ -324,14 +324,14 @@ export default function BoardPage() {
                 transition: 'background-color 0.15s ease',
               }}
             >
-              {/* 글 한 줄 요약 헤더 (클릭 시 열림) */}
+              {/* 글 한 줄 요약 헤더 */}
               <div
                 onClick={() => setOpenPostId(isOpen ? null : post.id)}
                 style={{
                   padding: '16px 12px',
                   display: 'flex',
                   alignItems: 'center',
-                  justify: 'space-between',
+                  justifyContent: 'space-between',
                   cursor: 'pointer',
                   gap: 12,
                 }}
@@ -383,7 +383,7 @@ export default function BoardPage() {
                 </div>
               </div>
 
-              {/* 클릭 시 펼쳐지는 본문 내용 */}
+              {/* 펼침 본문 */}
               {isOpen && (
                 <div
                   style={{
