@@ -193,7 +193,7 @@ export default function MemoPage() {
               onClick={handleCancelForm}
               style={{
                 border: 'none',
-                background: 'none',
+                backgroundColor: 'transparent',
                 fontSize: 12,
                 color: '#94A3B8',
                 cursor: 'pointer',
@@ -226,7 +226,7 @@ export default function MemoPage() {
         <div
           style={{
             display: 'flex',
-            justifyContent: 'space-between',
+            justify: 'space-between',
             alignItems: 'center',
             paddingTop: 12,
             borderTop: '1px solid #F1F5F9',
@@ -337,7 +337,7 @@ export default function MemoPage() {
               <div
                 style={{
                   display: 'flex',
-                  justifyContent: 'space-between',
+                  justify: 'space-between',
                   alignItems: 'center',
                   marginBottom: 12,
                 }}
@@ -385,7 +385,7 @@ export default function MemoPage() {
                     onClick={() => handleEditClick(memo)}
                     style={{
                       border: 'none',
-                      background: 'none',
+                      backgroundColor: 'transparent',
                       color: '#94A3B8',
                       fontSize: 12,
                       cursor: 'pointer',
@@ -397,7 +397,7 @@ export default function MemoPage() {
                     onClick={() => handleDeleteClick(memo.id)}
                     style={{
                       border: 'none',
-                      background: 'none',
+                      backgroundColor: 'transparent',
                       color: '#94A3B8',
                       fontSize: 12,
                       cursor: 'pointer',
@@ -424,7 +424,7 @@ export default function MemoPage() {
                     lineHeight: 1.65,
                     color: '#334155',
                     whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-word',
+                    overflowWrap: 'break-word',
                   }}
                 >
                   {memo.content}
@@ -438,7 +438,7 @@ export default function MemoPage() {
                       left: 0,
                       right: 0,
                       height: 32,
-                      background: 'linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1))',
+                      backgroundImage: 'linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1))',
                       pointerEvents: 'none',
                     }}
                   />
@@ -451,7 +451,7 @@ export default function MemoPage() {
                   onClick={() => toggleExpand(memo.id)}
                   style={{
                     border: 'none',
-                    background: 'none',
+                    backgroundColor: 'transparent',
                     color: '#3B82F6',
                     fontSize: 11,
                     fontWeight: 600,
@@ -478,7 +478,7 @@ export default function MemoPage() {
                   onClick={() => handleLikeClick(memo.id)}
                   style={{
                     border: 'none',
-                    background: 'none',
+                    backgroundColor: 'transparent',
                     color: memo.isLiked ? '#EF4444' : '#94A3B8',
                     fontSize: 13,
                     fontWeight: 600,
