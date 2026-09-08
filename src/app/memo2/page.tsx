@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, CSSProperties } from 'react';
 
 export interface MemoItem {
   id: string;
@@ -170,6 +170,17 @@ export default function MemoPage() {
 
   if (!mounted) return null;
 
+  // 인라인 스타일 객체 정의 (타입 안전성 보장)
+  const fadeOverlayStyle: CSSProperties = {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 32,
+    backgroundImage: 'linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1))',
+    pointerEvents: 'none',
+  };
+
   return (
     <div style={{ maxWidth: 580, margin: '0 auto', padding: '20px 16px', fontFamily: 'sans-serif', color: '#1E293B' }}>
       
@@ -227,7 +238,7 @@ export default function MemoPage() {
         <div
           style={{
             display: 'flex',
-            justifyContent: 'space-between',
+            justify: 'space-between',
             alignItems: 'center',
             paddingTop: 12,
             borderTop: '1px solid #F1F5F9',
@@ -436,17 +447,7 @@ export default function MemoPage() {
                 </div>
 
                 {!isExpanded && isLongContent && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      height: 32,
-                      background: 'linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1))',
-                      pointerEvents: 'none',
-                    }}
-                  />
+                  <div style={fadeOverlayStyle} />
                 )}
               </div>
 
