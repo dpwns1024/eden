@@ -36,22 +36,19 @@ export default function MemoPage() {
   const [memos, setMemos] = useState<MemoItem[]>([]);
   const [mounted, setMounted] = useState(false);
 
-  // 카테고리 필터
   const [selectedCat, setSelectedCat] = useState('전체');
 
-  // 작성/수정 폼 상태
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [inputCategory, setInputCategory] = useState('공지');
   const [inputContent, setInputContent] = useState('');
 
-  // 접기/펴기 상태 관리
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     setMounted(true);
     try {
-      const saved = localStorage.getItem('ohome_grid_memos_v4');
+      const saved = localStorage.getItem('ohome_grid_memos_v6');
       if (saved) {
         setMemos(JSON.parse(saved));
       } else {
@@ -65,7 +62,7 @@ export default function MemoPage() {
   const saveMemos = (newList: MemoItem[]) => {
     setMemos(newList);
     try {
-      localStorage.setItem('ohome_grid_memos_v4', JSON.stringify(newList));
+      localStorage.setItem('ohome_grid_memos_v6', JSON.stringify(newList));
     } catch (e) {
       console.error(e);
     }
@@ -139,9 +136,8 @@ export default function MemoPage() {
   if (!mounted) return null;
 
   return (
-    // width: 100%로 설정하여 상단 배너 가로폭에 정확히 1:1 맞춤
-    <div style={{ width: '100%', padding: '20px 0', fontFamily: 'sans-serif' }}>
-      {/* 1. 상단 컨트롤 바 (개수 + 카테고리 탭 + 새 메모 버튼) */}
+    <div style={{ width: '100%', boxSizing: 'border-box', fontFamily: 'sans-serif' }}>
+      {/* 1. 컨트롤 바 (상단 배너 좌우 폭에 정확히 일치) */}
       <div
         style={{
           display: 'flex',
@@ -152,7 +148,6 @@ export default function MemoPage() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {/* 개수 태그 */}
           <div
             style={{
               backgroundColor: '#EBECEE',
@@ -166,7 +161,6 @@ export default function MemoPage() {
             총 {filteredMemos.length}개
           </div>
 
-          {/* 카테고리 탭 바 */}
           <div
             style={{
               display: 'inline-flex',
@@ -201,7 +195,6 @@ export default function MemoPage() {
           </div>
         </div>
 
-        {/* 새 메모 버튼 */}
         <button
           onClick={() => {
             if (isFormOpen) {
@@ -324,11 +317,11 @@ export default function MemoPage() {
         </div>
       )}
 
-      {/* 3. 메모 카드 그리드 (배너 가로 폭에 맞춰 5열로 가득 채움) */}
+      {/* 3. 메모 카드 그리드 (배너 폭을 정확히 3등분하여 100% 꽉 채움) */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(5, 1fr)',
+          gridTemplateColumns: 'repeat(3, 1fr)',
           gap: 16,
           alignItems: 'start',
           width: '100%',
@@ -354,7 +347,6 @@ export default function MemoPage() {
               }}
             >
               <div>
-                {/* 카테고리 알약 태그 */}
                 <div style={{ marginBottom: 10 }}>
                   <span
                     style={{
@@ -370,7 +362,6 @@ export default function MemoPage() {
                   </span>
                 </div>
 
-                {/* 메모 본문 영역 (고정 세로 길이 + 페이드) */}
                 <div
                   style={{
                     position: 'relative',
@@ -391,7 +382,6 @@ export default function MemoPage() {
                     {memo.content}
                   </div>
 
-                  {/* 접혀 있을 때 하단 그라데이션 페이드 */}
                   {!isExpanded && isLongContent && (
                     <div
                       style={{
@@ -407,7 +397,6 @@ export default function MemoPage() {
                   )}
                 </div>
 
-                {/* 접기 / 더보기 버튼 */}
                 {isLongContent && (
                   <button
                     onClick={() => toggleExpand(memo.id)}
@@ -426,7 +415,6 @@ export default function MemoPage() {
                 )}
               </div>
 
-              {/* 하단 날짜 & 수정/삭제 버튼 */}
               <div
                 style={{
                   display: 'flex',
