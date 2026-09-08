@@ -1,6 +1,6 @@
 'use client';
 // 게시글 상세 (4.2) — 본문 렌더(격리 새니타이즈) · 접기 · 댓글+대댓글
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useHrefBlock } from '@/components/shell/MenuGuard';
 import { extraBoardHref } from '@/lib/menuStore';
@@ -25,26 +25,83 @@ export default function BoardDetailPage() {
   const { user, isAdmin } = useAuth();
   const toast = useToast();
   const [posts, setPosts, loaded] = useLocalList<Post>('ohome.board.v1', BOARD_SEED);
-  // 댓글은 글과 따로 저장된다 (v2.0) — 글 안에 두면 댓글을 달 때 글을 UPDATE 해야 해서
-  // 일반 회원이 관리자 글에 댓글을 달 수 없었다 (포크 사용자 제보)
   const [cmtRows, setCmtRows] = useLocalList<CommentRow>(COMMENT_KEY, COMMENT_SEED);
-  const { boards } = useBoards();                  // 소속 게시판 (5.2 다중 게시판)
-  const [open, setOpen] = useState(false);         // 접기 해제
+  const { boards } = useBoards();
+  const [open, setOpen] = useState(false);
   const [cmt, setCmt] = useState('');
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [delAsk, setDelAsk] = useState(false);
-  const [gName, setGName] = useState('');                       // 게스트 닉네임 (방문자 댓글 허용 시)
+  const [gName, setGName] = useState('');
 
   const post = posts.find(p => p.id === id);
-  /* 이 글이 속한 곳이 비공개면 주소로 들어와도 열리지 않게 (v2.0 사용자 요청).
-     글 주소에는 섹션이 없어 MenuGuard가 못 막는다 — 글을 읽어 소속을 알아낸 여기서 판정한다.
-     **다른 early return보다 먼저 불러야 한다**(훅이므로 렌더마다 개수가 같아야 한다) */
   const bid = post?.boardId ?? MAIN_BOARD_ID;
   const blocked = useHrefBlock(post && (bid === MAIN_BOARD_ID ? '/board' : extraBoardHref(bid)));
-  // loaded 이후에만 본문 렌더 (SSR/하이드레이션 불일치 방지)
+  
   const html = useMemo(() => (post && loaded ? renderBody(post.mode, post.body) : ''), [post, loaded]);
 
-  // 막힌 곳이면 여기서 되돌아간다 — 훅을 모두 부른 뒤여야 렌더마다 개수가 같다
+  // ★ [추가] 본문에 스테가노그래피 파괴기 요소가 있으면 이벤트 연결
+  useEffect(() => {
+    if (!html) return;
+
+    const box = document.getElementById('stegano-box');
+    const fileInput = document.getElementById('exif-input-v5');
+    const downloadArea = document.getElementById('download-area-v5');
+
+    if (!box || !fileInput) return;
+
+    const handleBoxClick = () => fileInput.click();
+
+    const handleFileChange = (e) => {
+      const files = e.target.files;
+      if (!downloadArea || !files || files.length === 0) return;
+
+      downloadArea.innerHTML = '<p style="color:#673AB7; font-weight:bold;">✨ 픽셀 정화 완료! 아래 버튼을 눌러 다운로드하세요.</p>';
+
+      Array.from(files).forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+
+            canvas.toBlob((blob) => {
+              if (!blob) return;
+              const url = URL.createObjectURL(blob);
+              const btn = document.createElement('a');
+              btn.href = url;
+
+              const originalName = file.name.replace(/\.[^/.]+$/, '');
+              const newFileName = 'final_' + originalName + '.jpg';
+
+              btn.download = newFileName;
+              btn.textContent = '📥 ' + newFileName + ' 다운로드';
+              btn.style.cssText = 'display: inline-block; margin: 5px; padding: 10px 15px; background-color: #673AB7; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;';
+              downloadArea.appendChild(btn);
+            }, 'image/jpeg', 0.98);
+          };
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    };
+
+    box.addEventListener('click', handleBoxClick);
+    fileInput.addEventListener('change', handleFileChange);
+
+    return () => {
+      box.removeEventListener('click', handleBoxClick);
+      fileInput.removeEventListener('change', handleFileChange);
+    };
+  }, [html, open]);
+
   if (blocked) return blocked;
   if (!loaded) return <section className="page" />;
   if (!post) {
@@ -54,8 +111,7 @@ export default function BoardDetailPage() {
       </section>
     );
   }
-  /* 글쓴이인지 한 곳에서 정한다 (v2.0 발견) — 예전 글이나 손님이 쓴 글은 authorId가 없고
-     비로그인 방문자도 user?.id가 없어, 서로 「같다」고 판정돼 **비밀글이 그대로 열렸다.** */
+
   const isAuthor = !!post.authorId && post.authorId === user?.id;
   if (post.secret && !isAdmin && !isAuthor) {
     return (
@@ -67,7 +123,6 @@ export default function BoardDetailPage() {
 
   const board = boards.find(b => b.id === (post.boardId ?? MAIN_BOARD_ID)) ?? boards[0];
   const boardTitle = board.id === MAIN_BOARD_ID ? 'BOARD' : board.name;
-  // 댓글 권한 (5.2) — 방문자 허용 시 게스트 작성(닉네임+비밀번호, 방명록 4.7 규칙)
   const allow = (p: BoardPerm) => (p === 'admin' ? isAdmin : p === 'member' ? !!user : true);
   const guestMode = !user && board.permComment === 'guest';
   const canComment = allow(board.permComment) && (!!user || guestMode);
@@ -76,7 +131,6 @@ export default function BoardDetailPage() {
   const update = (patch: Partial<Post>) =>
     setPosts(posts.map(p => (p.id === post.id ? { ...p, ...patch } : p)));
 
-  // 이 글의 댓글 — 분리 저장분 + 옛 글 안에 남아 있던 것 (v2.0)
   const comments = commentsFor(cmtRows, 'post', post.id, post.comments);
 
   const addComment = () => {
@@ -91,7 +145,6 @@ export default function BoardDetailPage() {
     setCmt(''); setReplyTo(null);
   };
 
-  // 댓글 삭제 — 대댓글도 함께. 옛 글 안에 있던 댓글이면 글 쪽에서 지운다 (v2.0)
   const removeComment = (c: Comment) => {
     const gone = (x: { id: string; parentId?: string }) => x.id === c.id || x.parentId === c.id;
     if (cmtRows.some(gone)) setCmtRows(cmtRows.filter(x => !gone(x)));
@@ -109,7 +162,6 @@ export default function BoardDetailPage() {
           {replyTo === c.id ? '답글 취소' : '답글'}
         </small>
       )}
-      {/* 손님 댓글은 관리자만 지운다 (v2.0 사용자 확정) — 서버가 그렇게밖에 못 받는다 */}
       {(isAdmin || (user && c.authorId === user.id)) && (
         <small style={{ cursor: 'var(--cur-pointer,pointer)', marginLeft: 8 }}
           onClick={() => removeComment(c)}>
@@ -126,7 +178,6 @@ export default function BoardDetailPage() {
         <PageTitle href={boardHref(board.id)}>{boardTitle}</PageTitle>
         <p>{post.notice ? '공지 · ' : `${post.category} · `}{post.author} · {fmtDate(post.date)}</p>
         <div className="head-actions">
-          {/* 수정은 작성자 본인만 — 관리자도 타인 글은 삭제만 (v1.9) */}
           {isAuthor && (
             <button className="btn btn-dark" onClick={() => router.push(`/board/write?edit=${post.id}`)}>EDIT</button>
           )}
@@ -142,13 +193,11 @@ export default function BoardDetailPage() {
         </h2>
         <p style={{ fontSize: 11, color: 'var(--faint)', marginBottom: 18 }}>
           {post.author} · {fmtDate(post.date)} · {post.mode.toUpperCase()}
-          {/* 태그 (v2.0 사용자 요청) — 목록과 같은 표기 */}
           {(post.tags ?? []).map(t => (
             <span key={t} style={{ marginLeft: 7, color: 'color-mix(in srgb,var(--accent) 65%,var(--faint))' }}>#{t}</span>
           ))}
         </p>
 
-        {/* 접기 (6.2) — 흐림 커버, 클릭 시 표시 */}
         <div className={`veil ${!post.fold || open ? 'open' : ''}`}>
           {post.fold && !open && (
             <div className="cover" onClick={() => setOpen(true)} style={{ position: 'absolute' }}>
@@ -163,7 +212,6 @@ export default function BoardDetailPage() {
         </div>
       </div>
 
-      {/* 댓글 + 대댓글 */}
       <div className="panel" style={{ padding: 0, marginTop: 16 }}>
         <div style={{ padding: '16px 18px' }}>
           <h4 style={{ fontSize: 11.5, letterSpacing: '.12em', color: 'var(--faint)', marginBottom: 13 }}>
@@ -180,7 +228,6 @@ export default function BoardDetailPage() {
           )}
         </div>
         {canComment ? (
-          /* 게스트 작성(방문자 허용) — 구분선 아래 GUEST 바 + 입력줄 세로 배치 */
           <div className={`cmt-input ${guestMode ? 'guest' : ''}`}>
             {guestMode && <GuestIdBar name={gName} onName={setGName} />}
             <div className="ci-row" style={guestMode ? undefined : { display: 'contents' }}>
@@ -204,7 +251,6 @@ export default function BoardDetailPage() {
         buttons={[
           { label: 'DELETE', kind: 'accent', onClick: () => {
             setPosts(posts.filter(p => p.id !== post.id));
-            // 글에 딸린 댓글도 함께 지운다 — 따로 저장되므로 남겨 두면 주인 없는 줄이 된다 (v2.0)
             setCmtRows(cmtRows.filter(c => !(c.target === 'post' && c.targetId === post.id)));
             router.push(boardHref(board.id));
           } },
