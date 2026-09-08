@@ -9,7 +9,7 @@ export interface MemoItem {
   date: string;
 }
 
-// 1. 요청하신 카테고리 구성 (OOC / 프롬 / 기타)
+// 요청하신 하위 카테고리 구성
 const CATEGORIES = ['전체', 'OOC', '프롬', '기타'];
 const STORAGE_KEY = 'ohome_memos_final';
 
@@ -26,11 +26,10 @@ export default function MemoPage() {
 
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
 
-  // 이전 키에 저장되어 날아간 사용자 메모를 자동으로 복구하는 초기화 로직
+  // 작성하셨던 메모를 찾아오는 복구 로직
   useEffect(() => {
     setMounted(true);
     
-    // 이전에 변경되었던 모든 저장소 키 탐색
     const previousKeys = [
       STORAGE_KEY,
       'ohome_grid_memos_v6',
@@ -144,27 +143,27 @@ export default function MemoPage() {
   if (!mounted) return null;
 
   return (
-    // 상단 배너와 100% 동일한 컨테이너 폭 유지
-    <div style={{ width: '100%', boxSizing: 'border-box', fontFamily: 'sans-serif' }}>
+    // 배너너비(960px)에 가두고 가운데 정렬하여 밖으로 튀어나가지 않게 수정
+    <div style={{ maxWidth: 960, width: '100%', margin: '0 auto', boxSizing: 'border-box', fontFamily: 'sans-serif' }}>
       
-      {/* 1. 상단 컨트롤 바 (왼쪽 끝 = 배너 왼쪽 끝, 오른쪽 끝 = 배너 오른쪽 끝) */}
+      {/* 1. 상단 컨트롤 바 */}
       <div
         style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: 20,
+          marginBottom: 16,
           width: '100%',
           boxSizing: 'border-box',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div
             style={{
               backgroundColor: '#EBECEE',
-              padding: '6px 14px',
+              padding: '5px 12px',
               borderRadius: 20,
-              fontSize: 12.5,
+              fontSize: 12,
               fontWeight: 600,
               color: '#55585D',
             }}
@@ -177,8 +176,8 @@ export default function MemoPage() {
               display: 'inline-flex',
               gap: 2,
               backgroundColor: '#EBECEE',
-              padding: 4,
-              borderRadius: 14,
+              padding: 3,
+              borderRadius: 12,
             }}
           >
             {CATEGORIES.map((cat) => {
@@ -188,10 +187,10 @@ export default function MemoPage() {
                   key={cat}
                   onClick={() => setSelectedCat(cat)}
                   style={{
-                    padding: '5px 14px',
-                    borderRadius: 10,
+                    padding: '4px 12px',
+                    borderRadius: 9,
                     border: 'none',
-                    fontSize: 12,
+                    fontSize: 11.5,
                     fontWeight: isSelected ? 700 : 500,
                     cursor: 'pointer',
                     backgroundColor: isSelected ? '#575E65' : 'transparent',
@@ -218,11 +217,11 @@ export default function MemoPage() {
             }
           }}
           style={{
-            padding: '7px 16px',
+            padding: '6px 14px',
             borderRadius: 20,
             border: '1px solid #D8DCE0',
             backgroundColor: '#FFFFFF',
-            fontSize: 12.5,
+            fontSize: 12,
             fontWeight: 600,
             color: '#44484E',
             cursor: 'pointer',
@@ -233,35 +232,35 @@ export default function MemoPage() {
         </button>
       </div>
 
-      {/* 2. 작성/수정 폼 */}
+      {/* 2. 작성 / 수정 폼 */}
       {isFormOpen && (
         <div
           style={{
             backgroundColor: '#FFFFFF',
-            borderRadius: 16,
-            padding: 20,
-            marginBottom: 20,
+            borderRadius: 14,
+            padding: 16,
+            marginBottom: 16,
             border: '1px solid #E5E7EB',
             boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
             width: '100%',
             boxSizing: 'border-box',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#333' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#333' }}>
               {editingId ? '메모 수정' : '새 메모 작성'}
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 12.5, color: '#666' }}>카테고리:</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 12, color: '#666' }}>카테고리:</span>
               <select
                 value={inputCategory}
                 onChange={(e) => setInputCategory(e.target.value)}
                 style={{
-                  padding: '5px 10px',
-                  borderRadius: 8,
+                  padding: '4px 8px',
+                  borderRadius: 6,
                   border: '1px solid #D1D5DB',
-                  fontSize: 12.5,
+                  fontSize: 12,
                   backgroundColor: '#FFF',
                   outline: 'none',
                 }}
@@ -279,31 +278,31 @@ export default function MemoPage() {
             value={inputContent}
             onChange={(e) => setInputContent(e.target.value)}
             placeholder="메모를 입력하세요..."
-            rows={5}
+            rows={4}
             style={{
               width: '100%',
-              padding: '12px',
+              padding: '10px',
               borderRadius: 8,
               border: '1px solid #D1D5DB',
-              fontSize: 13,
-              lineHeight: 1.6,
+              fontSize: 12.5,
+              lineHeight: 1.5,
               boxSizing: 'border-box',
               resize: 'vertical',
-              marginBottom: 12,
+              marginBottom: 10,
               fontFamily: 'inherit',
             }}
           />
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
             <button
               onClick={handleCancelForm}
               style={{
-                padding: '6px 14px',
+                padding: '5px 12px',
                 borderRadius: 6,
                 border: 'none',
                 backgroundColor: '#F3F4F6',
                 color: '#4B5563',
-                fontSize: 12.5,
+                fontSize: 12,
                 cursor: 'pointer',
               }}
             >
@@ -312,12 +311,12 @@ export default function MemoPage() {
             <button
               onClick={handleSave}
               style={{
-                padding: '6px 16px',
+                padding: '5px 14px',
                 borderRadius: 6,
                 border: 'none',
                 backgroundColor: '#374151',
                 color: '#FFFFFF',
-                fontSize: 12.5,
+                fontSize: 12,
                 fontWeight: 600,
                 cursor: 'pointer',
               }}
@@ -328,12 +327,12 @@ export default function MemoPage() {
         </div>
       )}
 
-      {/* 3. 메모 카드 그리드 (배너 폭을 넘지 않는 안전 규격) */}
+      {/* 3. 한 줄 5개 정렬 메모 카드 그리드 */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-          gap: 16,
+          gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', // 한 줄에 5개 배치
+          gap: 12,
           alignItems: 'start',
           width: '100%',
           boxSizing: 'border-box',
@@ -341,53 +340,52 @@ export default function MemoPage() {
       >
         {filteredMemos.map((memo) => {
           const isExpanded = !!expandedIds[memo.id];
-          const isLongContent = memo.content.length > 80 || memo.content.split('\n').length > 4;
+          const isLongContent = memo.content.length > 60 || memo.content.split('\n').length > 3;
 
           return (
             <div
               key={memo.id}
               style={{
                 backgroundColor: '#FFFFFF',
-                borderRadius: 16,
-                padding: '18px 16px 14px 16px',
+                borderRadius: 14,
+                padding: '14px 12px 10px 12px',
                 border: '1px solid #ECEEEF',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.025)',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
                 boxSizing: 'border-box',
-                minWidth: 0, // 텍스트 오버플로우 방지
+                minWidth: 0,
               }}
             >
               <div>
-                <div style={{ marginBottom: 10 }}>
+                <div style={{ marginBottom: 8 }}>
                   <span
                     style={{
                       border: '1px solid #B0B7C0',
                       color: '#606770',
-                      fontSize: 10.5,
+                      fontSize: 10,
                       fontWeight: 600,
-                      padding: '2px 8px',
-                      borderRadius: 10,
+                      padding: '2px 7px',
+                      borderRadius: 8,
                     }}
                   >
                     {memo.category || '기타'}
                   </span>
                 </div>
 
-                {/* 본문 높이 고정 & 더보기/접기 */}
                 <div
                   style={{
                     position: 'relative',
-                    maxHeight: isExpanded ? 'none' : '140px',
+                    maxHeight: isExpanded ? 'none' : '120px',
                     overflow: 'hidden',
-                    transition: 'max-height 0.25s ease',
+                    transition: 'max-height 0.2s ease',
                   }}
                 >
                   <div
                     style={{
-                      fontSize: 12.5,
-                      lineHeight: 1.6,
+                      fontSize: 12,
+                      lineHeight: 1.5,
                       color: '#333333',
                       whiteSpace: 'pre-wrap',
                       wordBreak: 'break-word',
@@ -403,7 +401,7 @@ export default function MemoPage() {
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        height: 36,
+                        height: 30,
                         background: 'linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1))',
                         pointerEvents: 'none',
                       }}
@@ -418,7 +416,7 @@ export default function MemoPage() {
                       border: 'none',
                       background: 'none',
                       color: '#78818B',
-                      fontSize: 11,
+                      fontSize: 10.5,
                       fontWeight: 600,
                       cursor: 'pointer',
                       padding: '4px 0 0 0',
@@ -429,28 +427,27 @@ export default function MemoPage() {
                 )}
               </div>
 
-              {/* 카드 하단 정보 */}
               <div
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  paddingTop: 10,
-                  marginTop: 10,
+                  paddingTop: 8,
+                  marginTop: 8,
                   borderTop: '1px solid #F3F4F6',
                 }}
               >
-                <span style={{ fontSize: 11, color: '#A0A5AA' }}>{memo.date}</span>
+                <span style={{ fontSize: 10, color: '#A0A5AA' }}>{memo.date}</span>
 
-                <div style={{ display: 'flex', gap: 4 }}>
+                <div style={{ display: 'flex', gap: 3 }}>
                   <button
                     onClick={() => handleEditClick(memo)}
                     style={{
                       border: 'none',
                       backgroundColor: '#F3F4F6',
                       color: '#6B7280',
-                      fontSize: 11,
-                      padding: '2px 7px',
+                      fontSize: 10,
+                      padding: '2px 5px',
                       borderRadius: 4,
                       cursor: 'pointer',
                     }}
@@ -463,8 +460,8 @@ export default function MemoPage() {
                       border: 'none',
                       backgroundColor: '#F3F4F6',
                       color: '#6B7280',
-                      fontSize: 11,
-                      padding: '2px 7px',
+                      fontSize: 10,
+                      padding: '2px 5px',
                       borderRadius: 4,
                       cursor: 'pointer',
                     }}
@@ -482,9 +479,9 @@ export default function MemoPage() {
             style={{
               gridColumn: '1 / -1',
               textAlign: 'center',
-              padding: '60px 0',
+              padding: '50px 0',
               color: '#9CA3AF',
-              fontSize: 13.5,
+              fontSize: 13,
             }}
           >
             등록된 메모가 없습니다.
