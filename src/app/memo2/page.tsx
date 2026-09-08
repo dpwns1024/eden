@@ -9,8 +9,9 @@ export interface MemoItem {
   date: string;
 }
 
-// 요청하신 하위 카테고리 구성
+// 1. 카테고리 정의 (전체, OOC, 프롬, 기타)
 const CATEGORIES = ['전체', 'OOC', '프롬', '기타'];
+const VALID_CATEGORIES = ['OOC', '프롬', '기타'];
 const STORAGE_KEY = 'ohome_memos_final';
 
 export default function MemoPage() {
@@ -26,7 +27,7 @@ export default function MemoPage() {
 
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
 
-  // 작성하셨던 메모를 찾아오는 복구 로직
+  // 기존 저장된 메모 불러오기 및 구 카테고리 자동 변환
   useEffect(() => {
     setMounted(true);
     
@@ -59,8 +60,18 @@ export default function MemoPage() {
     }
 
     if (recoveredData) {
-      setMemos(recoveredData);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(recoveredData));
+      // 구 카테고리(공지, ORIGINAL, 설정 등)를 OOC / 프롬 / 기타 로 자동 마이그레이션
+      const cleanedData = recoveredData.map((m) => {
+        let cat = m.category;
+        if (!VALID_CATEGORIES.includes(cat)) {
+          if (cat === '공지' || cat === 'ORIGINAL') cat = 'OOC';
+          else if (cat === '설정') cat = '프롬';
+          else cat = '기타';
+        }
+        return { ...m, category: cat };
+      });
+      setMemos(cleanedData);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanedData));
     } else {
       setMemos([]);
     }
@@ -88,17 +99,19 @@ export default function MemoPage() {
     const now = new Date();
     const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
 
+    const targetCategory = VALID_CATEGORIES.includes(inputCategory) ? inputCategory : 'OOC';
+
     if (editingId) {
       const updated = memos.map((m) =>
         m.id === editingId
-          ? { ...m, category: inputCategory, content: inputContent.trim() }
+          ? { ...m, category: targetCategory, content: inputContent.trim() }
           : m
       );
       saveMemos(updated);
     } else {
       const newMemo: MemoItem = {
         id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
-        category: inputCategory,
+        category: targetCategory,
         content: inputContent.trim(),
         date: dateStr,
       };
@@ -112,7 +125,8 @@ export default function MemoPage() {
 
   const handleEditClick = (memo: MemoItem) => {
     setEditingId(memo.id);
-    setInputCategory(memo.category || 'OOC');
+    const cat = VALID_CATEGORIES.includes(memo.category) ? memo.category : 'OOC';
+    setInputCategory(cat);
     setInputContent(memo.content);
     setIsFormOpen(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -143,8 +157,8 @@ export default function MemoPage() {
   if (!mounted) return null;
 
   return (
-    // 배너너비(960px)에 가두고 가운데 정렬하여 밖으로 튀어나가지 않게 수정
-    <div style={{ maxWidth: 960, width: '100%', margin: '0 auto', boxSizing: 'border-box', fontFamily: 'sans-serif' }}>
+    // 상단 배너 폭에 맞춰 자동 확장/축소되는 외부 래퍼
+    <div style={{ width: '100%', boxSizing: 'border-box', fontFamily: 'sans-serif' }}>
       
       {/* 1. 상단 컨트롤 바 */}
       <div
@@ -265,7 +279,7 @@ export default function MemoPage() {
                   outline: 'none',
                 }}
               >
-                {CATEGORIES.filter((c) => c !== '전체').map((cat) => (
+                {VALID_CATEGORIES.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
                   </option>
@@ -327,20 +341,20 @@ export default function MemoPage() {
         </div>
       )}
 
-      {/* 3. 한 줄 5개 정렬 메모 카드 그리드 */}
+      {/* 3. 5열 정렬 메모 카드 그리드 */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', // 한 줄에 5개 배치
-          gap: 12,
-          alignItems: 'start',
+          gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+          gap: 10,
+          alignItems: 'stretch',
           width: '100%',
           boxSizing: 'border-box',
         }}
       >
         {filteredMemos.map((memo) => {
           const isExpanded = !!expandedIds[memo.id];
-          const isLongContent = memo.content.length > 60 || memo.content.split('\n').length > 3;
+          const isLongContent = memo.content.length > 50 || memo.content.split('\n').length > 3;
 
           return (
             <div
@@ -356,9 +370,10 @@ export default function MemoPage() {
                 justifyContent: 'space-between',
                 boxSizing: 'border-box',
                 minWidth: 0,
+                minHeight: '210px', // 짧은 메모도 두 번째 카드 높이만큼 세로 사이즈 고정
               }}
             >
-              <div>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <div style={{ marginBottom: 8 }}>
                   <span
                     style={{
@@ -370,21 +385,22 @@ export default function MemoPage() {
                       borderRadius: 8,
                     }}
                   >
-                    {memo.category || '기타'}
+                    {memo.category}
                   </span>
                 </div>
 
                 <div
                   style={{
                     position: 'relative',
-                    maxHeight: isExpanded ? 'none' : '120px',
+                    maxHeight: isExpanded ? 'none' : '110px',
                     overflow: 'hidden',
                     transition: 'max-height 0.2s ease',
+                    flex: 1,
                   }}
                 >
                   <div
                     style={{
-                      fontSize: 12,
+                      fontSize: 11.5,
                       lineHeight: 1.5,
                       color: '#333333',
                       whiteSpace: 'pre-wrap',
@@ -401,7 +417,7 @@ export default function MemoPage() {
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        height: 30,
+                        height: 28,
                         background: 'linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1))',
                         pointerEvents: 'none',
                       }}
@@ -416,10 +432,11 @@ export default function MemoPage() {
                       border: 'none',
                       background: 'none',
                       color: '#78818B',
-                      fontSize: 10.5,
+                      fontSize: 10,
                       fontWeight: 600,
                       cursor: 'pointer',
                       padding: '4px 0 0 0',
+                      alignSelf: 'flex-start',
                     }}
                   >
                     {isExpanded ? '접기 ▲' : '더보기 ▼'}
@@ -427,6 +444,7 @@ export default function MemoPage() {
                 )}
               </div>
 
+              {/* 하단 일직선 정렬 영역 */}
               <div
                 style={{
                   display: 'flex',
@@ -437,7 +455,7 @@ export default function MemoPage() {
                   borderTop: '1px solid #F3F4F6',
                 }}
               >
-                <span style={{ fontSize: 10, color: '#A0A5AA' }}>{memo.date}</span>
+                <span style={{ fontSize: 9.5, color: '#A0A5AA' }}>{memo.date}</span>
 
                 <div style={{ display: 'flex', gap: 3 }}>
                   <button
@@ -446,7 +464,7 @@ export default function MemoPage() {
                       border: 'none',
                       backgroundColor: '#F3F4F6',
                       color: '#6B7280',
-                      fontSize: 10,
+                      fontSize: 9.5,
                       padding: '2px 5px',
                       borderRadius: 4,
                       cursor: 'pointer',
@@ -460,7 +478,7 @@ export default function MemoPage() {
                       border: 'none',
                       backgroundColor: '#F3F4F6',
                       color: '#6B7280',
-                      fontSize: 10,
+                      fontSize: 9.5,
                       padding: '2px 5px',
                       borderRadius: 4,
                       cursor: 'pointer',
