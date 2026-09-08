@@ -226,7 +226,7 @@ export default function MemoPage() {
         <div
           style={{
             display: 'flex',
-            justify: 'space-between',
+            justifyContent: 'space-between',
             alignItems: 'center',
             paddingTop: 12,
             borderTop: '1px solid #F1F5F9',
@@ -337,7 +337,7 @@ export default function MemoPage() {
               <div
                 style={{
                   display: 'flex',
-                  justify: 'space-between',
+                  justifyContent: 'space-between',
                   alignItems: 'center',
                   marginBottom: 12,
                 }}
