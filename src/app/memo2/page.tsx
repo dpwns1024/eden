@@ -154,8 +154,8 @@ export default function MemoPage() {
   if (!mounted) return null;
 
   return (
-    /* 좌우 padding(0 44px)을 추가하여 상단 배너 이미지 라인 안으로 폭을 좁혀 넣습니다 */
-    <div style={{ width: '100%', padding: '0 44px', boxSizing: 'border-box', fontFamily: 'sans-serif' }}>
+    /* 좌우 padding을 76px로 조절하여 상단 배너 안쪽으로 정밀 안착시킵니다 */
+    <div style={{ width: '100%', padding: '0 76px', boxSizing: 'border-box', fontFamily: 'sans-serif' }}>
       
       {/* 1. 상단 컨트롤 바 */}
       <div
