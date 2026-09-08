@@ -9,28 +9,9 @@ export interface MemoItem {
   date: string;
 }
 
-const CATEGORIES = ['전체', '공지', 'ORIGINAL', '설정', '합작', '기타'];
-
-const INITIAL_MEMOS: MemoItem[] = [
-  {
-    id: 'memo-1',
-    category: '기타',
-    content: `이미지만들어줘: 채팅 지문 그대로 복붙하고 하단에 이거 붙여서 보냄 (지피티랑 잼이나이! 근데 지피티가 좀더 취향이었음)\n\nPremium editorial flat lay lookbook photography, perfect 90-degree top-down view. Select only the clothing and a few carefully chosen personal belongings that best represent the character. Do NOT illustrate every item from the description. Curate the layout like a professional stylist.`,
-    date: '2026.08.09',
-  },
-  {
-    id: 'memo-2',
-    category: 'ORIGINAL',
-    content: `내용 : npc와 pc는 다른 시간선에 살고 있습니다(npc의 1일[첫만남] / pc의 30일[연애 중]. 이게 반대가 된다는 내용이라 오푸스로 하면 많이 먹먹합니다, 개인적으로 젬이오로 했는데도 좋았습니다!\n\n[처음]\nooc: 이전 스토리를 종료하고 새로운 IF 세계관으로 진행한다.\n\nNPC는 우연히 자신의 이상형인 PC를 만나 첫눈에 반한다. 이름을 묻고, 함께 보내는 시간이 늘어날수록 서로의 거리는 가까워진다. 그러나 행복한 순간들 속에서 PC는 가끔 이유를 알 수 없는 슬픈 표정을 짓거나, 이별을 앞둔 사람처럼 행동한다.`,
-    date: '2026.08.09',
-  },
-  {
-    id: 'memo-3',
-    category: '설정',
-    content: `*[OOC: 이전 롤플레이응 중단 및 신규 에피소드 출력\n지금부터 {{char}}와 {{user}}의 사복 스타일링에 대한 디테일한 분석과 에피소드를 전개하라. 아래 내용들을 {{char}}와 {{user}}의 기존 캐릭터 설정, 로어북, 쌓아온 서사, 기억을 100% 반영하여 절대 캐릭터 붕괴 없이 본래 성격과 말투에 맞게 디테일하게 출력할 것.`,
-    date: '2026.08.09',
-  },
-];
+// 1. 요청하신 카테고리 구성 (OOC / 프롬 / 기타)
+const CATEGORIES = ['전체', 'OOC', '프롬', '기타'];
+const STORAGE_KEY = 'ohome_memos_final';
 
 export default function MemoPage() {
   const [memos, setMemos] = useState<MemoItem[]>([]);
@@ -40,29 +21,56 @@ export default function MemoPage() {
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [inputCategory, setInputCategory] = useState('공지');
+  const [inputCategory, setInputCategory] = useState('OOC');
   const [inputContent, setInputContent] = useState('');
 
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
 
+  // 이전 키에 저장되어 날아간 사용자 메모를 자동으로 복구하는 초기화 로직
   useEffect(() => {
     setMounted(true);
-    try {
-      const saved = localStorage.getItem('ohome_grid_memos_v6');
-      if (saved) {
-        setMemos(JSON.parse(saved));
-      } else {
-        setMemos(INITIAL_MEMOS);
+    
+    // 이전에 변경되었던 모든 저장소 키 탐색
+    const previousKeys = [
+      STORAGE_KEY,
+      'ohome_grid_memos_v6',
+      'ohome_grid_memos_v5',
+      'ohome_grid_memos_v4',
+      'ohome_grid_memos_v3',
+      'ohome_grid_memos_v2',
+      'ohome_grid_memos',
+      'ohome_memos'
+    ];
+
+    let recoveredData: MemoItem[] | null = null;
+
+    for (const key of previousKeys) {
+      try {
+        const saved = localStorage.getItem(key);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            recoveredData = parsed;
+            break;
+          }
+        }
+      } catch (e) {
+        console.error(e);
       }
-    } catch {
-      setMemos(INITIAL_MEMOS);
+    }
+
+    if (recoveredData) {
+      setMemos(recoveredData);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(recoveredData));
+    } else {
+      setMemos([]);
     }
   }, []);
 
   const saveMemos = (newList: MemoItem[]) => {
     setMemos(newList);
     try {
-      localStorage.setItem('ohome_grid_memos_v6', JSON.stringify(newList));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newList));
     } catch (e) {
       console.error(e);
     }
@@ -105,7 +113,7 @@ export default function MemoPage() {
 
   const handleEditClick = (memo: MemoItem) => {
     setEditingId(memo.id);
-    setInputCategory(memo.category || '공지');
+    setInputCategory(memo.category || 'OOC');
     setInputContent(memo.content);
     setIsFormOpen(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -136,8 +144,10 @@ export default function MemoPage() {
   if (!mounted) return null;
 
   return (
+    // 상단 배너와 100% 동일한 컨테이너 폭 유지
     <div style={{ width: '100%', boxSizing: 'border-box', fontFamily: 'sans-serif' }}>
-      {/* 1. 컨트롤 바 (상단 배너 좌우 폭에 정확히 일치) */}
+      
+      {/* 1. 상단 컨트롤 바 (왼쪽 끝 = 배너 왼쪽 끝, 오른쪽 끝 = 배너 오른쪽 끝) */}
       <div
         style={{
           display: 'flex',
@@ -145,6 +155,7 @@ export default function MemoPage() {
           alignItems: 'center',
           marginBottom: 20,
           width: '100%',
+          boxSizing: 'border-box',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -201,7 +212,7 @@ export default function MemoPage() {
               handleCancelForm();
             } else {
               setEditingId(null);
-              setInputCategory('공지');
+              setInputCategory('OOC');
               setInputContent('');
               setIsFormOpen(true);
             }
@@ -222,7 +233,7 @@ export default function MemoPage() {
         </button>
       </div>
 
-      {/* 2. 작성 / 수정 폼 */}
+      {/* 2. 작성/수정 폼 */}
       {isFormOpen && (
         <div
           style={{
@@ -317,14 +328,15 @@ export default function MemoPage() {
         </div>
       )}
 
-      {/* 3. 메모 카드 그리드 (배너 폭을 정확히 3등분하여 100% 꽉 채움) */}
+      {/* 3. 메모 카드 그리드 (배너 폭을 넘지 않는 안전 규격) */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
           gap: 16,
           alignItems: 'start',
           width: '100%',
+          boxSizing: 'border-box',
         }}
       >
         {filteredMemos.map((memo) => {
@@ -344,6 +356,7 @@ export default function MemoPage() {
                 flexDirection: 'column',
                 justifyContent: 'space-between',
                 boxSizing: 'border-box',
+                minWidth: 0, // 텍스트 오버플로우 방지
               }}
             >
               <div>
@@ -362,6 +375,7 @@ export default function MemoPage() {
                   </span>
                 </div>
 
+                {/* 본문 높이 고정 & 더보기/접기 */}
                 <div
                   style={{
                     position: 'relative',
@@ -415,6 +429,7 @@ export default function MemoPage() {
                 )}
               </div>
 
+              {/* 카드 하단 정보 */}
               <div
                 style={{
                   display: 'flex',
@@ -472,7 +487,7 @@ export default function MemoPage() {
               fontSize: 13.5,
             }}
           >
-            선택한 카테고리에 메모가 없습니다.
+            등록된 메모가 없습니다.
           </div>
         )}
       </div>
