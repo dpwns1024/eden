@@ -1,37 +1,113 @@
 'use client';
+
 /**
- * 비공개로 둔 메뉴는 주소로 들어와도 열리지 않게 (v2.0 사용자 요청).
- *
- * 메뉴 관리의 공개범위는 원래 **메뉴를 그릴 때만** 쓰였다 — 링크가 안 보일 뿐,
- * `/board`를 직접 치면 그대로 열렸다. 여기서 한 곳에 모아 막는다.
- * 판정은 위젯이 쓰는 것과 **같은 함수**(`hrefVis`)라 메뉴·위젯·페이지가 늘 같은 답을 낸다.
- *
- * **완전한 차단은 아니다.** 화면을 그리지 않는 것이지, 글 자체는 여전히 공개로 저장돼 있어
- * 서버에 직접 물어보는 사람에게는 보인다. 서버가 막아 주는 것은 **글의 공개범위**(`visibility`)뿐이다.
- * 정말 알려지면 안 되는 글은 글 자체를 비공개/회원공개로 두어야 한다.
+ * 비공개 메뉴 접근 차단 및 홈 입장 비밀번호(게이트) 통과 여부를 검사하는 가드 컴포넌트.
+ * - 로그인 회원 / 관리자: 비밀번호 입력 없이 즉시 통과
+ * - 비로그인 방문자: siteStore에 설정된 비번이 있다면 입력 전까지 화면 완전 차단
  */
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useMenuSettings, hrefAccess } from '@/lib/menuStore';
+import { useSiteSettings } from '@/lib/siteStore';
 import { PageTitle } from '@/components/ui/PageText';
+import { KInput } from '@/components/ui/Kit';
 
 function GuardInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const sp = useSearchParams();
   const { user, isAdmin, ready } = useAuth();
-  const [menuSet, , loaded] = useMenuSettings();
+  const [menuSet, , loadedMenu] = useMenuSettings();
+  const [site, , loadedSite] = useSiteSettings();
 
-  /* 메뉴에 적힌 주소 형태로 맞춘다 — 섹션은 `?s=`, 추가 게시판은 `?b=`.
-     `sp.toString()`을 그대로 쓰면 다른 파라미터가 섞이거나 순서가 달라져 못 알아본다. */
+  // 🔒 세션 단위 비밀번호 통과 상태 (세션 탭이 켜져 있는 동안 유지)
+  const [isPassed, setIsPassed] = useState<boolean>(false);
+  const [inputPw, setInputPw] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  // 브라우저 세션 스토리지에서 이전 인증 내역 확인
+  useEffect(() => {
+    const passed = sessionStorage.getItem('site_gate_passed');
+    if (passed === 'true') {
+      setIsPassed(true);
+    }
+  }, []);
+
   const s = sp.get('s');
   const b = sp.get('b');
   const path = pathname + (s ? `?s=${s}` : b ? `?b=${b}` : '');
 
-  // 설정과 로그인 확인이 끝나기 전에는 아무것도 그리지 않는다 —
-  // 먼저 그려 두면 한 프레임이라도 내용이 비치고, 반대로 관리자에게 「비공개」가 번쩍인다
-  if (!loaded || !ready) return <section className="page" />;
+  // 데이터 로딩 중이거나 Auth 준비 전에는 랜더링 차단 (깜빡임 방지)
+  if (!loadedMenu || !loadedSite || !ready) return <section className="page" />;
 
+  // ----------------------------------------------------
+  // 🔑 1단계: 홈 입장 비밀번호 검사 (비로그인 방문자 대상)
+  // ----------------------------------------------------
+  // site.homePassword 항목이 존재하고, 로그인 상태(user/isAdmin)가 아니며, 암호 미통과 상태일 때
+  const gatePassword = (site as any)?.homePassword;
+  const isProtected = Boolean(gatePassword && gatePassword.trim() !== '');
+  const isBypassed = !!user || isAdmin || isPassed;
+
+  if (isProtected && !isBypassed) {
+    const handlePasswordSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (inputPw === gatePassword) {
+        sessionStorage.setItem('site_gate_passed', 'true');
+        setIsPassed(true);
+        setErrorMsg('');
+      } else {
+        setErrorMsg('비밀번호가 일치하지 않습니다.');
+      }
+    };
+
+    return (
+      <section
+        className="page"
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '70vh',
+        }}
+      >
+        <div
+          className="panel"
+          style={{
+            maxWidth: 380,
+            width: '100%',
+            padding: '32px 24px',
+            textAlign: 'center',
+          }}
+        >
+          <PageTitle style={{ marginBottom: 12 }}>ACCESS RESTRICTED</PageTitle>
+          <p style={{ fontSize: 13, color: 'var(--faint)', marginBottom: 24, lineHeight: 1.5 }}>
+            이 사이트는 보호되어 있습니다.<br />입장 비밀번호를 입력해 주세요.
+          </p>
+          <form onSubmit={handlePasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <KInput
+              type="password"
+              placeholder="비밀번호 입력"
+              value={inputPw}
+              onChange={(e) => setInputPw(e.target.value)}
+              autoFocus
+            />
+            {errorMsg && (
+              <small style={{ color: 'var(--accent, #e5484d)', fontSize: 12 }}>
+                {errorMsg}
+              </small>
+            )}
+            <button type="submit" className="btn btn-dark" style={{ marginTop: 8, padding: '10px 0' }}>
+              ENTER
+            </button>
+          </form>
+        </div>
+      </section>
+    );
+  }
+
+  // ----------------------------------------------------
+  // 🔒 2단계: 기존 개별 메뉴 / 페이지 접근 권한 판정
+  // ----------------------------------------------------
   const vis = hrefAccess(menuSet, path);
   const ok = vis === 'all' || (vis === 'member' && !!user) || (vis === 'admin' && isAdmin);
   if (ok) return <>{children}</>;
@@ -51,11 +127,13 @@ function GuardInner({ children }: { children: React.ReactNode }) {
 }
 
 export function MenuGuard({ children }: { children: React.ReactNode }) {
-  // useSearchParams는 Suspense 경계 필요 (Next App Router)
-  return <Suspense fallback={<section className="page" />}><GuardInner>{children}</GuardInner></Suspense>;
+  return (
+    <Suspense fallback={<section className="page" />}>
+      <GuardInner>{children}</GuardInner>
+    </Suspense>
+  );
 }
 
-/** 못 들어가는 곳에 보여 줄 화면 — 위의 MenuGuard와 같은 문구를 쓴다 */
 function blockedView(vis: 'member' | 'admin') {
   return (
     <section className="page">
@@ -67,15 +145,6 @@ function blockedView(vis: 'member' | 'admin') {
   );
 }
 
-/**
- * 상세 페이지용 (v2.0) — **글 주소에는 섹션이 안 들어간다.**
- * `/gallery/b1`만 보고는 그 글이 비공개 갤러리 것인지 알 수 없어 MenuGuard가 못 막는다.
- * 글을 읽어 소속을 알아낸 페이지가 그 주소(`/gallery?s=fan`)를 넘겨 주면 여기서 판정한다.
- *
- * 반환값이 있으면 그것을 그대로 return 하면 된다 —
- * **훅이므로 페이지의 다른 early return보다 먼저 불러야 한다**(렌더마다 훅 수가 달라지면 안 된다).
- * href가 아직 없으면(글을 읽는 중) 막지 않는다 — 보여 줄 내용도 아직 없다.
- */
 export function useHrefBlock(href?: string): React.ReactElement | null {
   const { user, isAdmin, ready } = useAuth();
   const [menuSet, , loaded] = useMenuSettings();
