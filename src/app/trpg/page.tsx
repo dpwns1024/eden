@@ -97,22 +97,12 @@ function TrpgPageInner() {
   // 새 로그는 앞에 넣으므로 기본은 지금까지처럼 최신순이고, № 번호는 표시용으로만 남는다.
 
   // 편집모드 카드 드래그 정렬 (v2.0 — 캐릭터 목록과 같은 방식)
-  // 드래그 정렬 — 다른 페이지들과 같은 방식으로 (v2.0 사용자 요청: "다른 페이지들 드래그앤드롭
-  // 참고해서 똑같이 구현").
-  // · 티켓형(세로 한 줄 목록)은 다른 목록형 페이지와 완전히 같은 DragList — 손잡이를 들어 올려
-  //   부드럽게 밀어내고 놓으면 정확한 자리로 안착.
-  // · 기본형(2열 그리드)은 DragList가 세로 한 줄 전제라 그대로 못 쓴다 — 자리 미리보기는 그대로 두되,
-  //   저장(서버 쓰기)은 손을 뗄 때 한 번만 하도록 이 페이지에서 직접 구현했다. 예전 cardSort는 지나는
-  //   자리마다 저장을 불러서(끄는 동안 수십 번) 서버 모드에서 뚝뚝 끊겨 보였다 — 그 원인 제거
   const gridSort = editOn && isAdmin;
   const [gridPreview, setGridPreview] = useState<TrpgLog[] | null>(null);
   const gridFromRef = useRef<number | null>(null);
   const basicShown = gridPreview ?? visible;
 
-  /* ---------- 페이지 나누기 (v2.0 사용자 요청) ----------
-     티켓형은 한 장이 커서 6개, 기본형은 한 줄에 둘씩 들어가 20개까지 봐도 답답하지 않다.
-     드래그 정렬은 `visible` 전체 기준 위치로 다루므로(아래 reorderPage·gridDragProps)
-     2페이지에서 순서를 바꿔도 그 항목들이 맨 앞으로 끌려오지 않는다. */
+  /* ---------- 페이지 나누기 ---------- */
   const ticketView = skin === 'ticket' && !isMobile;
   const PER_LOG = ticketView ? 6 : 20;
   const [logPage, setLogPage] = useState(1);
@@ -123,17 +113,14 @@ function TrpgPageInner() {
   useEffect(() => { setLogPage(1); }, [filter, q, ticketView]);
   const pageLogs = visible.slice(logStart, logStart + PER_LOG);
 
-  /** 이 페이지 안에서 바뀐 순서를 전체 순서에 되꽂는다 —
-   *  보이는 것만 넘기면 mergeOrder가 그 묶음을 맨 앞으로 올려 버린다 */
+  /** 이 페이지 안에서 바뀐 순서를 전체 순서에 되꽂는다 */
   const reorderPage = (nextPage: TrpgLog[]) => {
     const nextVisible = [...visible];
     nextVisible.splice(logStart, nextPage.length, ...nextPage);
     setLogs(mergeOrder(logs, nextVisible));
   };
 
-  /* ---------- 번호로 자리 옮기기 (v2.0 사용자 요청) ----------
-     페이지가 생기면 1페이지 것을 3페이지로 드래그할 수가 없다 — 우클릭해서 번호를 적어 옮긴다.
-     번호는 저장하지 않고 자리에서 만든다(10, 20, 30 …). 드래그로 배치를 바꾸면 번호도 저절로 맞는다. */
+  /* ---------- 번호로 자리 옮기기 ---------- */
   const [ordFor, setOrdFor] = useState<{ id: string; x: number; y: number } | null>(null);
   const ordIdx = ordFor ? visible.findIndex(l => l.id === ordFor.id) : -1;
   const openOrder = (e: React.MouseEvent, id: string) => {
@@ -178,20 +165,18 @@ function TrpgPageInner() {
   const readFile = (f: File | undefined) => {
     if (!f) return;
     setNFileName(f.name);
-    setNFile(f); // 원본 파일 보관용 (4.3)
-    // 미리보기 글자 수 표시용 — 등록 시에는 파일에서 직접 다시 읽으므로 레이스 없음
+    setNFile(f);
     decodeText(f).then(setNBody);
   };
 
   const add = async () => {
     if (!nTitle.trim()) { toast('시나리오 타이틀을 입력해 주세요'); return; }
     const id = newId();
-    // 파일이 있으면 등록 시점에 직접 읽음 — 읽기 완료 전에 ADD를 눌러도 본문이 비지 않음
     const bodyText = nFile ? await decodeText(nFile) : nBody;
     const log: TrpgLog = {
       id,
-      no: Math.max(0, ...logs.map(l => l.no)) + 1, // 내부 순번 (정렬용)
-      noText: nNo.trim() || undefined,             // № 자리 표시 텍스트 — 비우면 자동 № 0XX
+      no: Math.max(0, ...logs.map(l => l.no)) + 1,
+      noText: nNo.trim() || undefined,
       title: nTitle.trim(), catchphrase: nCatch.trim() || undefined,
       writer: nWriter.trim(), withText: nWith.trim(),
       relId: nRel === 'none' ? undefined : nRel,
@@ -199,27 +184,19 @@ function TrpgPageInner() {
       visibility: nVis,
       password: nPw.trim() || undefined,
       listHidden: nListHidden,
-      // 썸네일: 이미지(선택) 또는 단색/그라데이션
       thumbId: nThumb ? await putBlob(nThumb) : undefined,
       thumbCrop: nThumb ? nThumbCrop : undefined,
       thumbColor: nThumb ? undefined : { c1: nC1, c2: nColorMode === 'grad' ? nC2 : undefined },
     };
-    // 본문·원본 파일은 별도 문서로 (v2.0) — 목록 문서(log)와 같은 곳에 있으면 나만보기여도
-    // 목록에 뜨는 순간 함께 새어 나간다. 이 문서의 열람 권한은 로그의 실제 visibility를 그대로 따른다
     const body: TrpgLogBody = {
       id,
-      // 본문 저장 위치는 saveLogBody가 정한다 (서버면 문서에 직접 · 로컬이거나 아주 크면 파일로)
       ...(await saveLogBody(bodyText)),
-      // 업로드 원본 파일은 그대로 보관 (4.3 — 백업 목적, IndexedDB → R2 이전 예정)
       originalFileId: nFile ? await putBlob(nFile) : undefined,
       originalName: nFile?.name,
       visibility: bodyVisibility(log),
-      ...secStamp(sec.id),   // 소속 (v2.0) — 본문 문서도 비공개 판정을 받게
+      ...secStamp(sec.id),
     };
     setLogs([log, ...logs]);
-    // 본문 문서는 **뒤에** 붙인다 (v2.0 포크 제보) — 앞에 끼우면 기존 본문 전체의 자리가 밀려
-    // 재저장 대상이 되는데, 큰 본문이 쌓인 홈에서는 그 합이 한 번의 쓰기 한도를 넘어 저장이 실패했다.
-    // 본문은 id로만 찾으므로 순서는 아무 의미가 없다.
     setBodies([...bodies, body]);
     setAddOpen(false);
     setNNo(''); setNVis('public'); setNPw(''); setNListHidden(false); setNTitle(''); setNCatch(''); setNWriter(''); setNWith(''); setNBody(''); setNFileName(''); setNDate(''); setNFile(null);
@@ -227,13 +204,13 @@ function TrpgPageInner() {
     toast(nFile ? '로그가 등록되었습니다 — 원본 파일도 보관됩니다' : '로그가 등록되었습니다');
   };
 
-  // 티켓 썸네일 — 업로드 이미지 > 지정 색(단색/그라데이션) > 데모 ph
+  // 티켓 썸네일 스타일
   const thumbStyle = (l: TrpgLog): React.CSSProperties | undefined =>
     l.thumbColor
       ? { background: l.thumbColor.c2 ? `linear-gradient(135deg, ${l.thumbColor.c1} 0%, ${l.thumbColor.c2} 100%)` : l.thumbColor.c1 }
       : undefined;
 
-  // sp: 편집모드 드래그 정렬 props (다른 목록과 같은 방식, v2.0)
+  // 티켓 컴포넌트 (수정 완료)
   const Ticket = ({ l }: { l: TrpgLog }) => (
     <div className="ticket"
       onContextMenu={e => openOrder(e, l.id)}
@@ -241,19 +218,17 @@ function TrpgPageInner() {
       <div className="stub-line" />
       <div className={`wide ${!l.thumbId && !l.thumbColor ? `ph ${l.ph}` : ''}`} style={thumbStyle(l)}>
         {l.thumbId && <CroppedBlobImg fileRef={l.thumbId} crop={l.thumbCrop} />}
-        <span className="no">{l.noText ? `ADMIT ONE · ${l.noText}` : `ADMIT ONE · LOG ${String(l.no).padStart(3, '0')}`}</span>
+        {/* 좌상단 ADMIT ONE 문구 삭제됨 */}
         {!l.thumbId && !l.thumbColor && <span>WIDE THUMBNAIL</span>}
       </div>
       <div className="stub">
-        <div className="sc-title" style={l.serifTitle ? { fontFamily: 'var(--serif)', letterSpacing: '.12em' } : undefined}>
-          {/* 다른 목록형 페이지와 같은 드래그 손잡이 — 잡아 들어야 끌리게 (v2.0) */}
+        {/* 3번 이미지 스타일로 폰트 변경: Pretendard 산세리프 및 볼드 스타일 적용 */}
+        <div className="sc-title" style={{ fontFamily: "Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", fontWeight: 700, letterSpacing: '-0.02em', fontSize: '1.25rem' }}>
           {editOn && <span className="drag-h" style={{ marginRight: 8 }}>⠿</span>}
           {l.title}
         </div>
-        {/* 편집모드에서만 — 지금 목록 숨김이라 관리자에게만 예외로 보이는 중임을 표시 (v2.0) */}
         {editOn && l.listHidden && <span className="pill" style={{ marginTop: 4 }}>숨김</span>}
         {l.catchphrase && <div className="sc-catch">{l.catchphrase}</div>}
-        {/* 나만보기 등도 이제 목록엔 뜨므로(v2.0), 못 여는 로그는 왜 못 여는지 표시 */}
         {!canOpen(l) && (
           <div className="row"><b>열람</b> {l.password ? '비밀번호 필요' : '권한 없음'}</div>
         )}
@@ -279,19 +254,14 @@ function TrpgPageInner() {
         <div>
           {ticketView
             ? (
-              // 다른 목록형 페이지와 같은 DragList — 손잡이를 들어 부드럽게 밀어내고 놓으면 안착 (v2.0)
               <DragList items={pageLogs} keyOf={l => l.id}
                 onReorder={reorderPage}
                 disabled={!(editOn && isAdmin)}
                 render={l => <Ticket l={l} />} />
             )
             : (
-              // 기본형 — 한 줄에 두 개, 번호 없이 제목만 (v2.0 사용자 확정).
-              // DragList는 세로 한 줄 목록 전제라 2열 그리드엔 못 쓴다 — 자리 미리보기는 그대로 두고
-              // 저장은 손을 뗄 때 한 번만 하도록 이 페이지에서 직접 구현 (gridDragProps, 위 참조)
               <div className="panel flush trpg-basic">
                 {basicShown.slice(logStart, logStart + PER_LOG).map((l, i) => (
-                  // 드래그 위치는 전체 기준으로 넘긴다 — 페이지 안 위치로 넘기면 2페이지에서 어긋난다
                   <div key={l.id} className="list-item" {...gridDragProps(logStart + i)}
                     onContextMenu={e => openOrder(e, l.id)}
                     onClick={() => { if (!editOn) router.push(`/trpg/${l.id}`); }}>
@@ -301,9 +271,7 @@ function TrpgPageInner() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <b>{l.title}</b>
-                      {/* 편집모드에서만 — 목록 숨김이라 관리자에게만 예외로 보이는 중 (v2.0) */}
                       {editOn && l.listHidden && <span className="pill" style={{ marginLeft: 6 }}>숨김</span>}
-                      {/* 나만보기 등도 목록엔 뜨므로(v2.0) — 못 여는 로그는 왜 못 여는지 표시 */}
                       {!canOpen(l) && <span className="pill" style={{ marginLeft: 6 }}>{l.password ? '비밀번호 필요' : '비공개'}</span>}
                       <small>{[l.writer, l.withText].filter(Boolean).join(' · ')}{l.date ? ` · ${l.date.replace(/-/g, '.')}` : ''}</small>
                     </div>
@@ -311,7 +279,6 @@ function TrpgPageInner() {
                 ))}
               </div>
             )}
-          {/* 페이저는 가운데, 개수는 오른쪽 끝 (v2.0 — 자관 질문 목록과 같은 방식) */}
           {visible.length > PER_LOG && (
             <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center' }}>
               <span />
@@ -324,13 +291,11 @@ function TrpgPageInner() {
               로그가 없습니다
             </div>
           )}
-          {/* 우클릭 > 순서 번호 (v2.0 사용자 요청) */}
           {ordFor && ordIdx >= 0 && (
             <OrderMenu at={ordFor} current={orderNoOf(ordIdx)} total={visible.length}
               onApply={applyOrder} onClose={() => setOrdFor(null)} />
           )}
         </div>
-        {/* 자관 연동 필터 (v1.2) */}
         <div className="panel tagside">
           <h4>자관 필터</h4>
           <div className={`tag ${filter === 'all' ? 'on' : ''}`} onClick={() => setFilter('all')}>
@@ -346,7 +311,6 @@ function TrpgPageInner() {
               단발 <small>{counts['none']}</small>
             </div>
           )}
-          {/* 모바일은 항상 기본형 — 스킨 선택 숨김 (v1.9) */}
           {!isMobile && (
             <>
               <h4 style={{ marginTop: 18 }}>보기</h4>
@@ -358,7 +322,6 @@ function TrpgPageInner() {
         </div>
       </div>
 
-      {/* ＋ ADD LOG (4.3 — 본문 입력 3방식) */}
       <Modal open={addOpen} onClose={() => setAddOpen(false)} title="로그 등록"
         desc="본문: 파일 업로드(.txt/.html — 내용 자동 판별) 또는 붙여넣기/직접 작성"
         actions={<>
@@ -368,7 +331,6 @@ function TrpgPageInner() {
         <div style={{ display: 'grid', gap: 9 }}>
           <div style={{ display: 'flex', gap: 8 }}>
             <KInput placeholder="시나리오 타이틀 (필수)" value={nTitle} onChange={e => setNTitle(e.target.value)} />
-            {/* № 자리 표시 텍스트 전체를 직접 입력 — 비우면 자동 № 0XX */}
             <KInput placeholder="№ 표기 (선택 — 비우면 자동)" value={nNo} onChange={e => setNNo(e.target.value)}
               style={{ maxWidth: 200 }} />
           </div>
@@ -382,8 +344,6 @@ function TrpgPageInner() {
               options={[{ value: 'none', label: '자관 연동 없음' }, ...rels.map(r => ({ value: r.id, label: r.name }))]} />
             <KDate value={nDate} onChange={setNDate} style={{ flex: 1 }} />
           </div>
-          {/* 접근권한 + 열람 비밀번호 (선택) — 권한이 없어도 비밀번호를 아는 사람은 열람 가능.
-              연동 자관의 상대방(회원-캐릭터 연결)은 항상 열람 가능 — 연결 기능은 3차 */}
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <KSelect minWidth={140} value={nVis} onChange={v => setNVis(v as 'public')}
               options={[
@@ -393,7 +353,6 @@ function TrpgPageInner() {
               ]} />
             <KInput placeholder="열람 비밀번호 (선택)" value={nPw} onChange={e => setNPw(e.target.value)} style={{ flex: 1 }} />
           </div>
-          {/* 목록 표시 — 접근권한과 별개 (v2.0 사용자 요청). 숨겨도 직접 링크·비밀번호로는 그대로 열림 */}
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'flex-end' }}>
             <span className="cp-lb">목록</span>
             <KSelect minWidth={140} value={nListHidden ? 'hidden' : 'show'}
@@ -404,7 +363,6 @@ function TrpgPageInner() {
               ]} />
           </div>
 
-          {/* 썸네일 (선택) — 이미지 업로드 또는 단색/그라데이션 */}
           <label className="k-label" style={{ margin: '4px 0 0' }}>썸네일 (선택)</label>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
             <div
@@ -469,7 +427,6 @@ function TrpgPageInner() {
         </div>
       </Modal>
 
-      {/* 썸네일 크롭 편집기 (6.1 — 16:9 티켓 규격) */}
       {nThumbUrl && (
         <CropEditor open={cropOpen} src={nThumbUrl} aspect="16:9" initial={nThumbCrop}
           onClose={() => setCropOpen(false)}
@@ -479,7 +436,6 @@ function TrpgPageInner() {
   );
 }
 
-/** ?s= 를 읽으므로 Suspense 경계가 필요하다 (Next App Router) */
 export default function TrpgPage() {
   return <Suspense fallback={<section className="page" />}><TrpgPageInner /></Suspense>;
 }
