@@ -31,7 +31,7 @@ import { FEATURES } from '@/lib/menu';
 import { SectionsBlock } from '@/components/settings/SectionList';
 import { useSections, sectionMenuEntries, MAIN_SEC, inSection } from '@/lib/sectionStore';
 import { useCustomLinks, linkEntries, toInternalPath } from '@/lib/linkStore';
-import { siteStore, useSiteDraft } from '@/lib/siteStore';
+import { useSiteDraft } from '@/lib/siteStore';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCursorSettings, CursorState, CURSOR_STATE_LABEL } from '@/lib/cursorStore';
 import { RelQuestionSet, RELQ_SEED, RELQ_KEY, CP_LABEL } from '@/lib/relqStore';
@@ -974,17 +974,17 @@ function MemberPane() {
   const [code, setCode] = useState('');
   const [codeLoaded, setCodeLoaded] = useState(false);
 
-  // 1. 입장 비밀번호 지정을 위한 상태 추가 (siteStore 연동)
-  const { homePassword, setHomePassword } = siteStore();
-  const [pass, setPass] = useState(homePassword ?? '');
+  // 입장 비밀번호 상태 관리
+  const { draft, setDraft } = useSiteDraft();
+  const [pass, setPass] = useState(draft.homePassword ?? '');
+
+  useEffect(() => {
+    setPass(draft.homePassword ?? '');
+  }, [draft.homePassword]);
 
   const [regVer, setRegVer] = useState(0);   // 가입 계정 삭제 후 목록 갱신용
   const [removedIds, setRemovedIds] = useState<string[]>([]);   // 서버 모드에서 방금 지운 회원
   useEffect(() => { setCode(inviteCode()); setCodeLoaded(true); }, []);
-  
-  // homePassword 값이 외부에서 변경되거나 초기 로드될 때 pass 상태 동기화
-  useEffect(() => { setPass(homePassword ?? ''); }, [homePassword]);
-
   void regVer;
 
   const members = useMembers();
@@ -995,7 +995,7 @@ function MemberPane() {
     if (c?.kind === 'firebase') return `https://console.firebase.google.com/project/${c.projectId}/authentication/users`;
     if (c?.kind === 'supabase') {
       const m = c.url.match(/^https:\/\/([a-z0-9-]+)\.supabase\.co/i);
-      return m ? `https://supabase.com/dashboard/project/${m[1]}.supabase.co/auth/users` : '';
+      return m ? `https://supabase.com/dashboard/project/${m[1]}/auth/users` : '';
     }
     return '';
   })();
@@ -1055,7 +1055,7 @@ function MemberPane() {
         </div>
       </div>
 
-      {/* 2. 입장 비밀번호 설정 (추가된 위치) */}
+      {/* 입장 비밀번호 설정 */}
       <div className="set-row" style={{ marginTop: 8, flexWrap: 'wrap' }}>
         <div className="l">
           <b>입장 비밀번호</b>
@@ -1072,8 +1072,9 @@ function MemberPane() {
           <button
             className="btn btn-dark"
             onClick={() => {
-              setHomePassword(pass.trim());
-              toast(pass.trim() ? '입장 비밀번호가 설정되었습니다' : '입장 비밀번호가 해제되었습니다');
+              const nextPass = pass.trim();
+              setDraft({ ...draft, homePassword: nextPass });
+              toast(nextPass ? '입장 비밀번호가 설정되었습니다' : '입장 비밀번호가 해제되었습니다');
             }}
           >
             SAVE
