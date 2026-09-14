@@ -6,8 +6,9 @@ import { WidgetFrame } from '@/components/main/WidgetFrame';
 import { renderWidget } from '@/components/main/widgets';
 import { MemberBox } from '@/components/main/MemberBox';
 import { Modal, ConfirmModal } from '@/components/ui/Modal';
-import { KRadio } from '@/components/ui/Kit';
+import { KRadio, KInput } from '@/components/ui/Kit';
 import { useToast } from '@/components/ui/Toast';
+import { getSetting } from '@/lib/settingStore';
 
 const ADDABLE: (WidgetType | 'menu_pc')[] = ['menu_pc', 'menu', 'memo', 'dday', 'todo', 'upcoming', 'freetext', 'deco', 'diary', 'latest', 'apply'];
 const EDITABLE: (WidgetType | 'menu_pc')[] = ['banner', 'menu_pc', 'menu', 'memo', 'dday', 'todo', 'freetext', 'deco', 'apply'];
@@ -20,6 +21,32 @@ export default function MainPage() {
   const [addType, setAddType] = useState<WidgetType | 'menu_pc'>('menu_pc');
   const [addCol, setAddCol] = useState<'1' | '2' | '3'>('2');
   const [delAsk, setDelAsk] = useState<WidgetConf | null>(null);
+
+  // 🔒 입장 비밀번호 잠금 관리
+  const [unlocked, setUnlocked] = useState(false);
+  const [inputPass, setInputPass] = useState('');
+  const [passError, setPassError] = useState(false);
+
+  useEffect(() => {
+    const savedPass = getSetting<string>('ohome.homepass.v1', '');
+    const isAuthed = sessionStorage.getItem('ohome.authed.v1') === 'true';
+    
+    // 비밀번호가 없거나 이미 이 세션에서 통과했으면 해제
+    if (!savedPass || isAuthed) {
+      setUnlocked(true);
+    }
+  }, []);
+
+  const handleUnlock = () => {
+    const savedPass = getSetting<string>('ohome.homepass.v1', '');
+    if (inputPass.trim() === savedPass) {
+      sessionStorage.setItem('ohome.authed.v1', 'true');
+      setUnlocked(true);
+      setPassError(false);
+    } else {
+      setPassError(true);
+    }
+  };
 
   useEffect(() => {
     const open = () => setAddOpen(true);
@@ -120,6 +147,52 @@ export default function MainPage() {
   const canvasH = absMode
     ? Math.max(300, ...enabled.map(w => (w.ay ?? 0) + (w.h ?? 200))) + 40
     : undefined;
+
+  // 🔒 잠금 상태일 경우 반환할 모달 팝업
+  if (!unlocked) {
+    return (
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(5px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center'
+      }}>
+        <div style={{
+          background: 'var(--bg, #fff)', padding: 28, borderRadius: 12, width: 320,
+          textAlign: 'center', boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+        }}>
+          <h4 style={{ margin: '0 0 8px 0', fontSize: 16 }}>입장 비밀번호 입력</h4>
+          <p style={{ fontSize: 12.5, color: 'var(--faint, #666)', marginBottom: 20 }}>
+            이 사이트는 접근 보호가 설정되어 있습니다.
+          </p>
+          <input
+            type="password"
+            value={inputPass}
+            placeholder="비밀번호를 입력하세요"
+            onChange={e => setInputPass(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleUnlock()}
+            style={{
+              width: '100%', padding: '9px 12px', borderRadius: 6,
+              border: passError ? '1px solid #ff4d4f' : '1px solid var(--bd, #ccc)',
+              marginBottom: 12, boxSizing: 'border-box', outline: 'none'
+            }}
+            autoFocus
+          />
+          {passError && (
+            <div style={{ color: '#ff4d4f', fontSize: 12, marginBottom: 12 }}>
+              비밀번호가 일치하지 않습니다.
+            </div>
+          )}
+          <button
+            className="btn btn-dark"
+            onClick={handleUnlock}
+            style={{ width: '100%', padding: '9px 0', fontWeight: 600 }}
+          >
+            입장하기
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <section className="page page-main-wrap" onClick={() => setCtx(null)}>
