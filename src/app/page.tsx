@@ -70,23 +70,29 @@ export default function MainPage() {
     return undefined;
   };
 
-  const frame = (w: WidgetConf, className?: string) => (
-    <WidgetFrame
-      key={w.id}
-      conf={w}
-      mobileOrder={mOrder(w.id)}
-      className={className ?? getWidgetClass(w.type)}
-      onCtx={(id, x, y) => {
-        if (state.widgets.find(v => v.id === id)?.z == null) {
-          const zs = enabled.map(v => v.z ?? 0);
-          updateWidget(id, { z: Math.max(...zs, 0) + 1 });
-        }
-        setCtx({ id, x, y });
-      }}
-    >
-      {renderWidget(w)}
-    </WidgetFrame>
-  );
+  // 모바일/PC 반응형 클래스가 병합되어 누락되지 않도록 수정
+  const frame = (w: WidgetConf, className?: string) => {
+    const hideClass = getWidgetClass(w.type);
+    const combinedClass = [className, hideClass].filter(Boolean).join(' ') || undefined;
+
+    return (
+      <WidgetFrame
+        key={w.id}
+        conf={w}
+        mobileOrder={mOrder(w.id)}
+        className={combinedClass}
+        onCtx={(id, x, y) => {
+          if (state.widgets.find(v => v.id === id)?.z == null) {
+            const zs = enabled.map(v => v.z ?? 0);
+            updateWidget(id, { z: Math.max(...zs, 0) + 1 });
+          }
+          setCtx({ id, x, y });
+        }}
+      >
+        {renderWidget(w)}
+      </WidgetFrame>
+    );
+  };
 
   const zOp = (mode: 'top' | 'bottom' | 'up' | 'down') => {
     if (!ctx) return;
