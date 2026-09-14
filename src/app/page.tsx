@@ -6,7 +6,7 @@ import { WidgetFrame } from '@/components/main/WidgetFrame';
 import { renderWidget } from '@/components/main/widgets';
 import { MemberBox } from '@/components/main/MemberBox';
 import { Modal, ConfirmModal } from '@/components/ui/Modal';
-import { KRadio, KInput } from '@/components/ui/Kit';
+import { KRadio } from '@/components/ui/Kit';
 import { useToast } from '@/components/ui/Toast';
 import { getSetting } from '@/lib/settingStore';
 
@@ -157,7 +157,7 @@ export default function MainPage() {
         display: 'flex', alignItems: 'center', justifyContent: 'center'
       }}>
         <div style={{
-          background: 'var(--bg, #fff)', padding: 28, borderRadius: 12, width: 320,
+          background: 'var(--bg, #fff)', padding: 28, borderRadius: 16, width: 320,
           textAlign: 'center', boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
         }}>
           <h4 style={{ margin: '0 0 8px 0', fontSize: 16 }}>입장 비밀번호 입력</h4>
@@ -171,9 +171,9 @@ export default function MainPage() {
             onChange={e => setInputPass(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleUnlock()}
             style={{
-              width: '100%', padding: '9px 12px', borderRadius: 6,
+              width: '100%', padding: '10px 12px', borderRadius: 8,
               border: passError ? '1px solid #ff4d4f' : '1px solid var(--bd, #ccc)',
-              marginBottom: 12, boxSizing: 'border-box', outline: 'none'
+              marginBottom: 12, boxSizing: 'border-box', outline: 'none', fontSize: 14
             }}
             autoFocus
           />
@@ -183,9 +183,21 @@ export default function MainPage() {
             </div>
           )}
           <button
-            className="btn btn-dark"
             onClick={handleUnlock}
-            style={{ width: '100%', padding: '9px 0', fontWeight: 600 }}
+            style={{
+              width: '100%',
+              height: 42,
+              background: '#607ca0',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 8,
+              fontWeight: 600,
+              fontSize: 14,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer'
+            }}
           >
             입장하기
           </button>
