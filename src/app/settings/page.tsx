@@ -976,7 +976,7 @@ function MemberPane() {
 
   // 입장 비밀번호 상태 관리
   const { site, setSite } = useSiteDraft();
-  const [pass, setPass] = useState(draft.homePassword ?? '');
+  const [pass, setPass] = useState(site.homePassword ?? '');
 
   useEffect(() => {
     setPass(site.homePassword ?? '');
