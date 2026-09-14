@@ -1048,7 +1048,7 @@ function MemberPane() {
             onClick={() => {
               if (!code.trim()) { toast('가입코드를 입력해 주세요'); return; }
               setInviteCode(code);
-              toast('가입코드가 변경되었습니다');
+              toast('가입코드가 변경되었습니다.');
             }}>SAVE</button>
         </div>
       </div>
