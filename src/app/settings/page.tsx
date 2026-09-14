@@ -974,13 +974,11 @@ function MemberPane() {
   const [code, setCode] = useState('');
   const [codeLoaded, setCodeLoaded] = useState(false);
 
-  // 입장 비밀번호 상태 관리
-  const { site, setSite } = useSiteDraft();
-  const [pass, setPass] = useState(site.homePassword ?? '');
-
+  // 입장 비밀번호 상태 관리 (getSetting/setSetting 사용)
+  const [pass, setPass] = useState('');
   useEffect(() => {
-    setPass(site.homePassword ?? '');
-  }, [site.homePassword]);
+    setPass(getSetting<string>('ohome.homepass.v1', ''));
+  }, []);
 
   const [regVer, setRegVer] = useState(0);   // 가입 계정 삭제 후 목록 갱신용
   const [removedIds, setRemovedIds] = useState<string[]>([]);   // 서버 모드에서 방금 지운 회원
@@ -1073,7 +1071,7 @@ function MemberPane() {
             className="btn btn-dark"
             onClick={() => {
               const nextPass = pass.trim();
-              setSite({ ...site, homePassword: nextPass });
+              setSetting('ohome.homepass.v1', nextPass);
               toast(nextPass ? '입장 비밀번호가 설정되었습니다' : '입장 비밀번호가 해제되었습니다');
             }}
           >
