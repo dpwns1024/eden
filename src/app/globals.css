@@ -1805,3 +1805,43 @@ body.edit-on .main-grid.gridlines .wgt{outline-offset:0}
     display: none !important;
   }
 }
+
+/* ==========================================
+   모바일 메뉴 클릭 불가 해결 & 가운데 정렬 스타일
+   ========================================== */
+
+/* 1. 메뉴 위젯이 헤더나 주변 레이어에 가려지지 않도록 최상단으로 올림 */
+.wgt-hide-pc, 
+[data-wid*="menu"] {
+  position: relative;
+  z-index: 99 !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+/* 2. 모바일 화면에서 메뉴 버튼들을 중앙 정렬 */
+@media screen and (max-width: 767px) {
+  /* 메뉴 버튼들을 감싸는 컨테이너 정렬 */
+  .wgt-hide-pc nav,
+  .wgt-hide-pc .menu-list,
+  .wgt-hide-pc > div,
+  .wgt-hide-pc ul {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important; /* 👈 가운데 정렬 */
+    align-items: center !important;
+    gap: 8px 6px !important;            /* 버튼 사이 간격 */
+    width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+  }
+
+  /* 각 메뉴 버튼 클릭 활성화 및 텍스트 줄바꿈 방지 */
+  .wgt-hide-pc a,
+  .wgt-hide-pc button,
+  .wgt-hide-pc li {
+    pointer-events: auto !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+  }
+}
