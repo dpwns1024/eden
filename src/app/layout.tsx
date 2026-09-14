@@ -51,33 +51,42 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <ServerBoot>
-        <ThemeProvider>
-          <AuthProvider>
-            <ToastProvider>
-              <FontProvider>
-              <MainStoreProvider>
-                <BgmStoreProvider>
-                  <SetupGate>
-                  <TopBar />
-                  <GlobalHeader />
-                  <main id="appMain"><PageFrame><MenuGuard>{children}</MenuGuard></PageFrame></main>
-                  <BgmPlayer />
-                  <TipLayer />
-                  <CursorLayer />
-                  <ImgProtect />
-                  <DocTitle />
-                  <DocIcon />
-                  <SettingSync />
-                  <ListSync />
-                  <UploadBusy />
-                  <SpellCheck />
-                  </SetupGate>
-                </BgmStoreProvider>
-              </MainStoreProvider>
-              </FontProvider>
-            </ToastProvider>
-          </AuthProvider>
-        </ThemeProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <ToastProvider>
+                <FontProvider>
+                  <MainStoreProvider>
+                    <BgmStoreProvider>
+                      <SetupGate>
+                        {/* 🔒 TopBar, Header, 본문을 모두 MenuGuard로 감싸 비밀번호 입력 전 전체 가드 */}
+                        <MenuGuard>
+                          <TopBar />
+                          <GlobalHeader />
+                          <main id="appMain">
+                            <PageFrame>
+                              {children}
+                            </PageFrame>
+                          </main>
+                        </MenuGuard>
+
+                        {/* 공통 레이어 및 유틸 컴포넌트 */}
+                        <BgmPlayer />
+                        <TipLayer />
+                        <CursorLayer />
+                        <ImgProtect />
+                        <DocTitle />
+                        <DocIcon />
+                        <SettingSync />
+                        <ListSync />
+                        <UploadBusy />
+                        <SpellCheck />
+                      </SetupGate>
+                    </BgmStoreProvider>
+                  </MainStoreProvider>
+                </FontProvider>
+              </ToastProvider>
+            </AuthProvider>
+          </ThemeProvider>
         </ServerBoot>
       </body>
     </html>
