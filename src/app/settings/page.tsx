@@ -973,9 +973,18 @@ function MemberPane() {
   const router = useRouter();   // 회원 이름 클릭 → 회원 정보 페이지 (v1.9)
   const [code, setCode] = useState('');
   const [codeLoaded, setCodeLoaded] = useState(false);
+
+  // 1. 입장 비밀번호 지정을 위한 상태 추가 (siteStore 연동)
+  const { homePassword, setHomePassword } = siteStore();
+  const [pass, setPass] = useState(homePassword ?? '');
+
   const [regVer, setRegVer] = useState(0);   // 가입 계정 삭제 후 목록 갱신용
   const [removedIds, setRemovedIds] = useState<string[]>([]);   // 서버 모드에서 방금 지운 회원
   useEffect(() => { setCode(inviteCode()); setCodeLoaded(true); }, []);
+  
+  // homePassword 값이 외부에서 변경되거나 초기 로드될 때 pass 상태 동기화
+  useEffect(() => { setPass(homePassword ?? ''); }, [homePassword]);
+
   void regVer;
 
   const members = useMembers();
@@ -986,7 +995,7 @@ function MemberPane() {
     if (c?.kind === 'firebase') return `https://console.firebase.google.com/project/${c.projectId}/authentication/users`;
     if (c?.kind === 'supabase') {
       const m = c.url.match(/^https:\/\/([a-z0-9-]+)\.supabase\.co/i);
-      return m ? `https://supabase.com/dashboard/project/${m[1]}/auth/users` : '';
+      return m ? `https://supabase.com/dashboard/project/${m[1]}.supabase.co/auth/users` : '';
     }
     return '';
   })();
@@ -1032,8 +1041,7 @@ function MemberPane() {
       <h3>회원/보안</h3>
       <div className="d">가입코드와 회원 목록 관리</div>
 
-      {/* 다른 탭 행들과 같은 .set-row — 라벨은 왼쪽, 입력·버튼은 같은 줄 오른쪽 (v2.0 사용자 지적:
-          예전엔 라벨·설명·컨트롤이 각자 줄을 차지해 다른 탭과 통일감이 없고 줄바꿈도 보기 안 좋았다) */}
+      {/* 가입코드 설정 */}
       <div className="set-row" style={{ marginTop: 8, flexWrap: 'wrap' }}>
         <div className="l"><b>가입코드</b><small>회원가입 시 입력해야 하는 초대코드 — 아는 사람에게만 공유</small></div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -1044,6 +1052,32 @@ function MemberPane() {
               setInviteCode(code);
               toast('가입코드가 변경되었습니다');
             }}>SAVE</button>
+        </div>
+      </div>
+
+      {/* 2. 입장 비밀번호 설정 (추가된 위치) */}
+      <div className="set-row" style={{ marginTop: 8, flexWrap: 'wrap' }}>
+        <div className="l">
+          <b>입장 비밀번호</b>
+          <small>사이트 메인 접근 시 요구할 비밀번호 (미설정 시 바로 입장)</small>
+        </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <KInput
+            type="password"
+            value={pass}
+            placeholder="비밀번호 미사용 시 비워두기"
+            onChange={e => setPass(e.target.value)}
+            style={{ width: 220 }}
+          />
+          <button
+            className="btn btn-dark"
+            onClick={() => {
+              setHomePassword(pass.trim());
+              toast(pass.trim() ? '입장 비밀번호가 설정되었습니다' : '입장 비밀번호가 해제되었습니다');
+            }}
+          >
+            SAVE
+          </button>
         </div>
       </div>
 
