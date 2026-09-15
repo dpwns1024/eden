@@ -58,7 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <MainStoreProvider>
                     <BgmStoreProvider>
                       <SetupGate>
-                        {/* 🔒 TopBar, Header, 본문을 모두 MenuGuard로 감싸 비밀번호 입력 전 전체 가드 */}
+                        {/* 비밀번호 통과 전에는 본문, 헤더, BGM 등 전체 UI를 완전히 차단 */}
                         <MenuGuard>
                           <TopBar />
                           <GlobalHeader />
@@ -67,19 +67,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                               {children}
                             </PageFrame>
                           </main>
+                          <BgmPlayer />
+                          <TipLayer />
+                          <CursorLayer />
+                          <ImgProtect />
+                          <DocTitle />
+                          <DocIcon />
+                          <SettingSync />
+                          <ListSync />
+                          <UploadBusy />
+                          <SpellCheck />
                         </MenuGuard>
-
-                        {/* 공통 레이어 및 유틸 컴포넌트 */}
-                        <BgmPlayer />
-                        <TipLayer />
-                        <CursorLayer />
-                        <ImgProtect />
-                        <DocTitle />
-                        <DocIcon />
-                        <SettingSync />
-                        <ListSync />
-                        <UploadBusy />
-                        <SpellCheck />
                       </SetupGate>
                     </BgmStoreProvider>
                   </MainStoreProvider>
