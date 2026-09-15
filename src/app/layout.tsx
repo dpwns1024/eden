@@ -22,6 +22,7 @@ import { ListSync } from '@/components/shell/ListSync';
 import { UploadBusy } from '@/components/shell/UploadBusy';
 import { SpellCheck } from '@/components/shell/SpellCheck';
 import { PageFrame } from '@/lib/pageRefresh';
+import { ServerBoot } from '@/components/shell/ServerBoot';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -33,7 +34,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     setIsMounted(true);
-    // 로그인 성공 기록 확인
     const auth = localStorage.getItem('site_pass_ok');
     if (auth === 'true') {
       setIsAuthenticated(true);
@@ -50,7 +50,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     }
   };
 
-  // SSR 마운트 전 깜빡임 방지
   if (!isMounted) return null;
 
   return (
@@ -67,7 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         {!isAuthenticated ? (
-          /* 비밀번호 미인증 시: 어떤 경로(URL)로 와도 이 화면만 출력 */
+          /* 비밀번호 미인증 시: 하위 컴포넌트 아예 안 그리고 이 화면만 고정 */
           <div style={{
             position: 'fixed',
             inset: 0,
@@ -119,7 +118,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </form>
           </div>
         ) : (
-          /* 비밀번호 인증 완료 시 정상 사이트 출력 */
+          /* 비밀번호 인증 성공 시에만 원본 앱 렌더링 */
           <ServerBoot>
             <ThemeProvider>
               <AuthProvider>
