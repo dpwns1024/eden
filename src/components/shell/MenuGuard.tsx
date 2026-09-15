@@ -3,7 +3,7 @@
 /**
  * 비공개 메뉴 접근 차단 및 홈 입장 비밀번호(게이트) 통과 여부를 검사하는 가드 컴포넌트.
  * - 로그인 회원 / 관리자: 비밀번호 입력 없이 즉시 통과
- * - 비로그인 방문자: URL/게시판 권한 불문하고 2번 디자인 스타일의 모달 팝업 노출
+ * - 비로그인 방문자: URL/게시판 권한 불문하고 1회만 모달 팝업 노출 (중복 노출 방지)
  */
 import React, { Suspense, useEffect, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
@@ -24,7 +24,7 @@ function GuardInner({ children }: { children: React.ReactNode }) {
   const [errorMsg, setErrorMsg] = useState('');
   const [hasCheckedSession, setHasCheckedSession] = useState(false);
 
-  // 1. 세션 스토리지 통과 내역 확인 (추적 방지 차단 대응)
+  // 1. 세션 스토리지 통과 내역 확인 (중복 팝업 방지용 세션 키 체크)
   useEffect(() => {
     try {
       if (typeof window !== 'undefined') {
@@ -49,7 +49,7 @@ function GuardInner({ children }: { children: React.ReactNode }) {
     return <section className="page" style={{ minHeight: '100vh', background: 'var(--bg, #0f172a)' }} />;
   }
 
-  // 1. 로그인 회원 / 관리자는 최우선 즉시 통과 (게이트 무시)
+  // 2. 로그인 회원 / 관리자는 홈 입장 비번 절차 패스
   if (user || isAdmin) {
     const vis = hrefAccess(menuSet, path);
     const ok = vis === 'all' || (vis === 'member' && !!user) || (vis === 'admin' && isAdmin);
@@ -65,7 +65,7 @@ function GuardInner({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // 2. 비로그인 방문자 대상 비밀번호 파싱
+  // 3. 비로그인 방문자 대상 비밀번호 파싱
   const siteObj = (site || {}) as Record<string, any>;
   let localSiteObj: any = {};
   try {
@@ -88,7 +88,7 @@ function GuardInner({ children }: { children: React.ReactNode }) {
 
   const gatePassword = String(rawPw).trim();
 
-  // 3. 비로그인 방문자이고 세션 통과를 아직 안 한 경우 (2번 이미지 디자인 적용)
+  // 4. 단일 모달 통합: 비로그인 유저가 세션 통과를 안 했다면 딱 1번만 모달 출력
   if (!isPassed) {
     const handlePasswordSubmit = (e: React.FormEvent) => {
       e.preventDefault();
@@ -206,7 +206,7 @@ function GuardInner({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // 4. 비로그인 방문자가 비밀번호 입력으로 세션 통과(isPassed=true)를 마친 경우에만 렌더링
+  // 5. 세션 통과 완료 후 메인/게시판 정상 출력
   const vis = hrefAccess(menuSet, path);
   const ok = vis === 'all' || (vis === 'member' && !!user) || (vis === 'admin' && isAdmin);
   if (ok) return <>{children}</>;
