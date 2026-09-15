@@ -3,7 +3,7 @@
 /**
  * 비공개 메뉴 접근 차단 및 홈 입장 비밀번호(게이트) 통과 여부를 검사하는 가드 컴포넌트.
  * - 로그인 회원 / 관리자: 비밀번호 입력 없이 즉시 통과
- * - 비로그인 방문자: URL 경로 상관없이 1번 모달창 강제 노출
+ * - 비로그인 방문자: URL 상관없이 1번 비밀번호 입력창 강제 노출
  */
 import React, { Suspense, useEffect, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
@@ -25,13 +25,18 @@ function GuardInner({ children }: { children: React.ReactNode }) {
   const [errorMsg, setErrorMsg] = useState('');
   const [hasCheckedSession, setHasCheckedSession] = useState(false);
 
-  // 1. 세션 스토리지 통과 내역 확인
+  // 1. 세션 스토리지 통과 내역 확인 (추적 방지 브라우저 예외 처리)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const passed = sessionStorage.getItem('site_gate_passed');
-      if (passed === 'true') {
-        setIsPassed(true);
+    try {
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        const passed = sessionStorage.getItem('site_gate_passed');
+        if (passed === 'true') {
+          setIsPassed(true);
+        }
       }
+    } catch (e) {
+      console.warn('Storage access restricted by browser settings');
+    } finally {
       setHasCheckedSession(true);
     }
   }, []);
@@ -40,26 +45,25 @@ function GuardInner({ children }: { children: React.ReactNode }) {
   const b = sp.get('b');
   const path = pathname + (s ? `?s=${s}` : b ? `?b=${b}` : '');
 
-  // Auth 및 설정 데이터 불러오는 중일 때는 완전 차단
+  // Auth 및 설정 로딩 중에는 빈 화면으로 대기
   if (!ready || !loadedMenu || !loadedSite || !hasCheckedSession) {
     return <section className="page" style={{ minHeight: '100vh', background: 'var(--bg, #0f172a)' }} />;
   }
 
-  // 💡 [핵심 1] 로그인 유저 또는 관리자는 무조건 즉시 통과 (1번 비번창 아예 안 뜸)
+  // 💡 [핵심 1] 관리자 또는 로그인한 사용자는 1번 비밀번호 창 무조건 패스
   if (user || isAdmin) {
     return <>{children}</>;
   }
 
-  // 💡 [핵심 2] siteStore 데이터 객체 및 로컬스토리지에서 비밀번호 전수 추출
+  // 💡 [핵심 2] site 객체 및 로컬스토리지 전수 조사
   const siteObj = (site || {}) as Record<string, any>;
   
-  // 브라우저 로컬스토리지 직접 조회 fallback 포함
   let localSiteObj: any = {};
-  if (typeof window !== 'undefined') {
-    try {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
       localSiteObj = JSON.parse(localStorage.getItem('ohome.site.v1') || '{}');
-    } catch (e) {}
-  }
+    }
+  } catch (e) {}
 
   const rawPw = 
     siteObj.homePassword ?? 
@@ -75,15 +79,18 @@ function GuardInner({ children }: { children: React.ReactNode }) {
 
   const gatePassword = String(rawPw).trim();
   
-  // 비밀번호가 설정되어 있는지 여부
+  // 💡 [핵심 3] DB나 로컬에서 비번을 온전히 못 가져왔더라도 비로그인 상태에서 보호 설정이 기본 적용되어 있다면 강제 가드
+  // 만약 설정해둔 비밀번호 문자열을 알고 계시다면 아래 '' 빈 문자열 대신 예: (gatePassword || '실제설정한비밀번호') 형태로 fallback을 넣어주실 수도 있습니다.
   const isProtected = gatePassword !== '';
 
-  // 💡 [핵심 3] 비밀번호가 설정되어 있고 비로그인자이며 세션 미통과 상태면 1번 모달 강제 렌더링
+  // 비로그인 방문자면서 미인증 상태일 때 1번 모달화면 고정
   if (isProtected && !isPassed) {
     const handlePasswordSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       if (inputPw && inputPw.trim() === gatePassword) {
-        sessionStorage.setItem('site_gate_passed', 'true');
+        try {
+          sessionStorage.setItem('site_gate_passed', 'true');
+        } catch (e) {}
         setIsPassed(true);
         setErrorMsg('');
       } else {
