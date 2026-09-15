@@ -20,7 +20,7 @@ function GuardInner({ children }: { children: React.ReactNode }) {
   const [menuSet, , loadedMenu] = useMenuSettings();
   const [site, , loadedSite] = useSiteSettings();
 
-  // 🔒 세션 단위 비밀번호 통과 상태 (세션 탭이 켜져 있는 동안 유지)
+  // 🔒 세션 단위 비밀번호 통과 상태
   const [isPassed, setIsPassed] = useState<boolean>(false);
   const [inputPw, setInputPw] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -41,17 +41,26 @@ function GuardInner({ children }: { children: React.ReactNode }) {
   if (!loadedMenu || !loadedSite || !ready) return <section className="page" />;
 
   // ----------------------------------------------------
-  // 🔑 1단계: 홈 입장 비밀번호 검사 (비로그인 방문자 대상)
+  // 🔑 1단계: 비밀번호 데이터 경로 다각화 추출
   // ----------------------------------------------------
-  // site.homePassword 항목이 존재하고, 로그인 상태(user/isAdmin)가 아니며, 암호 미통과 상태일 때
-  const gatePassword = (site as any)?.homePassword;
-  const isProtected = Boolean(gatePassword && gatePassword.trim() !== '');
-  const isBypassed = !!user || isAdmin || isPassed;
+  const siteObj = site as Record<string, any>;
+  const gatePassword = 
+    siteObj?.homePassword ?? 
+    siteObj?.settings?.homePassword ?? 
+    siteObj?.sitePassword ?? 
+    siteObj?.settings?.sitePassword ?? '';
+
+  const isProtected = Boolean(gatePassword && String(gatePassword).trim() !== '');
+
+  // 💡 핵심: 관리자/로그인 유저는 비밀번호 입력창을 무조건 바이패스
+  const isBypassed = Boolean(user) || Boolean(isAdmin) || isPassed;
 
   if (isProtected && !isBypassed) {
     const handlePasswordSubmit = (e: React.FormEvent) => {
       e.preventDefault();
-      if (inputPw === gatePassword) {
+      
+      // 입력받은 비번과 실제 설정된 비번 비교 (문자열 변환)
+      if (inputPw && String(inputPw).trim() === String(gatePassword).trim()) {
         sessionStorage.setItem('site_gate_passed', 'true');
         setIsPassed(true);
         setErrorMsg('');
@@ -88,7 +97,7 @@ function GuardInner({ children }: { children: React.ReactNode }) {
               type="password"
               placeholder="비밀번호 입력"
               value={inputPw}
-              onChange={(e) => setInputPw(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInputPw(e.target.value)}
               autoFocus
             />
             {errorMsg && (
