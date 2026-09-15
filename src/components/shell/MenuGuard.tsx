@@ -25,17 +25,17 @@ function GuardInner({ children }: { children: React.ReactNode }) {
   const [errorMsg, setErrorMsg] = useState('');
   const [hasCheckedSession, setHasCheckedSession] = useState(false);
 
-  // 1. 세션 스토리지 통과 내역 확인
+  // 1. 세션 스토리지 통과 내역 확인 (추적 방지 차단 대응)
   useEffect(() => {
     try {
-      if (typeof window !== 'undefined' && window.sessionStorage) {
-        const passed = sessionStorage.getItem('site_gate_passed');
+      if (typeof window !== 'undefined') {
+        const passed = window.sessionStorage?.getItem('site_gate_passed');
         if (passed === 'true') {
           setIsPassed(true);
         }
       }
     } catch (e) {
-      console.warn('Storage access restricted by browser settings');
+      // Tracking Prevention 등으로 storage 접근이 막혀도 에러로 스크립트가 죽지 않도록 방어
     } finally {
       setHasCheckedSession(true);
     }
@@ -45,12 +45,12 @@ function GuardInner({ children }: { children: React.ReactNode }) {
   const b = sp.get('b');
   const path = pathname + (s ? `?s=${s}` : b ? `?b=${b}` : '');
 
-  // 🔒 Auth, 메뉴, 사이트 DB 설정이 '완전히' 로드되기 전에는 절대 아래 로직으로 안 넘어가고 빈 화면(대기) 유지
+  // Auth, 메뉴, 사이트 DB 설정이 '완전히' 로드되기 전에는 빈 화면 유지
   if (!ready || !loadedMenu || !loadedSite || !hasCheckedSession) {
     return <section className="page" style={{ minHeight: '100vh', background: 'var(--bg, #0f172a)' }} />;
   }
 
-  // 1. 관리자 및 로그인 사용자는 홈 입장 비밀번호 절차 완전히 패스
+  // 💡 [해결 1] 관리자 및 로그인 사용자는 비밀번호 통과
   if (user || isAdmin) {
     const vis = hrefAccess(menuSet, path);
     const ok = vis === 'all' || (vis === 'member' && !!user) || (vis === 'admin' && isAdmin);
@@ -66,7 +66,7 @@ function GuardInner({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // 2. DB / 로컬 스토리지에서 사이트 비밀번호 객체 추출
+  // 💡 [해결 2] 사이트 비밀번호 데이터 조화
   const siteObj = (site || {}) as Record<string, any>;
   let localSiteObj: any = {};
   try {
@@ -89,8 +89,7 @@ function GuardInner({ children }: { children: React.ReactNode }) {
 
   const gatePassword = String(rawPw).trim();
 
-  // 🔒 비로그인 방문자면서 비밀번호가 존재하고, 아직 인증(isPassed)되지 않은 경우
-  // 메인, 갤러리, 게시판 등 URL을 불문하고 입장을 강제 차단하고 모달 노출
+  // 💡 [해결 3] 비로그인 상태이고 비밀번호가 설정되어 있는 경우 무조건 모달 띄우기
   if (gatePassword !== '' && !isPassed) {
     const handlePasswordSubmit = (e: React.FormEvent) => {
       e.preventDefault();
@@ -158,7 +157,7 @@ function GuardInner({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // 3. 개별 메뉴 접근 권한 판정
+  // 4. 개별 메뉴 접근 권한 판정
   const vis = hrefAccess(menuSet, path);
   const ok = vis === 'all' || (vis === 'member' && !!user) || (vis === 'admin' && isAdmin);
   if (ok) return <>{children}</>;
