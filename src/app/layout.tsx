@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import './globals.css';
 import { ThemeProvider } from '@/lib/ThemeProvider';
-import { AuthProvider } from '@/lib/auth';
-import { MainStoreProvider } from '@/lib/mainStore';
+import { AuthProvider, useAuth } from '@/lib/auth';
+import { MainStoreProvider, useMainStore } from '@/lib/mainStore';
 import { BgmStoreProvider } from '@/lib/bgmStore';
 import { FontProvider } from '@/lib/fontStore';
 import { ToastProvider } from '@/components/ui/Toast';
@@ -24,34 +24,100 @@ import { SpellCheck } from '@/components/shell/SpellCheck';
 import { PageFrame } from '@/lib/pageRefresh';
 import { ServerBoot } from '@/components/shell/ServerBoot';
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+// 실제 비밀번호 검증 및 화면 통제를 담당하는 내부 컴포넌트
+function SecurityGate({ children }: { children: React.ReactNode }) {
+  const { user, isAdmin } = useAuth(); // 현재 로그인한 관리자 상태 가져오기
+  const store = useMainStore(); // 기존 설정된 sitePassword 가져오기
+  
   const [passInput, setPassInput] = useState('');
+  const [isPassed, setIsPassed] = useState<boolean>(false);
   const [isMounted, setIsMounted] = useState(false);
-
-  // ⚠️ 사용하실 비밀번호를 입력하세요.
-  const PASSWORD = '원하는비밀번호';
 
   useEffect(() => {
     setIsMounted(true);
-    const auth = localStorage.getItem('site_pass_ok');
-    if (auth === 'true') {
-      setIsAuthenticated(true);
+    // 세션 유지 확인
+    if (sessionStorage.getItem('site_pass_ok') === 'true') {
+      setIsPassed(true);
     }
   }, []);
 
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passInput === PASSWORD) {
-      localStorage.setItem('site_pass_ok', 'true');
-      setIsAuthenticated(true);
+    // 1. 사이트 설정에 저장된 비밀번호 (없을 경우 기본값 fallback)
+    const targetPassword = store?.settings?.sitePassword || store?.sitePassword;
+
+    if (passInput && passInput === targetPassword) {
+      sessionStorage.setItem('site_pass_ok', 'true');
+      setIsPassed(true);
     } else {
       alert('비밀번호가 올바르지 않습니다.');
     }
   };
 
+  // SSR 마운트 전 대기
   if (!isMounted) return null;
 
+  // 💡 핵심: 관리자로 로그인(isAdmin / user)되어 있거나, 비밀번호를 맞춘 경우 통과!
+  if (isAdmin || user || isPassed) {
+    return <>{children}</>;
+  }
+
+  // 비로그인 방문자에게만 비밀번호 창 표시
+  return (
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      zIndex: 999999,
+      background: '#0f172a',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: '#fff',
+      fontFamily: 'sans-serif'
+    }}>
+      <form onSubmit={handleAuth} style={{
+        background: '#1e293b',
+        padding: '32px',
+        borderRadius: '12px',
+        border: '1px solid #334155',
+        textAlign: 'center',
+        width: '280px'
+      }}>
+        <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#f8fafc' }}>🔒 Access Restricted</h3>
+        <input
+          type="password"
+          value={passInput}
+          onChange={(e) => setPassInput(e.target.value)}
+          placeholder="Password"
+          style={{
+            width: '100%',
+            padding: '10px',
+            borderRadius: '6px',
+            border: '1px solid #475569',
+            background: '#0f172a',
+            color: '#fff',
+            marginBottom: '12px',
+            boxSizing: 'border-box'
+          }}
+        />
+        <button type="submit" style={{
+          width: '100%',
+          padding: '10px',
+          borderRadius: '6px',
+          border: 'none',
+          background: '#607CA0',
+          color: '#fff',
+          fontWeight: 'bold',
+          cursor: 'pointer'
+        }}>
+          Enter
+        </button>
+      </form>
+    </div>
+  );
+}
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
       <head>
@@ -65,68 +131,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        {!isAuthenticated ? (
-          /* 비밀번호 미인증 시: 하위 컴포넌트 아예 안 그리고 이 화면만 고정 */
-          <div style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 999999,
-            background: '#0f172a',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            fontFamily: 'sans-serif'
-          }}>
-            <form onSubmit={handleAuth} style={{
-              background: '#1e293b',
-              padding: '32px',
-              borderRadius: '12px',
-              border: '1px solid #334155',
-              textAlign: 'center',
-              width: '280px'
-            }}>
-              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#f8fafc' }}>🔒 Access Restricted</h3>
-              <input
-                type="password"
-                value={passInput}
-                onChange={(e) => setPassInput(e.target.value)}
-                placeholder="Password"
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  borderRadius: '6px',
-                  border: '1px solid #475569',
-                  background: '#0f172a',
-                  color: '#fff',
-                  marginBottom: '12px',
-                  boxSizing: 'border-box'
-                }}
-              />
-              <button type="submit" style={{
-                width: '100%',
-                padding: '10px',
-                borderRadius: '6px',
-                border: 'none',
-                background: '#607CA0',
-                color: '#fff',
-                fontWeight: 'bold',
-                cursor: 'pointer'
-              }}>
-                Enter
-              </button>
-            </form>
-          </div>
-        ) : (
-          /* 비밀번호 인증 성공 시에만 원본 앱 렌더링 */
-          <ServerBoot>
-            <ThemeProvider>
-              <AuthProvider>
-                <ToastProvider>
-                  <FontProvider>
-                    <MainStoreProvider>
-                      <BgmStoreProvider>
-                        <SetupGate>
+        <ServerBoot>
+          <ThemeProvider>
+            <AuthProvider>
+              <ToastProvider>
+                <FontProvider>
+                  <MainStoreProvider>
+                    <BgmStoreProvider>
+                      <SetupGate>
+                        {/* AuthProvider 및 MainStoreProvider 하위에서 비밀번호/관리자 체크 */}
+                        <SecurityGate>
                           <TopBar />
                           <GlobalHeader />
                           <main id="appMain">
@@ -144,15 +158,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                           <ListSync />
                           <UploadBusy />
                           <SpellCheck />
-                        </SetupGate>
-                      </BgmStoreProvider>
-                    </MainStoreProvider>
-                  </FontProvider>
-                </ToastProvider>
-              </AuthProvider>
-            </ThemeProvider>
-          </ServerBoot>
-        )}
+                        </SecurityGate>
+                      </SetupGate>
+                    </BgmStoreProvider>
+                  </MainStoreProvider>
+                </FontProvider>
+              </ToastProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </ServerBoot>
       </body>
     </html>
   );
