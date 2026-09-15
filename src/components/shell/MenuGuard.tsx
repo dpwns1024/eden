@@ -3,7 +3,7 @@
 /**
  * 비공개 메뉴 접근 차단 및 홈 입장 비밀번호(게이트) 통과 여부를 검사하는 가드 컴포넌트.
  * - 로그인 회원 / 관리자: 비밀번호 입력 없이 즉시 통과
- * - 비로그인 방문자: siteStore에 설정된 비번이 있다면 입력 전까지 화면 완전 차단
+ * - 비로그인 방문자: 어떤 경로(/gallery 등)로 진입하든 입장 비밀번호 입력 전까지 완전 차단
  */
 import React, { Suspense, useEffect, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
@@ -20,7 +20,6 @@ function GuardInner({ children }: { children: React.ReactNode }) {
   const [menuSet, , loadedMenu] = useMenuSettings();
   const [site, , loadedSite] = useSiteSettings();
 
-  // 🔒 세션 단위 비밀번호 통과 상태
   const [isPassed, setIsPassed] = useState<boolean>(false);
   const [inputPw, setInputPw] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -37,11 +36,11 @@ function GuardInner({ children }: { children: React.ReactNode }) {
   const b = sp.get('b');
   const path = pathname + (s ? `?s=${s}` : b ? `?b=${b}` : '');
 
-  // 데이터 로딩 중이거나 Auth 준비 전에는 랜더링 차단 (깜빡임 방지)
+  // 데이터 로딩 중이거나 Auth 준비 전에는 화면 렌더링 차단
   if (!loadedMenu || !loadedSite || !ready) return <section className="page" />;
 
   // ----------------------------------------------------
-  // 🔑 1단계: 비밀번호 데이터 경로 다각화 추출
+  // 🔑 1단계: 홈 입장 비밀번호 검사 (최우선 적용)
   // ----------------------------------------------------
   const siteObj = site as Record<string, any>;
   const gatePassword = 
@@ -52,14 +51,14 @@ function GuardInner({ children }: { children: React.ReactNode }) {
 
   const isProtected = Boolean(gatePassword && String(gatePassword).trim() !== '');
 
-  // 💡 핵심: 관리자/로그인 유저는 비밀번호 입력창을 무조건 바이패스
+  // 관리자/로그인 유저는 바이패스 (비밀번호 모달 패스)
   const isBypassed = Boolean(user) || Boolean(isAdmin) || isPassed;
 
+  // 비로그인 방문자면서 비밀번호 미인증 상태인 경우: 경로 상관없이 1번 모달 화면 고정
   if (isProtected && !isBypassed) {
     const handlePasswordSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       
-      // 입력받은 비번과 실제 설정된 비번 비교 (문자열 변환)
       if (inputPw && String(inputPw).trim() === String(gatePassword).trim()) {
         sessionStorage.setItem('site_gate_passed', 'true');
         setIsPassed(true);
@@ -115,7 +114,7 @@ function GuardInner({ children }: { children: React.ReactNode }) {
   }
 
   // ----------------------------------------------------
-  // 🔒 2단계: 기존 개별 메뉴 / 페이지 접근 권한 판정
+  // 🔒 2단계: 개별 메뉴 / 페이지 접근 권한 판정
   // ----------------------------------------------------
   const vis = hrefAccess(menuSet, path);
   const ok = vis === 'all' || (vis === 'member' && !!user) || (vis === 'admin' && isAdmin);
