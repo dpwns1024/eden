@@ -45,17 +45,17 @@ function GuardInner({ children }: { children: React.ReactNode }) {
   const b = sp.get('b');
   const path = pathname + (s ? `?s=${s}` : b ? `?b=${b}` : '');
 
-  // Auth 및 설정 로딩 중에는 빈 화면 대기
+  // Auth, 메뉴, 사이트 설정이 다 로드될 때까지 렌더링 대기
   if (!ready || !loadedMenu || !loadedSite || !hasCheckedSession) {
     return <section className="page" style={{ minHeight: '100vh', background: 'var(--bg, #0f172a)' }} />;
   }
 
-  // 💡 [해결 1] 로그인한 사용자나 관리자는 최우선으로 즉시 통과 (홈 비번창 안 뜸)
-  if (!!user || !!isAdmin) {
+  // 💡 [해결 1] 관리자 또는 로그인 회원은 최우선 통과 (홈 비번 모달을 완전히 건너뜀)
+  if (user || isAdmin) {
     const vis = hrefAccess(menuSet, path);
     const ok = vis === 'all' || (vis === 'member' && !!user) || (vis === 'admin' && isAdmin);
     if (ok) return <>{children}</>;
-    
+
     return (
       <section className="page">
         <div className="page-head">
@@ -66,7 +66,7 @@ function GuardInner({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // 💡 [해결 2 & 3] 비로그인 방문자 대상 전체 경로 비밀번호 검증
+  // 💡 [해결 2 & 3] 비로그인 방문자 비밀번호 파싱 및 전체 경로 강제 검증
   const siteObj = (site || {}) as Record<string, any>;
   
   let localSiteObj: any = {};
@@ -76,7 +76,6 @@ function GuardInner({ children }: { children: React.ReactNode }) {
     }
   } catch (e) {}
 
-  // 설정된 비밀번호 키 탐색
   const rawPw = 
     siteObj.homePassword ?? 
     siteObj.settings?.homePassword ?? 
@@ -91,7 +90,7 @@ function GuardInner({ children }: { children: React.ReactNode }) {
 
   const gatePassword = String(rawPw).trim();
 
-  // 비밀번호가 설정되어 있고 통과하지 않은 경우, 어느 경로(메인, 갤러리, 게시판 등)로 오든 모달 강제 노출
+  // 비밀번호가 설정되어 있고, 세션 통과를 안 했다면 메인/게시판/갤러리 가리지 않고 무조건 차단
   if (gatePassword !== '' && !isPassed) {
     const handlePasswordSubmit = (e: React.FormEvent) => {
       e.preventDefault();
@@ -159,7 +158,7 @@ function GuardInner({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // 4. 개별 메뉴 권한 판정 (비밀번호 통과 후)
+  // 4. 개별 메뉴 접근 권한 체크 (비로그인 방문자가 비번 통과 후)
   const vis = hrefAccess(menuSet, path);
   const ok = vis === 'all' || (vis === 'member' && !!user) || (vis === 'admin' && isAdmin);
   if (ok) return <>{children}</>;
