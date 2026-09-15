@@ -24,10 +24,9 @@ import { SpellCheck } from '@/components/shell/SpellCheck';
 import { PageFrame } from '@/lib/pageRefresh';
 import { ServerBoot } from '@/components/shell/ServerBoot';
 
-// 실제 비밀번호 검증 및 화면 통제를 담당하는 내부 컴포넌트
 function SecurityGate({ children }: { children: React.ReactNode }) {
-  const { user, isAdmin } = useAuth(); // 현재 로그인한 관리자 상태 가져오기
-  const store = useMainStore(); // 기존 설정된 sitePassword 가져오기
+  const { user, isAdmin } = useAuth();
+  const store = useMainStore() as Record<string, any>;
   
   const [passInput, setPassInput] = useState('');
   const [isPassed, setIsPassed] = useState<boolean>(false);
@@ -35,7 +34,6 @@ function SecurityGate({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setIsMounted(true);
-    // 세션 유지 확인
     if (sessionStorage.getItem('site_pass_ok') === 'true') {
       setIsPassed(true);
     }
@@ -43,8 +41,12 @@ function SecurityGate({ children }: { children: React.ReactNode }) {
 
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault();
-    // 1. 사이트 설정에 저장된 비밀번호 (없을 경우 기본값 fallback)
-    const targetPassword = store?.settings?.sitePassword || store?.sitePassword;
+    
+    // store 객체 내 sitePassword 또는 settings 객체 안전 접근
+    const targetPassword = 
+      store?.settings?.sitePassword ?? 
+      store?.sitePassword ?? 
+      store?.config?.sitePassword;
 
     if (passInput && passInput === targetPassword) {
       sessionStorage.setItem('site_pass_ok', 'true');
@@ -54,15 +56,14 @@ function SecurityGate({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // SSR 마운트 전 대기
   if (!isMounted) return null;
 
-  // 💡 핵심: 관리자로 로그인(isAdmin / user)되어 있거나, 비밀번호를 맞춘 경우 통과!
+  // 관리자 접속(isAdmin/user) 상태이거나 비밀번호 인증 성공 시 전체 통과
   if (isAdmin || user || isPassed) {
     return <>{children}</>;
   }
 
-  // 비로그인 방문자에게만 비밀번호 창 표시
+  // 비로그인 방문자 접속 차단 화면
   return (
     <div style={{
       position: 'fixed',
@@ -139,7 +140,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <MainStoreProvider>
                     <BgmStoreProvider>
                       <SetupGate>
-                        {/* AuthProvider 및 MainStoreProvider 하위에서 비밀번호/관리자 체크 */}
                         <SecurityGate>
                           <TopBar />
                           <GlobalHeader />
