@@ -52,7 +52,6 @@ function GuardInner({ children }: { children: React.ReactNode }) {
 
   // 💡 [해결 1] 로그인한 사용자나 관리자는 최우선으로 즉시 통과 (홈 비번창 안 뜸)
   if (!!user || !!isAdmin) {
-    // 하단 개별 메뉴 권한(vis) 처리 logic으로 이동
     const vis = hrefAccess(menuSet, path);
     const ok = vis === 'all' || (vis === 'member' && !!user) || (vis === 'admin' && isAdmin);
     if (ok) return <>{children}</>;
@@ -98,7 +97,9 @@ function GuardInner({ children }: { children: React.ReactNode }) {
       e.preventDefault();
       if (inputPw && inputPw.trim() === gatePassword) {
         try {
-          sessionStorage.getItem && sessionStorage.setItem('site_gate_passed', 'true');
+          if (typeof window !== 'undefined' && window.sessionStorage) {
+            sessionStorage.setItem('site_gate_passed', 'true');
+          }
         } catch (e) {}
         setIsPassed(true);
         setErrorMsg('');
