@@ -45,12 +45,12 @@ function GuardInner({ children }: { children: React.ReactNode }) {
   const b = sp.get('b');
   const path = pathname + (s ? `?s=${s}` : b ? `?b=${b}` : '');
 
-  // Auth, 메뉴, 사이트 설정이 다 로드될 때까지 렌더링 대기
+  // 🔒 Auth, 메뉴, 사이트 DB 설정이 '완전히' 로드되기 전에는 절대 아래 로직으로 안 넘어가고 빈 화면(대기) 유지
   if (!ready || !loadedMenu || !loadedSite || !hasCheckedSession) {
     return <section className="page" style={{ minHeight: '100vh', background: 'var(--bg, #0f172a)' }} />;
   }
 
-  // 💡 [해결 1] 관리자 또는 로그인 회원은 최우선 통과 (홈 비번 모달을 완전히 건너뜀)
+  // 1. 관리자 및 로그인 사용자는 홈 입장 비밀번호 절차 완전히 패스
   if (user || isAdmin) {
     const vis = hrefAccess(menuSet, path);
     const ok = vis === 'all' || (vis === 'member' && !!user) || (vis === 'admin' && isAdmin);
@@ -66,9 +66,8 @@ function GuardInner({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // 💡 [해결 2 & 3] 비로그인 방문자 비밀번호 파싱 및 전체 경로 강제 검증
+  // 2. DB / 로컬 스토리지에서 사이트 비밀번호 객체 추출
   const siteObj = (site || {}) as Record<string, any>;
-  
   let localSiteObj: any = {};
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
@@ -90,7 +89,8 @@ function GuardInner({ children }: { children: React.ReactNode }) {
 
   const gatePassword = String(rawPw).trim();
 
-  // 비밀번호가 설정되어 있고, 세션 통과를 안 했다면 메인/게시판/갤러리 가리지 않고 무조건 차단
+  // 🔒 비로그인 방문자면서 비밀번호가 존재하고, 아직 인증(isPassed)되지 않은 경우
+  // 메인, 갤러리, 게시판 등 URL을 불문하고 입장을 강제 차단하고 모달 노출
   if (gatePassword !== '' && !isPassed) {
     const handlePasswordSubmit = (e: React.FormEvent) => {
       e.preventDefault();
@@ -158,7 +158,7 @@ function GuardInner({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // 4. 개별 메뉴 접근 권한 체크 (비로그인 방문자가 비번 통과 후)
+  // 3. 개별 메뉴 접근 권한 판정
   const vis = hrefAccess(menuSet, path);
   const ok = vis === 'all' || (vis === 'member' && !!user) || (vis === 'admin' && isAdmin);
   if (ok) return <>{children}</>;
