@@ -3,7 +3,7 @@
 /**
  * 비공개 메뉴 접근 차단 및 홈 입장 비밀번호(게이트) 통과 여부를 검사하는 가드 컴포넌트.
  * - 로그인 회원 / 관리자: 비밀번호 입력 없이 즉시 통과
- * - 비로그인 방문자: DB 비번 설정 여부/URL/게시판 권한 불문하고 입장 비번 1회 강제 요구
+ * - 비로그인 방문자: URL/게시판 권한 불문하고 2번 디자인 스타일의 모달 팝업 노출
  */
 import React, { Suspense, useEffect, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
@@ -11,7 +11,6 @@ import { useAuth } from '@/lib/auth';
 import { useMenuSettings, hrefAccess } from '@/lib/menuStore';
 import { useSiteSettings } from '@/lib/siteStore';
 import { PageTitle } from '@/components/ui/PageText';
-import { KInput } from '@/components/ui/Kit';
 
 function GuardInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -35,7 +34,7 @@ function GuardInner({ children }: { children: React.ReactNode }) {
         }
       }
     } catch (e) {
-      // Storage blocked by browser policy
+      // Storage access blocked by browser
     } finally {
       setHasCheckedSession(true);
     }
@@ -45,12 +44,12 @@ function GuardInner({ children }: { children: React.ReactNode }) {
   const b = sp.get('b');
   const path = pathname + (s ? `?s=${s}` : b ? `?b=${b}` : '');
 
-  // Auth 및 DB 설정 로딩 전까지는 빈 화면 대기
+  // Auth 및 DB 설정 로딩 완료 시까지 대기
   if (!ready || !loadedMenu || !loadedSite || !hasCheckedSession) {
     return <section className="page" style={{ minHeight: '100vh', background: 'var(--bg, #0f172a)' }} />;
   }
 
-  // 💡 [1] 로그인 회원 / 관리자는 최우선 즉시 통과 (게이트 무시)
+  // 1. 로그인 회원 / 관리자는 최우선 즉시 통과 (게이트 무시)
   if (user || isAdmin) {
     const vis = hrefAccess(menuSet, path);
     const ok = vis === 'all' || (vis === 'member' && !!user) || (vis === 'admin' && isAdmin);
@@ -66,7 +65,7 @@ function GuardInner({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // 💡 [2] 비로그인 방문자 대상 비밀번호 파싱
+  // 2. 비로그인 방문자 대상 비밀번호 파싱
   const siteObj = (site || {}) as Record<string, any>;
   let localSiteObj: any = {};
   try {
@@ -89,13 +88,11 @@ function GuardInner({ children }: { children: React.ReactNode }) {
 
   const gatePassword = String(rawPw).trim();
 
-  // 🚨 핵심 수정 부분: 비로그인 방문자인데 세션 통과(isPassed)를 안 했다면?
-  // gatePassword 설정 유무를 불문하고 '무조건' 화면을 막고 입력창을 띄웁니다.
+  // 3. 비로그인 방문자이고 세션 통과를 아직 안 한 경우 (2번 이미지 디자인 적용)
   if (!isPassed) {
     const handlePasswordSubmit = (e: React.FormEvent) => {
       e.preventDefault();
 
-      // DB에 비번이 설정되어 있는 경우 비번 비교, 설정된 비번이 없더라도 빈 입력은 방어
       const targetPw = gatePassword;
       
       if (inputPw && (targetPw === '' || inputPw.trim() === targetPw)) {
@@ -107,7 +104,7 @@ function GuardInner({ children }: { children: React.ReactNode }) {
         setIsPassed(true);
         setErrorMsg('');
       } else {
-        setErrorMsg('비밀번호가 일치하지 않거나 올바르지 않습니다.');
+        setErrorMsg('비밀번호가 일치하지 않습니다.');
       }
     };
 
@@ -120,7 +117,8 @@ function GuardInner({ children }: { children: React.ReactNode }) {
           width: '100vw',
           height: '100vh',
           zIndex: 9999999,
-          backgroundColor: 'var(--bg, #0f172a)',
+          backgroundColor: 'rgba(0, 0, 0, 0.45)',
+          backdropFilter: 'blur(4px)',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
@@ -128,33 +126,79 @@ function GuardInner({ children }: { children: React.ReactNode }) {
         }}
       >
         <div
-          className="panel"
           style={{
-            maxWidth: 380,
             width: '100%',
-            padding: '32px 24px',
+            maxWidth: 360,
+            backgroundColor: '#ffffff',
+            borderRadius: 16,
+            padding: '36px 28px 28px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
             textAlign: 'center',
           }}
         >
-          <PageTitle style={{ marginBottom: 12 }}>ACCESS RESTRICTED</PageTitle>
-          <p style={{ fontSize: 13, color: 'var(--faint)', marginBottom: 24, lineHeight: 1.5 }}>
-            이 사이트는 보호되어 있습니다.<br />입장 비밀번호를 입력해 주세요.
+          <h3
+            style={{
+              fontSize: 18,
+              fontWeight: 700,
+              color: '#111827',
+              marginBottom: 6,
+              letterSpacing: '-0.02em',
+            }}
+          >
+            입장 비밀번호 입력
+          </h3>
+          <p
+            style={{
+              fontSize: 13,
+              color: '#6b7280',
+              marginBottom: 20,
+              lineHeight: 1.4,
+            }}
+          >
+            이 사이트는 접근 보호가 설정되어 있습니다.
           </p>
-          <form onSubmit={handlePasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <KInput
+          <form onSubmit={handlePasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <input
               type="password"
-              placeholder="비밀번호 입력"
+              placeholder="비밀번호를 입력하세요"
               value={inputPw}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInputPw(e.target.value)}
+              onChange={(e) => setInputPw(e.target.value)}
               autoFocus
+              style={{
+                width: '100%',
+                height: 44,
+                padding: '0 14px',
+                fontSize: 14,
+                color: '#1f2937',
+                backgroundColor: '#ffffff',
+                border: '1px solid #d1d5db',
+                borderRadius: 8,
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
             />
             {errorMsg && (
-              <small style={{ color: 'var(--accent, #e5484d)', fontSize: 12 }}>
+              <small style={{ color: '#ef4444', fontSize: 12, textAlign: 'left', marginTop: -2 }}>
                 {errorMsg}
               </small>
             )}
-            <button type="submit" className="btn btn-dark" style={{ marginTop: 8, padding: '10px 0' }}>
-              ENTER
+            <button
+              type="submit"
+              style={{
+                width: '100%',
+                height: 44,
+                marginTop: 4,
+                backgroundColor: '#5f80a6',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'background-color 0.2s',
+              }}
+            >
+              입장하기
             </button>
           </form>
         </div>
@@ -162,7 +206,7 @@ function GuardInner({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // 3. 비로그인 방문자가 비밀번호를 정상 입력하여 세션 통과(isPassed = true)한 경우에만 렌더링
+  // 4. 비로그인 방문자가 비밀번호 입력으로 세션 통과(isPassed=true)를 마친 경우에만 렌더링
   const vis = hrefAccess(menuSet, path);
   const ok = vis === 'all' || (vis === 'member' && !!user) || (vis === 'admin' && isAdmin);
   if (ok) return <>{children}</>;
