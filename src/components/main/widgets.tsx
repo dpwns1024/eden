@@ -738,15 +738,22 @@ export function HtmlBlockWidget({ conf }: { conf: WidgetConf }) {
       // 전체 요소 실측(현재 배율 보정) — 회전·절대배치·여백까지 포함한 실제 렌더 범위
       const box = el.getBoundingClientRect();
       const cur = el.offsetWidth ? box.width / el.offsetWidth : 1;
-      let l = Infinity, r = -Infinity, h = el.scrollHeight;
-      const all = el.querySelectorAll('*');
-      for (let i = 0; i < all.length && i < 4000; i++) {
-        const b = all[i].getBoundingClientRect();
-        if (!b.width && !b.height) continue;
-        l = Math.min(l, (b.left - box.left) / cur);
-        r = Math.max(r, (b.right - box.left) / cur);
-        h = Math.max(h, (b.bottom - box.top) / cur);
-      }
+      let l = Infinity, r = -Infinity, h = el.scrollHeight, n = 0;
+      // overflow로 잘리는 영역(흐르는 띠·슬라이더 등)의 안쪽은 보이지 않으니 재지 않는다
+      const visit = (node: Element) => {
+        for (const c of Array.from(node.children)) {
+          if (++n > 4000) return;
+          const b = c.getBoundingClientRect();
+          if (b.width || b.height) {
+            l = Math.min(l, (b.left - box.left) / cur);
+            r = Math.max(r, (b.right - box.left) / cur);
+            h = Math.max(h, (b.bottom - box.top) / cur);
+          }
+          const cs = getComputedStyle(c);
+          if (cs.overflowX === 'visible' && cs.overflowY === 'visible') visit(c);
+        }
+      };
+      visit(el);
       h = Math.ceil(h);
       const lm = Number.isFinite(l) ? Math.max(0, l) : 0;
       const end = Math.max(sw, Number.isFinite(r) ? r : 0);
