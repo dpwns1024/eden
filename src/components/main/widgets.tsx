@@ -728,7 +728,7 @@ export function HtmlBlockWidget({ conf }: { conf: WidgetConf }) {
   const bgStyle: React.CSSProperties = {
     width: '100%',
     height: s.autoH ? 'auto' : '100%',
-    minHeight: 80,
+    minHeight: s.autoH ? '100vh' : 80,
     overflow: s.autoH ? 'visible' : 'hidden',
     ...(s.bgColor ? { backgroundColor: s.bgColor } : {}),
     ...(bgUrl ? {
