@@ -22,6 +22,7 @@ import { SpellCheck } from '@/components/shell/SpellCheck';
 import { PageFrame } from '@/lib/pageRefresh';
 import { MenuGuard } from '@/components/shell/MenuGuard';
 import { ServerBoot } from '@/components/shell/ServerBoot';
+import { SplashScreen } from '@/components/shell/SplashScreen';
 import { siteMeta } from '@/lib/siteMeta';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -67,6 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                             </PageFrame>
                           </main>
                           <BgmPlayer />
+                          <SplashScreen />
                           <TipLayer />
                           <CursorLayer />
                           <ImgProtect />

@@ -48,6 +48,7 @@ import {
 import { useBgm, BgmTrack, parseVideoId } from '@/lib/bgmStore';
 import { useFonts, fontCssUrl, FontDef, FontRole, ROLE_LABEL, FOLLOW_MENU, FOLLOW_TITLE } from '@/lib/fontStore';
 import { useToast } from '@/components/ui/Toast';
+import { getSplashConf, setSplashConf, SplashConf } from '@/lib/splashStore';
 import { PageTitle, EditableDesc, getPageText, setPageText } from '@/components/ui/PageText';
 import { putBlob } from '@/lib/blobStore';
 import { getSetting, setSetting, pushLocalSettings, unsyncedSettingKeys, SETTING_KEYS } from '@/lib/settingStore';
@@ -546,6 +547,64 @@ function SpellCheckRow() {
   );
 }
 
+function SplashPane() {
+  const [conf, setConf] = useState<SplashConf>(getSplashConf);
+  const patch = (v: Partial<SplashConf>) => {
+    const next = { ...conf, ...v };
+    setConf(next);
+    setSplashConf(v);
+  };
+  const bgUrl = useBlobUrl(conf.bgBlobId);
+
+  return (
+    <div className="set-sec" style={{ marginTop: 28 }}>
+      <h3>로딩 화면 (스플래시)</h3>
+      <div className="d">방문자가 처음 들어올 때 배경 이미지가 전체 화면으로 뜨고, 지정한 곳을 클릭하면 화면이 깨지면서 메인으로 진입합니다. 세션당 1회만 표시됩니다.</div>
+
+      <KToggle checked={conf.enabled} onChange={v => patch({ enabled: v })} />
+      <label style={{ marginLeft: 8 }}>스플래시 화면 켜기</label>
+
+      <div style={{ marginTop: 14 }}>
+        <b style={{ fontSize: 12 }}>배경 이미지</b>
+        {bgUrl && <img src={bgUrl} alt="" style={{ display: 'block', maxWidth: 320, maxHeight: 180, objectFit: 'cover', marginTop: 6, borderRadius: 6 }} />}
+        <label className="btn btn-ghost" style={{ marginTop: 6, display: 'inline-block', cursor: 'pointer' }}>
+          이미지 선택
+          <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async e => {
+            const f = e.target.files?.[0];
+            if (!f) return;
+            const id = await putBlob(f);
+            patch({ bgBlobId: id });
+          }} />
+        </label>
+      </div>
+
+      <div style={{ marginTop: 14, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+        <div>
+          <b style={{ fontSize: 12 }}>클릭 표적 X (%)</b>
+          <KInput type="number" value={conf.targetX} min={0} max={100}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => patch({ targetX: Number(e.target.value) || 50 })} />
+        </div>
+        <div>
+          <b style={{ fontSize: 12 }}>클릭 표적 Y (%)</b>
+          <KInput type="number" value={conf.targetY} min={0} max={100}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => patch({ targetY: Number(e.target.value) || 50 })} />
+        </div>
+        <div>
+          <b style={{ fontSize: 12 }}>표적 크기 (px)</b>
+          <KInput type="number" value={conf.targetSize} min={20} max={200}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => patch({ targetSize: Number(e.target.value) || 60 })} />
+        </div>
+      </div>
+
+      <div style={{ marginTop: 14 }}>
+        <b style={{ fontSize: 12 }}>표적 라벨 (선택)</b>
+        <KInput value={conf.targetLabel ?? ''} placeholder="예: ENTER"
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => patch({ targetLabel: e.target.value || undefined })} />
+      </div>
+    </div>
+  );
+}
+
 /** 메인 페이지 탭 (v1.9 확정) — 모바일 표시 토글 + 모바일 세로 나열 순서
     토글은 모바일에서만 뺀다(사용자 확정) — PC 메인 구성은 편집모드의 [＋ 위젯]·우클릭 삭제로 */
 function MainPagePane() {
@@ -555,7 +614,7 @@ function MainPagePane() {
   // 모바일 순서 목록: 고정 요소(배너·회원정보창)는 포함되지 않음
   const orderable = state.mobileOrder
     .map(id => state.widgets.find(w => w.id === id))
-    .filter((w): w is NonNullable<typeof w> => !!w && !w.fixed);
+    .filter((w): w is NonNullable<typeof w> => !!w);
 
   return (
     <div className="set-sec">
@@ -600,7 +659,7 @@ function MainPagePane() {
       />
       <p className="hint">토글을 끄면 <b>모바일에서만</b> 빠지고 PC 메인에는 그대로 표시됩니다 · 순서는 <b>모바일 세로 나열 순서</b> — PC 배치는 메인에서 편집모드로 자유 조정</p>
       <p className="hint">메인에서 위젯을 완전히 빼거나 더하려면 편집모드에서 — 추가는 상단바 [＋ 위젯], 삭제는 위젯 우클릭 → 위젯 삭제</p>
-      <p className="hint">고정 요소: 슬라이드 배너(최상단) · 회원정보창 — 순서 목록에 포함되지 않음</p>
+      <SplashPane />
     </div>
   );
 }
