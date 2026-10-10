@@ -134,7 +134,9 @@ function ProfilePanels({ aim, R, vp, profile }: { aim: Pt; R: number; vp: { w: n
   const cy = (y: number, h: number) => Math.max(top, Math.min(vp.h - h - 70, y));
   const cx = (x: number, w: number) => Math.max(12, Math.min(vp.w - w - 12, x));
   if (compact) {
-    const w = Math.min(vp.w - 24, 360), h = 104 + rowsH;
+    const phone = vp.w <= 620;
+    const w = phone ? Math.min(vp.w - 32, 300) : Math.min(vp.w - 24, 360);
+    const h = phone ? 84 + profile.rows.length * 18 : 104 + rowsH;
     const below = aim.y + R + 34 + h < vp.h - 64;
     boxes.push({ key: 'm', w, h, x: (vp.w - w) / 2, y: below ? aim.y + R + 34 : Math.max(14, aim.y - R - 34 - h) });
   } else {
@@ -221,8 +223,9 @@ function ProfilePanels({ aim, R, vp, profile }: { aim: Pt; R: number; vp: { w: n
 }
 
 /* ───────── 3D 유리 파쇄 엔진 (canvas) ───────── */
-function runShatter(canvas: HTMLCanvasElement, img: HTMLImageElement, at: Pt, done: () => void) {
-  const W = window.innerWidth, H = window.innerHeight;
+function runShatter(canvas: HTMLCanvasElement, img: HTMLImageElement, at: Pt,
+  box: { w: number; h: number }, cv: ReturnType<typeof coverRect>, done: () => void) {
+  const W = box.w, H = box.h;
   const small = Math.min(W, H) < 700;
   const u = Math.min(window.devicePixelRatio || 1, small ? 1.5 : 2);
   const Wd = Math.round(W * u), Hd = Math.round(H * u);
@@ -232,7 +235,6 @@ function runShatter(canvas: HTMLCanvasElement, img: HTMLImageElement, at: Pt, do
 
   const src = document.createElement('canvas');
   src.width = Wd; src.height = Hd;
-  const cv = coverRect(W, H, img.naturalWidth, img.naturalHeight);
   src.getContext('2d')!.drawImage(img, cv.ox * u, cv.oy * u, cv.dw * u, cv.dh * u);
 
   const rnd = (a: number, b: number) => a + Math.random() * (b - a);
@@ -559,7 +561,9 @@ export function SplashView({ bgUrl, targetX, targetY, targetSize, label, profile
   onFire?: () => void; onDone: () => void;
 }) {
   const [img, setImg] = useState<HTMLImageElement | null>(null);
-  const [vp, setVp] = useState({ w: 0, h: 0 });
+  const [vp, setVp] = useState({ w: 0, h: 0, l: 0, t: 0 });
+  const boxRef = useRef<HTMLDivElement | null>(null);
+  const layoutRef = useRef<{ cv: ReturnType<typeof coverRect>; w: number; h: number } | null>(null);
   const [pos, setPos] = useState<Pt | null>(null);
   const [impact, setImpact] = useState<Pt | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -573,43 +577,64 @@ export function SplashView({ bgUrl, targetX, targetY, targetSize, label, profile
     return () => { im.onload = null; };
   }, [bgUrl]);
 
+  // 오버레이의 실제 크기·위치로 계산 — iOS Safari는 주소창이 접히고 펴질 때 innerHeight가
+  // 실제 화면과 어긋나 이미지가 짧게 깔리고 터치 좌표도 밀렸다
   useEffect(() => {
-    const f = () => setVp({ w: window.innerWidth, h: window.innerHeight });
+    const f = () => {
+      const el = boxRef.current;
+      const r = el ? el.getBoundingClientRect() : null;
+      const next = r && r.width > 0
+        ? { w: Math.round(r.width), h: Math.round(r.height), l: r.left, t: r.top }
+        : { w: window.innerWidth, h: window.innerHeight, l: 0, t: 0 };
+      setVp(v => (v.w === next.w && v.h === next.h && v.l === next.l && v.t === next.t ? v : next));
+    };
     f();
+    const ro = new ResizeObserver(f);
+    if (boxRef.current) ro.observe(boxRef.current);
     window.addEventListener('resize', f);
-    return () => window.removeEventListener('resize', f);
-  }, []);
+    window.visualViewport?.addEventListener('resize', f);
+    return () => { ro.disconnect(); window.removeEventListener('resize', f); window.visualViewport?.removeEventListener('resize', f); };
+  }, [img]);
 
   useEffect(() => {
     if (!impact || !img || !canvasRef.current) return;
-    return runShatter(canvasRef.current, img, impact, () => doneRef.current());
+    const L = layoutRef.current;
+    if (!L) return;
+    return runShatter(canvasRef.current, img, impact, { w: L.w, h: L.h }, L.cv, () => doneRef.current());
   }, [impact, img]);
 
   // body 직속으로 띄운다 — 사이트 페이드 인(body > *)이 오버레이를 건드리지 않게
-  if (!img || !vp.w) return createPortal(<div className="splash-overlay" />, document.body);
+  if (!img || !vp.w) return createPortal(<div className="splash-overlay" ref={boxRef} />, document.body);
 
-  const cv = coverRect(vp.w, vp.h, img.naturalWidth, img.naturalHeight);
+  // 모바일 전용: 스코프를 작게, 이미지를 화면 밖으로 확대 시야만큼 더 깔아 가장자리에서도 렌즈가 비지 않게
+  const mobile = vp.w <= 620;
+  const R = mobile
+    ? Math.round(Math.min(80, Math.max(62, Math.min(vp.w, vp.h) * 0.18)))
+    : Math.round(Math.min(138, Math.max(89, Math.min(vp.w, vp.h) * 0.219)));
+  const m = mobile ? Math.ceil(R / ZOOM) + 4 : 0;
+  const base = coverRect(vp.w + m * 2, vp.h + m * 2, img.naturalWidth, img.naturalHeight);
+  const cv = { ...base, ox: base.ox - m, oy: base.oy - m };
+  layoutRef.current = { cv, w: vp.w, h: vp.h };
   const target = { x: cv.ox + (targetX / 100) * cv.dw, y: cv.oy + (targetY / 100) * cv.dh };
   const hitR = Math.max(22, targetSize / 2);
   const aim = pos ?? { x: vp.w / 2, y: vp.h / 2 };
   const isHit = (p: Pt) => Math.hypot(p.x - target.x, p.y - target.y) <= hitR;
   const hit = isHit(aim);
-  const R = Math.round(Math.min(138, Math.max(89, Math.min(vp.w, vp.h) * 0.219)));
-
   const track = (e: React.PointerEvent) => {
     if (impact) return;
-    setPos({ x: e.clientX, y: e.clientY });
+    setPos({ x: e.clientX - vp.l, y: e.clientY - vp.t });
   };
 
   return createPortal(
     <div
+      ref={boxRef}
       className={`splash-overlay ${impact ? 'is-shatter' : ''}`}
       style={{ cursor: impact ? 'default' : 'none' }}
       onPointerMove={track}
       onPointerDown={track}
       onPointerUp={e => {
         if (impact) return;
-        const p = { x: e.clientX, y: e.clientY };
+        const p = { x: e.clientX - vp.l, y: e.clientY - vp.t };
         setPos(p);
         if (isHit(p)) { setImpact(p); onFire?.(); }
       }}
@@ -631,7 +656,7 @@ export function SplashView({ bgUrl, targetX, targetY, targetSize, label, profile
           {hit && profile && <ProfilePanels aim={aim} R={R} vp={vp} profile={profile} />}
           <div className="sp-corner tl">EVEDEN TACTICAL OPTICS<br /><span>WIND STABILIZER · ×{ZOOM.toFixed(1)} · FFP</span></div>
           <div className={`sp-corner tr ${hit ? 'hot' : ''}`}>{hit ? '● LOCK' : '○ SCAN'}<br /><span>CH-02</span></div>
-          <div className={`sp-hud ${hit ? 'hot' : ''}`}>
+          <div className={`sp-hud ${hit ? 'hot' : ''} ${mobile && aim.y > vp.h * 0.6 ? 'up' : ''}`}>
             {hit
               ? <span className="found">...찾았네.</span>
               : <span className="scan">{label || 'SCANNING'}</span>}
