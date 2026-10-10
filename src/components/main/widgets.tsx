@@ -1,6 +1,6 @@
 'use client';
 // 메인 위젯 렌더러 (4.0) — DIARY/LATEST/UPCOMING 등은 해당 기능(2·3차) 전까지 데모 데이터
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { WidgetConf, useMainStore, WIDGET_META, decoSlides } from '@/lib/mainStore';
 import { useAuth } from '@/lib/auth';
@@ -724,12 +724,47 @@ export function HtmlBlockWidget({ conf }: { conf: WidgetConf }) {
   };
   const bgUrl = useBlobUrl(s.bgImageId);
   useEditEvent(conf.id, () => setOpen(true));
+  const html = s.html ? s.html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') : '';
+
+  // 화면 맞춤: 콘텐츠가 가용 폭보다 넓으면(고정폭 HTML) 폭에 맞춰 통째로 축소 — 잘림 없음.
+  // 반응형 HTML이면 넘침이 없으므로 배율 1 그대로.
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [fit, setFit] = useState<{ s: number; h: number; dx: number } | null>(null);
+  useLayoutEffect(() => {
+    const el = innerRef.current;
+    if (!s.autoH || !el) { setFit(null); return; }
+    const measure = () => {
+      const cw = el.clientWidth, sw = el.scrollWidth;
+      // 자식 실측(현재 배율 보정) — 왼쪽 여백만큼 오른쪽에도 여백을 줘서 좌우 대칭
+      const box = el.getBoundingClientRect();
+      const cur = el.offsetWidth ? box.width / el.offsetWidth : 1;
+      let l = Infinity, r = -Infinity;
+      for (const c of Array.from(el.children)) {
+        const b = c.getBoundingClientRect();
+        if (b.width === 0) continue;
+        l = Math.min(l, (b.left - box.left) / cur); r = Math.max(r, (b.right - box.left) / cur);
+      }
+      const lm = Number.isFinite(l) ? Math.max(0, l) : 0;
+      const end = Math.max(sw, Number.isFinite(r) ? r : 0);
+      let sc = 1, dx = 0;
+      if (cw > 0 && end > cw + 1) sc = cw / (end + lm);
+      else if (Number.isFinite(r) && r < cw - 2) dx = Math.max(0, Math.round((cw - r - lm) / 2));
+      const h = el.scrollHeight;
+      setFit(p => (p && Math.abs(p.s - sc) < 0.002 && Math.abs(p.h - h) < 1 && p.dx === dx ? p : { s: sc, h, dx }));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    Array.from(el.children).forEach(c => ro.observe(c));
+    el.addEventListener('load', measure, true);
+    return () => { ro.disconnect(); el.removeEventListener('load', measure, true); };
+  }, [s.autoH, html]);
 
   const bgStyle: React.CSSProperties = {
     width: '100%',
     height: s.autoH ? 'auto' : '100%',
-    minHeight: s.autoH ? '100vh' : 80,
-    overflow: s.autoH ? 'visible' : 'hidden',
+    minHeight: 80,
+    overflow: 'hidden',
     ...(s.bgColor ? { backgroundColor: s.bgColor } : {}),
     ...(bgUrl ? {
       backgroundImage: `url("${bgUrl}")`,
@@ -743,8 +778,17 @@ export function HtmlBlockWidget({ conf }: { conf: WidgetConf }) {
 
   return (
     <div className="htmlblock-wgt" style={bgStyle}>
-      {s.html ? (
-        <div dangerouslySetInnerHTML={{ __html: s.html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') }} />
+      {html ? (
+        s.autoH ? (
+          <div style={{ height: fit ? fit.h * fit.s : undefined, overflow: 'hidden' }}>
+            <div ref={innerRef} className="htmlblock-fit"
+              style={fit && fit.s < 1 ? { transform: `scale(${fit.s})`, transformOrigin: '0 0' }
+                : fit && fit.dx ? { transform: `translateX(${fit.dx}px)` } : undefined}
+              dangerouslySetInnerHTML={{ __html: html }} />
+          </div>
+        ) : (
+          <div dangerouslySetInnerHTML={{ __html: html }} />
+        )
       ) : (
         isAdmin && !editOn ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: 80, color: '#888', fontSize: 12 }}>
