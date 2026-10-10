@@ -111,7 +111,7 @@ export function WidgetFrame({ conf, mobileOrder, children, className, style, onC
   };
 
   // 기울기 (v1.9 사용자 요청 — 이미지·자유 텍스트) — 왼쪽 위 핸들 드래그로 위젯 중심 기준 회전
-  const rotatable = conf.type === 'deco' || conf.type === 'freetext';
+  const rotatable = conf.type === 'deco' || conf.type === 'freetext' || conf.type === 'htmlblock';
   const onRotDown = (e: React.PointerEvent) => {
     if (!editOn) return;
     e.stopPropagation(); e.preventDefault();

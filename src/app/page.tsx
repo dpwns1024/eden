@@ -9,8 +9,8 @@ import { Modal, ConfirmModal } from '@/components/ui/Modal';
 import { KRadio } from '@/components/ui/Kit';
 import { useToast } from '@/components/ui/Toast';
 
-const ADDABLE: (WidgetType | 'menu_pc')[] = ['menu_pc', 'menu', 'memo', 'dday', 'todo', 'upcoming', 'freetext', 'deco', 'diary', 'latest', 'apply'];
-const EDITABLE: (WidgetType | 'menu_pc')[] = ['banner', 'menu_pc', 'menu', 'memo', 'dday', 'todo', 'freetext', 'deco', 'apply'];
+const ADDABLE: (WidgetType | 'menu_pc')[] = ['menu_pc', 'menu', 'memo', 'dday', 'todo', 'upcoming', 'freetext', 'deco', 'diary', 'latest', 'apply', 'htmlblock'];
+const EDITABLE: (WidgetType | 'menu_pc')[] = ['banner', 'menu_pc', 'menu', 'memo', 'dday', 'todo', 'freetext', 'deco', 'apply', 'htmlblock'];
 
 export default function MainPage() {
   const { state, gridOn, updateWidget, addWidget, removeWidget } = useMainStore();

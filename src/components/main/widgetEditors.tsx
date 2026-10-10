@@ -446,3 +446,81 @@ export function BannerEditor({ conf, onSaved, onClose }: {
     </div>
   );
 }
+
+/* ---------- HTML 블록 에디터 (v2.1) ---------- */
+export function HtmlBlockSettingEditor({ conf }: { conf: WidgetConf }) {
+  const { updateWidget } = useMainStore();
+  const s = conf.settings as {
+    html?: string; bgColor?: string; bgImageId?: string;
+    bgSize?: string; padding?: number;
+  };
+  const [draft, setDraft] = useState(s);
+  const bgUrl = useBlobUrl(draft.bgImageId);
+  const fileRef = React.useRef<HTMLInputElement>(null);
+
+  useEffect(() => setDraft({ ...s }), [conf.settings]); // eslint-disable-line react-hooks/exhaustive-deps
+  const dirty = JSON.stringify(draft) !== JSON.stringify(s);
+
+  const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const id = await putBlob(f);
+    setDraft(d => ({ ...d, bgImageId: id }));
+  };
+
+  return (
+    <div style={{ display: 'grid', gap: 10 }}>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <span className="cp-lb">배경색</span>
+        <ColorField value={draft.bgColor ?? '#00000000'} onChange={hex => setDraft(d => ({ ...d, bgColor: hex }))} />
+        {draft.bgColor && (
+          <button className="btn btn-ghost" style={{ fontSize: 10, padding: '3px 8px' }}
+            onClick={() => setDraft(d => ({ ...d, bgColor: undefined }))}>초기화</button>
+        )}
+      </div>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <span className="cp-lb">배경 이미지</span>
+        <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onFile} />
+        <button className="btn btn-ghost" style={{ fontSize: 11, padding: '5px 12px' }}
+          onClick={() => fileRef.current?.click()}>
+          {bgUrl ? '변경' : '업로드'}
+        </button>
+        {bgUrl && (
+          <>
+            <div style={{ width: 32, height: 32, borderRadius: 5, overflow: 'hidden', border: '1px solid var(--line)' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={bgUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+            <KSelect minWidth={80} value={draft.bgSize ?? 'cover'}
+              onChange={v => setDraft(d => ({ ...d, bgSize: v }))}
+              options={[
+                { value: 'cover', label: '채우기' },
+                { value: 'contain', label: '맞추기' },
+                { value: 'auto', label: '원본' },
+              ]} />
+            <button className="btn btn-ghost" style={{ fontSize: 10, padding: '3px 8px' }}
+              onClick={() => setDraft(d => ({ ...d, bgImageId: undefined }))}>삭제</button>
+          </>
+        )}
+      </div>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        <span className="cp-lb">안쪽 여백</span>
+        <KStep value={draft.padding ?? 0} min={0} max={100} step={4} suffix="px"
+          onChange={v => setDraft(d => ({ ...d, padding: v }))} />
+      </div>
+      <KTextarea
+        value={draft.html ?? ''}
+        onChange={e => setDraft(d => ({ ...d, html: e.target.value }))}
+        style={{ fontFamily: 'monospace', fontSize: 12, minHeight: 160 }}
+        placeholder={'<div style="text-align:center; color:#fff;">\n  <h1>Welcome</h1>\n</div>'}
+      />
+      <p className="hint">인라인 CSS · &lt;style&gt; 태그(반응형 @media 포함) 사용 가능 · &lt;script&gt;는 실행되지 않습니다</p>
+      {dirty && (
+        <button className="btn btn-dark" style={{ justifySelf: 'end' }}
+          onClick={() => updateWidget(conf.id, { settings: { ...conf.settings, ...draft } }, { persist: true })}>
+          SAVE
+        </button>
+      )}
+    </div>
+  );
+}
