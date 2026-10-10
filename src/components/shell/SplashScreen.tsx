@@ -22,38 +22,200 @@ class SplashBoundary extends Component<{ children: React.ReactNode }, { err: boo
   render() { return this.state.err ? null : this.props.children; }
 }
 
+type Profile = { name: string; sub: string; rows: [string, string][] };
+
 function Reticle({ hot }: { hot: boolean }) {
-  const c = hot ? '#ff3b30' : '#0d0d0d';
-  const ticks: React.ReactNode[] = [];
-  for (let i = 1; i <= 5; i++) {
-    const p = i * 9;
-    ticks.push(
-      <line key={`r${i}`} x1={p} y1={-2} x2={p} y2={2} />,
-      <line key={`l${i}`} x1={-p} y1={-2} x2={-p} y2={2} />,
-      <line key={`t${i}`} x1={-2} y1={-p} x2={2} y2={-p} />,
-      <line key={`d${i}`} x1={-(2.4 + i * 1.5)} y1={p} x2={2.4 + i * 1.5} y2={p} />,
+  const c = hot ? '#ff3b30' : '#0a0a0a';
+  const marks: React.ReactNode[] = [];
+  for (let i = 1; i <= 11; i++) {
+    const p = i * 5, L = i % 2 === 0 ? 2.8 : 1.6;
+    marks.push(
+      <line key={`r${i}`} x1={p} y1={-L} x2={p} y2={L} />,
+      <line key={`l${i}`} x1={-p} y1={-L} x2={-p} y2={L} />,
+      <line key={`t${i}`} x1={-L} y1={-p} x2={L} y2={-p} />,
+      <line key={`b${i}`} x1={-L} y1={p} x2={L} y2={p} />,
     );
   }
+  const tree: React.ReactNode[] = [];
+  [10, 20, 30, 40].forEach((y, k) => {
+    for (let j = -(k + 1); j <= k + 1; j++) if (j) tree.push(<circle key={`d${y}_${j}`} cx={j * 5} cy={y} r={0.6} />);
+  });
   return (
     <svg viewBox="-100 -100 200 200" className="sp-reticle" aria-hidden>
-      <g stroke="#0b0b0b" strokeWidth="5">
-        <line x1="0" y1="-100" x2="0" y2="-56" />
-        <line x1="0" y1="100" x2="0" y2="56" />
-        <line x1="-100" y1="0" x2="-56" y2="0" />
-        <line x1="100" y1="0" x2="56" y2="0" />
+      <g stroke="#0a0a0a" strokeWidth="4.2">
+        <line x1="0" y1="-100" x2="0" y2="-60" /><line x1="0" y1="100" x2="0" y2="60" />
+        <line x1="-100" y1="0" x2="-60" y2="0" /><line x1="100" y1="0" x2="60" y2="0" />
       </g>
-      <g stroke={c} strokeWidth="0.7">
-        <line x1="0" y1="-56" x2="0" y2="56" />
-        <line x1="-56" y1="0" x2="56" y2="0" />
-        {ticks}
+      <g stroke={c} strokeWidth="0.45" fill="none">
+        <line x1="-60" y1="0" x2="-1.8" y2="0" /><line x1="1.8" y1="0" x2="60" y2="0" />
+        <line x1="0" y1="-60" x2="0" y2="-1.8" /><line x1="0" y1="1.8" x2="0" y2="60" />
+        {marks}
       </g>
-      <g fill={c} fontSize="4.6" fontFamily="ui-monospace,monospace" textAnchor="middle">
-        <text x="18" y="8">2</text><text x="36" y="8">4</text>
-        <text x="-9" y="19.5">2</text><text x="-9" y="37.5">4</text>
+      <g fill={c}>{tree}</g>
+      <g fill={c} fontSize="3.4" fontFamily="ui-monospace,monospace" textAnchor="middle">
+        {[2, 4, 6, 8].map(n => <text key={`nx${n}`} x={n * 5} y={6.6}>{n}</text>)}
+        {[2, 4, 6, 8].map(n => <text key={`ny${n}`} x={-5.5} y={-n * 5 + 1.2}>{n}</text>)}
       </g>
-      {hot && <circle r="1.5" fill="#ff3b30" />}
-      {hot && <circle r="8" fill="none" stroke="#ff3b30" strokeWidth="0.6" className="sp-lock" />}
+      <circle r="0.85" fill={c} />
+      {hot && <rect x="-6" y="-6" width="12" height="12" fill="none" stroke="#ff3b30" strokeWidth="0.5" className="sp-lock" />}
     </svg>
+  );
+}
+
+function ScopeHud({ aim, R, hot, vp }: { aim: Pt; R: number; hot: boolean; vp: { w: number; h: number } }) {
+  const S = (R + 130) * 2;
+  const az = ((aim.x / vp.w) * 360).toFixed(1);
+  const rng = String(Math.round(380 + (aim.y / vp.h) * 240)).padStart(4, '0');
+  const elv = ((0.5 - aim.y / vp.h) * 2).toFixed(1);
+  const fan: React.ReactNode[] = [];
+  for (let i = 0; i <= 30; i++) {
+    const a = ((-118 + i * 3) * Math.PI) / 180;
+    const r1 = R + 36, r2 = R + (i % 5 === 0 ? 50 : 42);
+    fan.push(<line key={i} x1={Math.cos(a) * r1} y1={Math.sin(a) * r1} x2={Math.cos(a) * r2} y2={Math.sin(a) * r2} />);
+  }
+  const tri = hot ? R + 14 : R + 56;
+  const la = (-128 * Math.PI) / 180;
+  return (
+    <div className={`sp-hudring ${hot ? 'hot' : ''}`} style={{ left: aim.x - S / 2, top: aim.y - S / 2, width: S, height: S }}>
+      <svg viewBox={`${-S / 2} ${-S / 2} ${S} ${S}`} aria-hidden>
+        <circle r={R + 4} className="tube" />
+        <circle r={R + 10} className="hair" />
+        <g className="spin"><circle r={R + 21} className="seg" strokeDasharray="46 10 10 10 120 18 22 30 64 14" /></g>
+        <g className="spin rev"><circle r={R + 28} className="dots" /></g>
+        <g className="fan">{fan}</g>
+        {[0, 90, 180, 270].map(d => (
+          <g key={d} transform={`rotate(${d})`}>
+            <path d="M 0 0 l 10 -5.5 l 0 11 z" className="tri" style={{ transform: `translateX(${tri}px)` }} />
+            <line x1={R + 70} y1={0} x2={R + 122} y2={0} className="ext side" />
+          </g>
+        ))}
+        <text x={Math.cos(la) * (R + 58)} y={Math.sin(la) * (R + 58)} textAnchor="end" className="lb side">AZ {az}°</text>
+        <text x={R + 70} y={-9} className="lb side">×8.0</text>
+        <text x={0} y={R + 78} textAnchor="middle" className="lb side">RNG {rng} M</text>
+        <text x={-R - 70} y={-9} textAnchor="end" className="lb side">ELV {elv}</text>
+      </svg>
+    </div>
+  );
+}
+
+const GLYPHS = '█▓▒░#%&@$01ABCDEFXZ';
+function Decode({ text, delay = 0, dur = 420 }: { text: string; delay?: number; dur?: number }) {
+  const [out, setOut] = useState('');
+  useEffect(() => {
+    let raf = 0;
+    const start = performance.now() + delay;
+    const tick = () => {
+      const t = performance.now() - start;
+      if (t >= 0) {
+        const n = Math.floor(Math.min(1, t / dur) * text.length);
+        let s = text.slice(0, n);
+        for (let i = n; i < text.length; i++) s += text[i] === ' ' ? ' ' : GLYPHS[(Math.random() * GLYPHS.length) | 0];
+        setOut(s);
+        if (n >= text.length) return;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [text, delay, dur]);
+  return <>{out || ' '}</>;
+}
+
+function ProfilePanels({ aim, R, vp, profile }: { aim: Pt; R: number; vp: { w: number; h: number }; profile: Profile }) {
+  const compact = vp.w < 760;
+  const rowsH = profile.rows.length * 21;
+  type Box = { key: 'a' | 'b' | 'c' | 'm'; x: number; y: number; w: number; h: number };
+  const boxes: Box[] = [];
+  const top = compact ? 14 : 60;
+  const cy = (y: number, h: number) => Math.max(top, Math.min(vp.h - h - 70, y));
+  const cx = (x: number, w: number) => Math.max(12, Math.min(vp.w - w - 12, x));
+  if (compact) {
+    const w = Math.min(vp.w - 24, 360), h = 104 + rowsH;
+    const below = aim.y + R + 34 + h < vp.h - 64;
+    boxes.push({ key: 'm', w, h, x: (vp.w - w) / 2, y: below ? aim.y + R + 34 : Math.max(14, aim.y - R - 34 - h) });
+  } else {
+    const gap = R + 80;
+    const A = { w: 300, h: 118 }, B = { w: 290, h: 64 + rowsH }, C = { w: 236, h: 132 };
+    const spR = vp.w - (aim.x + gap) - 16, spL = aim.x - gap - 16;
+    const bR = spR >= B.w || spR >= spL;
+    const split = (bR ? spL : spR) >= Math.max(A.w, C.w) + 26;
+    const bx = cx(bR ? aim.x + gap : aim.x - gap - B.w, B.w);
+    if (split) {
+      const oR = !bR;
+      boxes.push({ key: 'b', ...B, x: bx, y: cy(aim.y - B.h / 2 + 30, B.h) });
+      const ay = cy(aim.y - R - 30, A.h);
+      boxes.push({ key: 'a', ...A, x: cx(oR ? aim.x + gap + 26 : aim.x - gap - 26 - A.w, A.w), y: ay });
+      boxes.push({ key: 'c', ...C, x: cx(oR ? aim.x + gap : aim.x - gap - C.w, C.w), y: Math.max(cy(aim.y + R * 0.45, C.h), ay + A.h + 18) });
+    } else {
+      // 한쪽에 세로로 쌓기 — 전체 묶음을 한 번에 배치해야 서로 겹치지 않는다
+      const g = 18, total = A.h + B.h + C.h + g * 2;
+      const y0 = Math.max(top, Math.min(vp.h - total - 70, aim.y - total / 2));
+      const colX = cx(bx, Math.max(A.w, B.w, C.w));
+      boxes.push({ key: 'a', ...A, x: colX, y: y0 });
+      boxes.push({ key: 'b', ...B, x: colX, y: y0 + A.h + g });
+      boxes.push({ key: 'c', ...C, x: colX, y: y0 + A.h + B.h + g * 2 });
+    }
+  }
+  const order = { a: 0, b: 1, c: 2, m: 0 };
+  const links = boxes.map(b => {
+    const right = b.x + b.w / 2 > aim.x;
+    const ax = compact ? b.x + b.w / 2 : right ? b.x : b.x + b.w;
+    const ay = compact ? (b.y > aim.y ? b.y : b.y + b.h) : b.y + 22;
+    const ang = Math.atan2(ay - aim.y, ax - aim.x);
+    const sx = aim.x + Math.cos(ang) * (R + 21), sy = aim.y + Math.sin(ang) * (R + 21);
+    const pts = compact
+      ? `${sx},${sy} ${sx},${(sy + ay) / 2} ${ax},${(sy + ay) / 2} ${ax},${ay}`
+      : `${sx},${sy} ${ax + (right ? -34 : 34)},${ay} ${ax},${ay}`;
+    return { key: b.key, pts, sx, sy, ax, ay, d: order[b.key] * 0.12 };
+  });
+  const rng = String(Math.round(380 + (aim.y / vp.h) * 240)).padStart(4, '0');
+  const elv = ((0.5 - aim.y / vp.h) * 2).toFixed(1);
+  const ms = (key: Box['key']) => (0.3 + order[key] * 0.12) * 1000;
+
+  const head = (label: string) => <div className="hd"><span>{label}</span><i className="bc" /></div>;
+  const idBlock = (k: Box['key']) => (
+    <>
+      <div className="nm"><Decode text={profile.name} delay={ms(k)} /></div>
+      {profile.sub && <div className="sb"><Decode text={profile.sub} delay={ms(k) + 140} /></div>}
+    </>
+  );
+  const rowsBlock = (k: Box['key']) => profile.rows.map(([a, v], i) => (
+    <div className="rw" key={i}><b>{a}</b><span><Decode text={v} delay={ms(k) + 120 + i * 90} dur={300} /></span></div>
+  ));
+  const avatar = (
+    <div className="av"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4.2" /><path d="M3.5 21c.6-4.6 4.2-7 8.5-7s7.9 2.4 8.5 7z" /></svg></div>
+  );
+  const foot = <div className="ft"><i /><i /><i className="l" /><i /></div>;
+
+  return (
+    <>
+      <svg className="sp-links" aria-hidden>
+        {links.map(l => (
+          <g key={l.key} style={{ '--d': `${l.d}s` } as React.CSSProperties}>
+            <polyline points={l.pts} pathLength={1} className="ln" />
+            <circle cx={l.sx} cy={l.sy} r={2.6} className="nd" />
+            <circle cx={l.ax} cy={l.ay} r={2.2} className="nd" />
+          </g>
+        ))}
+      </svg>
+      {boxes.map(b => (
+        <div key={b.key} className={`sp-panel sp-panel-${b.key}`}
+          style={{ left: b.x, top: b.y, width: b.w, '--d': `${0.16 + order[b.key] * 0.12}s` } as React.CSSProperties}>
+          {b.key === 'a' && <>{head('TARGET ID')}{idBlock('a')}{foot}</>}
+          {b.key === 'b' && <>{head('PROFILE')}<div className="pb"><div>{rowsBlock('b')}</div>{avatar}</div></>}
+          {b.key === 'c' && (
+            <>
+              {head('TELEMETRY')}
+              <div className="rw"><b>DIST</b><span>{rng} M</span></div>
+              <div className="rw"><b>WIND</b><span>2.1 M/S ↗</span></div>
+              <div className="rw"><b>ELEV</b><span>{elv} MIL</span></div>
+              <div className="lk"><b>LOCK</b><div className="bar"><i /></div><span>100%</span></div>
+            </>
+          )}
+          {b.key === 'm' && <>{head('TARGET ID')}<div className="pb"><div>{idBlock('m')}</div>{avatar}</div><div className="mr">{rowsBlock('m')}</div></>}
+        </div>
+      ))}
+    </>
   );
 }
 
@@ -388,8 +550,8 @@ function runShatter(canvas: HTMLCanvasElement, img: HTMLImageElement, at: Pt, do
 }
 
 /* ───────── 스코프 화면 ───────── */
-export function SplashView({ bgUrl, targetX, targetY, targetSize, label, onFire, onDone }: {
-  bgUrl: string; targetX: number; targetY: number; targetSize: number; label?: string;
+export function SplashView({ bgUrl, targetX, targetY, targetSize, label, profile, onFire, onDone }: {
+  bgUrl: string; targetX: number; targetY: number; targetSize: number; label?: string; profile?: Profile | null;
   onFire?: () => void; onDone: () => void;
 }) {
   const [img, setImg] = useState<HTMLImageElement | null>(null);
@@ -462,10 +624,14 @@ export function SplashView({ bgUrl, targetX, targetY, targetSize, label, onFire,
           >
             <Reticle hot={hit} />
           </div>
+          <ScopeHud aim={aim} R={R} hot={hit} vp={vp} />
+          {hit && profile && <ProfilePanels aim={aim} R={R} vp={vp} profile={profile} />}
+          <div className="sp-corner tl">EVEDEN TACTICAL OPTICS<br /><span>MK-II · ×8.0 · FFP</span></div>
+          <div className={`sp-corner tr ${hit ? 'hot' : ''}`}>{hit ? '● LOCK' : '○ SCAN'}<br /><span>CH-02</span></div>
           <div className={`sp-hud ${hit ? 'hot' : ''}`}>
             {hit
               ? <><b>TARGET LOCKED</b><span>{touch ? 'RELEASE TO FIRE' : 'CLICK TO FIRE'}</span></>
-              : <span>{label || 'FIND THE TARGET'}</span>}
+              : <span className="scan">{label || 'SCANNING'}</span>}
           </div>
         </>
       )}
@@ -495,6 +661,12 @@ function SplashInner() {
       targetY={conf.targetY}
       targetSize={conf.targetSize}
       label={conf.targetLabel}
+      profile={conf.profileOn ? {
+        name: conf.profileName,
+        sub: conf.profileSub,
+        rows: conf.profileRows.split('\n').map(l => l.split('|')).filter(p => p.length >= 2 && p[0].trim())
+          .map(p => [p[0].trim(), p.slice(1).join('|').trim()] as [string, string]),
+      } : null}
       onFire={markSplashSeen}
       onDone={() => { setShow(false); document.body.style.overflow = ''; }}
     />
