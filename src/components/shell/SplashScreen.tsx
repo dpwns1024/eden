@@ -557,7 +557,6 @@ export function SplashView({ bgUrl, targetX, targetY, targetSize, label, profile
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   const [vp, setVp] = useState({ w: 0, h: 0 });
   const [pos, setPos] = useState<Pt | null>(null);
-  const [touch, setTouch] = useState(false);
   const [impact, setImpact] = useState<Pt | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const doneRef = useRef(onDone);
@@ -594,7 +593,6 @@ export function SplashView({ bgUrl, targetX, targetY, targetSize, label, profile
 
   const track = (e: React.PointerEvent) => {
     if (impact) return;
-    setTouch(e.pointerType !== 'mouse');
     setPos({ x: e.clientX, y: e.clientY });
   };
 
@@ -630,7 +628,7 @@ export function SplashView({ bgUrl, targetX, targetY, targetSize, label, profile
           <div className={`sp-corner tr ${hit ? 'hot' : ''}`}>{hit ? '● LOCK' : '○ SCAN'}<br /><span>CH-02</span></div>
           <div className={`sp-hud ${hit ? 'hot' : ''}`}>
             {hit
-              ? <><b>TARGET LOCKED</b><span>{touch ? 'RELEASE TO FIRE' : 'CLICK TO FIRE'}</span></>
+              ? <><b>TARGET LOCKED</b><span className="found">...찾았다.</span></>
               : <span className="scan">{label || 'SCANNING'}</span>}
           </div>
         </>

@@ -112,9 +112,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     let alive = true;
-    void be.currentUser().then(u => { if (alive) { setUser(u as User | null); setReady(true); } });
+    // 로그인 복원 콜백이 안 오는 브라우저(iOS Safari 저장소 문제 등)에서 화면이 멈추지 않게 —
+    // 4초 뒤에는 비로그인으로 보고 진행, 나중에 로그인 상태가 오면 그대로 반영된다
+    const fallback = setTimeout(() => { if (alive) setReady(true); }, 4000);
+    void be.currentUser().then(u => { if (alive) { setUser(u as User | null); setReady(true); } }).catch(() => { if (alive) setReady(true); });
     const off = be.onAuthChange(u => { if (alive) { setUser(u as User | null); setReady(true); } });
-    return () => { alive = false; off(); };
+    return () => { alive = false; clearTimeout(fallback); off(); };
   }, [server, be]);
 
   const login = useCallback(async (id: string, password: string): Promise<Result> => {

@@ -15,8 +15,10 @@ export function ServerBoot({ children }: { children: React.ReactNode }) {
     const t = setTimeout(() => { if (alive) setSlow(true); }, 400);
     // 백엔드 확정 → 사이트 설정(테마·메뉴·폰트…)을 한 번에 받아 캐시 → 그 다음에 화면을 그린다.
     // 각 스토어가 렌더 중 동기적으로 설정을 읽기 때문에 순서가 중요하다.
-    initSupabase()
-      .then(() => primeSettings())
+    // 상한 5초 — 일부 브라우저(iPad Safari 등)에서 서버 연결이 응답 없이 멈추면
+    // 화면이 영영 안 뜨던 문제. 늦게 도착한 설정은 캐시에 채워진다.
+    const boot = initSupabase().then(() => primeSettings()).catch(() => {});
+    Promise.race([boot, new Promise(r => setTimeout(r, 5000))])
       .finally(() => { if (alive) { clearTimeout(t); setReady(true); } });
     return () => { alive = false; clearTimeout(t); };
   }, []);
