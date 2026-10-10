@@ -1791,18 +1791,29 @@ body.edit-on .main-grid.gridlines .wgt{outline-offset:0}
 
 /* 스플래시 스크린 (v2.1) */
 /* ─── splash: sniper scope ─── */
-.splash-overlay{position:fixed;inset:0;z-index:9999;overflow:hidden;background:#000}
+.splash-overlay{position:fixed;inset:0;z-index:9999;overflow:hidden;background:#000;transform-style:preserve-3d}
 .splash-bg{position:absolute;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat}
-.splash-frag{position:absolute;will-change:transform,opacity}
+.splash-frag{position:absolute;will-change:transform,opacity;backface-visibility:hidden}
+
+/* screen shake on impact */
+.splash-overlay.sp-shake{animation:spShake .4s ease-out}
+@keyframes spShake{
+  0%{transform:translate(0,0)}
+  15%{transform:translate(-6px,4px)}
+  30%{transform:translate(5px,-3px)}
+  45%{transform:translate(-3px,2px)}
+  60%{transform:translate(2px,-1px)}
+  100%{transform:translate(0,0)}
+}
 
 /* scope image (masked circle) */
 .sp-scope-img{position:absolute;inset:0;background-size:cover;background-position:center}
 /* scope ring */
 .sp-scope-ring{position:absolute;transform:translate(-50%,-50%);pointer-events:none}
 .sp-scope-ring svg{width:100%;height:100%;filter:drop-shadow(0 0 6px rgba(0,0,0,.5))}
-.sp-hair{stroke:rgba(0,0,0,.7);stroke-width:1.4}
+.sp-hair{stroke:rgba(0,0,0,.7);stroke-width:1.4;transition:stroke .15s}
 .sp-hair.on{stroke:#e53935}
-.sp-tick{stroke:rgba(0,0,0,.6);stroke-width:1}
+.sp-tick{stroke:rgba(0,0,0,.6);stroke-width:1;transition:stroke .15s}
 .sp-tick.on{stroke:#e53935}
 
 /* fire indicator */
@@ -1810,19 +1821,23 @@ body.edit-on .main-grid.gridlines .wgt{outline-offset:0}
 @keyframes spPulse{0%,100%{opacity:1}50%{opacity:.3}}
 
 /* flash */
-.sp-flash{position:absolute;inset:0;background:#fff;animation:spFlash .35s ease-out forwards;z-index:5}
-@keyframes spFlash{0%{opacity:.9}100%{opacity:0}}
+.sp-flash{position:absolute;inset:0;background:#fff;animation:spFlash .3s ease-out forwards;z-index:5}
+@keyframes spFlash{0%{opacity:.85}100%{opacity:0}}
 
-/* crack lines */
+/* crack lines — jagged polylines */
 .sp-cracks{position:absolute;inset:0;width:100%;height:100%;z-index:6}
-.sp-crack-line{stroke:rgba(255,255,255,.7);stroke-width:.12;stroke-dasharray:200;stroke-dashoffset:200;animation:spCrack .45s ease-out forwards}
+.sp-crack-line{stroke-dasharray:300;stroke-dashoffset:300;animation:spCrack .4s ease-out forwards}
 @keyframes spCrack{to{stroke-dashoffset:0}}
 
-/* falling fragments */
-.splash-frag.sp-falling{animation:spFall .9s cubic-bezier(.4,0,1,1) var(--delay,0ms) forwards;transform-origin:center}
+/* falling fragments — 3D tumble */
+.splash-frag.sp-falling{
+  animation:spFall var(--dur,900ms) cubic-bezier(.32,.06,.83,.45) var(--delay,0ms) forwards;
+  transform-origin:center;
+}
 @keyframes spFall{
-  0%{transform:translate3d(0,0,0) rotate(0deg);opacity:1}
-  100%{transform:translate3d(var(--tx,0),var(--ty,0),0) rotate(var(--rot,0deg));opacity:0}
+  0%{transform:perspective(800px) translate3d(0,0,0) rotateX(0) rotateY(0) rotateZ(0) scale(1);opacity:1}
+  25%{opacity:.9}
+  100%{transform:perspective(800px) translate3d(var(--tx,0),var(--ty,0),var(--tz,0)) rotateX(var(--rx,0)) rotateY(var(--ry,0)) rotateZ(var(--rz,0)) scale(.35);opacity:0}
 }
 
 /* 이미지 올리는 중 알림 (v2.0) — 토스트와 같은 자리·모양, 조금 위 */
