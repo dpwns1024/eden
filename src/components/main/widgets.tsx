@@ -720,15 +720,16 @@ export function HtmlBlockWidget({ conf }: { conf: WidgetConf }) {
   const s = conf.settings as {
     html?: string; bgColor?: string; bgImageId?: string;
     bgSize?: 'cover' | 'contain' | 'auto'; padding?: number;
+    autoH?: boolean;
   };
   const bgUrl = useBlobUrl(s.bgImageId);
   useEditEvent(conf.id, () => setOpen(true));
 
   const bgStyle: React.CSSProperties = {
     width: '100%',
-    height: '100%',
+    height: s.autoH ? 'auto' : '100%',
     minHeight: 80,
-    overflow: 'hidden',
+    overflow: s.autoH ? 'visible' : 'hidden',
     ...(s.bgColor ? { backgroundColor: s.bgColor } : {}),
     ...(bgUrl ? {
       backgroundImage: `url("${bgUrl}")`,

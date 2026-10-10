@@ -161,7 +161,7 @@ export function WidgetFrame({ conf, mobileOrder, children, className, style, onC
     <div
       ref={ref}
       data-wid={conf.id}
-      className={`wgt ${useSize && conf.w != null ? 'sized' : ''} ${conf.mOff ? 'wgt-hide-m' : ''} ${className ?? ''}`}
+      className={`wgt ${useSize && conf.w != null ? 'sized' : ''} ${(conf.settings as any)?.autoH ? 'auto-h' : ''} ${conf.mOff ? 'wgt-hide-m' : ''} ${className ?? ''}`}
       style={{
         ...style,
         order: mobileOrder,
@@ -179,7 +179,7 @@ export function WidgetFrame({ conf, mobileOrder, children, className, style, onC
             ].join(' ').trim() || undefined,
           }),
         width: useSize && conf.w != null ? conf.w : undefined,
-        height: useSize && conf.h != null ? conf.h : undefined,
+        height: useSize && conf.h != null && !(conf.settings as any)?.autoH ? conf.h : undefined,
         zIndex: conf.z,
       }}
       onPointerDown={onPointerDown}
