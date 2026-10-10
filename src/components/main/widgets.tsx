@@ -12,7 +12,7 @@ import { Modal } from '@/components/ui/Modal';
 import { KTextarea, KSelect, KStep, KCheck } from '@/components/ui/Kit';
 import { ColorField } from '@/components/ui/ColorField';
 import { useFonts } from '@/lib/fontStore';
-import { BannerEditor, BannerSlide, DEMO_SLIDES, DdayEditor, DecoEditor, TodoEditor, TodoSetItem } from '@/components/main/widgetEditors';
+import { BannerEditor, BannerSlide, DEMO_SLIDES, DdayEditor, DecoEditor, TodoEditor, TodoSetItem, HtmlBlockSettingEditor } from '@/components/main/widgetEditors';
 import { CroppedBlobImg } from '@/components/ui/CropEditor';
 import { useLocalList } from '@/lib/postStore';
 import { RoadItem, ROAD_SEED, BackupPost, BACKUP_SEED } from '@/lib/galleryStore';
@@ -712,6 +712,56 @@ export function ApplyWidget({ conf }: { conf: WidgetConf }) {
   );
 }
 
+/* ---------- HTML 블록 ---------- */
+export function HtmlBlockWidget({ conf }: { conf: WidgetConf }) {
+  const { isAdmin } = useAuth();
+  const { editOn } = useMainStore();
+  const [open, setOpen] = useState(false);
+  const s = conf.settings as {
+    html?: string; bgColor?: string; bgImageId?: string;
+    bgSize?: 'cover' | 'contain' | 'auto'; padding?: number;
+  };
+  const bgUrl = useBlobUrl(s.bgImageId);
+  useEditEvent(conf.id, () => setOpen(true));
+
+  const bgStyle: React.CSSProperties = {
+    width: '100%',
+    height: '100%',
+    minHeight: 80,
+    overflow: 'hidden',
+    ...(s.bgColor ? { backgroundColor: s.bgColor } : {}),
+    ...(bgUrl ? {
+      backgroundImage: `url("${bgUrl}")`,
+      backgroundSize: s.bgSize ?? 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+    } : {}),
+    padding: s.padding ?? 0,
+    boxSizing: 'border-box' as const,
+  };
+
+  return (
+    <div className="htmlblock-wgt" style={bgStyle}>
+      {s.html ? (
+        <div dangerouslySetInnerHTML={{ __html: s.html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') }} />
+      ) : (
+        isAdmin && !editOn ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: 80, color: '#888', fontSize: 12 }}>
+            HTML 블록 — 편집모드에서 우클릭 → 설정
+          </div>
+        ) : null
+      )}
+      <Modal open={open} onClose={() => setOpen(false)} title="HTML 블록"
+        desc="커스텀 HTML로 메인 화면 꾸미기 — 배경색·배경이미지·HTML 코드 입력">
+        {open && <HtmlBlockSettingEditor conf={conf} />}
+        <div className="modal-actions" style={{ marginTop: 12 }}>
+          <button className="btn btn-dark" onClick={() => setOpen(false)}>CLOSE</button>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
 /* ---------- 타입 → 렌더러 ---------- */
 export function renderWidget(conf: WidgetConf) {
   if (!conf || !conf.type) return null;
@@ -732,6 +782,7 @@ export function renderWidget(conf: WidgetConf) {
     case 'deco': return <DecoWidget conf={conf} />;
     case 'memoboard': return <MemoBoardWidget />;
     case 'apply': return <ApplyWidget conf={conf} />;
+    case 'htmlblock': return <HtmlBlockWidget conf={conf} />;
     default: {
       const metaTitle = WIDGET_META?.[conf.type]?.title ?? conf.type;
       return <div className="panel widget"><h4>{metaTitle}</h4></div>;
