@@ -612,8 +612,14 @@ export function SplashView({ bgUrl, targetX, targetY, targetSize, label, profile
     ? Math.round(Math.min(80, Math.max(62, Math.min(vp.w, vp.h) * 0.18)))
     : Math.round(Math.min(138, Math.max(89, Math.min(vp.w, vp.h) * 0.219)));
   const m = mobile ? Math.ceil(R / ZOOM) + 4 : 0;
-  const base = coverRect(vp.w + m * 2, vp.h + m * 2, img.naturalWidth, img.naturalHeight);
-  const cv = { ...base, ox: base.ox - m, oy: base.oy - m };
+  // 모바일: 이미지 윗변을 화면 맨 위에 맞추고(위쪽 안 잘림) 아래쪽을 자른다.
+  // 좌우·아래로는 확대 시야만큼 더 깔아 가장자리에서도 렌즈가 비지 않게
+  const cv = (() => {
+    if (!mobile) return coverRect(vp.w, vp.h, img.naturalWidth, img.naturalHeight);
+    const sc = Math.max((vp.w + m * 2) / img.naturalWidth, (vp.h + m) / img.naturalHeight);
+    const dw = img.naturalWidth * sc, dh = img.naturalHeight * sc;
+    return { ox: (vp.w - dw) / 2, oy: 0, dw, dh };
+  })();
   layoutRef.current = { cv, w: vp.w, h: vp.h };
   const target = { x: cv.ox + (targetX / 100) * cv.dw, y: cv.oy + (targetY / 100) * cv.dh };
   const hitR = Math.max(22, targetSize / 2);
