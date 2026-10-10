@@ -1787,6 +1787,22 @@ body.edit-on .main-grid.gridlines .wgt{outline-offset:0}
 .htmlblock-wgt{border-radius:var(--radius);position:relative}
 .htmlblock-wgt img{max-width:100%;height:auto}
 
+/* 스플래시 스크린 (v2.1) */
+.splash-overlay{position:fixed;inset:0;z-index:9999;cursor:pointer;overflow:hidden;background:#000}
+.splash-bg{position:absolute;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat}
+.splash-target{position:absolute;transform:translate(-50%,-50%);border-radius:50%;display:flex;align-items:center;justify-content:center;animation:splashPulse 2s ease-in-out infinite;cursor:pointer}
+.splash-target span{color:#fff;font-size:14px;text-shadow:0 1px 6px rgba(0,0,0,.7);pointer-events:none;white-space:nowrap}
+@keyframes splashPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.4),0 0 20px 4px rgba(255,255,255,.15)}
+  50%{box-shadow:0 0 0 12px rgba(255,255,255,0),0 0 30px 8px rgba(255,255,255,.25)}
+}
+.splash-frag{position:absolute;will-change:transform,opacity}
+.splash-frag.shattering{animation:shatter var(--dur,1200ms) cubic-bezier(.25,.46,.45,.94) var(--delay,0ms) forwards}
+@keyframes shatter{
+  0%{transform:translate(0,0) rotate(0);opacity:1}
+  100%{transform:translate(var(--tx,0),var(--ty,0)) rotate(var(--rot,0));opacity:0}
+}
+
 /* 이미지 올리는 중 알림 (v2.0) — 토스트와 같은 자리·모양, 조금 위 */
 .up-busy{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);z-index:121;display:flex;align-items:center;gap:9px;padding:10px 18px;border-radius:999px;background:var(--dd-bg);color:var(--dd-fg);font-size:calc(12.5px*var(--fs,1));box-shadow:0 10px 30px rgba(0,0,0,.3);border:1px solid var(--line-dark);backdrop-filter:blur(8px)}
 .up-spin{width:12px;height:12px;border-radius:50%;border:2px solid var(--line-dark);border-top-color:var(--accent);animation:upSpin .7s linear infinite;flex-shrink:0}
