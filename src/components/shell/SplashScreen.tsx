@@ -5,10 +5,6 @@ import { useBlobUrl } from '@/lib/blobStore';
 
 const SCOPE_R = 130;
 const HIT_DIST = 8;
-const CRACK_MS = 450;
-const FALL_MS = 1100;
-const FRAG_COLS = 18;
-const FRAG_ROWS = 12;
 
 class SplashBoundary extends Component<{ children: React.ReactNode }, { err: boolean }> {
   state = { err: false };
@@ -16,70 +12,96 @@ class SplashBoundary extends Component<{ children: React.ReactNode }, { err: boo
   render() { return this.state.err ? null : this.props.children; }
 }
 
-function buildCracks(ix: number, iy: number) {
-  const main: { pts: string; delay: number; w: number }[] = [];
-  const COUNT = 20;
-  for (let i = 0; i < COUNT; i++) {
-    const a = (i / COUNT) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
-    const len = 70 + Math.random() * 80;
-    const segs = 4 + Math.floor(Math.random() * 3);
+interface CrackLine { pts: string; delay: number; w: number }
+interface Shard {
+  key: string; clip: string;
+  tx: number; ty: number; rz: number; rx: number; ry: number;
+  delay: number; dur: number; bright: number;
+}
+
+function buildCracks(ix: number, iy: number): CrackLine[] {
+  const out: CrackLine[] = [];
+  const RADIALS = 22;
+  const radii = [5, 11, 20, 34, 52, 78, 115];
+
+  for (let i = 0; i < RADIALS; i++) {
+    const a = (i / RADIALS) * Math.PI * 2 + (Math.random() - 0.5) * 0.25;
+    const len = 80 + Math.random() * 70;
+    const segs = 5 + Math.floor(Math.random() * 3);
     let pts = `${ix},${iy}`;
     for (let s = 1; s <= segs; s++) {
       const t = s / segs;
-      const dev = (Math.random() - 0.5) * 4;
-      const px = ix + Math.cos(a) * len * t + Math.cos(a + Math.PI / 2) * dev;
-      const py = iy + Math.sin(a) * len * t + Math.sin(a + Math.PI / 2) * dev;
-      pts += ` ${px},${py}`;
+      const dev = (Math.random() - 0.5) * 3;
+      pts += ` ${ix + Math.cos(a) * len * t + Math.cos(a + Math.PI / 2) * dev},${iy + Math.sin(a) * len * t + Math.sin(a + Math.PI / 2) * dev}`;
     }
-    main.push({ pts, delay: Math.random() * 60, w: 0.12 + Math.random() * 0.06 });
-    if (Math.random() > 0.4) {
-      const branchT = 0.3 + Math.random() * 0.4;
-      const bx = ix + Math.cos(a) * len * branchT;
-      const by = iy + Math.sin(a) * len * branchT;
-      const ba = a + (Math.random() > 0.5 ? 1 : -1) * (0.3 + Math.random() * 0.6);
-      const bl = 15 + Math.random() * 30;
-      const bSegs = 2 + Math.floor(Math.random() * 2);
+    out.push({ pts, delay: Math.random() * 50, w: 0.08 + Math.random() * 0.06 });
+
+    if (Math.random() > 0.35) {
+      const bt = 0.25 + Math.random() * 0.4;
+      const bx = ix + Math.cos(a) * len * bt;
+      const by = iy + Math.sin(a) * len * bt;
+      const ba = a + (Math.random() > 0.5 ? 1 : -1) * (0.3 + Math.random() * 0.5);
+      const bl = 12 + Math.random() * 25;
       let bpts = `${bx},${by}`;
-      for (let s = 1; s <= bSegs; s++) {
-        const t = s / bSegs;
-        const dev = (Math.random() - 0.5) * 2;
-        bpts += ` ${bx + Math.cos(ba) * bl * t + Math.cos(ba + Math.PI / 2) * dev},${by + Math.sin(ba) * bl * t + Math.sin(ba + Math.PI / 2) * dev}`;
+      for (let s = 1; s <= 3; s++) {
+        const t = s / 3;
+        bpts += ` ${bx + Math.cos(ba) * bl * t + (Math.random() - 0.5) * 1.5},${by + Math.sin(ba) * bl * t + (Math.random() - 0.5) * 1.5}`;
       }
-      main.push({ pts: bpts, delay: Math.random() * 100 + 40, w: 0.08 + Math.random() * 0.04 });
+      out.push({ pts: bpts, delay: 30 + Math.random() * 80, w: 0.05 + Math.random() * 0.04 });
     }
   }
-  return main;
+
+  for (const r of radii) {
+    const segs = 36;
+    let pts = '';
+    for (let s = 0; s <= segs; s++) {
+      const a = (s / segs) * Math.PI * 2;
+      const jit = (Math.random() - 0.5) * r * 0.12;
+      const px = ix + Math.cos(a) * (r + jit);
+      const py = iy + Math.sin(a) * (r + jit);
+      pts += (s ? ' ' : '') + `${px},${py}`;
+    }
+    out.push({ pts, delay: r * 0.8, w: 0.05 + Math.random() * 0.04 });
+  }
+
+  return out;
 }
 
-function buildFrags(ix: number, iy: number) {
-  const out: {
-    key: string; left: number; top: number; w: number; h: number;
-    bx: number; by: number;
-    tx: number; ty: number; tz: number;
-    rx: number; ry: number; rz: number;
-    delay: number; dur: number;
-  }[] = [];
-  const pw = 100 / FRAG_COLS, ph = 100 / FRAG_ROWS;
-  for (let r = 0; r < FRAG_ROWS; r++) {
-    for (let c = 0; c < FRAG_COLS; c++) {
-      const cx = c * pw + pw / 2, cy = r * ph + ph / 2;
-      const dx = cx - ix, dy = cy - iy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const a = Math.atan2(dy, dx);
-      const power = Math.max(0.3, 1 - dist / 120);
-      const spread = (40 + Math.random() * 80) * power;
+function buildShards(ix: number, iy: number): Shard[] {
+  const radii = [4, 9, 16, 26, 40, 60, 88, 130];
+  const SECTORS = 22;
+  const out: Shard[] = [];
+
+  for (let ri = 0; ri < radii.length - 1; ri++) {
+    const r1 = radii[ri], r2 = radii[ri + 1];
+    const jit = Math.max(0.4, 1.8 - ri * 0.22);
+
+    for (let si = 0; si < SECTORS; si++) {
+      const a1 = (si / SECTORS) * Math.PI * 2;
+      const a2 = ((si + 1) / SECTORS) * Math.PI * 2;
+      const midA = (a1 + a2) / 2;
+      const midR = (r1 + r2) / 2;
+      const j = () => (Math.random() - 0.5) * jit * 2;
+
+      const pts = [
+        { x: ix + Math.cos(a1) * r1 + j(), y: iy + Math.sin(a1) * r1 + j() },
+        { x: ix + Math.cos(a2) * r1 + j(), y: iy + Math.sin(a2) * r1 + j() },
+        { x: ix + Math.cos(a2) * r2 + j(), y: iy + Math.sin(a2) * r2 + j() },
+        { x: ix + Math.cos(a1) * r2 + j(), y: iy + Math.sin(a1) * r2 + j() },
+      ];
+
+      const spread = 25 + midR * 0.5;
       out.push({
-        key: `${r}-${c}`,
-        left: c * pw, top: r * ph, w: pw + 0.3, h: ph + 0.3,
-        bx: -c * 100, by: -r * 100,
-        tx: Math.cos(a) * spread * (0.6 + Math.random() * 0.8),
-        ty: Math.sin(a) * spread * 0.5 + 120 + Math.random() * 200 + dist * 0.8,
-        tz: -(20 + Math.random() * 60) * power,
-        rx: (Math.random() - 0.5) * 180,
-        ry: (Math.random() - 0.5) * 180,
-        rz: (Math.random() - 0.5) * 360,
-        delay: dist * 1.8 + Math.random() * 40,
-        dur: 700 + Math.random() * 500,
+        key: `${ri}-${si}`,
+        clip: `polygon(${pts.map(p => `${p.x}% ${p.y}%`).join(',')})`,
+        tx: Math.cos(midA) * spread * (0.4 + Math.random() * 0.8),
+        ty: Math.sin(midA) * spread * 0.3 + 80 + Math.random() * 160 + midR * 1.3,
+        rz: (Math.random() - 0.5) * 400,
+        rx: (Math.random() - 0.5) * 140,
+        ry: (Math.random() - 0.5) * 140,
+        delay: midR * 1.5 + Math.random() * 40,
+        dur: 550 + Math.random() * 450,
+        bright: 0.85 + Math.random() * 0.4,
       });
     }
   }
@@ -89,7 +111,7 @@ function buildFrags(ix: number, iy: number) {
 function SplashInner() {
   const conf = getSplashConf();
   const bgUrl = useBlobUrl(conf.bgBlobId);
-  const [phase, setPhase] = useState<'scope' | 'impact' | 'fall' | 'done'>('scope');
+  const [phase, setPhase] = useState<'scope' | 'crack' | 'fall' | 'done'>('scope');
   const [show, setShow] = useState(false);
   const [scope, setScope] = useState({ x: 50, y: 50 });
   const [hit, setHit] = useState(false);
@@ -98,7 +120,7 @@ function SplashInner() {
   const fired = useRef(false);
 
   const cracks = useMemo(() => buildCracks(impactPt.x, impactPt.y), [impactPt.x, impactPt.y]);
-  const frags = useMemo(() => buildFrags(impactPt.x, impactPt.y), [impactPt.x, impactPt.y]);
+  const shards = useMemo(() => buildShards(impactPt.x, impactPt.y), [impactPt.x, impactPt.y]);
 
   useEffect(() => {
     if (conf.enabled && conf.bgBlobId && !splashSeenThisSession()) {
@@ -127,10 +149,10 @@ function SplashInner() {
     if (phase !== 'scope' || !hit || fired.current) return;
     fired.current = true;
     setImpactPt({ ...scope });
-    setPhase('impact');
+    setPhase('crack');
     markSplashSeen();
-    setTimeout(() => setPhase('fall'), CRACK_MS);
-    setTimeout(() => { setPhase('done'); setShow(false); document.body.style.overflow = ''; }, CRACK_MS + FALL_MS + 150);
+    setTimeout(() => setPhase('fall'), 650);
+    setTimeout(() => { setPhase('done'); setShow(false); document.body.style.overflow = ''; }, 650 + 1100 + 100);
   }, [phase, hit, scope]);
 
   if (!show || phase === 'done' || !bgUrl) return null;
@@ -138,23 +160,21 @@ function SplashInner() {
   return (
     <div
       ref={boxRef}
-      className={`splash-overlay ${phase === 'impact' || phase === 'fall' ? 'sp-shake' : ''}`}
-      style={{ cursor: phase === 'scope' ? 'none' : undefined, perspective: '800px' }}
+      className={`splash-overlay ${phase === 'crack' ? 'sp-shake' : ''}`}
+      style={{ cursor: phase === 'scope' ? 'none' : undefined }}
       onMouseMove={e => onMove(e.clientX, e.clientY)}
       onTouchMove={e => { const t = e.touches[0]; if (t) onMove(t.clientX, t.clientY); }}
       onTouchEnd={() => fire()}
       onClick={fire}
     >
+      {/* ── scope phase ── */}
       {phase === 'scope' && (
         <>
-          <div
-            className="sp-scope-img"
-            style={{
-              backgroundImage: `url(${bgUrl})`,
-              WebkitMaskImage: `radial-gradient(circle ${SCOPE_R}px at ${scope.x}% ${scope.y}%, #000 80%, transparent 100%)`,
-              maskImage: `radial-gradient(circle ${SCOPE_R}px at ${scope.x}% ${scope.y}%, #000 80%, transparent 100%)`,
-            }}
-          />
+          <div className="sp-scope-img" style={{
+            backgroundImage: `url(${bgUrl})`,
+            WebkitMaskImage: `radial-gradient(circle ${SCOPE_R}px at ${scope.x}% ${scope.y}%, #000 80%, transparent 100%)`,
+            maskImage: `radial-gradient(circle ${SCOPE_R}px at ${scope.x}% ${scope.y}%, #000 80%, transparent 100%)`,
+          }} />
           <div className="sp-scope-ring" style={{ left: `${scope.x}%`, top: `${scope.y}%`, width: SCOPE_R * 2, height: SCOPE_R * 2 }}>
             <svg viewBox="0 0 260 260" fill="none">
               <circle cx="130" cy="130" r="128" stroke="rgba(0,0,0,.55)" strokeWidth="3" />
@@ -176,30 +196,40 @@ function SplashInner() {
         </>
       )}
 
-      {(phase === 'impact' || phase === 'fall') && (
+      {/* ── crack phase: cracks spread, image stays, bullet hole ── */}
+      {phase === 'crack' && (
         <>
           <div className="sp-flash" />
-          {phase === 'impact' && (
-            <div className="splash-bg" style={{ backgroundImage: `url(${bgUrl})` }} />
-          )}
+          <div className="splash-bg" style={{ backgroundImage: `url(${bgUrl})` }} />
+          <div className="sp-hole" style={{ left: `${impactPt.x}%`, top: `${impactPt.y}%` }} />
           <svg className="sp-cracks" viewBox="0 0 100 100" preserveAspectRatio="none">
             {cracks.map((c, i) => (
               <polyline key={i} points={c.pts} fill="none"
-                stroke="rgba(255,255,255,.6)" strokeWidth={c.w}
+                stroke="rgba(255,255,255,.55)" strokeWidth={c.w}
                 className="sp-crack-line" style={{ animationDelay: `${c.delay}ms` }} />
             ))}
-            <circle cx={impactPt.x} cy={impactPt.y} r="1" fill="#111" />
-            <circle cx={impactPt.x} cy={impactPt.y} r="2" fill="none" stroke="rgba(255,255,255,.25)" strokeWidth="0.2" />
           </svg>
-          {phase === 'fall' && frags.map(f => (
-            <div key={f.key} className="splash-frag sp-falling" style={{
-              left: `${f.left}%`, top: `${f.top}%`, width: `${f.w}%`, height: `${f.h}%`,
+        </>
+      )}
+
+      {/* ── fall phase: polar shards tumble away ── */}
+      {phase === 'fall' && (
+        <>
+          <svg className="sp-cracks sp-cracks-fade" viewBox="0 0 100 100" preserveAspectRatio="none">
+            {cracks.map((c, i) => (
+              <polyline key={i} points={c.pts} fill="none"
+                stroke="rgba(255,255,255,.4)" strokeWidth={c.w} />
+            ))}
+          </svg>
+          <div className="sp-hole sp-hole-stay" style={{ left: `${impactPt.x}%`, top: `${impactPt.y}%` }} />
+          {shards.map(s => (
+            <div key={s.key} className="sp-shard" style={{
               backgroundImage: `url(${bgUrl})`,
-              backgroundSize: `${FRAG_COLS * 100}% ${FRAG_ROWS * 100}%`,
-              backgroundPosition: `${f.bx}% ${f.by}%`,
-              '--tx': `${f.tx}px`, '--ty': `${f.ty}px`, '--tz': `${f.tz}px`,
-              '--rx': `${f.rx}deg`, '--ry': `${f.ry}deg`, '--rz': `${f.rz}deg`,
-              '--delay': `${f.delay}ms`, '--dur': `${f.dur}ms`,
+              clipPath: s.clip,
+              filter: `brightness(${s.bright})`,
+              '--tx': `${s.tx}px`, '--ty': `${s.ty}px`,
+              '--rx': `${s.rx}deg`, '--ry': `${s.ry}deg`, '--rz': `${s.rz}deg`,
+              '--delay': `${s.delay}ms`, '--dur': `${s.dur}ms`,
             } as React.CSSProperties} />
           ))}
         </>
