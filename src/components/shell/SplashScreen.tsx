@@ -589,7 +589,7 @@ export function SplashView({ bgUrl, targetX, targetY, targetSize, label, profile
   const aim = pos ?? { x: vp.w / 2, y: vp.h / 2 };
   const isHit = (p: Pt) => Math.hypot(p.x - target.x, p.y - target.y) <= hitR;
   const hit = isHit(aim);
-  const R = Math.round(Math.min(153, Math.max(99, Math.min(vp.w, vp.h) * 0.243)));
+  const R = Math.round(Math.min(138, Math.max(89, Math.min(vp.w, vp.h) * 0.219)));
 
   const track = (e: React.PointerEvent) => {
     if (impact) return;
@@ -628,7 +628,7 @@ export function SplashView({ bgUrl, targetX, targetY, targetSize, label, profile
           <div className={`sp-corner tr ${hit ? 'hot' : ''}`}>{hit ? '● LOCK' : '○ SCAN'}<br /><span>CH-02</span></div>
           <div className={`sp-hud ${hit ? 'hot' : ''}`}>
             {hit
-              ? <><b>TARGET LOCKED</b><span className="found">...찾았다.</span></>
+              ? <span className="found">...찾았네.</span>
               : <span className="scan">{label || 'SCANNING'}</span>}
           </div>
         </>
