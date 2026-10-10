@@ -27,7 +27,7 @@ const DEFAULTS: SplashConf = {
   profileOn: true,
   profileName: 'EVE',
   profileSub: 'SUBJECT 02 · A-CLASS SENTINEL',
-  profileRows: 'NAME | 전하민\nATTR | PYRE\nAGE | 26\nFILE | EV-02-PYRE\nSTATUS | ACTIVE',
+  profileRows: 'NAME | 전하민\nATTR | PYRE\nAGE | 26\nFILE | AGENT-PYRE-02\nSTATUS | 폭주',
 };
 
 export function getSplashConf(): SplashConf {

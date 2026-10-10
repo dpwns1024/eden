@@ -1866,6 +1866,7 @@ body.edit-on .main-grid.gridlines .wgt{outline-offset:0}
 .sp-panel .sb{margin-top:7px;font-size:10px;letter-spacing:.2em;color:rgba(255,255,255,.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sp-panel .pb{display:grid;grid-template-columns:1fr 48px;gap:12px;align-items:start}
 .sp-panel .rw{display:grid;grid-template-columns:62px 1fr;align-items:baseline;height:21px;font-size:12.5px;letter-spacing:.06em;white-space:nowrap}
+.sp-panel .rw.alert span{color:#ff3b30;text-shadow:0 0 10px rgba(255,59,48,.6);animation:spBlink 1s steps(2) 3}
 .sp-panel .rw b{font-weight:400;font-size:9px;letter-spacing:.24em;color:rgba(255,255,255,.5)}
 .sp-panel .mr{margin-top:10px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.2)}
 .sp-panel .av{width:46px;height:46px;border:1px solid rgba(255,255,255,.6);display:grid;place-items:center;position:relative}

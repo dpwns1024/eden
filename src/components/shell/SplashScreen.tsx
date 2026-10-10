@@ -24,6 +24,9 @@ class SplashBoundary extends Component<{ children: React.ReactNode }, { err: boo
 
 type Profile = { name: string; sub: string; rows: [string, string][] };
 
+// 표적 거리 — 수십 미터 이내 (24~54m, 조준 높이에 따라 변함)
+const rangeM = (aim: Pt, vp: { h: number }) => Math.round(24 + (aim.y / vp.h) * 30);
+
 function Reticle({ hot }: { hot: boolean }) {
   const c = hot ? '#ff3b30' : '#0a0a0a';
   const marks: React.ReactNode[] = [];
@@ -65,7 +68,7 @@ function Reticle({ hot }: { hot: boolean }) {
 function ScopeHud({ aim, R, hot, vp }: { aim: Pt; R: number; hot: boolean; vp: { w: number; h: number } }) {
   const S = (R + 130) * 2;
   const az = ((aim.x / vp.w) * 360).toFixed(1);
-  const rng = String(Math.round(380 + (aim.y / vp.h) * 240)).padStart(4, '0');
+  const rng = rangeM(aim, vp);
   const elv = ((0.5 - aim.y / vp.h) * 2).toFixed(1);
   const fan: React.ReactNode[] = [];
   for (let i = 0; i <= 30; i++) {
@@ -90,7 +93,7 @@ function ScopeHud({ aim, R, hot, vp }: { aim: Pt; R: number; hot: boolean; vp: {
           </g>
         ))}
         <text x={Math.cos(la) * (R + 58)} y={Math.sin(la) * (R + 58)} textAnchor="end" className="lb side">AZ {az}°</text>
-        <text x={R + 70} y={-9} className="lb side">×8.0</text>
+        <text x={R + 70} y={-9} className="lb side">×{ZOOM.toFixed(1)}</text>
         <text x={0} y={R + 78} textAnchor="middle" className="lb side">RNG {rng} M</text>
         <text x={-R - 70} y={-9} textAnchor="end" className="lb side">ELV {elv}</text>
       </svg>
@@ -135,7 +138,7 @@ function ProfilePanels({ aim, R, vp, profile }: { aim: Pt; R: number; vp: { w: n
     boxes.push({ key: 'm', w, h, x: (vp.w - w) / 2, y: below ? aim.y + R + 34 : Math.max(14, aim.y - R - 34 - h) });
   } else {
     const gap = R + 80;
-    const A = { w: 300, h: 118 }, B = { w: 290, h: 64 + rowsH }, C = { w: 236, h: 132 };
+    const A = { w: 300, h: 118 }, B = { w: 250, h: 64 + rowsH }, C = { w: 236, h: 132 };
     const spR = vp.w - (aim.x + gap) - 16, spL = aim.x - gap - 16;
     const bR = spR >= B.w || spR >= spL;
     const split = (bR ? spL : spR) >= Math.max(A.w, C.w) + 26;
@@ -168,7 +171,7 @@ function ProfilePanels({ aim, R, vp, profile }: { aim: Pt; R: number; vp: { w: n
       : `${sx},${sy} ${ax + (right ? -34 : 34)},${ay} ${ax},${ay}`;
     return { key: b.key, pts, sx, sy, ax, ay, d: order[b.key] * 0.12 };
   });
-  const rng = String(Math.round(380 + (aim.y / vp.h) * 240)).padStart(4, '0');
+  const rng = rangeM(aim, vp);
   const elv = ((0.5 - aim.y / vp.h) * 2).toFixed(1);
   const ms = (key: Box['key']) => (0.3 + order[key] * 0.12) * 1000;
 
@@ -180,11 +183,8 @@ function ProfilePanels({ aim, R, vp, profile }: { aim: Pt; R: number; vp: { w: n
     </>
   );
   const rowsBlock = (k: Box['key']) => profile.rows.map(([a, v], i) => (
-    <div className="rw" key={i}><b>{a}</b><span><Decode text={v} delay={ms(k) + 120 + i * 90} dur={300} /></span></div>
+    <div className={`rw ${/^status$/i.test(a) ? 'alert' : ''}`} key={i}><b>{a}</b><span><Decode text={v} delay={ms(k) + 120 + i * 90} dur={300} /></span></div>
   ));
-  const avatar = (
-    <div className="av"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4.2" /><path d="M3.5 21c.6-4.6 4.2-7 8.5-7s7.9 2.4 8.5 7z" /></svg></div>
-  );
   const foot = <div className="ft"><i /><i /><i className="l" /><i /></div>;
 
   return (
@@ -202,7 +202,7 @@ function ProfilePanels({ aim, R, vp, profile }: { aim: Pt; R: number; vp: { w: n
         <div key={b.key} className={`sp-panel sp-panel-${b.key}`}
           style={{ left: b.x, top: b.y, width: b.w, '--d': `${0.16 + order[b.key] * 0.12}s` } as React.CSSProperties}>
           {b.key === 'a' && <>{head('TARGET ID')}{idBlock('a')}{foot}</>}
-          {b.key === 'b' && <>{head('PROFILE')}<div className="pb"><div>{rowsBlock('b')}</div>{avatar}</div></>}
+          {b.key === 'b' && <>{head('PROFILE')}{rowsBlock('b')}</>}
           {b.key === 'c' && (
             <>
               {head('TELEMETRY')}
@@ -212,7 +212,7 @@ function ProfilePanels({ aim, R, vp, profile }: { aim: Pt; R: number; vp: { w: n
               <div className="lk"><b>LOCK</b><div className="bar"><i /></div><span>100%</span></div>
             </>
           )}
-          {b.key === 'm' && <>{head('TARGET ID')}<div className="pb"><div>{idBlock('m')}</div>{avatar}</div><div className="mr">{rowsBlock('m')}</div></>}
+          {b.key === 'm' && <>{head('TARGET ID')}{idBlock('m')}<div className="mr">{rowsBlock('m')}</div></>}
         </div>
       ))}
     </>
@@ -590,7 +590,7 @@ export function SplashView({ bgUrl, targetX, targetY, targetSize, label, profile
   const aim = pos ?? { x: vp.w / 2, y: vp.h / 2 };
   const isHit = (p: Pt) => Math.hypot(p.x - target.x, p.y - target.y) <= hitR;
   const hit = isHit(aim);
-  const R = Math.round(Math.min(170, Math.max(110, Math.min(vp.w, vp.h) * 0.27)));
+  const R = Math.round(Math.min(153, Math.max(99, Math.min(vp.w, vp.h) * 0.243)));
 
   const track = (e: React.PointerEvent) => {
     if (impact) return;
@@ -626,7 +626,7 @@ export function SplashView({ bgUrl, targetX, targetY, targetSize, label, profile
           </div>
           <ScopeHud aim={aim} R={R} hot={hit} vp={vp} />
           {hit && profile && <ProfilePanels aim={aim} R={R} vp={vp} profile={profile} />}
-          <div className="sp-corner tl">EVEDEN TACTICAL OPTICS<br /><span>MK-II · ×8.0 · FFP</span></div>
+          <div className="sp-corner tl">EVEDEN TACTICAL OPTICS<br /><span>WIND STABILIZER · ×{ZOOM.toFixed(1)} · FFP</span></div>
           <div className={`sp-corner tr ${hit ? 'hot' : ''}`}>{hit ? '● LOCK' : '○ SCAN'}<br /><span>CH-02</span></div>
           <div className={`sp-hud ${hit ? 'hot' : ''}`}>
             {hit
