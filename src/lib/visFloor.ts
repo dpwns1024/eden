@@ -16,6 +16,7 @@ import { MAIN_SEC, sectionHref, type SectionKind } from './sectionStore';
 import { MAIN_BOARD_ID } from './boardStore';
 import type { Visibility } from './charStore';
 import type { ListItem } from './backend/types';
+import { lockedBoardIds } from './boardLock';
 
 /** 컬렉션 → 그 목록이 걸린 메뉴. 섹션형은 종류만 주고 소속은 항목의 `secId`에서 읽는다 */
 const AREA: Record<string, { kind?: SectionKind; href?: string; board?: boolean }> = {
@@ -51,15 +52,27 @@ export function areaHrefOf(coll: string, item: ListItem): string | null {
   return sectionHref(a.kind!, s);
 }
 
-/** 이 항목을 저장할 때 지켜야 할 **최소** 공개범위 */
-export function visFloorOf(coll: string, item: ListItem): Visibility {
-  const href = areaHrefOf(coll, item);
-  if (!href) return 'public';
-  const v = hrefAccess(currentMenuSettings(), href);
-  return v === 'admin' ? 'private' : v === 'member' ? 'member' : 'public';
+/** 이 항목이 비밀번호 걸린 게시판 소속이면 그 게시판 id — 게시판 글, 그리고 그 글에 단 댓글 */
+export function lockBoardOf(coll: string, item: ListItem): string | null {
+  const locked = lockedBoardIds();
+  if (!locked.size) return null;
+  let b: string | null = null;
+  if (coll === 'posts') b = typeof item.boardId === 'string' ? item.boardId : MAIN_BOARD_ID;
+  else if (coll === 'comments' && item.target === 'post' && typeof item.boardId === 'string') b = item.boardId;
+  return b && locked.has(b) ? b : null;
 }
 
-const RANK: Record<string, number> = { public: 0, member: 1, private: 2 };
+/** 이 항목을 저장할 때 지켜야 할 **최소** 공개범위.
+ *  `locked` = 비밀번호 게시판 — 회원·관리자·작성자, 그리고 비밀번호를 통과한 방문자만 (보안 규칙) */
+export function visFloorOf(coll: string, item: ListItem): Visibility | 'locked' {
+  const href = areaHrefOf(coll, item);
+  const v = href ? hrefAccess(currentMenuSettings(), href) : 'all';
+  if (v === 'admin') return 'private';
+  if (v === 'member') return 'member';
+  return lockBoardOf(coll, item) ? 'locked' : 'public';
+}
+
+const RANK: Record<string, number> = { public: 0, locked: 0.5, member: 1, private: 2 };
 
 /** 둘 중 더 좁은 쪽 */
 export const strictestVis = (a: string, b: string): string =>

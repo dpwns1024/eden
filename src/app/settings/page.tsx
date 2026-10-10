@@ -25,8 +25,9 @@ import { useMemoSettings } from '@/lib/memoStore';
 import {
   useMenuSettings, MenuSettings, MenuPerm, MenuVis, PLAYLOG_COLS,
   MenuGroupNode, MenuLeaf, defaultTree, newGroupId, menuLabelFor, extraBoardHref, boardEntries,
-  IMG_PROTECT_AREAS,
+  IMG_PROTECT_AREAS, hrefAccess,
 } from '@/lib/menuStore';
+import { boardLockSupported } from '@/lib/boardLock';
 import { FEATURES } from '@/lib/menu';
 import { SectionsBlock } from '@/components/settings/SectionList';
 import { useSections, sectionMenuEntries, MAIN_SEC, inSection } from '@/lib/sectionStore';
@@ -747,6 +748,92 @@ function WidgetsPane() {
 }
 
 /** 게시판 관리 탭 (5.2) — 게시판 생성·삭제·스킨·권한 + 게시판별 말머리 + 뱃지 색 */
+/** 게시판 비밀번호 — 비밀번호는 서버에 해시로만 저장되고 누구도(관리자 포함) 읽을 수 없다.
+ *  대조는 Firestore 보안 규칙이 서버에서 한다 (lib/boardLock.ts) */
+function BoardLockSection({ boards, setBoards }: { boards: Board[]; setBoards: (next: Board[]) => void }) {
+  const { user } = useAuth();
+  const toast = useToast();
+  const [menuSet] = useMenuSettings();
+  const [selId, setSelId] = useState(MAIN_BOARD_ID);
+  const [pw, setPw] = useState('');
+  const [busy, setBusy] = useState(false);
+  const sel = boards.find(b => b.id === selId) ?? boards[0];
+  const access = hrefAccess(menuSet, sel.id === MAIN_BOARD_ID ? '/board' : extraBoardHref(sel.id));
+
+  /* 이미 올라간 글·댓글도 서버 공개범위를 다시 계산 — 잠그면 locked, 풀면 원래대로 */
+  const reapply = async (boardId: string) => {
+    const be = backend();
+    if (!be) return 0;
+    const posts = await be.fetchList('posts');
+    const mine = posts.filter(p => (typeof p.boardId === 'string' ? p.boardId : MAIN_BOARD_ID) === boardId);
+    let n = mine.length ? await be.refreshVis('posts', mine, user?.id ?? null) : 0;
+    const ids = new Set(mine.map(p => p.id));
+    const cmts = (await be.fetchList('comments'))
+      .filter(c => c.target === 'post' && ids.has(c.targetId as string))
+      .map(c => ({ ...c, boardId }));
+    if (cmts.length) n += await be.refreshVis('comments', cmts, user?.id ?? null, true);
+    return n;
+  };
+
+  const apply = async (password: string | null) => {
+    const be = backend();
+    if (!be) { toast('서버에 연결돼 있지 않습니다'); return; }
+    setBusy(true);
+    const r = await be.setBoardPassword(sel.id, password);
+    if (!r.ok) { toast(r.error ?? '저장하지 못했습니다'); setBusy(false); return; }
+    setBoards(boards.map(b => (b.id === sel.id ? { ...b, locked: !!password } : b)));
+    try {
+      const n = await reapply(sel.id);
+      toast(password ? `「${sel.name}」에 비밀번호를 걸었습니다 (글·댓글 ${n}건 잠금)` : `「${sel.name}」 비밀번호를 해제했습니다`);
+      setPw('');
+    } catch (e) {
+      toast(`비밀번호는 저장됐지만 기존 글 적용에 실패했습니다 — [글에 다시 적용]을 눌러 주세요 (${e instanceof Error ? e.message : ''})`);
+    }
+    setBusy(false);
+  };
+
+  if (!boardLockSupported()) {
+    return <p className="hint">게시판 비밀번호는 Firebase 연결에서만 쓸 수 있습니다.</p>;
+  }
+  return (
+    <>
+      {boards.length > 1 && (
+        <div className="mini-seg" style={{ marginBottom: 12, flexWrap: 'wrap' }}>
+          {boards.map(b => (
+            <button key={b.id} className={sel.id === b.id ? 'on' : ''} onClick={() => { setSelId(b.id); setPw(''); }}>
+              {b.name}{b.locked ? ' · 잠김' : ''}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="set-row" style={{ flexWrap: 'wrap' }}>
+        <div className="l">
+          <b>{sel.name} — {sel.locked ? '비밀번호 걸림' : '비밀번호 없음'}</b>
+          <small>{access === 'admin' ? '관리자만 보는 게시판이라 비밀번호가 필요 없습니다'
+            : access === 'member' ? '회원만 보는 게시판이라 방문자는 비밀번호로도 열 수 없습니다'
+            : '회원·관리자는 비밀번호 없이 열람 · 방문자는 비밀번호를 맞혀야 글이 내려갑니다'}</small>
+        </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <KInput type="password" value={pw} placeholder={sel.locked ? '새 비밀번호로 변경' : '비밀번호'}
+            onChange={e => setPw(e.target.value)} style={{ width: 180 }} autoComplete="new-password" />
+          <button className="btn btn-dark" disabled={busy || pw.trim().length < 4}
+            onClick={() => void apply(pw.trim())}>{sel.locked ? '변경' : '설정'}</button>
+          {sel.locked && (
+            <>
+              <button className="btn btn-ghost" disabled={busy} onClick={() => void apply(null)}>해제</button>
+              <button className="btn btn-ghost" disabled={busy}
+                onClick={async () => { setBusy(true); try { toast(`글·댓글 ${await reapply(sel.id)}건에 다시 적용했습니다`); } catch { toast('적용하지 못했습니다'); } setBusy(false); }}>
+                글에 다시 적용
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+      <p className="hint">비밀번호는 4자 이상 · 서버에 암호화(해시)로만 저장돼 관리자도 다시 볼 수 없습니다 — 잊으면 새로 설정하세요. 바꾸면 기존에 통과한 방문자도 다시 입력해야 합니다. 맞혀 볼 수 있는 횟수에 제한이 없으니 짧거나 흔한 비밀번호는 피해 주세요.</p>
+    </>
+  );
+}
+
 function BoardPane() {
   const {
     st, patchSystem, patchGallery,
@@ -826,6 +913,12 @@ function BoardPane() {
             skin: 'list', permWrite: 'member', permComment: 'member', cats: DEFAULT_BOARD_CATS,
           }])}>＋ ADD BOARD</button>
       </div>
+
+      <hr style={{ margin: '24px 0', border: 'none', borderTop: '1.5px solid var(--line)' }} />
+
+      <h3>게시판 비밀번호</h3>
+      <div className="d">게시판별로 비밀번호를 걸면 비로그인 방문자는 비밀번호를 입력해야 글을 볼 수 있습니다 — 서버가 대조하므로 F12로는 알아낼 수 없습니다</div>
+      <BoardLockSection boards={boards} setBoards={setBoards} />
 
       <hr style={{ margin: '24px 0', border: 'none', borderTop: '1.5px solid var(--line)' }} />
 
@@ -1074,12 +1167,6 @@ function MemberPane() {
   const [code, setCode] = useState('');
   const [codeLoaded, setCodeLoaded] = useState(false);
 
-  // 입장 비밀번호 상태 관리 (getSetting/setSetting 사용)
-  const [pass, setPass] = useState('');
-  useEffect(() => {
-    setPass(getSetting<string>('ohome.homepass.v1', ''));
-  }, []);
-
   const [regVer, setRegVer] = useState(0);   // 가입 계정 삭제 후 목록 갱신용
   const [removedIds, setRemovedIds] = useState<string[]>([]);   // 서버 모드에서 방금 지운 회원
   useEffect(() => { setCode(inviteCode()); setCodeLoaded(true); }, []);
@@ -1150,33 +1237,6 @@ function MemberPane() {
               setInviteCode(code);
               toast('가입코드가 변경되었습니다.');
             }}>SAVE</button>
-        </div>
-      </div>
-
-      {/* 입장 비밀번호 설정 */}
-      <div className="set-row" style={{ marginTop: 8, flexWrap: 'wrap' }}>
-        <div className="l">
-          <b>입장 비밀번호</b>
-          <small>사이트 메인 접근 시 요구할 비밀번호 (미설정 시 바로 입장)</small>
-        </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <KInput
-            type="password"
-            value={pass}
-            placeholder="비밀번호 미사용 시 비워두기"
-            onChange={e => setPass(e.target.value)}
-            style={{ width: 220 }}
-          />
-          <button
-            className="btn btn-dark"
-            onClick={() => {
-              const nextPass = pass.trim();
-              setSetting('ohome.homepass.v1', nextPass);
-              toast(nextPass ? '입장 비밀번호가 설정되었습니다' : '입장 비밀번호가 해제되었습니다');
-            }}
-          >
-            SAVE
-          </button>
         </div>
       </div>
 

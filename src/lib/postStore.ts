@@ -38,6 +38,8 @@ export interface CommentRow extends Comment {
   targetId: string;                 // 달린 대상(글·로드뷰 항목·감상타래·방명록)의 id
   /** 대상 종류 — 같은 컬렉션을 나눠 쓴다 (thread·guest: v2.0 사용자 요청) */
   target: 'post' | 'road' | 'thread' | 'guest';
+  /** 글 댓글이면 그 글의 게시판 — 비밀번호 게시판 글의 댓글도 함께 잠그기 위해 */
+  boardId?: string;
 }
 
 export const COMMENT_SEED: CommentRow[] = [];

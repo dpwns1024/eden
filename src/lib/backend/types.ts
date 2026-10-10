@@ -64,7 +64,7 @@ export interface Backend {
   syncList<T extends ListItem>(coll: string, prev: T[], next: T[], uid: string | null): Promise<void>;
   /** 이미 저장된 행의 공개범위만 다시 계산해 덮어쓴다 (v2.0) — 메뉴를 비공개로 바꾼 뒤
    *  「글에도 적용」을 누르면 돈다. 내용(data)·순서(sort)는 건드리지 않는다. */
-  refreshVis<T extends ListItem>(coll: string, items: T[], uid: string | null): Promise<number>;
+  refreshVis<T extends ListItem>(coll: string, items: T[], uid: string | null, withData?: boolean): Promise<number>;
   subscribe(coll: string, onChange: () => void): () => void;
 
   /* ---- 설정(key/value) ---- */
@@ -79,6 +79,14 @@ export interface Backend {
    *  관리자가 환경설정에서 직접 확인하고 정리한다. */
   listFiles(): Promise<{ ref: string; size: number }[]>;
   deleteFile(ref: string): Promise<void>;
+
+  /* ---- 게시판 비밀번호 (보안 규칙이 서버에서 대조 — boardLock.ts 참조) ---- */
+  /** 이 방문자가 비밀번호를 통과한(그리고 아직 유효한) 게시판 */
+  unlockedBoards(): Promise<string[]>;
+  /** 방문자가 비밀번호 입력 — 맞으면 통과 기록이 생긴다 */
+  unlockBoard(boardId: string, password: string): Promise<{ ok: boolean; error?: string }>;
+  /** 관리자: 비밀번호 설정(null이면 해제) */
+  setBoardPassword(boardId: string, password: string | null): Promise<{ ok: boolean; error?: string }>;
 
   /** 회원 프로필(닉네임·아바타) 삭제 — 홈의 회원 목록에서 사라진다.
    *  **로그인 계정 자체는 지울 수 없다.** Firebase Authentication / Supabase Auth의 계정 삭제는
@@ -166,7 +174,7 @@ export function metaOf(item: ListItem, uid: string | null, floor = 'public') {
   /* 메뉴를 비공개로 둔 곳의 글은 그 기준까지 좁혀 저장한다 (v2.0 사용자 요청 — visFloor 참조).
      **좁히기만 한다** — 글이 이미 더 좁으면 그대로다. 게시판 글처럼 visibility 칸이 아예 없는
      종류도 여기서 정해지므로, 서버가 내주지 않는 것은 화면과 무관하게 보장된다. */
-  const rank: Record<string, number> = { public: 0, member: 1, private: 2 };
+  const rank: Record<string, number> = { public: 0, locked: 0.5, member: 1, private: 2 };
   const visibility = (rank[floor] ?? 0) > (rank[own] ?? 0) ? floor : own;
   return { authorId, visibility, editorIds: editorIdsOf(item) };
 }

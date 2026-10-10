@@ -9,7 +9,8 @@
 import {
   Backend, BackendCheck, BackendConfig, BackendUser, ListItem, diffList, metaOf,
 } from './types';
-import { visFloorOf } from '../visFloor';
+import { visFloorOf, lockBoardOf } from '../visFloor';
+import { boardKey, lockedBoardIds } from '../boardLock';
 
 type FirebaseCfg = Extract<BackendConfig, { kind: 'firebase' }>;
 
@@ -80,7 +81,28 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
     const own = await ownerNow();
     return own?.uid === u.uid || (own?.admins ?? []).includes(u.uid);
   };
-  authMod.onAuthStateChanged(auth, () => { ownerCache = undefined; });
+  /* 게시판 비밀번호 통과 기록 (익명 로그인 방문자) — 아직 유효한 것만.
+     비밀번호가 바뀌면 기록은 남아 있어도 규칙이 거부하므로, 잠긴 글 질의를 한 번 던져 확인한다 */
+  let unlockedCache: Promise<string[]> | undefined;
+  authMod.onAuthStateChanged(auth, () => { ownerCache = undefined; unlockedCache = undefined; });
+  const loadUnlocked = async (): Promise<string[]> => {
+    const u = auth.currentUser;
+    if (!u || !u.isAnonymous) return [];
+    const locked = lockedBoardIds();
+    if (!locked.size) return [];
+    try {
+      const snap = await getDocsFromServer(query(collection(db, 'board_unlocks'), where('uid', '==', u.uid)));
+      const ids = snap.docs.map(d => (d.data() as { boardId?: string }).boardId).filter((b): b is string => !!b && locked.has(b));
+      const ok = await Promise.all(ids.map(async b => {
+        try {
+          await getDocsFromServer(query(collection(db, 'posts'), where('visibility', '==', 'locked'), where('lockBoard', '==', b), limit(1)));
+          return b;
+        } catch { return null; }
+      }));
+      return ok.filter((b): b is string => !!b);
+    } catch { return []; }
+  };
+  const unlockedNow = () => (unlockedCache ??= loadUnlocked());
 
   /**
    * 로그인 상태에 맞는 목록 질의 조건.
@@ -95,9 +117,17 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
   const readSets = async (): Promise<Cons[][]> => {
     const u = auth.currentUser;
     if (!u) return [[where('visibility', '==', 'public')]];
+    // 익명 = 게시판 비밀번호를 통과한 방문자 — 전체공개 + 통과한 게시판의 잠긴 글만 (게시판마다 질의 하나)
+    if (u.isAnonymous) {
+      const open = await unlockedNow();
+      return [[where('visibility', '==', 'public')],
+        ...open.map(b => [where('visibility', '==', 'locked'), where('lockBoard', '==', b)])];
+    }
     if (await isAdminNow()) return [[]];                    // 관리자는 전부
-    // 회원: 전체공개+회원공개, 그리고 내가 쓴 것(비공개 포함)은 따로 받아 합친다
-    return [[where('visibility', 'in', ['public', 'member'])], [where('authorId', '==', u.uid)]];
+    // 회원: 전체공개+회원공개(+잠긴 게시판), 그리고 내가 쓴 것(비공개 포함)은 따로 받아 합친다.
+    // 'locked'는 잠긴 게시판이 있을 때만 넣는다 — 새 규칙을 넣기 전의 서버에서도 질의가 거부되지 않게
+    const vis = lockedBoardIds().size ? ['public', 'member', 'locked'] : ['public', 'member'];
+    return [[where('visibility', 'in', vis)], [where('authorId', '==', u.uid)]];
   };
 
   const listQuery = (coll: string, cs: Cons[]) =>
@@ -105,6 +135,8 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
 
   const toUser = async (u: { uid: string; email?: string | null; displayName?: string | null } | null): Promise<BackendUser | null> => {
     if (!u) return null;
+    // 익명 로그인(게시판 비밀번호 통과용)은 화면에서는 비로그인 방문자다
+    if ((u as { isAnonymous?: boolean }).isAnonymous) return null;
     // 이메일을 그대로 이름으로 쓰지 않는다 — 회원 목록·댓글에 남의 메일 주소가 그대로 노출된다.
     // (프로필 저장 직후에는 displayName이 아직 비어 있어 여기로 떨어질 수 있다)
     let nickname = u.displayName || (u.email ? u.email.split('@')[0] : 'user');
@@ -272,7 +304,10 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
       // 버린다. 실시간 구독이 한 번의 쓰기에 두 번(로컬 반영·서버 확정) 반응해 재조회가 겹칠 때
       // 낡은 캐시 결과가 방금 반영된 변경을 도로 덮어써 "새로고침해야 보임"이 되던 원인 중 하나
       // (v2.0 사용자 발견 — 목록 숨김을 바꿔도 반영이 안 되는 것처럼 보임)
-      const snaps = await Promise.all(sets.map(cs => getDocsFromServer(listQuery(coll, cs))));
+      // 질의 하나가 거부돼도(통과 기록이 낡은 게시판 등) 나머지는 보여 준다 — 전부 실패할 때만 오류
+      const settled = await Promise.allSettled(sets.map(cs => getDocsFromServer(listQuery(coll, cs))));
+      const snaps = settled.flatMap(r => (r.status === 'fulfilled' ? [r.value] : []));
+      if (!snaps.length) throw (settled[0] as PromiseRejectedResult).reason;
       // 두 질의(공개분 · 내 글)를 합치므로 문서 id로 중복을 없앤 뒤 sort로 정렬한다
       const seen = new Map<string, { sort: number; item: T }>();
       snaps.forEach(s => s.docs.forEach(d => {
@@ -304,6 +339,7 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
           const { authorId, visibility, editorIds } = metaOf(item, uid, visFloorOf(coll, item));
           batch.set(doc(db, coll, item.id), {
             data: item, authorId, visibility, editorIds, sort, updatedAt: Date.now(),
+            lockBoard: visibility === 'locked' ? lockBoardOf(coll, item) : null,
           });
         });
         await batch.commit();
@@ -326,14 +362,19 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
     /* 공개범위·편집 권한 목록만 다시 계산해 덮어쓰기 (v2.0) — data·sort는 손대지 않는다.
        editorIds도 함께 쓴다 (포크 제보 — 업데이트 전에 준 편집 권한이 문서에 평평한 목록으로
        없어서, 최신 규칙을 넣어도 그 회원의 저장이 계속 거부됐다) */
-    async refreshVis<T extends ListItem>(coll: string, items: T[], uid: string | null): Promise<number> {
+    async refreshVis<T extends ListItem>(coll: string, items: T[], uid: string | null, withData = false): Promise<number> {
       let n = 0;
       for (let i = 0; i < items.length; i += 400) {
         const part = items.slice(i, i + 400);
         const batch = writeBatch(db);
         part.forEach(it => {
           const { visibility, editorIds } = metaOf(it, uid, visFloorOf(coll, it));
-          batch.update(doc(db, coll, it.id), { visibility, editorIds, updatedAt: Date.now() });
+          batch.update(doc(db, coll, it.id), {
+            visibility, editorIds, updatedAt: Date.now(),
+            lockBoard: visibility === 'locked' ? lockBoardOf(coll, it) : null,
+            // withData — 항목에 칸을 새로 붙여(댓글의 boardId 등) 본문까지 함께 고칠 때
+            ...(withData ? { data: it } : {}),
+          });
         });
         await batch.commit();
         n += part.length;
@@ -392,6 +433,47 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
     async deleteFile(ref) {
       // Firebase SDK는 다운로드 URL로도 참조를 만들 수 있다
       await stMod.deleteObject(stMod.ref(storage, ref));
+    },
+
+    async unlockedBoards() {
+      return unlockedNow();
+    },
+
+    async unlockBoard(boardId, password) {
+      try {
+        if (!auth.currentUser) await authMod.signInAnonymously(auth);
+        const u = auth.currentUser;
+        if (!u) return { ok: false, error: '잠시 후 다시 시도해 주세요.' };
+        const key = await boardKey(boardId, password);
+        const r = await withLimit(setDoc(doc(db, 'board_unlocks', `${u.uid}_${boardId}`), { uid: u.uid, boardId, key, at: Date.now() }));
+        if (r === TIMEOUT) return { ok: false, error: '서버 응답이 없습니다 — 잠시 후 다시 시도해 주세요.' };
+        unlockedCache = undefined;
+        return { ok: true };
+      } catch (e) {
+        const code = (e as { code?: string })?.code ?? '';
+        if (code.includes('permission-denied')) return { ok: false, error: '비밀번호가 올바르지 않습니다.' };
+        if (code.includes('operation-not-allowed') || code.includes('admin-restricted')) {
+          return { ok: false, error: '지금은 비밀번호로 열 수 없습니다 — 관리자가 Firebase 익명 로그인을 켜야 합니다.' };
+        }
+        return { ok: false, error: humanError(e) };
+      }
+    },
+
+    async setBoardPassword(boardId, password) {
+      try {
+        const ref = doc(db, 'board_secrets', boardId);
+        const r = password
+          ? await withLimit(setDoc(ref, { hash: await boardKey(boardId, password), at: Date.now() }))
+          : await withLimit(deleteDoc(ref));
+        if (r === TIMEOUT) return { ok: false, error: NO_REACH };
+        return { ok: true };
+      } catch (e) {
+        const code = (e as { code?: string })?.code ?? '';
+        if (code.includes('permission-denied')) {
+          return { ok: false, error: '저장이 거부됐습니다 — 새 보안 규칙을 Firebase 콘솔에 먼저 붙여넣고 게시해 주세요.' };
+        }
+        return { ok: false, error: humanError(e) };
+      }
     },
 
     async deleteMember(id) {

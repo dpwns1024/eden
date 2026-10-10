@@ -112,7 +112,9 @@ export default function BoardDetailPage() {
   if (!post) {
     return (
       <section className="page">
-        <div className="page-head"><PageTitle>BOARD</PageTitle><p>글을 찾을 수 없습니다</p></div>
+        <div className="page-head"><PageTitle>BOARD</PageTitle><p>{!user && boards.some(b => b.locked)
+          ? '글을 찾을 수 없습니다 — 비밀번호가 걸린 게시판의 글이라면 게시판 목록에서 비밀번호를 먼저 입력해 주세요'
+          : '글을 찾을 수 없습니다'}</p></div>
       </section>
     );
   }
@@ -144,8 +146,8 @@ export default function BoardDetailPage() {
     if (guestMode && !gName.trim()) { toast('닉네임을 입력해 주세요'); return; }
     const base = { id: newId(), text: cmt.trim(), date: new Date().toISOString(), parentId: replyTo ?? undefined };
     const c: CommentRow = user
-      ? { ...base, target: 'post', targetId: post.id, author: user.nickname, authorId: user.id }
-      : { ...base, target: 'post', targetId: post.id, author: gName.trim(), authorId: '' };
+      ? { ...base, target: 'post', targetId: post.id, boardId: post.boardId ?? MAIN_BOARD_ID, author: user.nickname, authorId: user.id }
+      : { ...base, target: 'post', targetId: post.id, boardId: post.boardId ?? MAIN_BOARD_ID, author: gName.trim(), authorId: '' };
     setCmtRows([...cmtRows, c]);
     setCmt(''); setReplyTo(null);
   };
