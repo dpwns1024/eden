@@ -1790,19 +1790,39 @@ body.edit-on .main-grid.gridlines .wgt{outline-offset:0}
 .htmlblock-wgt img{max-width:100%;height:auto}
 
 /* 스플래시 스크린 (v2.1) */
-.splash-overlay{position:fixed;inset:0;z-index:9999;cursor:pointer;overflow:hidden;background:#000}
+/* ─── splash: sniper scope ─── */
+.splash-overlay{position:fixed;inset:0;z-index:9999;overflow:hidden;background:#000}
 .splash-bg{position:absolute;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat}
-.splash-target{position:absolute;transform:translate(-50%,-50%);border-radius:50%;display:flex;align-items:center;justify-content:center;animation:splashPulse 2s ease-in-out infinite;cursor:pointer}
-.splash-target span{color:#fff;font-size:14px;text-shadow:0 1px 6px rgba(0,0,0,.7);pointer-events:none;white-space:nowrap}
-@keyframes splashPulse{
-  0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.4),0 0 20px 4px rgba(255,255,255,.15)}
-  50%{box-shadow:0 0 0 12px rgba(255,255,255,0),0 0 30px 8px rgba(255,255,255,.25)}
-}
 .splash-frag{position:absolute;will-change:transform,opacity}
-.splash-frag.shattering{animation:shatter var(--dur,1200ms) cubic-bezier(.25,.46,.45,.94) var(--delay,0ms) forwards}
-@keyframes shatter{
-  0%{transform:translate(0,0) rotate(0);opacity:1}
-  100%{transform:translate(var(--tx,0),var(--ty,0)) rotate(var(--rot,0));opacity:0}
+
+/* scope image (masked circle) */
+.sp-scope-img{position:absolute;inset:0;background-size:cover;background-position:center}
+/* scope ring */
+.sp-scope-ring{position:absolute;transform:translate(-50%,-50%);pointer-events:none}
+.sp-scope-ring svg{width:100%;height:100%;filter:drop-shadow(0 0 6px rgba(0,0,0,.5))}
+.sp-hair{stroke:rgba(0,0,0,.7);stroke-width:1.4}
+.sp-hair.on{stroke:#e53935}
+.sp-tick{stroke:rgba(0,0,0,.6);stroke-width:1}
+.sp-tick.on{stroke:#e53935}
+
+/* fire indicator */
+.sp-fire{position:fixed;bottom:14%;left:50%;transform:translateX(-50%);color:#e53935;font-size:16px;font-weight:800;letter-spacing:10px;animation:spPulse .7s ease-in-out infinite;pointer-events:none;text-shadow:0 0 20px rgba(229,57,53,.5)}
+@keyframes spPulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* flash */
+.sp-flash{position:absolute;inset:0;background:#fff;animation:spFlash .35s ease-out forwards;z-index:5}
+@keyframes spFlash{0%{opacity:.9}100%{opacity:0}}
+
+/* crack lines */
+.sp-cracks{position:absolute;inset:0;width:100%;height:100%;z-index:6}
+.sp-crack-line{stroke:rgba(255,255,255,.7);stroke-width:.12;stroke-dasharray:200;stroke-dashoffset:200;animation:spCrack .45s ease-out forwards}
+@keyframes spCrack{to{stroke-dashoffset:0}}
+
+/* falling fragments */
+.splash-frag.sp-falling{animation:spFall .9s cubic-bezier(.4,0,1,1) var(--delay,0ms) forwards;transform-origin:center}
+@keyframes spFall{
+  0%{transform:translate3d(0,0,0) rotate(0deg);opacity:1}
+  100%{transform:translate3d(var(--tx,0),var(--ty,0),0) rotate(var(--rot,0deg));opacity:0}
 }
 
 /* 이미지 올리는 중 알림 (v2.0) — 토스트와 같은 자리·모양, 조금 위 */
