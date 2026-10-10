@@ -1801,6 +1801,8 @@ body.edit-on .main-grid.gridlines .wgt{outline-offset:0}
 /* ─── splash: sniper scope + canvas glass shatter ─── */
 .splash-overlay{position:fixed;inset:0;z-index:9999;overflow:hidden;background:#000;touch-action:none;user-select:none;-webkit-user-select:none}
 .splash-overlay.is-shatter{background:transparent}
+body.sp-reveal > *:not(.splash-overlay){animation:spReveal 1.1s cubic-bezier(.2,.7,.2,1) .05s both}
+@keyframes spReveal{from{opacity:0;filter:blur(8px)}to{opacity:1;filter:none}}
 .sp-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .sp-lens{position:absolute;border-radius:50%;overflow:hidden;background-repeat:no-repeat;pointer-events:none;
   box-shadow:inset 0 0 0 1px rgba(255,90,90,.28),inset 0 0 0 2.5px rgba(90,200,255,.16),inset 0 0 46px 24px rgba(0,0,0,.9),0 0 70px 14px rgba(0,0,0,.92)}

@@ -1,5 +1,6 @@
 'use client';
 import React, { Component, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { getSplashConf, splashSeenThisSession, markSplashSeen } from '@/lib/splashStore';
 import { useBlobUrl } from '@/lib/blobStore';
 
@@ -463,9 +464,12 @@ function runShatter(canvas: HTMLCanvasElement, img: HTMLImageElement, at: Pt, do
 
   const start = performance.now();
   let raf = 0;
+  let revealed = false;
   const frame = () => {
     const t = (performance.now() - start) / 1000;
-    if (t >= tE + T_FLY) { done(); return; }
+    if (t >= tE + T_FLY) { document.body.classList.remove('sp-reveal'); done(); return; }
+    // 유리가 터지는 순간 뒤의 사이트를 페이드 인
+    if (!revealed && t >= tE) { revealed = true; document.body.classList.add('sp-reveal'); }
 
     const shakeA = t < 0.45 ? 14 * u * Math.pow(1 - t / 0.45, 2)
       : t > tE && t < tE + 0.25 ? 7 * u * Math.pow(1 - (t - tE) / 0.25, 2) : 0;
@@ -546,7 +550,7 @@ function runShatter(canvas: HTMLCanvasElement, img: HTMLImageElement, at: Pt, do
     raf = requestAnimationFrame(frame);
   };
   raf = requestAnimationFrame(frame);
-  return () => cancelAnimationFrame(raf);
+  return () => { cancelAnimationFrame(raf); document.body.classList.remove('sp-reveal'); };
 }
 
 /* ───────── 스코프 화면 ───────── */
@@ -581,7 +585,8 @@ export function SplashView({ bgUrl, targetX, targetY, targetSize, label, profile
     return runShatter(canvasRef.current, img, impact, () => doneRef.current());
   }, [impact, img]);
 
-  if (!img || !vp.w) return <div className="splash-overlay" />;
+  // body 직속으로 띄운다 — 사이트 페이드 인(body > *)이 오버레이를 건드리지 않게
+  if (!img || !vp.w) return createPortal(<div className="splash-overlay" />, document.body);
 
   const cv = coverRect(vp.w, vp.h, img.naturalWidth, img.naturalHeight);
   const target = { x: cv.ox + (targetX / 100) * cv.dw, y: cv.oy + (targetY / 100) * cv.dh };
@@ -596,7 +601,7 @@ export function SplashView({ bgUrl, targetX, targetY, targetSize, label, profile
     setPos({ x: e.clientX, y: e.clientY });
   };
 
-  return (
+  return createPortal(
     <div
       className={`splash-overlay ${impact ? 'is-shatter' : ''}`}
       style={{ cursor: impact ? 'default' : 'none' }}
@@ -634,7 +639,8 @@ export function SplashView({ bgUrl, targetX, targetY, targetSize, label, profile
         </>
       )}
       {impact && <canvas ref={canvasRef} className="sp-canvas" />}
-    </div>
+    </div>,
+    document.body,
   );
 }
 

@@ -26,7 +26,7 @@ const DEFAULTS: SplashConf = {
   targetSize: 60,
   profileOn: true,
   profileName: 'EVE',
-  profileSub: 'SUBJECT 02 · A-CLASS SENTINEL',
+  profileSub: 'AGENT · A-CLASS SENTINEL',
   profileRows: 'NAME | JEON HAMIN\nATTR | PYRE\nAGE | 26\nFILE | AGENT-PYRE-02\nSTATUS | BERSERK',
 };
 
