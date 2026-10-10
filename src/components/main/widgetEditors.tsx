@@ -452,7 +452,7 @@ export function HtmlBlockSettingEditor({ conf }: { conf: WidgetConf }) {
   const { updateWidget } = useMainStore();
   const s = conf.settings as {
     html?: string; bgColor?: string; bgImageId?: string;
-    bgSize?: string; padding?: number;
+    bgSize?: string; padding?: number; autoH?: boolean;
   };
   const [draft, setDraft] = useState(s);
   const bgUrl = useBlobUrl(draft.bgImageId);
@@ -508,6 +508,11 @@ export function HtmlBlockSettingEditor({ conf }: { conf: WidgetConf }) {
         <KStep value={draft.padding ?? 0} min={0} max={100} step={4} suffix="px"
           onChange={v => setDraft(d => ({ ...d, padding: v }))} />
       </div>
+      <label style={{ display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}>
+        <input type="checkbox" checked={draft.autoH ?? false}
+          onChange={e => setDraft(d => ({ ...d, autoH: e.target.checked }))} />
+        <span style={{ fontSize: 12 }}>콘텐츠에 맞게 높이 자동 확장</span>
+      </label>
       <KTextarea
         value={draft.html ?? ''}
         onChange={e => setDraft(d => ({ ...d, html: e.target.value }))}

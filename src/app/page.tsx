@@ -123,16 +123,40 @@ export default function MainPage() {
     return () => clearTimeout(t);
   }, [absMode, enabled.length]);
 
-  const canvasH = absMode
-    ? Math.max(300, ...enabled.map(w => (w.ay ?? 0) + (w.h ?? 200))) + 40
+  const hasAutoH = absMode && enabled.some(w => (w.settings as any)?.autoH);
+
+  const staticCanvasH = absMode
+    ? Math.max(300, ...enabled.filter(w => !(w.settings as any)?.autoH).map(w => (w.ay ?? 0) + (w.h ?? 200))) + 40
     : undefined;
+
+  const [dynCanvasH, setDynCanvasH] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    if (!absMode || !hasAutoH || !gridRef.current) { setDynCanvasH(undefined); return; }
+    const ro = new ResizeObserver(() => {
+      const el = gridRef.current;
+      if (!el) return;
+      let maxBot = staticCanvasH ?? 300;
+      el.querySelectorAll<HTMLElement>('[data-wid]').forEach(c => {
+        const top = parseFloat(c.style.top || '0') || 0;
+        const h = c.scrollHeight || 0;
+        maxBot = Math.max(maxBot, top + h + 40);
+      });
+      setDynCanvasH(maxBot);
+    });
+    gridRef.current.querySelectorAll<HTMLElement>('[data-wid]').forEach(c => ro.observe(c));
+    ro.observe(gridRef.current);
+    return () => ro.disconnect();
+  }, [absMode, hasAutoH, enabled.length, staticCanvasH]);
+
+  const canvasH = hasAutoH ? dynCanvasH ?? staticCanvasH : staticCanvasH;
 
   return (
     <section className="page page-main-wrap" onClick={() => setCtx(null)}>
       <div
         ref={gridRef}
         className={`main-grid ${absMode ? 'abs' : ''} ${gridOn ? 'gridlines' : ''}`}
-        style={{ marginTop: 0, ...(canvasH ? { height: canvasH } : {}) }}
+        style={{ marginTop: 0, ...(canvasH ? (hasAutoH ? { minHeight: canvasH } : { height: canvasH }) : {}) }}
       >
         {absMode ? (
           enabled.map(w =>
