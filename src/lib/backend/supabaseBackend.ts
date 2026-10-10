@@ -180,7 +180,7 @@ export async function createSupabaseBackend(
        한 번에 UPDATE 한다. data를 다시 쓰지 않으므로 내용·순서가 흔들리지 않는다.
        editor_ids도 함께 쓴다 (포크 제보 — 업데이트 전에 준 편집 권한이 행에 평평한 목록으로
        없어서, 최신 규칙을 넣어도 그 회원의 저장이 계속 거부됐다) */
-    async refreshVis<T extends ListItem>(coll: string, items: T[], uid: string | null): Promise<number> {
+    async refreshVis<T extends ListItem>(coll: string, items: T[], uid: string | null, _withData = false): Promise<number> {
       // 값이 같은 것끼리 묶는다 — 편집 권한이 있는 항목은 드물어 묶음이 거의 그대로 유지된다
       const byKey = new Map<string, { vis: string; editorIds: string[]; ids: string[] }>();
       items.forEach(it => {
@@ -265,6 +265,11 @@ export async function createSupabaseBackend(
       const { error } = await sb.storage.from(BUCKET).remove([name]);
       if (error) throw error;
     },
+
+    // 게시판 비밀번호는 Firebase 보안 규칙으로 구현돼 있다 — Supabase 연결에서는 쓰지 않는다
+    async unlockedBoards() { return []; },
+    async unlockBoard() { return { ok: false, error: 'Supabase 연결에서는 게시판 비밀번호를 지원하지 않습니다.' }; },
+    async setBoardPassword() { return { ok: false, error: 'Supabase 연결에서는 게시판 비밀번호를 지원하지 않습니다.' }; },
 
     async deleteMember(id) {
       // profiles 행만 지운다 — auth.users 삭제는 service_role 키가 필요해 공개 홈에서는 불가

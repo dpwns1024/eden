@@ -11,6 +11,7 @@ import {
 import {
   useBoardSettings, useBoards, badgeFor, boardBadgeStyle, boardHref, MAIN_BOARD_ID, BoardPerm,
 } from '@/lib/boardStore';
+import { useBoardOpen, BoardLockScreen } from '@/components/ui/BoardLock';
 import { SearchBar, Pager } from '@/components/ui/Kit';
 import { CropImg } from '@/components/ui/CropEditor';
 import { EditableDesc, PageTitle } from '@/components/ui/PageText';
@@ -32,6 +33,7 @@ function BoardInner() {
   const bid = params.get('b') ?? MAIN_BOARD_ID;
   const { boards, loaded: boardsLoaded } = useBoards();
   const board = boards.find(b => b.id === bid) ?? boards[0];
+  const access = useBoardOpen(boardsLoaded ? board : null);   // 비밀번호 게시판 (회원·관리자는 통과)
   const [posts] = useLocalList<Post>('ohome.board.v1', BOARD_SEED);
   // 댓글 수 — 댓글은 글과 따로 저장된다 (v2.0). 옛 글 안에 남아 있던 것도 함께 센다
   const [cmtRows] = useLocalList<CommentRow>(COMMENT_KEY, COMMENT_SEED);
@@ -71,7 +73,8 @@ function BoardInner() {
      둘 다 undefined라 `undefined === undefined`가 참이었기 때문 */
   const canRead = (p: Post) => !p.secret || isAdmin || (!!p.authorId && p.authorId === user?.id);
 
-  if (!boardsLoaded) return <section className="page" />;
+  if (!boardsLoaded || access === 'loading') return <section className="page" />;
+  if (access === 'locked') return <BoardLockScreen boardId={board.id} title={board.id === MAIN_BOARD_ID ? 'BOARD' : board.name} />;
 
   const postBadge = (p: Post) => (
     <span style={boardBadgeStyle(badgeFor(boardSet, p, board.cats))}>

@@ -896,6 +896,12 @@ body.edit-on .main-grid{grid-template-columns:230px 1fr 260px}
 .wgt.wgt-fluid{left:var(--fl-x,0) !important;width:var(--fl-w,100%) !important;height:auto !important;transform:none !important}
 .wgt.wgt-fluid > *:first-child{height:auto !important}
 .htmlblock-fit{display:flow-root}
+.board-lock{max-width:340px;margin:36px auto;display:grid;gap:10px;justify-items:stretch;text-align:center}
+.board-lock-ic{width:30px;height:30px;justify-self:center;color:var(--accent,#607ca0);margin-bottom:2px}
+.board-lock b{font-size:15px}
+.board-lock small{color:var(--muted,#888);font-size:11.5px;margin-bottom:6px}
+.board-lock-err{color:#d0454c;font-size:12px;margin:0}
+.board-lock .btn{justify-content:center;text-align:center}
 /* 화면 맞춤 HTML이 있으면 메인 위아래 여백 제거 — 화면 끝까지 */
 .page-main-wrap.main-fluid{padding-top:0 !important;padding-bottom:0 !important}
 /* PC 캔버스 비율 축소 — 1120px 설계를 창 폭에 맞춰 zoom(--main-zoom은 useMainZoom). 편집모드는 원래 크기 고정 */
