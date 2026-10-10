@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { Component, useEffect, useRef, useState, useCallback } from 'react';
 import { getSplashConf, splashSeenThisSession, markSplashSeen } from '@/lib/splashStore';
 import { useBlobUrl } from '@/lib/blobStore';
 
@@ -7,7 +7,13 @@ const COLS = 16;
 const ROWS = 10;
 const ANIM_MS = 1200;
 
-export function SplashScreen() {
+class SplashBoundary extends Component<{ children: React.ReactNode }, { err: boolean }> {
+  state = { err: false };
+  static getDerivedStateFromError() { return { err: true }; }
+  render() { return this.state.err ? null : this.props.children; }
+}
+
+function SplashInner() {
   const conf = getSplashConf();
   const bgUrl = useBlobUrl(conf.bgBlobId);
   const [phase, setPhase] = useState<'idle' | 'shattering' | 'done'>('idle');
@@ -105,4 +111,8 @@ export function SplashScreen() {
       {phase === 'shattering' && fragments}
     </div>
   );
+}
+
+export function SplashScreen() {
+  return <SplashBoundary><SplashInner /></SplashBoundary>;
 }

@@ -96,17 +96,15 @@ export function GlobalHeader() {
                 설정
               </button>
             )}
-            {!me.fixed && (
-              <button
-                className="danger"
-                onClick={() => {
-                  setDelAsk(me);
-                  setCtx(null);
-                }}
-              >
-                위젯 삭제
-              </button>
-            )}
+            <button
+              className="danger"
+              onClick={() => {
+                setDelAsk(me);
+                setCtx(null);
+              }}
+            >
+              위젯 삭제
+            </button>
           </div>
         );
       })()}
