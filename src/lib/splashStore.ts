@@ -11,6 +11,12 @@ export interface SplashConf {
   targetY: number;
   targetSize: number;
   targetLabel?: string;
+  /** 조준 시 출력되는 SF 프로필 */
+  profileOn: boolean;
+  profileName: string;
+  profileSub: string;
+  /** 한 줄에 하나 — "항목 | 값" */
+  profileRows: string;
 }
 
 const DEFAULTS: SplashConf = {
@@ -18,10 +24,14 @@ const DEFAULTS: SplashConf = {
   targetX: 50,
   targetY: 50,
   targetSize: 60,
+  profileOn: true,
+  profileName: 'EVE',
+  profileSub: 'SUBJECT 02 · A-CLASS SENTINEL',
+  profileRows: 'NAME | 전하민\nATTR | PYRE\nAGE | 26\nFILE | EV-02-PYRE\nSTATUS | ACTIVE',
 };
 
 export function getSplashConf(): SplashConf {
-  return getSetting<SplashConf>(KEY, DEFAULTS);
+  return { ...DEFAULTS, ...getSetting<Partial<SplashConf>>(KEY, DEFAULTS) };
 }
 
 export function setSplashConf(v: Partial<SplashConf>): void {

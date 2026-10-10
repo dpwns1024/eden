@@ -734,22 +734,26 @@ export function HtmlBlockWidget({ conf }: { conf: WidgetConf }) {
     const el = innerRef.current;
     if (!s.autoH || !el) { setFit(null); return; }
     const measure = () => {
-      const cw = el.clientWidth, sw = el.scrollWidth;
-      // 자식 실측(현재 배율 보정) — 왼쪽 여백만큼 오른쪽에도 여백을 줘서 좌우 대칭
+      const cw = el.parentElement?.clientWidth ?? el.clientWidth, sw = el.scrollWidth;
+      // 전체 요소 실측(현재 배율 보정) — 회전·절대배치·여백까지 포함한 실제 렌더 범위
       const box = el.getBoundingClientRect();
       const cur = el.offsetWidth ? box.width / el.offsetWidth : 1;
-      let l = Infinity, r = -Infinity;
-      for (const c of Array.from(el.children)) {
-        const b = c.getBoundingClientRect();
-        if (b.width === 0) continue;
-        l = Math.min(l, (b.left - box.left) / cur); r = Math.max(r, (b.right - box.left) / cur);
+      let l = Infinity, r = -Infinity, h = el.scrollHeight;
+      const all = el.querySelectorAll('*');
+      for (let i = 0; i < all.length && i < 4000; i++) {
+        const b = all[i].getBoundingClientRect();
+        if (!b.width && !b.height) continue;
+        l = Math.min(l, (b.left - box.left) / cur);
+        r = Math.max(r, (b.right - box.left) / cur);
+        h = Math.max(h, (b.bottom - box.top) / cur);
       }
+      h = Math.ceil(h);
       const lm = Number.isFinite(l) ? Math.max(0, l) : 0;
       const end = Math.max(sw, Number.isFinite(r) ? r : 0);
       let sc = 1, dx = 0;
+      // 좌우 대칭 여백 — 왼쪽 여백만큼 오른쪽에도 남긴다
       if (cw > 0 && end > cw + 1) sc = cw / (end + lm);
-      else if (Number.isFinite(r) && r < cw - 2) dx = Math.max(0, Math.round((cw - r - lm) / 2));
-      const h = el.scrollHeight;
+      else if (Number.isFinite(r) && r < cw - 2) dx = Math.max(0, Math.floor((cw - r - lm) / 2));
       setFit(p => (p && Math.abs(p.s - sc) < 0.002 && Math.abs(p.h - h) < 1 && p.dx === dx ? p : { s: sc, h, dx }));
     };
     measure();
@@ -764,7 +768,7 @@ export function HtmlBlockWidget({ conf }: { conf: WidgetConf }) {
     width: '100%',
     height: s.autoH ? 'auto' : '100%',
     minHeight: 80,
-    overflow: 'hidden',
+    overflow: s.autoH ? 'visible' : 'hidden',
     ...(s.bgColor ? { backgroundColor: s.bgColor } : {}),
     ...(bgUrl ? {
       backgroundImage: `url("${bgUrl}")`,
@@ -780,10 +784,10 @@ export function HtmlBlockWidget({ conf }: { conf: WidgetConf }) {
     <div className="htmlblock-wgt" style={bgStyle}>
       {html ? (
         s.autoH ? (
-          <div style={{ height: fit ? fit.h * fit.s : undefined, overflow: 'hidden' }}>
+          <div style={{ height: fit ? fit.h * fit.s : undefined }}>
             <div ref={innerRef} className="htmlblock-fit"
               style={fit && fit.s < 1 ? { transform: `scale(${fit.s})`, transformOrigin: '0 0' }
-                : fit && fit.dx ? { transform: `translateX(${fit.dx}px)` } : undefined}
+                : fit && fit.dx ? { marginLeft: fit.dx, width: `calc(100% - ${fit.dx}px)` } : undefined}
               dangerouslySetInnerHTML={{ __html: html }} />
           </div>
         ) : (

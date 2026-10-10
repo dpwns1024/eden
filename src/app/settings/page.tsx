@@ -619,6 +619,28 @@ function SplashPane() {
         <KInput value={conf.targetLabel ?? ''} placeholder="예: ENTER"
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => patch({ targetLabel: e.target.value || undefined })} />
       </div>
+
+      <div style={{ marginTop: 18 }}>
+        <KToggle checked={conf.profileOn} onChange={v => patch({ profileOn: v })} />
+        <label style={{ marginLeft: 8 }}>조준 시 SF 프로필 출력</label>
+      </div>
+      {conf.profileOn && (
+        <div style={{ marginTop: 10, display: 'grid', gap: 8, maxWidth: 420 }}>
+          <div>
+            <b style={{ fontSize: 12 }}>이름 (크게 표시)</b>
+            <KInput value={conf.profileName} onChange={(e: React.ChangeEvent<HTMLInputElement>) => patch({ profileName: e.target.value })} />
+          </div>
+          <div>
+            <b style={{ fontSize: 12 }}>부제</b>
+            <KInput value={conf.profileSub} onChange={(e: React.ChangeEvent<HTMLInputElement>) => patch({ profileSub: e.target.value })} />
+          </div>
+          <div>
+            <b style={{ fontSize: 12 }}>항목 (한 줄에 하나 · 항목 | 값)</b>
+            <KTextarea value={conf.profileRows} style={{ minHeight: 110, fontFamily: 'ui-monospace, Consolas, monospace', fontSize: 12 }}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => patch({ profileRows: e.target.value })} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
