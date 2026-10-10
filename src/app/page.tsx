@@ -143,7 +143,7 @@ export default function MainPage() {
       el.querySelectorAll<HTMLElement>('[data-wid]').forEach(c => {
         const top = parseFloat(c.style.top || '0') || 0;
         const h = c.scrollHeight || 0;
-        maxBot = Math.max(maxBot, top + h + 40);
+        maxBot = Math.max(maxBot, top + h + (c.classList.contains('wgt-fluid') ? 0 : 40));
       });
       setDynCanvasH(maxBot);
     });
@@ -155,7 +155,7 @@ export default function MainPage() {
   const canvasH = hasAutoH ? dynCanvasH ?? staticCanvasH : staticCanvasH;
 
   return (
-    <section ref={setWrapEl} className="page page-main-wrap" onClick={() => setCtx(null)}>
+    <section ref={setWrapEl} className={`page page-main-wrap ${hasAutoH ? 'main-fluid' : ''}`} onClick={() => setCtx(null)}>
       <div
         ref={gridRef}
         className={`main-grid ${absMode ? 'abs' : ''} ${gridOn ? 'gridlines' : ''}`}
