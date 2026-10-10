@@ -9,7 +9,7 @@ import { ThemeVars } from '@/lib/theme';
 import { ColorField } from '@/components/ui/ColorField';
 import { KStep, KToggle, KInput, LiveInput, KTextarea, KSelect, KCheck, Pager } from '@/components/ui/Kit';
 import { DragList } from '@/components/ui/DragList';
-import { useMainStore, WidgetConf, WIDGET_META, MULTI_TYPES, widgetLabel } from '@/lib/mainStore';
+import { useMainStore, WidgetConf, WIDGET_META, MULTI_TYPES, widgetLabel, getWidgetMeta } from '@/lib/mainStore';
 import { useConfirmDelete, ConfirmModal, Modal } from '@/components/ui/Modal';
 import { exportBackup, importBackup, resetGroups, RESET_CONTENT, RESET_EXTRA } from '@/lib/backup';
 import { DiaryPost, DIARY_SEED } from '@/lib/diaryStore';
@@ -650,7 +650,7 @@ function MainPagePane() {
                   <b>{widgetLabel(state.widgets, w)}</b>
                   {MULTI_TYPES.includes(w.type) && <span className="pill">중복 추가 가능</span>}
                 </div>
-                <small>{WIDGET_META[w.type].desc}</small>
+                <small>{getWidgetMeta(w.type).desc}</small>
               </div>
             </div>
             <KToggle checked={!w.mOff} onChange={v => setMobileOff(w.id, !v)} />
@@ -695,7 +695,7 @@ function WidgetsPane() {
             {/* 중복 추가 가능한 위젯(이미지·자유 텍스트)은 번호로 구분 (v1.9) */}
             <b style={{ fontSize: 13, letterSpacing: '.04em' }}>{widgetLabel(state.widgets, w)}</b>
             {MULTI_TYPES.includes(w.type) && <span className="pill">중복 추가 가능</span>}
-            <small style={{ color: 'var(--faint)', fontSize: 10.5 }}>{WIDGET_META[w.type].desc}</small>
+            <small style={{ color: 'var(--faint)', fontSize: 10.5 }}>{getWidgetMeta(w.type).desc}</small>
             {w.mOff && <span className="pill" style={{ marginLeft: 'auto' }}>모바일 제외</span>}
           </div>
           {editorOf(w)}
