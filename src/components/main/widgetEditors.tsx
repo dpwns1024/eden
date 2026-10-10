@@ -511,7 +511,7 @@ export function HtmlBlockSettingEditor({ conf }: { conf: WidgetConf }) {
       <label style={{ display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}>
         <input type="checkbox" checked={draft.autoH ?? false}
           onChange={e => setDraft(d => ({ ...d, autoH: e.target.checked }))} />
-        <span style={{ fontSize: 12 }}>콘텐츠에 맞게 높이 자동 확장</span>
+        <span style={{ fontSize: 12 }}>화면 맞춤 — 가로는 화면 전체 폭, 높이는 내용만큼 · 창이 좁아지면 잘리지 않게 자동 축소</span>
       </label>
       <KTextarea
         value={draft.html ?? ''}

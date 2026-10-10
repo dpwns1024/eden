@@ -8,12 +8,15 @@ import { MemberBox } from '@/components/main/MemberBox';
 import { Modal, ConfirmModal } from '@/components/ui/Modal';
 import { KRadio } from '@/components/ui/Kit';
 import { useToast } from '@/components/ui/Toast';
+import { useMainZoom } from '@/lib/useMainZoom';
 
 const ADDABLE: (WidgetType | 'menu_pc')[] = ['menu_pc', 'menu', 'memo', 'dday', 'todo', 'upcoming', 'freetext', 'deco', 'diary', 'latest', 'apply', 'htmlblock'];
 const EDITABLE: (WidgetType | 'menu_pc')[] = ['banner', 'menu_pc', 'menu', 'memo', 'dday', 'todo', 'freetext', 'deco', 'apply', 'htmlblock'];
 
 export default function MainPage() {
-  const { state, gridOn, updateWidget, addWidget, removeWidget } = useMainStore();
+  const { state, gridOn, editOn, updateWidget, addWidget, removeWidget } = useMainStore();
+  const [wrapEl, setWrapEl] = useState<HTMLElement | null>(null);
+  useMainZoom(wrapEl, editOn);
   const toast = useToast();
   const [ctx, setCtx] = useState<{ id: string; x: number; y: number } | null>(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -152,7 +155,7 @@ export default function MainPage() {
   const canvasH = hasAutoH ? dynCanvasH ?? staticCanvasH : staticCanvasH;
 
   return (
-    <section className="page page-main-wrap" onClick={() => setCtx(null)}>
+    <section ref={setWrapEl} className="page page-main-wrap" onClick={() => setCtx(null)}>
       <div
         ref={gridRef}
         className={`main-grid ${absMode ? 'abs' : ''} ${gridOn ? 'gridlines' : ''}`}

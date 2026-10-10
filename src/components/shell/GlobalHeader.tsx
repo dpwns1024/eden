@@ -7,13 +7,16 @@ import { WidgetFrame } from '@/components/main/WidgetFrame';
 import { renderWidget } from '@/components/main/widgets';
 import { ConfirmModal } from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/Toast';
+import { useMainZoom } from '@/lib/useMainZoom';
 
 const EDITABLE = ['banner', 'menu_pc', 'menu'];
 
 export function GlobalHeader() {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
-  const { state, updateWidget, removeWidget } = useMainStore();
+  const { state, editOn, updateWidget, removeWidget } = useMainStore();
+  const [wrapEl, setWrapEl] = useState<HTMLElement | null>(null);
+  useMainZoom(wrapEl, editOn);
   const toast = useToast();
   const [ctx, setCtx] = useState<{ id: string; x: number; y: number } | null>(null);
   const [delAsk, setDelAsk] = useState<WidgetConf | null>(null);
@@ -55,7 +58,7 @@ export function GlobalHeader() {
     : undefined;
 
   return (
-    <section className="page page-main-wrap" onClick={() => setCtx(null)} style={{ paddingBottom: 0 }}>
+    <section ref={setWrapEl} className="page page-main-wrap" onClick={() => setCtx(null)} style={{ paddingBottom: 0 }}>
       <div
         className={`main-grid ${absMode ? 'abs' : ''}`}
         style={{ marginTop: 0, ...(canvasH ? { height: canvasH } : {}) }}

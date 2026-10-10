@@ -890,8 +890,14 @@ body.edit-on .main-grid{grid-template-columns:230px 1fr 260px}
 .main-grid .wgt:last-child{margin-bottom:0}
 /* 크기 지정(동결/리사이즈)된 프레임: 내부 블록이 프레임을 꽉 채움 — 핸들을 늘리면 위젯도 같이 늘어남 */
 .wgt.sized > *:first-child{width:100%;height:100%}
-.wgt.sized.auto-h{height:auto !important;width:100vw !important;left:50% !important;margin-left:-50vw !important}
-.wgt.sized.auto-h > *:first-child{height:auto;min-height:100vh}
+/* 화면 맞춤 HTML 블록 — 가로는 본문 전체 폭(--fl-x/--fl-w는 WidgetFrame이 실측), 세로는 콘텐츠 높이 */
+.wgt.wgt-fluid{left:var(--fl-x,0) !important;width:var(--fl-w,100%) !important;height:auto !important;transform:none !important}
+.wgt.wgt-fluid > *:first-child{height:auto !important}
+/* PC 캔버스 비율 축소 — 1120px 설계를 창 폭에 맞춰 zoom(--main-zoom은 useMainZoom). 편집모드는 원래 크기 고정 */
+@media (min-width:621px){
+  body.main-fixed:not(.edit-on) .page-main-wrap{min-width:0;margin-left:auto;margin-right:auto}
+  body:not(.edit-on) .page-main-wrap > .main-grid.abs{width:1120px;zoom:var(--main-zoom,1)}
+}
 .wgt.sized > .widget{margin-bottom:0}
 /* 편집모드 드래그 커서 (v1.9 사용자 발견) — 이동 커서를 따로 등록하지 않았으면 시스템 손 모양(grab)이
    튀어나와 "커서가 깨져 보이고 등록한 핸드가 무시되는" 문제가 있었다.
@@ -1740,7 +1746,7 @@ body.edit-on .main-grid.gridlines .wgt{outline-offset:0}
   .menu-list{display:block}
   /* 모바일에서는 PC 배치값(오프셋·절대좌표·px 크기) 무시 — 흐름 스택으로 복원 (8장 · v1.9) */
   .wgt{transform:none !important;width:auto !important;height:auto !important;position:static !important;left:auto !important;top:auto !important;margin-bottom:10px !important}
-  .wgt.auto-h{width:100vw !important;position:relative !important;left:50% !important;margin-left:-50vw !important}
+  .wgt.wgt-fluid{margin-left:var(--fl-x,0) !important}
   .main-grid.abs{display:grid !important;height:auto !important}
   .settings-layout{grid-template-columns:1fr}
   /* BGM — 화면 하단에 딱 붙는 슬림 풀폭 바 (8장·4.1 v1.9): 볼륨 생략, 재생 컨트롤 오른쪽 정렬 */
@@ -1791,62 +1797,20 @@ body.edit-on .main-grid.gridlines .wgt{outline-offset:0}
 .htmlblock-wgt img{max-width:100%;height:auto}
 
 /* 스플래시 스크린 (v2.1) */
-/* ─── splash: sniper scope ─── */
-.splash-overlay{position:fixed;inset:0;z-index:9999;overflow:hidden;background:#000}
-.splash-bg{position:absolute;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat}
-
-/* screen shake on impact */
-.splash-overlay.sp-shake{animation:spShake .35s ease-out}
-@keyframes spShake{
-  0%{transform:translate(0,0)}
-  12%{transform:translate(-8px,5px)}
-  24%{transform:translate(6px,-4px)}
-  36%{transform:translate(-4px,3px)}
-  50%{transform:translate(3px,-2px)}
-  65%{transform:translate(-1px,1px)}
-  100%{transform:translate(0,0)}
-}
-
-/* scope */
-.sp-scope-img{position:absolute;inset:0;background-size:cover;background-position:center}
-.sp-scope-ring{position:absolute;transform:translate(-50%,-50%);pointer-events:none}
-.sp-scope-ring svg{width:100%;height:100%;filter:drop-shadow(0 0 6px rgba(0,0,0,.5))}
-.sp-hair{stroke:rgba(0,0,0,.7);stroke-width:1.4;transition:stroke .15s}
-.sp-hair.on{stroke:#e53935}
-.sp-tick{stroke:rgba(0,0,0,.6);stroke-width:1;transition:stroke .15s}
-.sp-tick.on{stroke:#e53935}
-.sp-fire{position:fixed;bottom:14%;left:50%;transform:translateX(-50%);color:#e53935;font-size:16px;font-weight:800;letter-spacing:10px;animation:spPulse .7s ease-in-out infinite;pointer-events:none;text-shadow:0 0 20px rgba(229,57,53,.5)}
-@keyframes spPulse{0%,100%{opacity:1}50%{opacity:.3}}
-
-/* flash */
-.sp-flash{position:absolute;inset:0;background:#fff;animation:spFlash .25s ease-out forwards;z-index:5}
-@keyframes spFlash{0%{opacity:.9}100%{opacity:0}}
-
-/* bullet hole */
-.sp-hole{position:absolute;width:28px;height:28px;border-radius:50%;background:radial-gradient(circle,#000 40%,rgba(0,0,0,.7) 70%,transparent 100%);transform:translate(-50%,-50%);z-index:8;animation:spHoleIn .2s ease-out forwards}
-.sp-hole-stay{animation:none}
-@keyframes spHoleIn{0%{transform:translate(-50%,-50%) scale(0)}100%{transform:translate(-50%,-50%) scale(1)}}
-
-/* crack lines — jagged polylines with ring cracks */
-.sp-cracks{position:absolute;inset:0;width:100%;height:100%;z-index:7}
-.sp-crack-line{stroke-dasharray:400;stroke-dashoffset:400;animation:spCrack .4s ease-out forwards}
-.sp-cracks-fade{animation:spCracksFade 1.1s .1s ease-in forwards}
-@keyframes spCrack{to{stroke-dashoffset:0}}
-@keyframes spCracksFade{to{opacity:0}}
-
-/* polar glass shards — clip-path polygons with 3D tumble */
-.sp-shard{
-  position:absolute;inset:0;
-  background-size:cover;background-position:center;
-  will-change:transform,opacity;backface-visibility:hidden;
-  animation:spShardFall var(--dur,700ms) cubic-bezier(.22,.06,.82,.42) var(--delay,0ms) forwards;
-}
-@keyframes spShardFall{
-  0%{transform:perspective(800px) translate3d(0,0,0) rotateX(0) rotateY(0) rotateZ(0) scale(1);opacity:1}
-  20%{opacity:.95}
-  100%{transform:perspective(800px) translate3d(var(--tx,0),var(--ty,0),0) rotateX(var(--rx,0)) rotateY(var(--ry,0)) rotateZ(var(--rz,0)) scale(.3);opacity:0}
-}
-
+/* ─── splash: sniper scope + canvas glass shatter ─── */
+.splash-overlay{position:fixed;inset:0;z-index:9999;overflow:hidden;background:#000;touch-action:none;user-select:none;-webkit-user-select:none}
+.splash-overlay.is-shatter{background:transparent}
+.sp-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.sp-lens{position:absolute;border-radius:50%;overflow:hidden;background-repeat:no-repeat;pointer-events:none;
+  box-shadow:inset 0 0 0 2px rgba(0,0,0,.85),inset 0 0 40px 22px rgba(0,0,0,.92),0 0 0 1px rgba(255,255,255,.07),0 0 60px 10px rgba(0,0,0,.9)}
+.sp-reticle{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.sp-lock{transform-origin:center;transform-box:fill-box;animation:spLock .9s ease-out infinite}
+@keyframes spLock{0%{transform:scale(1.8);opacity:0}40%{opacity:1}100%{transform:scale(1);opacity:0}}
+.sp-hud{position:fixed;left:50%;bottom:9%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:rgba(255,255,255,.45);font-size:11px;letter-spacing:.35em;pointer-events:none;white-space:nowrap;text-transform:uppercase}
+.sp-hud b{color:#ff3b30;font-size:15px;letter-spacing:.45em;text-shadow:0 0 18px rgba(255,59,48,.6)}
+.sp-hud.hot span{color:rgba(255,255,255,.85);animation:spBlink .8s steps(2) infinite}
+@keyframes spBlink{50%{opacity:.25}}
 /* 이미지 올리는 중 알림 (v2.0) — 토스트와 같은 자리·모양, 조금 위 */
 .up-busy{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);z-index:121;display:flex;align-items:center;gap:9px;padding:10px 18px;border-radius:999px;background:var(--dd-bg);color:var(--dd-fg);font-size:calc(12.5px*var(--fs,1));box-shadow:0 10px 30px rgba(0,0,0,.3);border:1px solid var(--line-dark);backdrop-filter:blur(8px)}
 .up-spin{width:12px;height:12px;border-radius:50%;border:2px solid var(--line-dark);border-top-color:var(--accent);animation:upSpin .7s linear infinite;flex-shrink:0}

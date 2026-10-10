@@ -1,7 +1,7 @@
 'use client';
 // 위젯 프레임 (4.0 편집모드) — 드래그 이동 · 우하단 리사이즈 · 우클릭 겹침 순서 · 클릭 차단
 // 프로토타입의 편집 모델을 계승: 그리드 배치는 유지하고 transform 오프셋 + 크기 동결(px)로 조작
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { WidgetConf, useMainStore } from '@/lib/mainStore';
 import { ConfirmModal } from '@/components/ui/Modal';
 
@@ -40,6 +40,32 @@ export function WidgetFrame({ conf, mobileOrder, children, className, style, onC
   // PC 절대배치 (v1.9 사용자 확정) — ax/ay가 있으면 캔버스 절대 좌표로 렌더.
   // 문서 흐름이 없으므로 드래그·리사이즈 때 다른 위젯이 절대 밀리지 않고, 안 맞으면 겹친다.
   const abs = conf.ax != null && conf.ay != null;
+
+  // 화면 맞춤 HTML 블록 — 가로는 본문 영역(#appMain) 전체 폭, 세로 위치(ay)는 그대로.
+  // 캔버스가 축소(zoom)돼 있어도 실제 화면 폭에 맞도록 실측해서 CSS 변수로 넘긴다.
+  const fluid = conf.type === 'htmlblock' && !!(conf.settings as { autoH?: boolean })?.autoH;
+  const [fl, setFl] = useState<{ x: number; w: number } | null>(null);
+  useLayoutEffect(() => {
+    if (!fluid) { setFl(null); return; }
+    const el = ref.current;
+    const grid = el?.parentElement;
+    if (!el || !grid) return;
+    const main = document.getElementById('appMain') ?? document.documentElement;
+    const measure = () => {
+      const z = parseFloat(getComputedStyle(grid).zoom) || 1;
+      const g = grid.getBoundingClientRect();
+      const m = main.getBoundingClientRect();
+      const x = Math.round((m.left + main.clientLeft - g.left) / z);
+      const w = Math.floor(main.clientWidth / z);
+      setFl(p => (p && p.x === x && p.w === w ? p : { x, w }));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(main);
+    ro.observe(grid);
+    window.addEventListener('resize', measure);
+    return () => { ro.disconnect(); window.removeEventListener('resize', measure); };
+  }, [fluid]);
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (!editOn || e.button !== 0) return;
@@ -161,16 +187,13 @@ export function WidgetFrame({ conf, mobileOrder, children, className, style, onC
     <div
       ref={ref}
       data-wid={conf.id}
-      className={`wgt ${useSize && conf.w != null ? 'sized' : ''} ${(conf.settings as any)?.autoH ? 'auto-h' : ''} ${conf.mOff ? 'wgt-hide-m' : ''} ${className ?? ''}`}
+      className={`wgt ${useSize && conf.w != null ? 'sized' : ''} ${fluid ? 'wgt-fluid' : ''} ${conf.mOff ? 'wgt-hide-m' : ''} ${className ?? ''}`}
       style={{
         ...style,
         order: mobileOrder,
         ...(abs
           ? {
-            position: 'absolute' as const,
-            left: (conf.settings as any)?.autoH ? 0 : conf.ax,
-            top: (conf.settings as any)?.autoH ? 0 : conf.ay,
-            margin: 0,
+            position: 'absolute' as const, left: conf.ax, top: conf.ay, margin: 0,
             transform: conf.rot ? `rotate(${conf.rot}deg)` : undefined,
           }
           : {
@@ -179,9 +202,10 @@ export function WidgetFrame({ conf, mobileOrder, children, className, style, onC
               conf.rot ? `rotate(${conf.rot}deg)` : '',
             ].join(' ').trim() || undefined,
           }),
-        width: (conf.settings as any)?.autoH ? '100%' : (useSize && conf.w != null ? conf.w : undefined),
-        height: useSize && conf.h != null && !(conf.settings as any)?.autoH ? conf.h : undefined,
+        width: useSize && conf.w != null ? conf.w : undefined,
+        height: useSize && conf.h != null && !fluid ? conf.h : undefined,
         zIndex: conf.z,
+        ...(fl ? { '--fl-x': `${fl.x}px`, '--fl-w': `${fl.w}px` } as React.CSSProperties : {}),
       }}
       onPointerDown={onPointerDown}
       onContextMenu={e => {

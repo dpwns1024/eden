@@ -559,14 +559,32 @@ function SplashPane() {
   return (
     <div className="set-sec" style={{ marginTop: 28 }}>
       <h3>로딩 화면 (스플래시)</h3>
-      <div className="d">방문자가 처음 들어올 때 배경 이미지가 전체 화면으로 뜨고, 지정한 곳을 클릭하면 화면이 깨지면서 메인으로 진입합니다. 세션당 1회만 표시됩니다.</div>
+      <div className="d">방문자가 처음 들어올 때 저격 스코프로 배경 이미지를 탐색하고, 표적을 조준해 사격하면 화면이 유리처럼 깨지면서 메인으로 진입합니다. 세션당 1회만 표시됩니다.</div>
 
       <KToggle checked={conf.enabled} onChange={v => patch({ enabled: v })} />
       <label style={{ marginLeft: 8 }}>스플래시 화면 켜기</label>
 
       <div style={{ marginTop: 14 }}>
         <b style={{ fontSize: 12 }}>배경 이미지</b>
-        {bgUrl && <img src={bgUrl} alt="" style={{ display: 'block', maxWidth: 320, maxHeight: 180, objectFit: 'cover', marginTop: 6, borderRadius: 6 }} />}
+        {bgUrl && (
+          <div style={{ position: 'relative', display: 'inline-block', marginTop: 6, cursor: 'crosshair', lineHeight: 0 }}
+            onClick={e => {
+              const r = e.currentTarget.getBoundingClientRect();
+              patch({
+                targetX: Math.round(((e.clientX - r.left) / r.width) * 1000) / 10,
+                targetY: Math.round(((e.clientY - r.top) / r.height) * 1000) / 10,
+              });
+            }}>
+            <img src={bgUrl} alt="" style={{ display: 'block', maxWidth: 420, maxHeight: 260, borderRadius: 6 }} />
+            <span style={{
+              position: 'absolute', left: `${conf.targetX}%`, top: `${conf.targetY}%`, width: 18, height: 18,
+              transform: 'translate(-50%,-50%)', borderRadius: '50%', border: '2px solid #ff3b30',
+              boxShadow: '0 0 0 2px rgba(0,0,0,.5)', pointerEvents: 'none',
+            }} />
+          </div>
+        )}
+        {bgUrl && <p className="hint" style={{ marginTop: 4 }}>미리보기에서 표적(예: 눈동자)을 클릭하면 위치가 지정됩니다 — 화면 비율이 달라도(모바일 포함) 같은 지점이 표적이 됩니다.</p>}
+        <br />
         <label className="btn btn-ghost" style={{ marginTop: 6, display: 'inline-block', cursor: 'pointer' }}>
           이미지 선택
           <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async e => {
@@ -580,17 +598,17 @@ function SplashPane() {
 
       <div style={{ marginTop: 14, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
         <div>
-          <b style={{ fontSize: 12 }}>클릭 표적 X (%)</b>
+          <b style={{ fontSize: 12 }}>표적 X (이미지 %)</b>
           <KInput type="number" value={conf.targetX} min={0} max={100}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => patch({ targetX: Number(e.target.value) || 50 })} />
         </div>
         <div>
-          <b style={{ fontSize: 12 }}>클릭 표적 Y (%)</b>
+          <b style={{ fontSize: 12 }}>표적 Y (이미지 %)</b>
           <KInput type="number" value={conf.targetY} min={0} max={100}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => patch({ targetY: Number(e.target.value) || 50 })} />
         </div>
         <div>
-          <b style={{ fontSize: 12 }}>표적 크기 (px)</b>
+          <b style={{ fontSize: 12 }}>조준 허용 범위 (px)</b>
           <KInput type="number" value={conf.targetSize} min={20} max={200}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => patch({ targetSize: Number(e.target.value) || 60 })} />
         </div>
