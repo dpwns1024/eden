@@ -1842,8 +1842,10 @@ body.edit-on .main-grid.gridlines .wgt{outline-offset:0}
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:rgba(255,255,255,.45);font-size:11px;letter-spacing:.35em;pointer-events:none;white-space:nowrap;text-transform:uppercase}
 .sp-hud b{color:#ff3b30;font-size:15px;letter-spacing:.45em;text-shadow:0 0 18px rgba(255,59,48,.6)}
 .sp-hud.hot span{color:rgba(255,255,255,.85);animation:spBlink .8s steps(2) infinite}
-.sp-hud .found{color:#607ca0 !important;font-size:14px;letter-spacing:.3em;text-transform:none;animation:spFound .9s ease-out both !important}
-@keyframes spFound{from{opacity:0;letter-spacing:.8em;filter:blur(3px)}to{opacity:1;letter-spacing:.3em;filter:none}}
+.sp-hud .found{color:#607ca0 !important;font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR','Noto Sans CJK KR',sans-serif;
+  font-size:20px;font-weight:500;font-style:italic;letter-spacing:.02em;text-transform:none;
+  text-shadow:0 0 16px rgba(96,124,160,.45);animation:spFound .8s ease-out both !important}
+@keyframes spFound{from{opacity:0;transform:translateY(6px);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
 .sp-hud .scan::after{content:'';display:inline-block;width:1.6em;text-align:left;animation:spDots 1.2s steps(4) infinite}
 @keyframes spDots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
 @keyframes spBlink{50%{opacity:.25}}
