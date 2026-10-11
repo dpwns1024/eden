@@ -13,6 +13,8 @@ import {
   readNotifs, markRead, markAllRead, clearReadNotifs, notifSettings, setNotifSetting, syncNotifs,
 } from '@/lib/notifStore';
 import { subscribeTable } from '@/lib/db';
+import { createPortal } from 'react-dom';
+import { useMemberSlot } from '@/lib/htmlSlots';
 
 const BellIcon = () => (
   <svg viewBox="0 0 24 24">
@@ -30,6 +32,7 @@ export function TopBar() {
   const [notifOpen, setNotifOpen] = useState(false);
   const avatarSrc = useBlobUrl(user?.avatarUrl);
   const userRef = useRef<HTMLDivElement>(null);
+  const memberSlot = useMemberSlot();
 
   useEffect(() => {
     if (!menuOpen && !notifOpen) return;
@@ -81,6 +84,90 @@ export function TopBar() {
     router.push(href);
   };
 
+  // 사용자 영역 — 비로그인: 로그인 버튼 / 로그인: 알림 + 프로필 드롭다운
+  const userArea = (
+    user ? (
+      <div className="user-wrap" ref={userRef}>
+        <div className="user-chip" onClick={() => setMenuOpen(o => !o)}>
+          {/* 알림 종 */}
+          <span
+            className="badge-dot"
+            data-n={String(Math.min(9, unread.length))}
+            onClick={e => { e.stopPropagation(); setMenuOpen(false); setNotifOpen(o => !o); }}
+          >
+            <BellIcon />
+          </span>
+          {/* 프로필 아바타 */}
+          <div
+            className="avatar"
+            style={!avatarSrc && user.avatarColor ? { background: user.avatarColor } : undefined}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {avatarSrc && <img src={avatarSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+          </div>
+          {user.nickname} <span style={{ fontSize: 9, color: '#8d939d' }}>▾</span>
+        </div>
+
+        {/* 알림 드롭다운 */}
+        <div className={`user-menu notif-menu ${notifOpen ? 'open' : ''}`}>
+          <div className="nh">
+            <b>알림</b>
+            {unread.length > 0 && (
+              <button className="all" onClick={() => markAllRead(user.id)}>모두 읽음</button>
+            )}
+            {myNotifs.some(n => n.read) && (
+              <button className="all" onClick={() => clearReadNotifs(user.id)}>읽은 알림 정리</button>
+            )}
+          </div>
+          {myNotifs.length === 0 && <p className="empty">알림이 없습니다</p>}
+          {myNotifs.slice(0, 12).map(n => (
+            <button
+              key={n.id}
+              className={`nt ${n.read ? 'rd' : ''}`}
+              onClick={() => { markRead(n.id); setNotifOpen(false); nav(n.href); }}
+            >
+              <b>{n.title}</b>
+              {n.body && <span>{n.body}</span>}
+              <small>{fmtNd(n.date)}</small>
+            </button>
+          ))}
+          {mySet && (
+            <div className="nset">
+              {(Object.keys(NOTIF_TYPE_LABEL) as NotifType[])
+                .filter(k => k !== 'guest' || isAdmin)
+                .map(k => (
+                  <label key={k} className="row">
+                    <span>{NOTIF_TYPE_LABEL[k]}</span>
+                    <KToggle checked={mySet[k]} onChange={v => setNotifSetting(user.id, k, v)} />
+                  </label>
+                ))}
+            </div>
+          )}
+        </div>
+
+        {/* 프로필 드롭다운 */}
+        <div className={`user-menu ${menuOpen ? 'open' : ''}`}>
+          <button onClick={() => { setMenuOpen(false); nav('/mypage'); }}>정보수정</button>
+          {isAdmin && (
+            <>
+              {(editAvailable || editOn) && (
+                <button onClick={() => { setMenuOpen(false); toggleEdit(); }}>
+                  편집모드 {editOn ? '끄기' : '켜기'}
+                </button>
+              )}
+              <button onClick={() => { setMenuOpen(false); nav('/settings'); }}>환경설정</button>
+            </>
+          )}
+          <button onClick={() => { setMenuOpen(false); logout(); }}>로그아웃</button>
+        </div>
+      </div>
+    ) : (
+      <button className="login-link" onClick={() => nav('/login')}>로그인</button>
+    )
+  );
+  // 편집모드에선 상단 바에 둔다 — HTML 블록을 끌고 있을 때 편집모드 끄기 메뉴를 잃지 않게
+  const slot = memberSlot && pathname === '/' && !editOn ? memberSlot : null;
+
   return (
     <header
       className="topbar"
@@ -130,85 +217,8 @@ export function TopBar() {
         ✎ 편집중
       </span>
 
-      {/* 사용자 영역 — 비로그인: 로그인 버튼 / 로그인: 알림 + 프로필 드롭다운 */}
-      {user ? (
-        <div className="user-wrap" ref={userRef}>
-          <div className="user-chip" onClick={() => setMenuOpen(o => !o)}>
-            {/* 알림 종 */}
-            <span
-              className="badge-dot"
-              data-n={String(Math.min(9, unread.length))}
-              onClick={e => { e.stopPropagation(); setMenuOpen(false); setNotifOpen(o => !o); }}
-            >
-              <BellIcon />
-            </span>
-            {/* 프로필 아바타 */}
-            <div
-              className="avatar"
-              style={!avatarSrc && user.avatarColor ? { background: user.avatarColor } : undefined}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              {avatarSrc && <img src={avatarSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
-            </div>
-            {user.nickname} <span style={{ fontSize: 9, color: '#8d939d' }}>▾</span>
-          </div>
-
-          {/* 알림 드롭다운 */}
-          <div className={`user-menu notif-menu ${notifOpen ? 'open' : ''}`}>
-            <div className="nh">
-              <b>알림</b>
-              {unread.length > 0 && (
-                <button className="all" onClick={() => markAllRead(user.id)}>모두 읽음</button>
-              )}
-              {myNotifs.some(n => n.read) && (
-                <button className="all" onClick={() => clearReadNotifs(user.id)}>읽은 알림 정리</button>
-              )}
-            </div>
-            {myNotifs.length === 0 && <p className="empty">알림이 없습니다</p>}
-            {myNotifs.slice(0, 12).map(n => (
-              <button
-                key={n.id}
-                className={`nt ${n.read ? 'rd' : ''}`}
-                onClick={() => { markRead(n.id); setNotifOpen(false); nav(n.href); }}
-              >
-                <b>{n.title}</b>
-                {n.body && <span>{n.body}</span>}
-                <small>{fmtNd(n.date)}</small>
-              </button>
-            ))}
-            {mySet && (
-              <div className="nset">
-                {(Object.keys(NOTIF_TYPE_LABEL) as NotifType[])
-                  .filter(k => k !== 'guest' || isAdmin)
-                  .map(k => (
-                    <label key={k} className="row">
-                      <span>{NOTIF_TYPE_LABEL[k]}</span>
-                      <KToggle checked={mySet[k]} onChange={v => setNotifSetting(user.id, k, v)} />
-                    </label>
-                  ))}
-              </div>
-            )}
-          </div>
-
-          {/* 프로필 드롭다운 */}
-          <div className={`user-menu ${menuOpen ? 'open' : ''}`}>
-            <button onClick={() => { setMenuOpen(false); nav('/mypage'); }}>정보수정</button>
-            {isAdmin && (
-              <>
-                {(editAvailable || editOn) && (
-                  <button onClick={() => { setMenuOpen(false); toggleEdit(); }}>
-                    편집모드 {editOn ? '끄기' : '켜기'}
-                  </button>
-                )}
-                <button onClick={() => { setMenuOpen(false); nav('/settings'); }}>환경설정</button>
-              </>
-            )}
-            <button onClick={() => { setMenuOpen(false); logout(); }}>로그아웃</button>
-          </div>
-        </div>
-      ) : (
-        <button className="login-link" onClick={() => nav('/login')}>로그인</button>
-      )}
+      {/* 사용자 영역 — 메인 HTML에 로그인 자리(data-ohome="member")가 있으면 그 안으로 옮겨 그린다 */}
+      {slot ? createPortal(userArea, slot) : userArea}
     </header>
   );
 }

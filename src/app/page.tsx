@@ -9,6 +9,7 @@ import { Modal, ConfirmModal } from '@/components/ui/Modal';
 import { KRadio } from '@/components/ui/Kit';
 import { useToast } from '@/components/ui/Toast';
 import { useMainZoom } from '@/lib/useMainZoom';
+import { htmlHasMenuSlot } from '@/lib/htmlSlots';
 
 const ADDABLE: (WidgetType | 'menu_pc')[] = ['menu_pc', 'menu', 'memo', 'dday', 'todo', 'upcoming', 'freetext', 'deco', 'diary', 'latest', 'apply', 'htmlblock'];
 const EDITABLE: (WidgetType | 'menu_pc')[] = ['banner', 'menu_pc', 'menu', 'memo', 'dday', 'todo', 'freetext', 'deco', 'apply', 'htmlblock'];
@@ -30,8 +31,13 @@ export default function MainPage() {
     return () => window.removeEventListener('ohome-add-widget', open);
   }, []);
 
-  // 배너와 메뉴를 포함한 모든 활성화 위젯을 그리드 내부 대상으로 사용
-  const enabled = state.widgets.filter(w => w.enabled);
+  // 배너와 메뉴를 포함한 모든 활성화 위젯을 그리드 내부 대상으로 사용.
+  // HTML 블록에 메뉴 자리(data-ohome="menu")가 있으면 메인에서는 메뉴 위젯을 그리지 않는다 —
+  // 메뉴는 그 자리에 들어가고, 다른 페이지 상단에서는 메뉴 위젯이 그대로 쓰인다. 편집모드에선 보여서 고칠 수 있게
+  const menuInHtml = !editOn && state.widgets.some(w =>
+    w.enabled && w.type === 'htmlblock' && htmlHasMenuSlot((w.settings as { html?: string })?.html));
+  const enabled = state.widgets.filter(w =>
+    w.enabled && !(menuInHtml && (w.type === 'menu' || (w.type as string) === 'menu_pc')));
 
   const byCol = (c: 1 | 2 | 3) => enabled.filter(w => w.col === c);
   const mOrder = (id: string) => {
