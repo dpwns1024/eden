@@ -18,6 +18,7 @@ import { CroppedBlobImg, CropEditor, type CropValue } from '@/components/ui/Crop
 import { EditableDesc, PageTitle } from '@/components/ui/PageText';
 import { useSectionTitle, filterSection, MAIN_SEC } from '@/lib/sectionStore';
 import { ConfirmModal } from '@/components/ui/Modal';
+import { CenterGlyph } from '@/components/ui/CenterGlyph';
 
 function CharDetailInner() {
   const { id } = useParams<{ id: string }>();
@@ -217,7 +218,10 @@ function CharDetailInner() {
             <svg viewBox="0 0 18 14" aria-hidden><rect y="0.5" width="18" height="2" /><rect y="6" width="18" height="2" /><rect y="11.5" width="18" height="2" /></svg>
           </button>
           {eff.tabs.map(t => (
-            <button key={t.id} className={tab === t.id ? 'on' : ''} data-tip={t.title} onClick={() => pickTab(t.id)}>{t.icon}</button>
+            <button key={t.id} className={tab === t.id ? 'on' : ''} data-tip={t.title} onClick={() => pickTab(t.id)}>
+              {/* 기호는 기기마다 글꼴이 달라 세로 자리가 제각각 — 실제 잉크를 재서 정가운데로 */}
+              <CenterGlyph>{t.icon}</CenterGlyph>
+            </button>
           ))}
           {isAdmin && (
             <button data-tip="탭 추가 (편집모드)" style={{ borderStyle: 'dashed', fontSize: 13 }}
