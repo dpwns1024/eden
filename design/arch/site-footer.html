@@ -1,0 +1,39 @@
+<style>
+/* ── 공통 하단 (메인이 아닌 모든 페이지 맨 아래) ── */
+.arx.arf{--ln:rgba(190,208,228,.10);--dim:#4a5461;--mu:#8592a0;--acr:184,216,255;position:relative;z-index:2;color:#e4e9ef;font:400 13px/1.6 'Jost','Noto Sans KR',sans-serif}
+.arx.arf *{box-sizing:border-box;margin:0;padding:0}
+.arx.arf .ar-wrap{max-width:1280px;margin:0 auto;padding:clamp(40px,5vw,64px) clamp(16px,3.6vw,48px) clamp(28px,4vw,52px)}
+.arx .ar-foot{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:28px;margin-top:auto;padding-top:22px;border-top:1px solid var(--ln);font:400 8.5px/1.7 'JetBrains Mono',monospace;letter-spacing:.2em;color:var(--dim)}
+.arx .ar-foot .fb{display:flex;align-items:center;gap:12px}
+.arx .ar-foot .fb .mk{width:26px;height:26px;opacity:.8}
+.arx .ar-foot .fb .wm{width:auto;height:14px;opacity:.7;overflow:visible}
+.arx .ar-foot .fb b{font:300 15px/1 'Jost',sans-serif;letter-spacing:.5em;color:var(--mu)}
+.arx .ar-foot .kr{font-family:'Noto Sans KR',sans-serif;letter-spacing:.04em}
+.arx .ar-foot > :last-child{text-align:right}
+.arx.arf .ar-foot{margin-top:0;padding-top:0;border-top:0}
+/* 같은 페이지에 공통 상단의 .arx 규칙(화면 높이·배경·가장자리 어둠)이 함께 있어도 하단은 제 크기로 */
+.arx.arf{min-height:0;overflow:visible;background:transparent}
+.arx.arf::after{display:none}
+.arx.arf .ar-wrap{min-height:0;display:block}
+html body:has(.arf) #appMain{min-height:calc(100vh - 240px)}
+@media (max-width:820px){.arx .ar-foot{grid-template-columns:1fr;gap:10px}.arx .ar-foot > :last-child{text-align:left}}
+</style>
+
+<!-- 다른 페이지 공통 하단 — 환경설정 → 메인 페이지 → 「다른 페이지 공통 하단 (HTML)」에 붙여넣기 -->
+<div class="arx arf">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="arS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".3" stop-color="#dfe6ee"/><stop offset=".5" stop-color="#8a96a3"/><stop offset=".62" stop-color="#eef2f6"/><stop offset=".85" stop-color="#a7b1bd"/><stop offset="1" stop-color="#6a7581"/></linearGradient><linearGradient id="arL" x1="0" x2="1"><stop offset="0" stop-color="#dce6f0" stop-opacity="0"/><stop offset=".14" stop-color="#dce6f0" stop-opacity=".45"/><stop offset=".72" stop-color="#e8f0f8" stop-opacity=".8"/><stop offset=".82" stop-color="#fff"/><stop offset=".92" stop-color="#dce6f0" stop-opacity=".35"/><stop offset="1" stop-color="#dce6f0" stop-opacity="0"/></linearGradient><radialGradient id="arG"><stop offset="0" stop-color="#fff"/><stop offset=".22" stop-color="#e2f1ff"/><stop offset=".55" stop-color="#9cc8ff" stop-opacity=".35"/><stop offset="1" stop-color="#9cc8ff" stop-opacity="0"/></radialGradient></defs></svg>
+  <div class="ar-wrap">
+    <!-- ── 푸터 ── -->
+    <footer class="ar-foot">
+      <div class="fb"><svg class="mk" viewBox="0 0 200 200" aria-hidden="true">
+   <path d="M100 18 L164 40 V102 C164 140 136 166 100 182 C64 166 36 140 36 102 V40 Z" fill="none" stroke="url(#arS)" stroke-width="3"/>
+   <path d="M100 30 L154 48 V102 C154 134 130 156 100 170 C70 156 46 134 46 102 V48 Z" fill="none" stroke="rgba(220,230,240,.25)" stroke-width="1"/>
+   <path d="M64 136 L100 62 L136 136" fill="none" stroke="url(#arS)" stroke-width="7" stroke-linejoin="miter"/>
+   <rect x="22" y="112" width="156" height="1.6" fill="url(#arL)"/>
+   <path d="M100 40 L102.5 50 L100 60 L97.5 50 Z" fill="#fff"/>
+   <circle cx="100" cy="50" r="9" fill="url(#arG)"/></svg><svg class="wm" viewBox="-44 -24 558 132" role="img" aria-label="ARCH"><path d="M0 100 L45 0 L90 100 M136 100 V0 H178 A25 25 0 0 1 178 52 H136 M174 52 L210 100 M343.2 16.5 A50 50 0 1 0 343.2 83.5 M390 0 V100 M470 0 V100 M390 50 H470" fill="none" stroke="url(#arS)" stroke-width="4.5" stroke-linejoin="miter"/><rect x="-40" y="62.6" width="550" height="1.4" fill="url(#arL)"/><circle cx="45" cy="-14" r="2.2" fill="#fff"/></svg></div>
+      <span class="kr">본 페이지는 ARCH 내부 열람용 자료이며 무단 전재 및 재배포를 금합니다. · HQ — THE AEGIS</span>
+      <span>© ARCH · ARCANE RESPONSE CONTROL HUB<br>SESSION 0x2F7A // END OF PAGE</span>
+    </footer>
+  </div>
+</div>
