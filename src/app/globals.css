@@ -181,6 +181,14 @@ a{color:inherit;text-decoration:none}
 /* 리스트 픽토그램 — 선(stroke) 아이콘, 아이콘색(--bgm-ic) 테마 연동 */
 .bgm .ctrl .lst svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;display:block}
 /* 접기 (4.1): 디스크만 남는 미니 상태 · 접기 화살표 버튼 */
+/* 모바일 전용 탭 (PC에선 숨김) — 재생 중이면 작은 이퀄라이저가 움직인다 */
+.bgm-tab{display:none}
+.bgm-tab .eq{display:flex;align-items:flex-end;gap:2px;height:11px}
+.bgm-tab .eq i{display:block;width:2px;height:4px;background:currentColor}
+.bgm.is-playing .bgm-tab .eq i{animation:bgmEq .9s ease-in-out infinite alternate}
+.bgm.is-playing .bgm-tab .eq i:nth-child(2){animation-delay:-.3s}
+.bgm.is-playing .bgm-tab .eq i:nth-child(3){animation-delay:-.6s}
+@keyframes bgmEq{0%{height:3px}100%{height:11px}}
 .bgm .fold-btn{width:18px;height:26px;display:grid;place-items:center;color:var(--bgm-ic);font-size:calc(11px*var(--fs,1));border-radius:6px;transition:.15s}
 .bgm .fold-btn:hover{color:var(--bgm-fg)}
 .bgm.folded{padding:6px;gap:0;cursor:var(--cur-pointer,pointer)}
@@ -253,8 +261,11 @@ a{color:inherit;text-decoration:none}
 .bgm.skin-arch .bgm-list .it.on{background:rgba(184,216,255,.06);border-left-color:#b8d8ff}
 .bgm.skin-arch .bgm-list .it.on b{color:#b8d8ff}
 @media (max-width:620px){
-  .bgm.skin-arch,.bgm.skin-arch.folded{border-left:0;border-right:0;border-bottom:0;padding:4px 12px}
-  .bgm.skin-arch::before,.bgm.skin-arch::after{display:none}
+  .bgm.skin-arch,.bgm.skin-arch.folded{border-radius:0;border-right:0;padding:13px 14px 12px}
+  .bgm.skin-arch::after{display:none}   /* 오른쪽 아래 꺾쇠는 화면 끝에 붙으므로 생략 */
+  .bgm.skin-arch .bgm-tab{border-radius:0;background:rgba(8,11,15,.92);border-color:rgba(190,208,228,.18);color:#b8d8ff;box-shadow:-6px 0 18px -8px rgba(184,216,255,.35)}
+  .bgm.skin-arch .ctrl button:nth-child(2){border-radius:0;border-color:rgba(184,216,255,.4);color:#fff}
+  .bgm.skin-arch .bgm-list{background:transparent;border:0;border-top:1px solid rgba(190,208,228,.14);box-shadow:none}
 }
 
 
@@ -1841,20 +1852,32 @@ body.edit-on .main-grid.gridlines .wgt{outline-offset:0}
   .main-grid.abs{min-height:0 !important}
   .main-grid.abs{display:grid !important;height:auto !important}
   .settings-layout{grid-template-columns:1fr}
-  /* BGM — 화면 하단에 딱 붙는 슬림 풀폭 바 (8장·4.1 v1.9): 볼륨 생략, 재생 컨트롤 오른쪽 정렬 */
-  .bgm,.bgm.bgm-left{left:0;right:0;bottom:0;border-radius:0;border-left:none;border-right:none;border-bottom:none;padding:7px 14px;gap:10px}
-  .bgm .vol,.bgm .fold-btn{display:none}
-  .bgm .title{flex:1;max-width:none}
+  /* BGM — 모바일은 오른쪽 가장자리의 작은 탭 + 오른쪽에서 밀려 나오는 패널 (v2.0 사용자 요청 · 시안 C)
+     평소엔 패널을 화면 밖(오른쪽)으로 밀어 두고, 패널 왼쪽에 붙은 탭만 화면 끝에 보인다.
+     PC 접기 상태(folded)와 왼쪽 배치는 모바일에선 무시한다 */
+  .bgm,.bgm.bgm-left,.bgm.folded{left:auto !important;right:0 !important;top:auto;bottom:calc(108px + env(safe-area-inset-bottom,0px));
+    width:min(248px,calc(100vw - 48px));flex-wrap:wrap;align-items:center;gap:10px;padding:13px 14px 12px;
+    border-radius:12px 0 0 12px;border-right:0;cursor:default;
+    transform:translateX(100%);visibility:hidden;transition:transform .34s cubic-bezier(.3,.7,.2,1),visibility 0s linear .34s}
+  .bgm.m-open{transform:none;visibility:visible;transition:transform .34s cubic-bezier(.3,.7,.2,1)}
+  .bgm-tab{display:flex;visibility:visible;position:absolute;left:-17px;bottom:12px;width:17px;height:38px;align-items:center;justify-content:center;
+    background:var(--bgm-bg);backdrop-filter:blur(10px);border:1px solid var(--line-dark);border-right:0;border-radius:7px 0 0 7px;color:var(--bgm-ic);opacity:.85}
+  .bgm.m-open .bgm-tab{opacity:1}
+  .bgm .disc,.bgm.folded .disc{display:grid;width:26px;height:26px}
+  .bgm .disc::after{width:7px;height:7px}
+  .bgm .title,.bgm.folded .title{display:block;flex:1 1 0;max-width:none}
   .bgm .title .mq{max-width:none}
-  .bgm .ctrl{margin-left:auto}
-  /* 접힘 저장 상태(PC에서 접고 온 경우)여도 모바일에선 풀폭 바 유지 */
-  .bgm.folded{padding:7px 14px;gap:10px;cursor:default}
-  .bgm.folded .title{display:block}
-  .bgm.folded .ctrl{display:flex}
-  /* 모바일 BGM은 더 납작하게 — 레코드판(디스크) 없이 제목+컨트롤 한 줄 (v1.9 사용자 요청) */
-  .bgm .disc,.bgm.folded .disc{display:none}
-  .bgm,.bgm.bgm-left,.bgm.folded{padding:4px 12px}
-  .bgm .ctrl button{width:24px;height:24px}
+  .bgm .ctrl,.bgm.folded .ctrl{display:flex;flex:1 0 100%;align-items:center;gap:4px;margin:0}
+  .bgm .ctrl button{width:28px;height:28px;font-size:calc(10px*var(--fs,1))}
+  .bgm .ctrl button:nth-child(2){width:32px;height:32px;border:1px solid var(--line-dark);font-size:calc(10px*var(--fs,1))}
+  .bgm .ctrl .lst{margin-left:auto}
+  .bgm .ctrl .lst svg{width:13px;height:13px}
+  .bgm .vol,.bgm.folded .vol{display:block;flex:1 0 100%;width:auto;height:2px;margin:3px 0 4px}
+  .bgm .vol i::after{width:9px;height:9px;top:-3.5px}
+  .bgm .fold-btn{display:none}
+  .bgm .bgm-list,.bgm.folded .bgm-list.on{position:static;flex:1 0 100%;min-width:0;max-height:38vh;overflow:auto;margin:0;padding:8px 0 0;
+    border:0;border-top:1px solid var(--line-dark);border-radius:0;background:transparent;box-shadow:none}
+  .bgm.folded .bgm-list.on{display:block}
 
   /* 캐릭터 리스트 — 모바일 1열 3개 (v1.9 사용자 확정) */
   .chars-grid{grid-template-columns:repeat(3,1fr);gap:10px}
