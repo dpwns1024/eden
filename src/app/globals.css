@@ -208,60 +208,73 @@ a{color:inherit;text-decoration:none}
 .vol i{position:absolute;left:0;top:0;height:100%;width:62%;background:var(--bgm-vol);border-radius:3px}
 .vol i::after{content:"";position:absolute;right:-4px;top:-3.5px;width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.5)}
 /* ═══ 게시판 디자인 — ARCH (환경설정 → 메인 페이지 → 게시판 디자인 · lib/boardSkin.ts) ═══
-   <html class="ui-arch">일 때, ARCH로 옮긴 게시판(지금: 캐릭터 .page-chars)에만 적용.
+   <html class="ui-arch">일 때, ARCH로 옮긴 게시판(<section class="page page-arch">)에만 적용 — 지금: 캐릭터 목록·프로필, 메뉴 비밀번호 화면.
    레이아웃은 그대로 두고 모양만 ARCH HTML 페이지(어두운 반투명 박스·꺾쇠·은빛 제목·모노 라벨)처럼.
-   다른 게시판을 옮길 때는 그 페이지에 page-arch 계열 클래스를 붙이고 아래 선택자에 더한다 */
-html.ui-arch .page-chars{--a-pn:rgba(13,18,25,.64);--a-ln:rgba(190,208,228,.10);--a-ln2:rgba(190,208,228,.22);--a-tx:#e4e9ef;--a-mu:#8592a0;--a-dim:#4a5461;
+   다른 게시판을 옮길 때는 그 페이지 <section>에 page-arch를 붙이고, 그 게시판만의 부품 모양을 아래에 더한다 */
+html.ui-arch .page-arch{--a-pn:rgba(13,18,25,.64);--a-ln:rgba(190,208,228,.10);--a-ln2:rgba(190,208,228,.22);--a-tx:#e4e9ef;--a-mu:#8592a0;--a-dim:#4a5461;
   --a-ac:#b8d8ff;--a-acr:184,216,255;--a-sil:linear-gradient(180deg,#fff 0%,#d3dbe4 34%,#7f8a97 52%,#e6ebf1 68%,#98a3b0 100%);
 }
 /* 제목 줄 — 은빛 큰 제목 + 아래 가는 선(앞 120px만 빛나는 포인트) */
-html.ui-arch .page-chars .page-head{padding-bottom:18px;margin-bottom:26px;border-bottom:1px solid var(--a-ln)}
-html.ui-arch .page-chars .page-head::after{content:'';position:absolute;left:0;bottom:-1px;width:120px;height:1px;background:var(--a-ac);box-shadow:0 0 12px var(--a-ac)}
-html.ui-arch .page-chars .page-head h1{font:300 clamp(30px,4.4vw,52px)/1.05 'Jost','Noto Sans KR',sans-serif;letter-spacing:.32em;background:var(--a-sil);-webkit-background-clip:text;background-clip:text;color:transparent}
-html.ui-arch .page-chars .page-head p{margin-top:12px;font:300 13px/1.7 'Noto Sans KR',sans-serif;letter-spacing:.04em;color:#b3bec9}
-html.ui-arch .page-chars .head-actions{bottom:18px}
+html.ui-arch .page-arch .page-head{padding-bottom:18px;margin-bottom:26px;border-bottom:1px solid var(--a-ln)}
+html.ui-arch .page-arch .page-head::after{content:'';position:absolute;left:0;bottom:-1px;width:120px;height:1px;background:var(--a-ac);box-shadow:0 0 12px var(--a-ac)}
+html.ui-arch .page-arch .page-head h1{font:300 clamp(30px,4.4vw,52px)/1.05 'Jost','Noto Sans KR',sans-serif;letter-spacing:.32em;background:var(--a-sil);-webkit-background-clip:text;background-clip:text;color:transparent}
+html.ui-arch .page-arch .page-head p{margin-top:12px;font:300 13px/1.7 'Noto Sans KR',sans-serif;letter-spacing:.04em;color:#b3bec9}
+html.ui-arch .page-arch .head-actions{bottom:18px}
 /* 버튼 — HTML 페이지 EDIT 버튼과 같은 결 */
-html.ui-arch .page-chars .btn-dark,html.ui-arch .page-chars .btn-ghost{height:34px;padding:0 16px;border:1px solid var(--a-ln2);border-radius:0;background:rgba(8,11,15,.72);color:#c9d2dc;font:400 10px/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;box-shadow:none;transition:.25s}
-html.ui-arch .page-chars .btn-dark:hover,html.ui-arch .page-chars .btn-ghost:hover{border-color:rgba(var(--a-acr),.7);color:#fff;background:rgba(8,11,15,.82);box-shadow:0 0 18px -4px rgba(var(--a-acr),.5)}
-html.ui-arch .page-chars .searchbar{height:34px;border:1px solid var(--a-ln2);border-radius:0;background:rgba(8,11,15,.72);box-shadow:none}
-html.ui-arch .page-chars .searchbar button{width:32px;height:32px;border-radius:0;color:var(--a-mu)}
-html.ui-arch .page-chars .searchbar button:hover{background:rgba(var(--a-acr),.08);color:#fff}
-html.ui-arch .page-chars .searchbar input{color:var(--a-tx);font-family:'Noto Sans KR',sans-serif}
-html.ui-arch .page-chars .searchbar input::placeholder{color:var(--a-dim)}
+html.ui-arch .page-arch .btn-dark,html.ui-arch .page-arch .btn-ghost{height:34px;padding:0 16px;border:1px solid var(--a-ln2);border-radius:0;background:rgba(8,11,15,.72);color:#c9d2dc;font:400 10px/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;box-shadow:none;transition:.25s}
+html.ui-arch .page-arch .btn-dark:hover,html.ui-arch .page-arch .btn-ghost:hover{border-color:rgba(var(--a-acr),.7);color:#fff;background:rgba(8,11,15,.82);box-shadow:0 0 18px -4px rgba(var(--a-acr),.5)}
+html.ui-arch .page-arch .searchbar{height:34px;border:1px solid var(--a-ln2);border-radius:0;background:rgba(8,11,15,.72);box-shadow:none}
+html.ui-arch .page-arch .searchbar button{width:32px;height:32px;border-radius:0;color:var(--a-mu)}
+html.ui-arch .page-arch .searchbar button:hover{background:rgba(var(--a-acr),.08);color:#fff}
+html.ui-arch .page-arch .searchbar input{color:var(--a-tx);font-family:'Noto Sans KR',sans-serif}
+html.ui-arch .page-arch .searchbar input::placeholder{color:var(--a-dim)}
 /* 공통 박스 — 어두운 반투명 + 가는 테두리 + 꺾쇠(왼쪽 위·오른쪽 아래) */
-html.ui-arch .page-chars .panel,html.ui-arch .page-chars .char-card{position:relative;border-radius:0;border:1px solid var(--a-ln);color:var(--a-tx);
+html.ui-arch .page-arch .panel,html.ui-arch .page-arch .char-card{position:relative;border-radius:0;border:1px solid var(--a-ln);color:var(--a-tx);
   background:linear-gradient(180deg,rgba(255,255,255,.028),transparent 46%),var(--a-pn);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 24px 50px -28px rgba(0,0,0,.9)}
-html.ui-arch .page-chars .panel::before,html.ui-arch .page-chars .panel::after,
-html.ui-arch .page-chars .char-card::before,html.ui-arch .page-chars .char-card::after,
-html.ui-arch .page-chars .profile-center::before,html.ui-arch .page-chars .profile-center::after{content:'';position:absolute;z-index:4;width:9px;height:9px;border-color:rgba(220,230,240,.55);border-style:solid;pointer-events:none}
-html.ui-arch .page-chars .panel::before,html.ui-arch .page-chars .char-card::before,html.ui-arch .page-chars .profile-center::before{left:0;top:0;border-width:1px 0 0 1px}
-html.ui-arch .page-chars .panel::after,html.ui-arch .page-chars .char-card::after,html.ui-arch .page-chars .profile-center::after{right:0;bottom:0;border-width:0 1px 1px 0}
+html.ui-arch .page-arch .panel::before,html.ui-arch .page-arch .panel::after,
+html.ui-arch .page-arch .char-card::before,html.ui-arch .page-arch .char-card::after,
+html.ui-arch .page-arch .profile-center::before,html.ui-arch .page-arch .profile-center::after{content:'';position:absolute;z-index:4;width:9px;height:9px;border-color:rgba(220,230,240,.55);border-style:solid;pointer-events:none}
+html.ui-arch .page-arch .panel::before,html.ui-arch .page-arch .char-card::before,html.ui-arch .page-arch .profile-center::before{left:0;top:0;border-width:1px 0 0 1px}
+html.ui-arch .page-arch .panel::after,html.ui-arch .page-arch .char-card::after,html.ui-arch .page-arch .profile-center::after{right:0;bottom:0;border-width:0 1px 1px 0}
 /* 캐릭터 카드 */
-html.ui-arch .page-chars .char-card:hover{border-color:rgba(var(--a-acr),.45);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 26px -8px rgba(var(--a-acr),.45),0 24px 50px -28px rgba(0,0,0,.9)}
-html.ui-arch .page-chars .char-card .thumb{border-bottom:1px solid var(--a-ln)}
-html.ui-arch .page-chars .char-card .thumb::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,transparent 62%,rgba(5,7,10,.5))}
-html.ui-arch .page-chars .char-card .thumb img{transition:transform .5s cubic-bezier(.2,.7,.2,1)}
-html.ui-arch .page-chars .char-card:hover .thumb img{transform:scale(1.04)}
-html.ui-arch .page-chars .char-card .nm{padding:13px 16px}
-html.ui-arch .page-chars .char-card .nm b{font:400 calc(13px*var(--fs,1))/1.2 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;color:#fff}
-html.ui-arch .page-chars .char-card .nm i{width:7px;height:7px;border-radius:0;transform:rotate(45deg);margin-right:3px;box-shadow:0 0 0 1px rgba(255,255,255,.18)}
+html.ui-arch .page-arch .char-card:hover{border-color:rgba(var(--a-acr),.45);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 26px -8px rgba(var(--a-acr),.45),0 24px 50px -28px rgba(0,0,0,.9)}
+html.ui-arch .page-arch .char-card .thumb{border-bottom:1px solid var(--a-ln)}
+html.ui-arch .page-arch .char-card .thumb::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,transparent 62%,rgba(5,7,10,.5))}
+html.ui-arch .page-arch .char-card .thumb img{transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+html.ui-arch .page-arch .char-card:hover .thumb img{transform:scale(1.04)}
+html.ui-arch .page-arch .char-card .nm{padding:13px 16px}
+html.ui-arch .page-arch .char-card .nm b{font:400 calc(13px*var(--fs,1))/1.2 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;color:#fff}
+html.ui-arch .page-arch .char-card .nm i{width:7px;height:7px;border-radius:0;transform:rotate(45deg);margin-right:3px;box-shadow:0 0 0 1px rgba(255,255,255,.18)}
 /* 상세 — 왼쪽 아이콘 탭 · 가운데 아트 · 오른쪽 정보 */
-html.ui-arch .page-chars .side-icons button{border-radius:0;border:1px solid var(--a-ln2);background:rgba(8,11,15,.62);color:var(--a-mu);font-size:calc(17px*var(--fs,1));padding:4px 0 0;line-height:1} /* 글리프 세로 가운데 (실측 — 기본 디자인의 아래 여백 보정은 이 글꼴 크기에선 위로 쏠림) */
-html.ui-arch .page-chars .side-icons button:hover{opacity:1;color:#fff;background:rgba(8,11,15,.82);border-color:rgba(var(--a-acr),.5)}
-html.ui-arch .page-chars .side-icons button.ic-svg{padding:0}
-html.ui-arch .page-chars .side-icons button.on{color:#fff;background:rgba(var(--a-acr),.1);border-color:rgba(var(--a-acr),.7);box-shadow:0 0 18px -4px rgba(var(--a-acr),.55)}
-html.ui-arch .page-chars .profile-center{border-radius:0;border:1px solid var(--a-ln);box-shadow:0 24px 50px -28px rgba(0,0,0,.9)}
-html.ui-arch .page-chars .profile-info .pf-name:not([data-font]){font-family:'Jost','Noto Sans KR',sans-serif;font-weight:300}
-html.ui-arch .page-chars .profile-info .pf-name{background:var(--a-sil);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:.24em !important}
-html.ui-arch .page-chars .profile-info .sub{font:400 calc(9.5px*var(--fs,1))/1.5 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.24em;color:var(--a-mu)}
-html.ui-arch .page-chars .profile-info h3{font:300 calc(20px*var(--fs,1))/1.2 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;background:var(--a-sil);-webkit-background-clip:text;background-clip:text;color:transparent}
-html.ui-arch .page-chars .spec{padding-top:14px;border-top:1px solid var(--a-ln);row-gap:9px;grid-template-columns:96px 1fr}
-html.ui-arch .page-chars .spec dt{font:400 calc(8.5px*var(--fs,1))/1.9 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.22em;color:#6f7b89;text-transform:uppercase}
-html.ui-arch .page-chars .spec dd{font:400 calc(12px*var(--fs,1))/1.5 'Jost','Noto Sans KR',sans-serif;letter-spacing:.12em;color:var(--a-tx)}
-html.ui-arch .page-chars .prose{color:#b3bec9;font-weight:300;line-height:1.95;word-break:keep-all;padding-top:16px;border-top:1px solid var(--a-ln)}
-html.ui-arch .page-chars .prose b,html.ui-arch .page-chars .prose strong{color:#fff;font-weight:500}
-html.ui-arch .page-chars .prose a{color:var(--a-ac)}
-html.ui-arch .page-chars .au-item{border-radius:0}
+html.ui-arch .page-arch .side-icons button{border-radius:0;border:1px solid var(--a-ln2);background:rgba(8,11,15,.62);color:var(--a-mu);font-size:calc(17px*var(--fs,1));padding:4px 0 0;line-height:1} /* 글리프 세로 가운데 (실측 — 기본 디자인의 아래 여백 보정은 이 글꼴 크기에선 위로 쏠림) */
+html.ui-arch .page-arch .side-icons button:hover{opacity:1;color:#fff;background:rgba(8,11,15,.82);border-color:rgba(var(--a-acr),.5)}
+html.ui-arch .page-arch .side-icons button.ic-svg{padding:0}
+html.ui-arch .page-arch .side-icons button.on{color:#fff;background:rgba(var(--a-acr),.1);border-color:rgba(var(--a-acr),.7);box-shadow:0 0 18px -4px rgba(var(--a-acr),.55)}
+html.ui-arch .page-arch .profile-center{border-radius:0;border:1px solid var(--a-ln);box-shadow:0 24px 50px -28px rgba(0,0,0,.9)}
+html.ui-arch .page-arch .profile-info .pf-name:not([data-font]){font-family:'Jost','Noto Sans KR',sans-serif;font-weight:300}
+html.ui-arch .page-arch .profile-info .pf-name{background:var(--a-sil);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:.24em !important}
+html.ui-arch .page-arch .profile-info .sub{font:400 calc(9.5px*var(--fs,1))/1.5 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.24em;color:var(--a-mu)}
+html.ui-arch .page-arch .profile-info h3{font:300 calc(20px*var(--fs,1))/1.2 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;background:var(--a-sil);-webkit-background-clip:text;background-clip:text;color:transparent}
+html.ui-arch .page-arch .spec{padding-top:14px;border-top:1px solid var(--a-ln);row-gap:9px;grid-template-columns:96px 1fr}
+html.ui-arch .page-arch .spec dt{font:400 calc(8.5px*var(--fs,1))/1.9 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.22em;color:#6f7b89;text-transform:uppercase}
+html.ui-arch .page-arch .spec dd{font:400 calc(12px*var(--fs,1))/1.5 'Jost','Noto Sans KR',sans-serif;letter-spacing:.12em;color:var(--a-tx)}
+html.ui-arch .page-arch .prose{color:#b3bec9;font-weight:300;line-height:1.95;word-break:keep-all;padding-top:16px;border-top:1px solid var(--a-ln)}
+html.ui-arch .page-arch .prose b,html.ui-arch .page-arch .prose strong{color:#fff;font-weight:500}
+html.ui-arch .page-arch .prose a{color:var(--a-ac)}
+html.ui-arch .page-arch .au-item{border-radius:0}
+/* 입력칸 · 메뉴 비밀번호 화면 */
+html.ui-arch .page-arch .k-input{border:1px solid var(--a-ln2);border-radius:0;background:rgba(5,8,12,.6);color:var(--a-tx);box-shadow:none}
+html.ui-arch .page-arch .k-input::placeholder{color:var(--a-dim)}
+html.ui-arch .page-arch .k-input:focus{border-color:rgba(var(--a-acr),.6);box-shadow:0 0 0 3px rgba(var(--a-acr),.08)}
+html.ui-arch .page-arch .board-lock{padding:30px 26px 26px;gap:12px}
+html.ui-arch .page-arch .board-lock-ic{color:var(--a-ac);filter:drop-shadow(0 0 6px rgba(var(--a-acr),.5))}
+html.ui-arch .page-arch .board-lock b{font:400 calc(13px*var(--fs,1))/1.4 'Jost','Noto Sans KR',sans-serif;letter-spacing:.32em;color:#fff}
+html.ui-arch .page-arch .board-lock small{font:300 calc(11.5px*var(--fs,1))/1.7 'Noto Sans KR',sans-serif;letter-spacing:.02em;color:var(--a-mu);word-break:keep-all}
+html.ui-arch .page-arch .board-lock .k-input{height:42px;text-align:center;letter-spacing:.3em}
+html.ui-arch .page-arch .board-lock .k-input::placeholder{letter-spacing:.2em}
+html.ui-arch .page-arch .board-lock .btn-dark{height:40px;background:linear-gradient(180deg,rgba(var(--a-acr),.16),rgba(var(--a-acr),.04));border-color:rgba(var(--a-acr),.45);color:#fff;letter-spacing:.5em}
+html.ui-arch .page-arch .board-lock .btn-dark:disabled{opacity:.4}
+html.ui-arch .page-arch .board-lock-err{color:#ff8a92}
 /* 로그인 화면 — ARCH 디자인 (환경설정 → 회원/보안 → 로그인 화면 디자인) · 비밀번호 찾기 창 포함 */
 .login-page.login-arch .login-card{position:relative;max-width:440px !important;margin:clamp(30px,7vh,80px) auto 0 !important;padding:36px 34px 28px !important;border:1px solid rgba(190,208,228,.16);border-radius:0;background:linear-gradient(180deg,rgba(184,216,255,.06),transparent 130px),rgba(9,13,18,.9);box-shadow:0 40px 90px -30px #000,inset 0 1px 0 rgba(255,255,255,.05);backdrop-filter:blur(8px)}
 .login-page.login-arch .login-card::before,.login-page.login-arch .login-card::after{content:'';position:absolute;width:12px;height:12px;border-color:rgba(184,216,255,.75);border-style:solid;pointer-events:none}
@@ -1907,10 +1920,10 @@ body.edit-on .main-grid.gridlines .wgt{outline-offset:0}
   .head-actions{position:static;justify-content:flex-end;margin-top:10px;flex-wrap:wrap}
   /* 게시판 ARCH — 설명 줄과 버튼을 한 줄에 (설명 왼쪽 · 버튼 오른쪽, 세로 가운데 맞춤) (v2.0 사용자 요청).
      둘이 한 줄에 다 안 들어가면(관리자 버튼 여러 개·긴 설명) 버튼만 다음 줄 오른쪽으로 — 설명이 좁게 찌그러지지 않게 */
-  html.ui-arch .page-chars .page-head{display:flex;flex-wrap:wrap;align-items:center;column-gap:14px}
-  html.ui-arch .page-chars .page-head h1{flex:0 0 100%}
-  html.ui-arch .page-chars .page-head p{flex:1 1 auto;min-width:0;margin-top:12px}
-  html.ui-arch .page-chars .head-actions{margin:12px 0 0 auto}
+  html.ui-arch .page-arch .page-head{display:flex;flex-wrap:wrap;align-items:center;column-gap:14px}
+  html.ui-arch .page-arch .page-head h1{flex:0 0 100%}
+  html.ui-arch .page-arch .page-head p{flex:1 1 auto;min-width:0;margin-top:12px}
+  html.ui-arch .page-arch .head-actions{margin:12px 0 0 auto}
   body.main-fixed .page-main-wrap{min-width:0;margin-left:0} /* 모바일 뷰에서는 고정 캔버스 해제 (v1.9) */
   body.main-fixed #appMain,body.edit-on #appMain{overflow-x:hidden} /* 모바일 전환 시 가로 스크롤 제거 */
   .main-grid{grid-template-columns:1fr}

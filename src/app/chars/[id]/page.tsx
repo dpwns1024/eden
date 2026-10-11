@@ -114,21 +114,21 @@ function CharDetailInner() {
   if (!loaded) return <section className="page" />;
   if (!ch || !eff) {
     return (
-      <section className="page page-chars">
+      <section className="page page-arch page-chars">
         <div className="page-head"><PageTitle href={tt.href}>{tt.title}</PageTitle><p>캐릭터를 찾을 수 없습니다</p></div>
       </section>
     );
   }
   if (ch.visibility === 'private' && !isAdmin) {
     return (
-      <section className="page page-chars">
+      <section className="page page-arch page-chars">
         <div className="page-head"><PageTitle href={tt.href}>{tt.title}</PageTitle><p>비공개 캐릭터입니다</p></div>
       </section>
     );
   }
   if (ch.visibility === 'member' && !user) {
     return (
-      <section className="page page-chars">
+      <section className="page page-arch page-chars">
         <div className="page-head"><PageTitle href={tt.href}>{tt.title}</PageTitle><p>멤버공개 — 로그인 후 열람할 수 있습니다</p></div>
       </section>
     );
@@ -145,7 +145,7 @@ function CharDetailInner() {
   const editHref = auKey ? `/chars/${ch.id}/edit?au=${encodeURIComponent(auKey)}` : `/chars/${ch.id}/edit`;
 
   return (
-    <section className="page page-chars page-char-detail">
+    <section className="page page-arch page-chars page-char-detail">
       <div className="page-head">
         {/* 제목 자리는 메뉴 이름 — 클릭 시 목록 복귀. 캐릭터 이름은 우측 프로필 패널에 크게 표시 */}
         <PageTitle href={tt.href}>{tt.title}</PageTitle>

@@ -62,29 +62,31 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <MainStoreProvider>
                     <BgmStoreProvider>
                       <SetupGate>
-                        <MenuGuard>
-                          <TopBar />
-                          <GlobalHeader />
-                          <main id="appMain">
+                        <TopBar />
+                        <GlobalHeader />
+                        <main id="appMain">
+                          {/* 공개범위·비밀번호 가드는 본문만 막는다 — 상단(메뉴·공통 상단 HTML)·하단·BGM은 그대로 두어
+                              잠긴 화면에서도 메뉴로 돌아갈 수 있고 사이트 디자인(배경)이 유지된다 (v2.0 사용자 제보) */}
+                          <MenuGuard>
                             <PageFrame>
                               {children}
                             </PageFrame>
-                          </main>
-                          <SiteFooter />
-                          <BgmPlayer />
-                          <SplashScreen />
-                          <TipLayer />
-                          <CursorLayer />
-                          <ImgProtect />
-                          <LetterSpacingFix />
-                          <BoardSkinSync />
-                          <DocTitle />
-                          <DocIcon />
-                          <SettingSync />
-                          <ListSync />
-                          <UploadBusy />
-                          <SpellCheck />
-                        </MenuGuard>
+                          </MenuGuard>
+                        </main>
+                        <SiteFooter />
+                        <BgmPlayer />
+                        <SplashScreen />
+                        <TipLayer />
+                        <CursorLayer />
+                        <ImgProtect />
+                        <LetterSpacingFix />
+                        <BoardSkinSync />
+                        <DocTitle />
+                        <DocIcon />
+                        <SettingSync />
+                        <ListSync />
+                        <UploadBusy />
+                        <SpellCheck />
                       </SetupGate>
                     </BgmStoreProvider>
                   </MainStoreProvider>

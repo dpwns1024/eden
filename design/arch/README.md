@@ -21,10 +21,10 @@
 게시판은 HTML이 아니라 사이트 코드로 꾸민다. **레이아웃은 그대로 두고 모양만** ARCH HTML 페이지(`page-about.html`)처럼 바꾼다.
 
 - 켜기: 환경설정 → 메인 페이지 → 「게시판 디자인」 ARCH (`ohome.boardui.v1` → `<html class="ui-arch">`, src/lib/boardSkin.ts)
-- CSS: `src/app/globals.css`의 「게시판 디자인 — ARCH」 블록. 게시판 페이지 `<section>`에 클래스를 붙이고 선택자에 더한다
+- CSS: `src/app/globals.css`의 「게시판 디자인 — ARCH」 블록. 게시판 페이지 `<section class="page">`에 `page-arch`를 붙이면 제목 줄·박스·버튼·입력칸이 ARCH가 되고, 그 게시판만의 부품 모양은 같은 블록에 더한다
 - 모양 규칙
   - 제목: Jost 300 · 자간 .32em · 은빛 그라데이션 글자, 아래 가는 선(앞 120px만 #b8d8ff로 빛남)
   - 박스: 어두운 반투명(rgba(13,18,25,.64)) · 1px 테두리 rgba(190,208,228,.10) · 모서리 각짐 · 왼쪽 위/오른쪽 아래 꺾쇠
   - 버튼: 각진 테두리 · Jost 10px 자간 .3em · 마우스 올리면 #b8d8ff 테두리 빛
   - 라벨: JetBrains Mono 작은 글씨 · 넓은 자간 / 본문: Noto Sans KR 300 #b3bec9
-- 적용된 게시판: 캐릭터(목록·프로필 `.page-chars`)
+- 적용된 곳: 캐릭터(목록·프로필), 메뉴 비밀번호 화면(문구 「정식 요원은 로그인하면…」)
