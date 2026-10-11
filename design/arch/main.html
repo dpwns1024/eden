@@ -357,12 +357,12 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-foot > :last-child{text-align:right}
 
 /* ── 하위 페이지 제목 ── */
-.arx .ar-ptitle{position:relative;padding:clamp(40px,6vw,84px) 0 clamp(22px,3vw,34px);border-bottom:1px solid var(--ln)}
+.arx .ar-ptitle{position:relative;padding:clamp(22px,3.2vw,40px) 0 clamp(20px,2.6vw,30px);border-bottom:1px solid var(--ln)}
 .arx .ar-ptitle .crumb{font:400 9px/1 'JetBrains Mono',monospace;letter-spacing:.26em;color:var(--dim)}
 .arx .ar-ptitle .crumb b{font-weight:400;color:var(--ac)}
-.arx .ar-ptitle h1{margin-top:18px;font:300 clamp(30px,5vw,58px)/1 'Jost',sans-serif;letter-spacing:.32em}
+.arx .ar-ptitle h1{margin:0;font:300 clamp(30px,5vw,58px)/1 'Jost',sans-serif;letter-spacing:.32em}
 .arx .ar-ptitle p{margin-top:16px;font:300 clamp(13px,1.4vw,15px)/1.8 'Noto Sans KR',sans-serif;color:#b3bec9;word-break:keep-all}
-.arx .ar-ptitle .doc{position:absolute;right:0;bottom:26px;font:400 8.5px/1.8 'JetBrains Mono',monospace;letter-spacing:.22em;color:var(--dim);text-align:right}
+.arx .ar-ptitle .doc{position:absolute;right:0;bottom:22px;font:400 8.5px/1.8 'JetBrains Mono',monospace;letter-spacing:.22em;color:var(--dim);text-align:right}
 .arx .ar-ptitle::after{content:'';position:absolute;left:0;bottom:-1px;width:120px;height:1px;background:var(--ac);box-shadow:0 0 12px var(--ac)}
 
 /* ── 반응형 ── */
@@ -485,8 +485,8 @@ body:has(.arx)::before{display:none !important}
       <h1 class="ar-h1">우리는 인류의 <b>유일한 방패</b>이자,<br>평범한 세상에는 속할 수 없는 <b>이방인</b>이다.</h1>
       <p class="ar-h-en">THE SOLE SHIELD OF HUMANITY — STRANGERS TO THE ORDINARY WORLD</p>
       <div class="ar-cta">
-        <!-- 버튼 주소: 게시판(메뉴)을 만든 뒤 href="#" 을 그 주소로 바꾸세요 — 예: href="/board?b=게시판id" (같은 창에서 열립니다) -->
-        <a class="ar-btn p" href="#">ABOUT ARCH<span>→</span></a>
+        <!-- ARCH 메뉴(HTML 페이지)로 이동 — 다른 곳으로 보내려면 href 주소만 바꾸세요 (같은 창에서 열립니다) -->
+        <a class="ar-btn p" href="/page">ABOUT ARCH<span>→</span></a>
       </div>
     </section>
 
