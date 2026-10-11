@@ -4,6 +4,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useHrefBlock } from '@/components/shell/MenuGuard';
 import { extraBoardHref } from '@/lib/menuStore';
+import { lockedHrefs } from '@/lib/menuLock';
 import { useAuth } from '@/lib/auth';
 import {
   useLocalList, BOARD_SEED, Post, Comment, newId, fmtDate,
@@ -112,7 +113,7 @@ export default function BoardDetailPage() {
   if (!post) {
     return (
       <section className="page">
-        <div className="page-head"><PageTitle>BOARD</PageTitle><p>{!user && boards.some(b => b.locked)
+        <div className="page-head"><PageTitle>BOARD</PageTitle><p>{!user && lockedHrefs().some(h => h.startsWith('/board'))
           ? '글을 찾을 수 없습니다 — 비밀번호가 걸린 게시판의 글이라면 게시판 목록에서 비밀번호를 먼저 입력해 주세요'
           : '글을 찾을 수 없습니다'}</p></div>
       </section>

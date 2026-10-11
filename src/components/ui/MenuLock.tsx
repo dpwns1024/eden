@@ -1,34 +1,34 @@
 'use client';
-// 비밀번호 게시판 입구 — 비밀번호 대조는 서버(Firestore 보안 규칙)가 한다 (lib/boardLock.ts)
+// 비밀번호 메뉴 입구 — 비밀번호 대조는 서버(Firestore 보안 규칙)가 한다 (lib/menuLock.ts)
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { backend } from '@/lib/backend';
-import { boardLockSupported } from '@/lib/boardLock';
+import { lockKeyOf } from '@/lib/menuLock';
 import { PageTitle } from '@/components/ui/PageText';
 import { KInput } from '@/components/ui/Kit';
 
-/** 이 게시판을 지금 볼 수 있는가 — 회원·관리자는 항상, 방문자는 비밀번호를 통과했을 때만 */
-export function useBoardOpen(board?: { id: string; locked?: boolean } | null): 'loading' | 'open' | 'locked' {
+/** 이 잠긴 메뉴를 지금 볼 수 있는가 — 회원·관리자는 항상, 방문자는 비밀번호를 통과했을 때만.
+ *  lockHref = 이 주소를 다스리는 잠긴 메뉴 (governingLock) — null이면 잠기지 않은 곳 */
+export function useLockOpen(lockHref: string | null): 'loading' | 'open' | 'locked' {
   const { user, ready } = useAuth();
   const [unlocked, setUnlocked] = useState<string[] | null>(null);
-  const needCheck = !!board?.locked && boardLockSupported() && ready && !user;
+  const needCheck = !!lockHref && ready && !user;
   useEffect(() => {
     if (!needCheck) return;
     let alive = true;
     const be = backend();
     if (!be) { setUnlocked([]); return; }
-    be.unlockedBoards().then(l => { if (alive) setUnlocked(l); }).catch(() => { if (alive) setUnlocked([]); });
+    be.unlockedLocks().then(l => { if (alive) setUnlocked(l); }).catch(() => { if (alive) setUnlocked([]); });
     return () => { alive = false; };
   }, [needCheck]);
-  if (!board) return 'loading';
-  if (!board.locked || !boardLockSupported()) return 'open';
+  if (!lockHref) return 'open';
   if (!ready) return 'loading';
   if (user) return 'open';
   if (unlocked === null) return 'loading';
-  return unlocked.includes(board.id) ? 'open' : 'locked';
+  return unlocked.includes(lockKeyOf(lockHref)) ? 'open' : 'locked';
 }
 
-export function BoardLockScreen({ boardId, title }: { boardId: string; title: string }) {
+export function MenuLockScreen({ lockHref, title }: { lockHref: string; title: string }) {
   const [pw, setPw] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
@@ -39,7 +39,7 @@ export function BoardLockScreen({ boardId, title }: { boardId: string; title: st
     const be = backend();
     if (!be) { setErr('서버에 연결돼 있지 않습니다.'); return; }
     setBusy(true); setErr('');
-    const r = await be.unlockBoard(boardId, pw);
+    const r = await be.unlockLock(lockKeyOf(lockHref), pw);
     if (r.ok) { window.location.reload(); return; }
     setErr(r.error ?? '열지 못했습니다.');
     setBusy(false);
@@ -47,7 +47,7 @@ export function BoardLockScreen({ boardId, title }: { boardId: string; title: st
 
   return (
     <section className="page">
-      <div className="page-head"><PageTitle>{title}</PageTitle><p>비밀번호가 걸린 게시판입니다</p></div>
+      <div className="page-head"><PageTitle>{title}</PageTitle><p>비밀번호가 걸린 메뉴입니다</p></div>
       <form className="panel board-lock" onSubmit={submit}>
         <svg className="board-lock-ic" viewBox="0 0 24 24" aria-hidden="true">
           <rect x="4.5" y="10.5" width="15" height="10" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" />

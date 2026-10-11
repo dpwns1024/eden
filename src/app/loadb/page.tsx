@@ -2,7 +2,7 @@
 // 그림게시판 로드뷰 (4.10) — 목록 없이 최신순 즉시 표시 · 좌 그림/우 댓글 · 즉시 업로드 · 접기
 import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/lib/auth';
-import { useSectionParam, filterSection, sectionSetter } from '@/lib/sectionStore';
+import { useSectionParam, filterSection, sectionSetter, MAIN_SEC } from '@/lib/sectionStore';
 import {
   useLocalList, newId, fmtDate, Comment,
   CommentRow, COMMENT_KEY, COMMENT_SEED, commentsFor,
@@ -221,7 +221,8 @@ function RoadviewPageInner() {
 
   const addComment = (id: string, text: string, guest?: { name: string }, parentId?: string) => {
     // 게스트 댓글 (방문자 권한, v1.9) — 닉네임만, authorId는 빈 값. parentId가 있으면 대댓글 (v2.0)
-    const base = { id: newId(), text, date: new Date().toISOString(), target: 'road' as const, targetId: id, parentId };
+    const secId = items.find(it => it.id === id)?.secId ?? MAIN_SEC;   // 소속 섹션 — 메뉴 잠금이 댓글에도 걸리게
+    const base = { id: newId(), text, date: new Date().toISOString(), target: 'road' as const, targetId: id, secId, parentId };
     const c: CommentRow = guest
       ? { ...base, author: guest.name, authorId: '' }
       : { ...base, author: user!.nickname, authorId: user!.id };

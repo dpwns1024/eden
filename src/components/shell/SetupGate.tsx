@@ -280,7 +280,7 @@ export function SetupGate({ children }: { children: React.ReactNode }) {
                     <li>
                       <b>1. Authentication</b> → 시작하기 → <b>이메일/비밀번호</b> 사용 설정
                       <em>이걸 켜지 않으면 아래에서 관리자 계정을 만들 수 없습니다.</em>
-                      <em>같은 화면에서 <b>익명</b>도 사용 설정 — 게시판 비밀번호를 쓰려면 필요합니다(방문자 회원 권한은 생기지 않습니다).</em>
+                      <em>같은 화면에서 <b>익명</b>도 사용 설정 — 메뉴 비밀번호를 쓰려면 필요합니다(방문자 회원 권한은 생기지 않습니다).</em>
                     </li>
                     <li>
                       <b>2. Firestore Database</b> → 데이터베이스 만들기 <span className="warn">(글·설정이 저장되는 곳)</span>

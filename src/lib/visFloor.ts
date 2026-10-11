@@ -16,7 +16,7 @@ import { MAIN_SEC, sectionHref, type SectionKind } from './sectionStore';
 import { MAIN_BOARD_ID } from './boardStore';
 import type { Visibility } from './charStore';
 import type { ListItem } from './backend/types';
-import { lockedBoardIds } from './boardLock';
+import { governingLock, lockKeyOf } from './menuLock';
 
 /** 컬렉션 → 그 목록이 걸린 메뉴. 섹션형은 종류만 주고 소속은 항목의 `secId`에서 읽는다 */
 const AREA: Record<string, { kind?: SectionKind; href?: string; board?: boolean }> = {
@@ -37,10 +37,26 @@ const AREA: Record<string, { kind?: SectionKind; href?: string; board?: boolean 
   relations: { href: '/rels' },
   trpg_chars: { href: '/tchars' },
   applicants: { href: '/comm-apply' },
+  qa_answers: { href: '/rels' },       // 자관 문답 답변 — 자관 안이 아니라 자기 문서라 따로 적는다
+  rp_messages: { href: '/rp' },        // 역극 발화 — 같은 이유
 };
 
-/** 이 항목이 걸린 메뉴 주소 — 어디에도 안 걸리는 컬렉션(댓글·답변 등)은 null */
+/** 댓글 → 달린 곳의 메뉴. 댓글은 글과 따로 저장돼서, 달 때 소속(boardId·secId)을 함께 적어 둔다 */
+function commentHref(item: ListItem): string | null {
+  switch (item.target) {
+    case 'post': return typeof item.boardId === 'string'
+      ? (item.boardId === MAIN_BOARD_ID ? '/board' : `/board?b=${item.boardId}`) : null;
+    // 소속을 안 적은 옛 댓글은 어디 것인지 모른다 — 기본 섹션으로 짐작하면 엉뚱한 범위가 걸린다
+    case 'road': return typeof item.secId === 'string' ? sectionHref('roadview', item.secId) : null;
+    case 'thread': return typeof item.secId === 'string' ? sectionHref('threads', item.secId) : null;
+    case 'guest': return '/guest';
+    default: return null;
+  }
+}
+
+/** 이 항목이 걸린 메뉴 주소 — 어디에도 안 걸리는 컬렉션(알림 등)은 null */
 export function areaHrefOf(coll: string, item: ListItem): string | null {
+  if (coll === 'comments') return commentHref(item);
   const a = AREA[coll];
   if (!a) return null;
   if (a.href) return a.href;
@@ -52,24 +68,21 @@ export function areaHrefOf(coll: string, item: ListItem): string | null {
   return sectionHref(a.kind!, s);
 }
 
-/** 이 항목이 비밀번호 걸린 게시판 소속이면 그 게시판 id — 게시판 글, 그리고 그 글에 단 댓글 */
-export function lockBoardOf(coll: string, item: ListItem): string | null {
-  const locked = lockedBoardIds();
-  if (!locked.size) return null;
-  let b: string | null = null;
-  if (coll === 'posts') b = typeof item.boardId === 'string' ? item.boardId : MAIN_BOARD_ID;
-  else if (coll === 'comments' && item.target === 'post' && typeof item.boardId === 'string') b = item.boardId;
-  return b && locked.has(b) ? b : null;
+/** 이 항목이 비밀번호 걸린 메뉴 소속이면 그 잠금키 (lib/menuLock.ts) */
+export function lockKeyOfItem(coll: string, item: ListItem): string | null {
+  const href = areaHrefOf(coll, item);
+  const lock = href ? governingLock(href) : null;
+  return lock ? lockKeyOf(lock) : null;
 }
 
 /** 이 항목을 저장할 때 지켜야 할 **최소** 공개범위.
- *  `locked` = 비밀번호 게시판 — 회원·관리자·작성자, 그리고 비밀번호를 통과한 방문자만 (보안 규칙) */
+ *  `locked` = 비밀번호 메뉴 — 회원·관리자·작성자, 그리고 비밀번호를 통과한 방문자만 (보안 규칙) */
 export function visFloorOf(coll: string, item: ListItem): Visibility | 'locked' {
   const href = areaHrefOf(coll, item);
   const v = href ? hrefAccess(currentMenuSettings(), href) : 'all';
   if (v === 'admin') return 'private';
   if (v === 'member') return 'member';
-  return lockBoardOf(coll, item) ? 'locked' : 'public';
+  return lockKeyOfItem(coll, item) ? 'locked' : 'public';
 }
 
 const RANK: Record<string, number> = { public: 0, locked: 0.5, member: 1, private: 2 };

@@ -267,9 +267,9 @@ export async function createSupabaseBackend(
     },
 
     // 게시판 비밀번호는 Firebase 보안 규칙으로 구현돼 있다 — Supabase 연결에서는 쓰지 않는다
-    async unlockedBoards() { return []; },
-    async unlockBoard() { return { ok: false, error: 'Supabase 연결에서는 게시판 비밀번호를 지원하지 않습니다.' }; },
-    async setBoardPassword() { return { ok: false, error: 'Supabase 연결에서는 게시판 비밀번호를 지원하지 않습니다.' }; },
+    async unlockedLocks() { return []; },
+    async unlockLock() { return { ok: false, error: 'Supabase 연결에서는 메뉴 비밀번호를 지원하지 않습니다.' }; },
+    async setLockPassword() { return { ok: false, error: 'Supabase 연결에서는 메뉴 비밀번호를 지원하지 않습니다.' }; },
 
     async deleteMember(id) {
       // profiles 행만 지운다 — auth.users 삭제는 service_role 키가 필요해 공개 홈에서는 불가
