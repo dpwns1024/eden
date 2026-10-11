@@ -248,6 +248,7 @@ html.ui-arch .page-chars .char-card .nm i{width:7px;height:7px;border-radius:0;t
 /* 상세 — 왼쪽 아이콘 탭 · 가운데 아트 · 오른쪽 정보 */
 html.ui-arch .page-chars .side-icons button{border-radius:0;border:1px solid var(--a-ln2);background:rgba(8,11,15,.62);color:var(--a-mu);font-size:calc(17px*var(--fs,1));padding:4px 0 0;line-height:1} /* 글리프 세로 가운데 (실측 — 기본 디자인의 아래 여백 보정은 이 글꼴 크기에선 위로 쏠림) */
 html.ui-arch .page-chars .side-icons button:hover{opacity:1;color:#fff;background:rgba(8,11,15,.82);border-color:rgba(var(--a-acr),.5)}
+html.ui-arch .page-chars .side-icons button.ic-svg{padding:0}
 html.ui-arch .page-chars .side-icons button.on{color:#fff;background:rgba(var(--a-acr),.1);border-color:rgba(var(--a-acr),.7);box-shadow:0 0 18px -4px rgba(var(--a-acr),.55)}
 html.ui-arch .page-chars .profile-center{border-radius:0;border:1px solid var(--a-ln);box-shadow:0 24px 50px -28px rgba(0,0,0,.9)}
 html.ui-arch .page-chars .profile-info .pf-name:not([data-font]){font-family:'Jost','Noto Sans KR',sans-serif;font-weight:300}
@@ -1139,6 +1140,8 @@ body.edit-on .main-grid.gridlines .wgt{outline-offset:0}
 .side-icons button{width:46px;height:46px;border-radius:12px;background:var(--tab-bg,rgba(255,255,255,.08));color:var(--tab-fg,#aab0ba);font-size:calc(19px*var(--fs,1));display:grid;place-items:center;padding-bottom:4px;border:1px solid var(--line-dark);transition:.18s} /* 딩벳 글리프 아래 쏠림 보정 (v1.9 실측 — 사용자 미세조정 +1) */
 .side-icons button:hover{color:var(--tab-on-fg,#fff);background:var(--tab-on-bg,rgba(255,255,255,.16));opacity:.85}
 .side-icons button.on{background:var(--tab-on-bg,var(--panel-solid));color:var(--tab-on-fg,var(--ink));border-color:transparent;opacity:1}
+.side-icons button.ic-svg{padding:0} /* 그림 아이콘은 글리프 보정 없이 정가운데 */
+.side-icons button.ic-svg svg{width:16px;height:13px;display:block;fill:currentColor}
 .profile-center{border-radius:var(--radius);overflow:hidden;position:sticky;top:10px;height:calc(100vh - 150px);min-height:480px}
 .profile-center img{width:100%;height:100%;object-fit:cover}
 /* 스티키 안정성 (v1.9): 끝까지 스크롤했을 때 아트 하단 == 정보 패널 하단이 되도록
@@ -1902,6 +1905,12 @@ body.edit-on .main-grid.gridlines .wgt{outline-offset:0}
   /* 검색·글쓰기 버튼이 제목 아래로 내려가는 폭 — 내려가도 오른쪽 정렬 (v1.9 사용자 요청) */
   .page-head{grid-template-columns:1fr}
   .head-actions{position:static;justify-content:flex-end;margin-top:10px;flex-wrap:wrap}
+  /* 게시판 ARCH — 설명 줄과 버튼을 한 줄에 (설명 왼쪽 · 버튼 오른쪽, 세로 가운데 맞춤) (v2.0 사용자 요청).
+     둘이 한 줄에 다 안 들어가면(관리자 버튼 여러 개·긴 설명) 버튼만 다음 줄 오른쪽으로 — 설명이 좁게 찌그러지지 않게 */
+  html.ui-arch .page-chars .page-head{display:flex;flex-wrap:wrap;align-items:center;column-gap:14px}
+  html.ui-arch .page-chars .page-head h1{flex:0 0 100%}
+  html.ui-arch .page-chars .page-head p{flex:1 1 auto;min-width:0;margin-top:12px}
+  html.ui-arch .page-chars .head-actions{margin:12px 0 0 auto}
   body.main-fixed .page-main-wrap{min-width:0;margin-left:0} /* 모바일 뷰에서는 고정 캔버스 해제 (v1.9) */
   body.main-fixed #appMain,body.edit-on #appMain{overflow-x:hidden} /* 모바일 전환 시 가로 스크롤 제거 */
   .main-grid{grid-template-columns:1fr}

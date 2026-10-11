@@ -1,14 +1,14 @@
 'use client';
 // EditableDesc 주입
 // 캐릭터 리스트 (4.4) — 한 줄 5개 · 3:4 썸네일(크롭 반영) · 전용 폰트 · ＋ ADD CHARACTER
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useLocalList } from '@/lib/postStore';
 import { Character, CHAR_SEED, charPath } from '@/lib/charStore';
 import { backend, isServerMode } from '@/lib/backend';
 import { useSectionParam, filterSection, sectionSetter, secQuery } from '@/lib/sectionStore';
-import { SearchBar, FitText } from '@/components/ui/Kit';
+import { FitText } from '@/components/ui/Kit';
 import { CroppedBlobImg } from '@/components/ui/CropEditor';
 
 import { useToast } from '@/components/ui/Toast';
@@ -27,7 +27,6 @@ function CharsInner() {
   const chars = filterSection(charsAll, sec.id);
   // 저장은 이 목록 자리만 교체 — 걸러진 목록을 그대로 넘겨도 다른 목록이 지워지지 않는다
   const setChars = sectionSetter(charsAll, sec.id, setCharsAll);
-  const [q, setQ] = useState('');
 
   /* 편집 권한 문서 자가 치유 (v2.0 포크 제보 — 「권한을 줬는데 그 회원의 저장이 거부된다」).
      업데이트 전에 준 권한은 문서에 규칙이 읽는 평평한 목록(editorIds)이 없어, 최신 규칙을
@@ -47,8 +46,7 @@ function CharsInner() {
 
   const visible = chars
     .filter(c => c.own)
-    .filter(c => isAdmin || c.visibility === 'public')
-    .filter(c => !q || c.name.toLowerCase().includes(q.toLowerCase()) || c.sub.includes(q));
+    .filter(c => isAdmin || c.visibility === 'public');
 
   // 편집모드 카드 드래그 정렬 (v1.9)
   const sort = useCardSort(visible, next => setChars(mergeOrder(chars, next)), editOn && isAdmin);
@@ -58,10 +56,12 @@ function CharsInner() {
       <div className="page-head">
         <PageTitle>{sec.id === 'main' ? 'CHARACTERS' : sec.name}</PageTitle>
         <EditableDesc k="chars-desc" def="운영자의 자캐 목록 · 3:4 두상 썸네일 · 클릭 시 프로필로 이동" />
-        <div className="head-actions">
-          <SearchBar onSearch={setQ} />
-          {isAdmin && <button className="btn btn-dark" onClick={() => router.push('/chars/new' + secQuery('chars', sec.id))}>＋ ADD CHARACTER</button>}
-        </div>
+        {/* 검색창은 뺐다 (v2.0 사용자 요청) — 버튼이 없으면 줄 자체를 두지 않아 빈 여백이 안 생긴다 */}
+        {isAdmin && (
+          <div className="head-actions">
+            <button className="btn btn-dark" onClick={() => router.push('/chars/new' + secQuery('chars', sec.id))}>＋ ADD CHARACTER</button>
+          </div>
+        )}
       </div>
       <div className="g5 chars-grid">
         {visible.map((c, i) => {
