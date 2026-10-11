@@ -896,6 +896,18 @@ body.edit-on .main-grid{grid-template-columns:230px 1fr 260px}
 .wgt.wgt-fluid{left:var(--fl-x,0) !important;width:var(--fl-w,100%) !important;height:auto !important;transform:none !important}
 .wgt.wgt-fluid > *:first-child{height:auto !important}
 .htmlblock-fit{display:flow-root}
+/* 상단 바는 투명한 가로 한 줄로 화면 위를 덮는다 — 빈 곳은 클릭을 아래(메인 HTML)로 흘려보내고
+   버튼·드롭다운만 받는다. 안 그러면 그 줄에 걸친 HTML 링크·버튼이 눌리지 않는다 */
+.topbar{pointer-events:none}
+.topbar > *{pointer-events:auto}
+/* HTML 블록 안 메뉴 자리 (data-ohome="menu") — 뼈대만. 색·글꼴·간격은 HTML 쪽 CSS가 정한다 */
+.oh-menu{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.oh-menu .oh-item{font:inherit;color:inherit;background:none;border:0;cursor:var(--cur-pointer,pointer);white-space:nowrap}
+.oh-menu .oh-grp{position:relative}
+.oh-menu .oh-sub{display:none;position:absolute;top:100%;left:0;z-index:40;min-width:100%;flex-direction:column}
+.oh-menu .oh-grp.open .oh-sub{display:flex}
+@media (hover:hover){.oh-menu .oh-grp:hover .oh-sub{display:flex}}
+.oh-menu .oh-link{white-space:nowrap}
 .board-lock{max-width:340px;margin:36px auto;display:grid;gap:10px;justify-items:stretch;text-align:center}
 .board-lock-ic{width:30px;height:30px;justify-self:center;color:var(--accent,#607ca0);margin-bottom:2px}
 .board-lock b{font-size:15px}
@@ -1757,7 +1769,7 @@ body.edit-on .main-grid.gridlines .wgt{outline-offset:0}
   .menu-list{display:block}
   /* 모바일에서는 PC 배치값(오프셋·절대좌표·px 크기) 무시 — 흐름 스택으로 복원 (8장 · v1.9) */
   .wgt{transform:none !important;width:auto !important;height:auto !important;position:static !important;left:auto !important;top:auto !important;margin-bottom:10px !important}
-  .wgt.wgt-fluid{margin-left:var(--fl-x,0) !important}
+  .wgt.wgt-fluid{margin-left:var(--fl-x,0) !important;margin-bottom:0 !important} /* 화면 맞춤 HTML은 아래 틈 없이 */
   .main-grid.abs{min-height:0 !important}
   .main-grid.abs{display:grid !important;height:auto !important}
   .settings-layout{grid-template-columns:1fr}
