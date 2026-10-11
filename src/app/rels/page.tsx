@@ -31,7 +31,7 @@ export default function RelsPage() {
   const sort = useCardSort(visible, next => setRels(mergeOrder(rels, next)), editOn && isAdmin);
 
   return (
-    <section className="page">
+    <section className="page page-arch">
       <div className="page-head">
         <PageTitle>RELATIONS</PageTitle>
         <EditableDesc k="rels-desc" def="자관 목록 · 4:3 가로 썸네일 · 공개범위: 전체공개/멤버공개/나만보기" />

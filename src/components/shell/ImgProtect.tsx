@@ -3,12 +3,12 @@
 // 커미션/TRPG 캐릭터/자캐/자관)에서 이미지 우클릭 저장·드래그 반출을 차단. 관리자 계정은 제외.
 // 완전한 차단은 웹 특성상 불가능 — 일반 방문자의 손쉬운 저장을 막는 수준 (기획서 6.3 참조).
 import { useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { useAppPathname } from '@/lib/routeAlias';
 import { useMenuSettings, imgProtectAreaFor } from '@/lib/menuStore';
 import { useAuth } from '@/lib/auth';
 
 export function ImgProtect() {
-  const pathname = usePathname();
+  const pathname = useAppPathname();
   const [ms] = useMenuSettings();
   const { isAdmin } = useAuth();
   const area = imgProtectAreaFor(pathname ?? '');

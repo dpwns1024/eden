@@ -2,7 +2,8 @@
 
 // 상단 바 — 우측 알림(종) · 프로필 + 위젯/그리드/편집 플래그 유지 완전 투명 헤더
 import React, { useEffect, useRef, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useAppPathname } from '@/lib/routeAlias';
 import { useAuth } from '@/lib/auth';
 import { useMainStore } from '@/lib/mainStore';
 import { useBlobUrl } from '@/lib/blobStore';
@@ -27,7 +28,7 @@ export function TopBar() {
   const { user, isAdmin, logout } = useAuth();
   const { editOn, editAvailable, gridOn, setGridOn, toggleEdit, requestExit } = useMainStore();
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = useAppPathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const avatarSrc = useBlobUrl(user?.avatarUrl);

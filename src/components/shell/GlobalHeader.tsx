@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { usePathname } from 'next/navigation';
+import { useAppPathname } from '@/lib/routeAlias';
 import { useMainStore, WidgetConf, widgetLabel } from '@/lib/mainStore';
 import { WidgetFrame } from '@/components/main/WidgetFrame';
 import { renderWidget } from '@/components/main/widgets';
@@ -14,7 +14,7 @@ import { useHtmlSlots, stripScripts } from '@/components/main/HtmlSlots';
 const EDITABLE = ['banner', 'menu_pc', 'menu'];
 
 export function GlobalHeader() {
-  const pathname = usePathname();
+  const pathname = useAppPathname();
   const [mounted, setMounted] = useState(false);
   const { state, editOn, updateWidget, removeWidget } = useMainStore();
   const [wrapEl, setWrapEl] = useState<HTMLElement | null>(null);
