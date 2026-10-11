@@ -15,3 +15,16 @@
 - 메인 로고: 시안 N3 MONOLITH — 두꺼운 스텐실 글자 + 단어를 베고 지나간 사선, 윤곽선이 그려진 뒤 은빛이 차오르고 꺾쇠가 잠기는 연출
 - 메뉴·로그인은 `data-ohome="menu"` / `data-ohome="member"` 자리에 사이트가 채워 넣는다 (src/lib/htmlSlots.ts)
 - ABOUT ARCH 버튼 주소는 게시판을 만든 뒤 `href="#"`를 그 주소로 바꾼다 (같은 창)
+
+## 게시판 ARCH 스타일 (사용자 확정 — 앞으로 모든 게시판을 이 형식으로)
+
+게시판은 HTML이 아니라 사이트 코드로 꾸민다. **레이아웃은 그대로 두고 모양만** ARCH HTML 페이지(`page-about.html`)처럼 바꾼다.
+
+- 켜기: 환경설정 → 메인 페이지 → 「게시판 디자인」 ARCH (`ohome.boardui.v1` → `<html class="ui-arch">`, src/lib/boardSkin.ts)
+- CSS: `src/app/globals.css`의 「게시판 디자인 — ARCH」 블록. 게시판 페이지 `<section>`에 클래스를 붙이고 선택자에 더한다
+- 모양 규칙
+  - 제목: Jost 300 · 자간 .32em · 은빛 그라데이션 글자, 아래 가는 선(앞 120px만 #b8d8ff로 빛남)
+  - 박스: 어두운 반투명(rgba(13,18,25,.64)) · 1px 테두리 rgba(190,208,228,.10) · 모서리 각짐 · 왼쪽 위/오른쪽 아래 꺾쇠
+  - 버튼: 각진 테두리 · Jost 10px 자간 .3em · 마우스 올리면 #b8d8ff 테두리 빛
+  - 라벨: JetBrains Mono 작은 글씨 · 넓은 자간 / 본문: Noto Sans KR 300 #b3bec9
+- 적용된 게시판: 캐릭터(목록·프로필 `.page-chars`)
