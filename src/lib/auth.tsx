@@ -49,6 +49,15 @@ export function setInviteCode(code: string) {
   setSetting(INVITE_KEY, code.trim());
 }
 
+/** 회원가입을 받는가 (v2.0 사용자 요청 — 「회원 안 늘릴 거야」). 끄면 로그인 화면에서 가입 버튼이 사라지고 가입 자체도 막는다 */
+const SIGNUP_KEY = 'ohome.signup.v1';
+export function signupOpen(): boolean {
+  return getSetting<{ open?: boolean }>(SIGNUP_KEY, { open: true })?.open !== false;
+}
+export function setSignupOpen(open: boolean) {
+  setSetting(SIGNUP_KEY, { open });
+}
+
 export function isSetupDone(): boolean {
   try { return !!localStorage.getItem(SETUP_KEY); } catch { return false; }
 }
@@ -135,6 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // 회원가입 — 가입코드(초대코드) 방식
   const signup = useCallback(async (id: string, password: string, nickname: string, code: string): Promise<Result> => {
     if (!id || !password || !nickname) return { ok: false, error: '아이디·비밀번호·닉네임을 모두 입력해 주세요.' };
+    if (!signupOpen()) return { ok: false, error: '지금은 회원가입을 받지 않습니다.' };
     if (code !== inviteCode()) return { ok: false, error: '가입코드가 올바르지 않습니다.' };
     if (server && be) {
       const r = await be.signUp(id.trim(), password, nickname.trim());
