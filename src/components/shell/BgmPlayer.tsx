@@ -250,7 +250,7 @@ export function BgmPlayer() {
   return (
     <div
       ref={rootRef}
-      className={`bgm ${folded ? 'folded' : ''} ${settings.position === 'bl' ? 'bgm-left' : ''}`}
+      className={`bgm ${folded ? 'folded' : ''} ${settings.position === 'bl' ? 'bgm-left' : ''} ${settings.skin === 'arch' ? 'skin-arch' : ''}`}
       style={settings.position === 'bl' ? { right: 'auto', left: 20 } : undefined}
       onClick={() => { if (folded) setFold(false); }}
       data-tip={folded ? '펼치기' : undefined}

@@ -3077,6 +3077,13 @@ function BgmPane() {
         </div>
       </div>
       <div className="set-row">
+        <div className="l"><b>플레이어 디자인</b><small>ARCH — 각진 어두운 패널 · 금속 디스크 · 마름모 볼륨 (모든 페이지 공통)</small></div>
+        <div className="mini-seg">
+          <button className={(state.settings.skin ?? 'default') === 'default' ? 'on' : ''} onClick={() => setSettings({ skin: 'default' })}>기본</button>
+          <button className={state.settings.skin === 'arch' ? 'on' : ''} onClick={() => setSettings({ skin: 'arch' })}>ARCH</button>
+        </div>
+      </div>
+      <div className="set-row">
         <div className="l"><b>셔플</b></div>
         <KToggle checked={state.settings.shuffle} onChange={v => setSettings({ shuffle: v })} />
       </div>

@@ -18,6 +18,8 @@ export interface BgmSettings {
   repeat: boolean;
   enabled: boolean;            // 플레이어 표시 여부
   autoplay: boolean;           // 입장 후 첫 상호작용 시 자동 재생 (4.1 — 정책상 완전 자동재생은 불가)
+  /** 플레이어 디자인 (v2.0 사용자 요청) — default: 둥근 알약 / arch: 각진 어두운 패널(ARCH 테마) */
+  skin?: 'default' | 'arch';
 }
 
 interface BgmState { tracks: BgmTrack[]; settings: BgmSettings }
