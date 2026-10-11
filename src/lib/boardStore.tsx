@@ -134,8 +134,6 @@ export interface Board {
   permComment: BoardPerm;  // 댓글 권한
   cats: BoardBadge[];      // 게시판별 말머리
   fg?: string;             // 목록 글씨색 (v1.9 — 미지정이면 테마 기본색)
-  /** 비밀번호가 걸린 게시판 — 표시만. 비밀번호는 서버(board_secrets)에 해시로만 있다 (boardLock.ts) */
-  locked?: boolean;
 }
 
 const BOARDS_KEY = 'ohome.boards.v1';

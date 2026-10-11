@@ -9,8 +9,8 @@
 import {
   Backend, BackendCheck, BackendConfig, BackendUser, ListItem, diffList, metaOf,
 } from './types';
-import { visFloorOf, lockBoardOf } from '../visFloor';
-import { boardKey, lockedBoardIds } from '../boardLock';
+import { visFloorOf, lockKeyOfItem } from '../visFloor';
+import { lockHash, lockedKeys } from '../menuLock';
 
 type FirebaseCfg = Extract<BackendConfig, { kind: 'firebase' }>;
 
@@ -81,14 +81,15 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
     const own = await ownerNow();
     return own?.uid === u.uid || (own?.admins ?? []).includes(u.uid);
   };
-  /* 게시판 비밀번호 통과 기록 (익명 로그인 방문자) — 아직 유효한 것만.
+  /* 메뉴 비밀번호 통과 기록 (익명 로그인 방문자) — 아직 유효한 것만.
+     (컬렉션·칸 이름의 board는 처음 게시판 단위였던 흔적 — 값은 메뉴 잠금키, lib/menuLock.ts)
      비밀번호가 바뀌면 기록은 남아 있어도 규칙이 거부하므로, 잠긴 글 질의를 한 번 던져 확인한다 */
   let unlockedCache: Promise<string[]> | undefined;
   authMod.onAuthStateChanged(auth, () => { ownerCache = undefined; unlockedCache = undefined; });
   const loadUnlocked = async (): Promise<string[]> => {
     const u = auth.currentUser;
     if (!u || !u.isAnonymous) return [];
-    const locked = lockedBoardIds();
+    const locked = lockedKeys();
     if (!locked.size) return [];
     try {
       const snap = await getDocsFromServer(query(collection(db, 'board_unlocks'), where('uid', '==', u.uid)));
@@ -117,16 +118,16 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
   const readSets = async (): Promise<Cons[][]> => {
     const u = auth.currentUser;
     if (!u) return [[where('visibility', '==', 'public')]];
-    // 익명 = 게시판 비밀번호를 통과한 방문자 — 전체공개 + 통과한 게시판의 잠긴 글만 (게시판마다 질의 하나)
+    // 익명 = 메뉴 비밀번호를 통과한 방문자 — 전체공개 + 통과한 메뉴의 잠긴 글만 (메뉴마다 질의 하나)
     if (u.isAnonymous) {
       const open = await unlockedNow();
       return [[where('visibility', '==', 'public')],
         ...open.map(b => [where('visibility', '==', 'locked'), where('lockBoard', '==', b)])];
     }
     if (await isAdminNow()) return [[]];                    // 관리자는 전부
-    // 회원: 전체공개+회원공개(+잠긴 게시판), 그리고 내가 쓴 것(비공개 포함)은 따로 받아 합친다.
-    // 'locked'는 잠긴 게시판이 있을 때만 넣는다 — 새 규칙을 넣기 전의 서버에서도 질의가 거부되지 않게
-    const vis = lockedBoardIds().size ? ['public', 'member', 'locked'] : ['public', 'member'];
+    // 회원: 전체공개+회원공개(+잠긴 메뉴), 그리고 내가 쓴 것(비공개 포함)은 따로 받아 합친다.
+    // 'locked'는 잠긴 메뉴가 있을 때만 넣는다 — 새 규칙을 넣기 전의 서버에서도 질의가 거부되지 않게
+    const vis = lockedKeys().size ? ['public', 'member', 'locked'] : ['public', 'member'];
     return [[where('visibility', 'in', vis)], [where('authorId', '==', u.uid)]];
   };
 
@@ -135,7 +136,7 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
 
   const toUser = async (u: { uid: string; email?: string | null; displayName?: string | null } | null): Promise<BackendUser | null> => {
     if (!u) return null;
-    // 익명 로그인(게시판 비밀번호 통과용)은 화면에서는 비로그인 방문자다
+    // 익명 로그인(메뉴 비밀번호 통과용)은 화면에서는 비로그인 방문자다
     if ((u as { isAnonymous?: boolean }).isAnonymous) return null;
     // 이메일을 그대로 이름으로 쓰지 않는다 — 회원 목록·댓글에 남의 메일 주소가 그대로 노출된다.
     // (프로필 저장 직후에는 displayName이 아직 비어 있어 여기로 떨어질 수 있다)
@@ -339,7 +340,7 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
           const { authorId, visibility, editorIds } = metaOf(item, uid, visFloorOf(coll, item));
           batch.set(doc(db, coll, item.id), {
             data: item, authorId, visibility, editorIds, sort, updatedAt: Date.now(),
-            lockBoard: visibility === 'locked' ? lockBoardOf(coll, item) : null,
+            lockBoard: visibility === 'locked' ? lockKeyOfItem(coll, item) : null,
           });
         });
         await batch.commit();
@@ -371,8 +372,8 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
           const { visibility, editorIds } = metaOf(it, uid, visFloorOf(coll, it));
           batch.update(doc(db, coll, it.id), {
             visibility, editorIds, updatedAt: Date.now(),
-            lockBoard: visibility === 'locked' ? lockBoardOf(coll, it) : null,
-            // withData — 항목에 칸을 새로 붙여(댓글의 boardId 등) 본문까지 함께 고칠 때
+            lockBoard: visibility === 'locked' ? lockKeyOfItem(coll, it) : null,
+            // withData — 항목에 칸을 새로 붙여(댓글의 boardId·secId 등) 본문까지 함께 고칠 때
             ...(withData ? { data: it } : {}),
           });
         });
@@ -435,17 +436,17 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
       await stMod.deleteObject(stMod.ref(storage, ref));
     },
 
-    async unlockedBoards() {
+    async unlockedLocks() {
       return unlockedNow();
     },
 
-    async unlockBoard(boardId, password) {
+    async unlockLock(lockKey, password) {
       try {
         if (!auth.currentUser) await authMod.signInAnonymously(auth);
         const u = auth.currentUser;
         if (!u) return { ok: false, error: '잠시 후 다시 시도해 주세요.' };
-        const key = await boardKey(boardId, password);
-        const r = await withLimit(setDoc(doc(db, 'board_unlocks', `${u.uid}_${boardId}`), { uid: u.uid, boardId, key, at: Date.now() }));
+        const key = await lockHash(lockKey, password);
+        const r = await withLimit(setDoc(doc(db, 'board_unlocks', `${u.uid}_${lockKey}`), { uid: u.uid, boardId: lockKey, key, at: Date.now() }));
         if (r === TIMEOUT) return { ok: false, error: '서버 응답이 없습니다 — 잠시 후 다시 시도해 주세요.' };
         unlockedCache = undefined;
         return { ok: true };
@@ -459,11 +460,11 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
       }
     },
 
-    async setBoardPassword(boardId, password) {
+    async setLockPassword(lockKey, password) {
       try {
-        const ref = doc(db, 'board_secrets', boardId);
+        const ref = doc(db, 'board_secrets', lockKey);
         const r = password
-          ? await withLimit(setDoc(ref, { hash: await boardKey(boardId, password), at: Date.now() }))
+          ? await withLimit(setDoc(ref, { hash: await lockHash(lockKey, password), at: Date.now() }))
           : await withLimit(deleteDoc(ref));
         if (r === TIMEOUT) return { ok: false, error: NO_REACH };
         return { ok: true };

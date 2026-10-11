@@ -27,7 +27,7 @@ import {
   MenuGroupNode, MenuLeaf, defaultTree, newGroupId, menuLabelFor, extraBoardHref, boardEntries,
   IMG_PROTECT_AREAS, hrefAccess,
 } from '@/lib/menuStore';
-import { boardLockSupported } from '@/lib/boardLock';
+import { menuLockSupported, isLockableHref, governingLock, lockKeyOf, useLockedHrefs, MENU_LOCKS_KEY } from '@/lib/menuLock';
 import { FEATURES } from '@/lib/menu';
 import { SectionsBlock } from '@/components/settings/SectionList';
 import { useSections, sectionMenuEntries, MAIN_SEC, inSection } from '@/lib/sectionStore';
@@ -54,9 +54,9 @@ import { PageTitle, EditableDesc, getPageText, setPageText } from '@/components/
 import { putBlob } from '@/lib/blobStore';
 import { getSetting, setSetting, pushLocalSettings, unsyncedSettingKeys, SETTING_KEYS } from '@/lib/settingStore';
 import { isServerMode, createBackend, backend } from '@/lib/backend';
-import type { BackendConfig, BackendKind } from '@/lib/backend/types';
+import type { BackendConfig, BackendKind, ListItem } from '@/lib/backend/types';
 import { CONTENT_COLLECTIONS } from '@/lib/backend/types';
-import { visFloorOf } from '@/lib/visFloor';
+import { visFloorOf, areaHrefOf } from '@/lib/visFloor';
 import { validateConfig, configFileText, saveLocalConfig, parseFirebaseSnippet, serverConfig } from '@/lib/serverConfig';
 import { migrateTo, findOrphanFiles } from '@/lib/transfer';
 import { FIRESTORE_RULES, STORAGE_RULES } from '@/lib/firebaseRules';
@@ -748,43 +748,68 @@ function WidgetsPane() {
 }
 
 /** 게시판 관리 탭 (5.2) — 게시판 생성·삭제·스킨·권한 + 게시판별 말머리 + 뱃지 색 */
-/** 게시판 비밀번호 — 비밀번호는 서버에 해시로만 저장되고 누구도(관리자 포함) 읽을 수 없다.
- *  대조는 Firestore 보안 규칙이 서버에서 한다 (lib/boardLock.ts) */
-function BoardLockSection({ boards, setBoards }: { boards: Board[]; setBoards: (next: Board[]) => void }) {
+/** 메뉴 비밀번호 — 비밀번호는 서버에 해시로만 저장되고 누구도(관리자 포함) 읽을 수 없다.
+ *  대조는 Firestore 보안 규칙이 서버에서 한다 (lib/menuLock.ts) */
+function MenuLockSection({ tree, labelOf }: { tree: MenuGroupNode[]; labelOf: (href: string) => string }) {
   const { user } = useAuth();
   const toast = useToast();
   const [menuSet] = useMenuSettings();
-  const [selId, setSelId] = useState(MAIN_BOARD_ID);
+  const locks = useLockedHrefs();
+  const entries = tree.flatMap(g => (g.href
+    ? [{ href: g.href, label: g.label }]
+    : g.items.map(it => ({ href: it.href, label: `${g.label} › ${it.label ?? labelOf(it.href)}` }))))
+    .filter(e => isLockableHref(e.href));
+  const [selHref, setSelHref] = useState('');
   const [pw, setPw] = useState('');
   const [busy, setBusy] = useState(false);
-  const sel = boards.find(b => b.id === selId) ?? boards[0];
-  const access = hrefAccess(menuSet, sel.id === MAIN_BOARD_ID ? '/board' : extraBoardHref(sel.id));
+  const sel = entries.find(e => e.href === selHref) ?? entries[0];
+  const locked = !!sel && locks.includes(sel.href);
+  const access = sel ? hrefAccess(menuSet, sel.href) : 'all';
 
-  /* 이미 올라간 글·댓글도 서버 공개범위를 다시 계산 — 잠그면 locked, 풀면 원래대로 */
-  const reapply = async (boardId: string) => {
+  /* 이미 올라간 글·댓글도 서버 공개범위를 다시 계산 — 잠그면 locked, 풀면 원래대로.
+     옛 댓글은 소속(게시판·섹션)이 안 적혀 있어 잠금이 안 걸리므로 달린 글에서 찾아 채운다 */
+  const reapply = async (href: string) => {
     const be = backend();
     if (!be) return 0;
-    const posts = await be.fetchList('posts');
-    const mine = posts.filter(p => (typeof p.boardId === 'string' ? p.boardId : MAIN_BOARD_ID) === boardId);
-    let n = mine.length ? await be.refreshVis('posts', mine, user?.id ?? null) : 0;
-    const ids = new Set(mine.map(p => p.id));
-    const cmts = (await be.fetchList('comments'))
-      .filter(c => c.target === 'post' && ids.has(c.targetId as string))
-      .map(c => ({ ...c, boardId }));
-    if (cmts.length) n += await be.refreshVis('comments', cmts, user?.id ?? null, true);
+    const owns = (coll: string, row: ListItem) => {
+      const h = areaHrefOf(coll, row);
+      return !!h && governingLock(h, [href]) === href;
+    };
+    const cache: Record<string, ListItem[]> = {};
+    const list = async (coll: string) => (cache[coll] ??= await be.fetchList(coll));
+    const parentOf = { post: 'posts', road: 'roadview', thread: 'threads' } as const;
+    let n = 0;
+    for (const coll of CONTENT_COLLECTIONS) {
+      let rows = await list(coll);
+      if (coll === 'comments') {
+        rows = await Promise.all(rows.map(async c => {
+          const pc = parentOf[c.target as keyof typeof parentOf];
+          if (!pc || (pc === 'posts' ? typeof c.boardId === 'string' : typeof c.secId === 'string')) return c;
+          const parent = (await list(pc)).find(p => p.id === c.targetId);
+          if (!parent) return c;
+          return pc === 'posts'
+            ? { ...c, boardId: typeof parent.boardId === 'string' ? parent.boardId : MAIN_BOARD_ID }
+            : { ...c, secId: typeof parent.secId === 'string' ? parent.secId : MAIN_SEC };
+        }));
+      }
+      const targets = rows.filter(r => owns(coll, r));
+      if (targets.length) n += await be.refreshVis(coll, targets, user?.id ?? null, coll === 'comments');
+    }
     return n;
   };
 
   const apply = async (password: string | null) => {
     const be = backend();
-    if (!be) { toast('서버에 연결돼 있지 않습니다'); return; }
+    if (!be || !sel) { toast('서버에 연결돼 있지 않습니다'); return; }
     setBusy(true);
-    const r = await be.setBoardPassword(sel.id, password);
+    const r = await be.setLockPassword(lockKeyOf(sel.href), password);
     if (!r.ok) { toast(r.error ?? '저장하지 못했습니다'); setBusy(false); return; }
-    setBoards(boards.map(b => (b.id === sel.id ? { ...b, locked: !!password } : b)));
+    setSetting(MENU_LOCKS_KEY, password
+      ? [...locks.filter(h => h !== sel.href), sel.href]
+      : locks.filter(h => h !== sel.href));
     try {
-      const n = await reapply(sel.id);
-      toast(password ? `「${sel.name}」에 비밀번호를 걸었습니다 (글·댓글 ${n}건 잠금)` : `「${sel.name}」 비밀번호를 해제했습니다`);
+      const n = await reapply(sel.href);
+      toast(password ? `「${sel.label}」에 비밀번호를 걸었습니다 (글·댓글 ${n}건 잠금)` : `「${sel.label}」 비밀번호를 해제했습니다`);
       setPw('');
     } catch (e) {
       toast(`비밀번호는 저장됐지만 기존 글 적용에 실패했습니다 — [글에 다시 적용]을 눌러 주세요 (${e instanceof Error ? e.message : ''})`);
@@ -792,44 +817,37 @@ function BoardLockSection({ boards, setBoards }: { boards: Board[]; setBoards: (
     setBusy(false);
   };
 
-  if (!boardLockSupported()) {
-    return <p className="hint">게시판 비밀번호는 Firebase 연결에서만 쓸 수 있습니다.</p>;
-  }
+  if (!menuLockSupported()) return <p className="hint">메뉴 비밀번호는 Firebase 연결에서만 쓸 수 있습니다.</p>;
+  if (!sel) return <p className="hint">비밀번호를 걸 수 있는 메뉴가 없습니다.</p>;
   return (
     <>
-      {boards.length > 1 && (
-        <div className="mini-seg" style={{ marginBottom: 12, flexWrap: 'wrap' }}>
-          {boards.map(b => (
-            <button key={b.id} className={sel.id === b.id ? 'on' : ''} onClick={() => { setSelId(b.id); setPw(''); }}>
-              {b.name}{b.locked ? ' · 잠김' : ''}
-            </button>
-          ))}
-        </div>
-      )}
       <div className="set-row" style={{ flexWrap: 'wrap' }}>
         <div className="l">
-          <b>{sel.name} — {sel.locked ? '비밀번호 걸림' : '비밀번호 없음'}</b>
-          <small>{access === 'admin' ? '관리자만 보는 게시판이라 비밀번호가 필요 없습니다'
-            : access === 'member' ? '회원만 보는 게시판이라 방문자는 비밀번호로도 열 수 없습니다'
-            : '회원·관리자는 비밀번호 없이 열람 · 방문자는 비밀번호를 맞혀야 글이 내려갑니다'}</small>
+          <KSelect minWidth={220} value={sel.href} onChange={v => { setSelHref(v); setPw(''); }}
+            options={entries.map(e => ({ value: e.href, label: `${e.label}${locks.includes(e.href) ? ' · 잠김' : ''}` }))} />
+          <small style={{ display: 'block', marginTop: 6 }}>
+            <b>{locked ? '비밀번호 걸림' : '비밀번호 없음'}</b>{access === 'admin' ? '관리자만 보는 메뉴라 비밀번호가 필요 없습니다'
+              : access === 'member' ? '회원만 보는 메뉴라 방문자는 비밀번호로도 열 수 없습니다'
+              : '회원·관리자는 비밀번호 없이 열람 · 방문자는 비밀번호를 맞혀야 글이 내려갑니다'}
+          </small>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <KInput type="password" value={pw} placeholder={sel.locked ? '새 비밀번호로 변경' : '비밀번호'}
+          <KInput type="password" value={pw} placeholder={locked ? '새 비밀번호로 변경' : '비밀번호'}
             onChange={e => setPw(e.target.value)} style={{ width: 180 }} autoComplete="new-password" />
           <button className="btn btn-dark" disabled={busy || pw.trim().length < 4}
-            onClick={() => void apply(pw.trim())}>{sel.locked ? '변경' : '설정'}</button>
-          {sel.locked && (
+            onClick={() => void apply(pw.trim())}>{locked ? '변경' : '설정'}</button>
+          {locked && (
             <>
               <button className="btn btn-ghost" disabled={busy} onClick={() => void apply(null)}>해제</button>
               <button className="btn btn-ghost" disabled={busy}
-                onClick={async () => { setBusy(true); try { toast(`글·댓글 ${await reapply(sel.id)}건에 다시 적용했습니다`); } catch { toast('적용하지 못했습니다'); } setBusy(false); }}>
+                onClick={async () => { setBusy(true); try { toast(`글·댓글 ${await reapply(sel.href)}건에 다시 적용했습니다`); } catch { toast('적용하지 못했습니다'); } setBusy(false); }}>
                 글에 다시 적용
               </button>
             </>
           )}
         </div>
       </div>
-      <p className="hint">비밀번호는 4자 이상 · 서버에 암호화(해시)로만 저장돼 관리자도 다시 볼 수 없습니다 — 잊으면 새로 설정하세요. 바꾸면 기존에 통과한 방문자도 다시 입력해야 합니다. 맞혀 볼 수 있는 횟수에 제한이 없으니 짧거나 흔한 비밀번호는 피해 주세요.</p>
+      <p className="hint">비밀번호는 4자 이상 · 서버에 암호화(해시)로만 저장돼 관리자도 다시 볼 수 없습니다 — 잊으면 새로 설정하세요. 바꾸면 기존에 통과한 방문자도 다시 입력해야 합니다. 맞혀 볼 수 있는 횟수에 제한이 없으니 짧거나 흔한 비밀번호는 피해 주세요. 스케줄러·소개처럼 내용이 사이트 설정에 담기는 메뉴와 외부 링크는 서버에서 가릴 수 없어 목록에 없습니다.</p>
     </>
   );
 }
@@ -913,12 +931,6 @@ function BoardPane() {
             skin: 'list', permWrite: 'member', permComment: 'member', cats: DEFAULT_BOARD_CATS,
           }])}>＋ ADD BOARD</button>
       </div>
-
-      <hr style={{ margin: '24px 0', border: 'none', borderTop: '1.5px solid var(--line)' }} />
-
-      <h3>게시판 비밀번호</h3>
-      <div className="d">게시판별로 비밀번호를 걸면 비로그인 방문자는 비밀번호를 입력해야 글을 볼 수 있습니다 — 서버가 대조하므로 F12로는 알아낼 수 없습니다</div>
-      <BoardLockSection boards={boards} setBoards={setBoards} />
 
       <hr style={{ margin: '24px 0', border: 'none', borderTop: '1.5px solid var(--line)' }} />
 
@@ -2124,6 +2136,7 @@ function MenuPane() {
   const toast = useToast();
   const del = useConfirmDelete();
   const saved = ms.tree ?? defaultTree();
+  const locks = useLockedHrefs();   // 비밀번호 건 메뉴 — 권한 탭 목록에 표시
   // 게시판 + 여러 개로 만든 섹션 — 메뉴가 아는 「추가 항목」 전체 (v2.0)
   const { map: secMap } = useSections();
   const { links, setLinks, add: addLink } = useCustomLinks();   // 커스텀 링크 (v2.0 사용자 요청)
@@ -2398,6 +2411,7 @@ function MenuPane() {
               <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                 <b style={{ fontSize: 13 }}>{g.label}</b>
                 {g.href && <small style={{ color: 'var(--faint)', fontSize: 10.5 }}>{g.href}</small>}
+                {g.href && locks.includes(g.href) && <span className="pill">비밀번호</span>}
                 <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                   {g.href && extraPerm(g.href)}
                   {openChk(g.vis, g.open, nv => patchGroup(g.id, { open: nv || undefined }))}
@@ -2408,6 +2422,7 @@ function MenuPane() {
                 <div key={it.href} style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', padding: '6px 0 0 22px' }}>
                   <span style={{ fontSize: 12.5 }}>{it.label ?? defLabel(it.href)}</span>
                   <small style={{ color: 'var(--faint)', fontSize: 10.5 }}>{it.href}</small>
+                  {locks.includes(it.href) && <span className="pill">비밀번호</span>}
                   <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                     {extraPerm(it.href)}
                     {openChk(it.vis, it.open, nv => patchGroup(g.id, {
@@ -2422,6 +2437,14 @@ function MenuPane() {
               ))}
             </div>
           ))}
+          {/* 메뉴 비밀번호 — 비로그인 방문자는 비밀번호를 맞혀야 그 메뉴의 글을 받는다 (대조는 서버) */}
+          <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid var(--line)' }}>
+            <b style={{ fontSize: 13 }}>메뉴 비밀번호</b>
+            <div className="d" style={{ marginTop: 4, marginBottom: 10 }}>
+              메뉴에 비밀번호를 걸면 비로그인 방문자는 비밀번호를 입력해야 그 메뉴의 글을 볼 수 있습니다 — 서버가 대조하므로 F12로는 알아낼 수 없습니다 · 즉시 반영(SAVE 불필요)
+            </div>
+            <MenuLockSection tree={saved} labelOf={defLabel} />
+          </div>
           {/* 글에도 적용 (v2.0 사용자 요청) — 공개범위를 서버까지 적용한다 */}
           <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid var(--line)' }}>
             <b style={{ fontSize: 13 }}>열람 비공개 처리</b>

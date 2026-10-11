@@ -80,13 +80,13 @@ export interface Backend {
   listFiles(): Promise<{ ref: string; size: number }[]>;
   deleteFile(ref: string): Promise<void>;
 
-  /* ---- 게시판 비밀번호 (보안 규칙이 서버에서 대조 — boardLock.ts 참조) ---- */
-  /** 이 방문자가 비밀번호를 통과한(그리고 아직 유효한) 게시판 */
-  unlockedBoards(): Promise<string[]>;
+  /* ---- 메뉴 비밀번호 (보안 규칙이 서버에서 대조 — menuLock.ts 참조). 인자는 메뉴 잠금키(lockKeyOf) ---- */
+  /** 이 방문자가 비밀번호를 통과한(그리고 아직 유효한) 메뉴의 잠금키 */
+  unlockedLocks(): Promise<string[]>;
   /** 방문자가 비밀번호 입력 — 맞으면 통과 기록이 생긴다 */
-  unlockBoard(boardId: string, password: string): Promise<{ ok: boolean; error?: string }>;
+  unlockLock(lockKey: string, password: string): Promise<{ ok: boolean; error?: string }>;
   /** 관리자: 비밀번호 설정(null이면 해제) */
-  setBoardPassword(boardId: string, password: string | null): Promise<{ ok: boolean; error?: string }>;
+  setLockPassword(lockKey: string, password: string | null): Promise<{ ok: boolean; error?: string }>;
 
   /** 회원 프로필(닉네임·아바타) 삭제 — 홈의 회원 목록에서 사라진다.
    *  **로그인 계정 자체는 지울 수 없다.** Firebase Authentication / Supabase Auth의 계정 삭제는

@@ -5,7 +5,7 @@ import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
-import { useSectionParam, filterSection, sectionSetter, secQuery } from '@/lib/sectionStore';
+import { useSectionParam, filterSection, sectionSetter, secQuery, MAIN_SEC } from '@/lib/sectionStore';
 import {
   useLocalList, newId, fmtDate, Comment,
   CommentRow, COMMENT_KEY, COMMENT_SEED, commentsFor,
@@ -224,7 +224,8 @@ function ThreadsPageInner() {
   const addComment = () => {
     if (!sel || !cmt.trim()) return;
     if (guestMode && !gName.trim()) { toast('닉네임을 입력해 주세요'); return; }
-    const base = { id: newId(), text: cmt.trim(), date: new Date().toISOString(), parentId: replyTo ?? undefined };
+    const base = { id: newId(), text: cmt.trim(), date: new Date().toISOString(), parentId: replyTo ?? undefined,
+      secId: sel.secId ?? MAIN_SEC };   // 소속 섹션 — 메뉴 잠금이 댓글에도 걸리게
     const c: CommentRow = user
       ? { ...base, target: 'thread' as const, targetId: sel.id, author: user.nickname, authorId: user.id }
       : { ...base, target: 'thread' as const, targetId: sel.id, author: gName.trim(), authorId: '' };
