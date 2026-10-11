@@ -1154,6 +1154,16 @@ body.edit-on .main-grid{grid-template-columns:230px 1fr 260px}
 .oh-menu .oh-grp.open .oh-sub{display:flex}
 @media (hover:hover){.oh-menu .oh-grp:hover .oh-sub{display:flex}}
 .oh-menu .oh-link{white-space:nowrap}
+/* ARCH 상단 HTML의 하위 메뉴 상자 보정 (v2.0 사용자 제보 — 「서브 메뉴가 이상한 곳에 뜬다」).
+   HTML 쪽은 left:50% + transform:translateX(-50%)로 가운데에 두는데, 열릴 때 애니메이션(arIn)이 transform을
+   덮어써 가운데 맞춤이 사라지고 상위 메뉴의 오른쪽 절반부터 펼쳐졌다. 가운데 이동을 넣은 애니메이션으로 바꾸고,
+   상자는 글자 길이에 맞춰(여백 포함) · 글자는 가운데. 모바일(820px 이하)은 HTML대로 가로 꽉 차게 */
+@keyframes ohSubIn{from{opacity:0;transform:translate(-50%,8px);filter:blur(4px)}to{opacity:1;transform:translate(-50%,0);filter:none}}
+@media (min-width:821px){
+  html body .arx .ar-menu .oh-sub{animation-name:ohSubIn;min-width:0;width:max-content;padding:8px}
+}
+html body .arx .ar-menu .oh-link{position:relative;justify-content:center;padding:11px 32px}
+html body .arx .ar-menu .oh-link::after{position:absolute;right:11px;top:50%;margin-top:-.5em;line-height:1}
 /* HTML 페이지 (/page) — 틀 없이 화면 폭 전체 · 공통 상단 HTML (lib/htmlPageStore.ts) */
 /* 버튼 글자 가운데 보정(LetterSpacingFix)으로 글자가 자간만큼 오른쪽으로 옮겨졌을 때 — HTML 메뉴의 밑줄도 같이 옮긴다
    (밑줄은 왼쪽 끝을 글자 시작에 맞춘다: 절대 위치 + left/right 지정이라 margin-left만큼 왼쪽이 줄어든다) */
