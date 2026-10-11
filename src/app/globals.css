@@ -329,7 +329,7 @@ html.ui-arch .page-arch .rel-center,html.ui-arch .page-arch .multi-illust{border
 html.ui-arch .page-arch .rel-center .fb{border-radius:0}
 html.ui-arch .page-arch .au-item{border-width:1px}
 html.ui-arch .page-arch .au-item.on{border-color:rgba(var(--a-acr),.8) !important;box-shadow:0 0 16px -4px rgba(var(--a-acr),.6)}
-html.ui-arch .page-arch .au-item small{font-family:'JetBrains Mono',monospace;letter-spacing:.12em}
+html.ui-arch .page-arch .au-item small{display:none} /* 썸네일 위 이름(원본 등)은 숨기고 마우스를 올리면 말풍선으로 (v2.0 사용자 요청) */
 /* 다인 자관 멤버 줄 */
 html.ui-arch .page-arch .mrow,html.ui-arch .page-arch .multi-row{border-bottom:1px solid var(--a-ln)}
 html.ui-arch .page-arch .mrow:hover,html.ui-arch .page-arch .multi-row:hover{background:rgba(var(--a-acr),.05)}
@@ -338,7 +338,7 @@ html.ui-arch .page-arch .mrow .nm b,html.ui-arch .page-arch .multi-row b{font-fa
 html.ui-arch .page-arch .mrow .nm small,html.ui-arch .page-arch .mrow .nm .ext,html.ui-arch .page-arch .multi-row .meta{color:var(--a-mu)}
 /* 타임라인/문답 탭 */
 html.ui-arch .page-arch .rel-tabs{border-bottom:1px solid var(--a-ln)}
-html.ui-arch .page-arch .rel-tabs > button{font:300 calc(14px*var(--fs,1))/1.2 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;color:var(--a-mu)}
+html.ui-arch .page-arch .rel-tabs > button{font:300 calc(14px*var(--fs,1))/1.2 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;color:var(--a-mu);padding:10px 14px} /* 위아래 여백을 같게 — 오른쪽 추가 버튼과 세로 가운데가 맞도록 */
 html.ui-arch .page-arch .rel-tabs > button:hover{color:#fff}
 html.ui-arch .page-arch .rel-tabs > button.on{color:#fff;border-bottom:1px solid var(--a-ac);box-shadow:0 8px 12px -10px rgba(var(--a-acr),.8)}
 /* 타임라인 */

@@ -796,7 +796,7 @@ export default function RelDetailPage() {
             const isBase = a.id === 'base';
             const thumb = isBase ? (rel.thumbId ?? rel.arts?.[0]) : a.arts?.[0];
             return (
-              <div key={a.id} className={`au-item ${auId === a.id ? 'on' : ''}`}
+              <div key={a.id} className={`au-item ${auId === a.id ? 'on' : ''}`} data-tip={a.label}
                 onClick={() => { setAuId(a.id); setArtIdx(0); setQaNo(null); }}>
                 <CroppedBlobImg fileRef={thumb} crop={isBase ? rel.thumbCrop : undefined}
                   ph={['cool', 'pale', 'red'][i % 3]} />
@@ -859,10 +859,9 @@ export default function RelDetailPage() {
         ]} />
 
       {arch ? (
-        /* ARCH — 가운데 인장형 (v2.0 사용자 선택 「B · SEAL」): 문서 머리줄 · 자관명 · 가운데 CP 인장이 있는 선 ·
+        /* ARCH — 가운데 인장형 (v2.0 사용자 선택 「B · SEAL」): 자관명 · 가운데 CP 인장이 있는 선 ·
            캐치프레이즈 · 두 사람의 한마디를 대화처럼(이름표 + 대사, 한 줄은 왼쪽 · 한 줄은 오른쪽) */
         <div className="rel-hero arch-hero">
-          <div className="ah-crumb">PAIRING · <b>{(au?.label || 'ORIGINAL').toUpperCase()}</b></div>
           <h1 style={{
             fontFamily: familyOf(rel.fontId), color: auSt.nameColor,
             textShadow: `0 4px 30px ${withAlpha(auSt.nameShadowColor ?? '#000000', 0.6 * ((auSt.nameShadow ?? 100) / 100))}`,
