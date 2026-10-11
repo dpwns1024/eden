@@ -103,7 +103,7 @@ export default function LoginPage() {
           <KInput placeholder={T.id} value={id} onChange={e => setId(e.target.value)} />
           <KInput placeholder="비밀번호" type="password" value={pw} onChange={e => setPw(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') doLogin(); }} />
-          {err && <p style={{ fontSize: 11.5, color: 'var(--accent)' }}>{err}</p>}
+          {err && <p className="login-err" style={{ fontSize: 11.5, color: 'var(--accent)' }}>{err}</p>}
           <button className="btn btn-dark" style={{ justifyContent: 'center', padding: 10 }} onClick={doLogin}>로그인</button>
         </div>
         <div className="login-sub" style={{ display: 'flex', gap: 6, marginTop: 10 }}>
@@ -152,8 +152,8 @@ export default function LoginPage() {
         </>}>
         <div style={{ display: 'grid', gap: 9 }}>
           <KInput placeholder={T.mail} value={fEmail} onChange={e => setFEmail(e.target.value)} />
-          {fErr && <p style={{ fontSize: 11.5, color: 'var(--accent)' }}>{fErr}</p>}
-          {fInfo && <p style={{ fontSize: 12, color: 'var(--ink)', fontWeight: 600 }}>{fInfo}</p>}
+          {fErr && <p className="login-err" style={{ fontSize: 11.5, color: 'var(--accent)' }}>{fErr}</p>}
+          {fInfo && <p className="login-info" style={{ fontSize: 12, color: 'var(--ink)', fontWeight: 600 }}>{fInfo}</p>}
         </div>
       </Modal>
     </section>
