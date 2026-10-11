@@ -365,7 +365,7 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-ptitle .doc{position:absolute;right:0;bottom:22px;font:400 8.5px/1.8 'JetBrains Mono',monospace;letter-spacing:.22em;color:var(--dim);text-align:right}
 .arx .ar-ptitle::after{content:'';position:absolute;left:0;bottom:-1px;width:120px;height:1px;background:var(--ac);box-shadow:0 0 12px var(--ac)}
 
-/* ── 사이트 화면도 같은 결로: 로그인 · BGM 플레이어 (이 문서가 있는 페이지에서만) ── */
+/* ── 사이트 화면도 같은 결로: 로그인 (이 문서가 있는 페이지에서만) — BGM 플레이어는 환경설정 → BGM → 플레이어 디자인 「ARCH」 ── */
 body:has(.arx) .login-page .login-card{position:relative;max-width:440px !important;margin:clamp(30px,7vh,80px) auto 0 !important;padding:36px 34px 28px !important;border:1px solid rgba(190,208,228,.16);border-radius:0;background:linear-gradient(180deg,rgba(184,216,255,.06),transparent 130px),rgba(9,13,18,.9);box-shadow:0 40px 90px -30px #000,inset 0 1px 0 rgba(255,255,255,.05);backdrop-filter:blur(8px)}
 body:has(.arx) .login-page .login-card::before,body:has(.arx) .login-page .login-card::after{content:'';position:absolute;width:12px;height:12px;border-color:rgba(184,216,255,.75);border-style:solid;pointer-events:none}
 body:has(.arx) .login-page .login-card::before{left:-1px;top:-1px;border-width:1px 0 0 1px}
@@ -382,30 +382,9 @@ body:has(.arx) .login-page .login-card .btn-dark:hover{border-color:rgba(184,216
 body:has(.arx) .login-page .login-card .btn-ghost{border:1px solid rgba(190,208,228,.14) !important;border-radius:0 !important;background:transparent !important;color:#8592a0 !important;font:400 10.5px 'Noto Sans KR',sans-serif !important;letter-spacing:.24em !important}
 body:has(.arx) .login-page .login-card .btn-ghost:hover{color:#fff !important;border-color:rgba(190,208,228,.4) !important}
 body:has(.arx) .login-page .login-card p{color:#ff8a92 !important}
-body:has(.arx){--bgm-bg:rgba(8,11,15,.88);--bgm-fg:#e4e9ef;--bgm-ic:#8592a0;--bgm-vol:#b8d8ff;--line-dark:rgba(190,208,228,.18)}
-body:has(.arx) .bgm{border-radius:0;border:1px solid rgba(190,208,228,.18);box-shadow:0 22px 50px -18px #000;padding:9px 16px 9px 10px}
-body:has(.arx) .bgm::before,body:has(.arx) .bgm::after{content:'';position:absolute;width:8px;height:8px;border-color:rgba(184,216,255,.7);border-style:solid;pointer-events:none}
-body:has(.arx) .bgm::before{left:-1px;top:-1px;border-width:1px 0 0 1px}
-body:has(.arx) .bgm::after{right:-1px;bottom:-1px;border-width:0 1px 1px 0}
-body:has(.arx) .bgm .disc{background:conic-gradient(#11161d,#8a96a3,#11161d,#566170,#11161d);box-shadow:0 0 0 1px rgba(184,216,255,.35),0 0 16px rgba(184,216,255,.18)}
-body:has(.arx) .bgm .disc::after{background:#05070a;border:1px solid #b8d8ff;box-shadow:0 0 6px rgba(184,216,255,.8)}
-body:has(.arx) .bgm .title{font:400 9.5px/1.4 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.08em;opacity:1;color:#5d6876}
-body:has(.arx) .bgm .title .tt{font:500 11px/1.4 'Jost','Noto Sans KR',sans-serif;letter-spacing:.16em;color:#fff}
-body:has(.arx) .bgm .ctrl button,body:has(.arx) .bgm .fold-btn{border-radius:0}
-body:has(.arx) .bgm .ctrl button:hover{background:rgba(184,216,255,.1);color:#fff}
-body:has(.arx) .bgm .vol{height:2px;border-radius:0;background:rgba(190,208,228,.16)}
-body:has(.arx) .bgm .vol i{border-radius:0;background:linear-gradient(90deg,rgba(184,216,255,.35),#b8d8ff)}
-body:has(.arx) .bgm .vol i::after{top:-3px;right:-4px;width:8px;height:8px;border-radius:0;transform:rotate(45deg);background:#eaf4ff;box-shadow:0 0 8px rgba(184,216,255,.9)}
-body:has(.arx) .bgm-list{border-radius:0;background:rgba(8,11,15,.97);border:1px solid rgba(190,208,228,.18);box-shadow:0 30px 70px -20px #000}
-body:has(.arx) .bgm-list .h{font:400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.3em;color:#5d6876}
-body:has(.arx) .bgm-list .it{border-radius:0;border-left:1px solid transparent}
-body:has(.arx) .bgm-list .it:hover{background:rgba(184,216,255,.07)}
-body:has(.arx) .bgm-list .it.on{background:rgba(184,216,255,.06);border-left-color:#b8d8ff}
-body:has(.arx) .bgm-list .it.on b{color:#b8d8ff}
 @media (max-width:620px){
-  body:has(.arx) .bgm{border-left:0;border-right:0;border-bottom:0;padding:4px 12px}
-  body:has(.arx) .bgm::before,body:has(.arx) .bgm::after{display:none}
   body:has(.arx) .login-page .login-card{padding:30px 22px 24px !important}
+}
 }
 
 /* ── 반응형 ── */
