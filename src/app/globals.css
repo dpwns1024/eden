@@ -1160,10 +1160,14 @@ body.edit-on .main-grid{grid-template-columns:230px 1fr 260px}
    상자는 글자 길이에 맞춰(여백 포함) · 글자는 가운데. 모바일(820px 이하)은 HTML대로 가로 꽉 차게 */
 @keyframes ohSubIn{from{opacity:0;transform:translate(-50%,8px);filter:blur(4px)}to{opacity:1;transform:translate(-50%,0);filter:none}}
 @media (min-width:821px){
-  html body .arx .ar-menu .oh-sub{animation-name:ohSubIn;min-width:0;width:max-content;padding:8px}
+  html body .arx .ar-menu .oh-sub{animation-name:ohSubIn;min-width:0;width:max-content;padding:5px}
 }
-html body .arx .ar-menu .oh-link{position:relative;justify-content:center;padding:11px 32px}
-html body .arx .ar-menu .oh-link::after{position:absolute;right:11px;top:50%;margin-top:-.5em;line-height:1}
+/* 상자 폭은 가장 긴 메뉴 이름 + 좌우 18px — 메뉴마다 글자 수에 따라 달라진다 (v2.0 사용자 요청 「여백이 넓다」) */
+html body .arx .ar-menu .oh-link{position:relative;justify-content:center;padding:10px 18px}
+html body .arx .ar-menu .oh-link::after{position:absolute;right:5px;top:50%;margin-top:-.5em;line-height:1;font-size:9px}
+/* ARCH 페이지(HTML 페이지) EDIT 버튼 — 화면 오른쪽 끝이 아니라 본문 오른쪽 끝에 맞춘다 (v2.0 사용자 요청).
+   본문 폭은 상단 HTML의 .ar-wrap(최대 1280px + 좌우 여백)과 같게 계산 */
+html body:has(.arh) .htmlpage > .htmlpage-edit{right:calc(max(0px, (100% - 1280px) / 2) + clamp(16px, 3.6vw, 48px)) !important}
 /* HTML 페이지 (/page) — 틀 없이 화면 폭 전체 · 공통 상단 HTML (lib/htmlPageStore.ts) */
 /* 버튼 글자 가운데 보정(LetterSpacingFix)으로 글자가 자간만큼 오른쪽으로 옮겨졌을 때 — HTML 메뉴의 밑줄도 같이 옮긴다
    (밑줄은 왼쪽 끝을 글자 시작에 맞춘다: 절대 위치 + left/right 지정이라 margin-left만큼 왼쪽이 줄어든다) */
