@@ -278,6 +278,32 @@ html.ui-arch .page-arch .rel-hero h1{font-family:'Jost','Noto Sans KR',sans-seri
 html.ui-arch .page-arch .rel-hero .catch{font:300 calc(11px*var(--fs,1))/1.6 'Noto Sans KR',sans-serif;letter-spacing:.5em;text-indent:.5em;color:#b3bec9}
 html.ui-arch .page-arch .rel-hero .quote{font-family:'Noto Sans KR',sans-serif;font-weight:300;letter-spacing:.06em}
 html.ui-arch .page-arch .rel-hero .cp-top .pill{border-color:rgba(var(--a-acr),.5);color:var(--a-ac);padding:4px 12px;box-shadow:0 0 14px -4px rgba(var(--a-acr),.5)}
+/* 히어로 — 가운데 인장형 (사용자 선택 B · SEAL): 머리줄 · 자관명 · CP 인장이 있는 선 · 캐치프레이즈 · 대화형 한마디 */
+html.ui-arch .page-arch .rel-hero.arch-hero{padding:30px 0 4px}
+html.ui-arch .page-arch .arch-hero .ah-crumb{font:400 calc(9px*var(--fs,1))/1 'JetBrains Mono',monospace;letter-spacing:.3em;text-indent:.3em;color:var(--a-dim)}
+html.ui-arch .page-arch .arch-hero .ah-crumb b{font-weight:400;color:var(--a-ac)}
+html.ui-arch .page-arch .arch-hero h1{margin-top:16px}
+html.ui-arch .page-arch .arch-hero .ah-div{display:flex;align-items:center;gap:12px;margin:16px auto 0;max-width:300px}
+html.ui-arch .page-arch .arch-hero .ah-div i{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(var(--a-acr),.6))}
+html.ui-arch .page-arch .arch-hero .ah-div i:last-child{background:linear-gradient(90deg,rgba(var(--a-acr),.6),transparent)}
+html.ui-arch .page-arch .arch-hero .ah-div em{font-style:normal;font:400 calc(9px*var(--fs,1))/1 'JetBrains Mono',monospace;letter-spacing:.3em;padding:5px 9px 5px 12px;border:1px solid rgba(var(--a-acr),.5);color:var(--a-ac);box-shadow:0 0 14px -4px rgba(var(--a-acr),.55)}
+html.ui-arch .page-arch .arch-hero .catch{margin-top:12px}
+html.ui-arch .page-arch .arch-hero .ah-dl{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:28px;text-align:left}
+html.ui-arch .page-arch .arch-hero .ah-line{display:flex;gap:12px;align-items:baseline;min-width:0}
+html.ui-arch .page-arch .arch-hero .ah-line.r{flex-direction:row-reverse;justify-content:flex-start;text-align:right} /* 오른쪽 대사는 이름표가 맨 오른쪽 (사용자 요청) */
+html.ui-arch .page-arch .arch-hero .ah-line small{flex:none;font:500 calc(9.5px*var(--fs,1))/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.26em;color:var(--c);filter:brightness(1.45)}
+html.ui-arch .page-arch .arch-hero .ah-line span{font:300 calc(14.5px*var(--fs,1))/1.6 'Noto Sans KR',sans-serif;color:#d6dde5;word-break:keep-all}
+html.ui-arch .page-arch .arch-hero .ah-line span::before{content:'\201C';margin-right:3px;color:var(--c);filter:brightness(1.5)}
+html.ui-arch .page-arch .arch-hero .ah-line span::after{content:'\201D';margin-left:2px;color:var(--c);filter:brightness(1.5)}
+html.ui-arch .page-arch .widget h4 .kr{margin-left:8px;font:300 calc(9.5px*var(--fs,1))/1 'Noto Sans KR',sans-serif;letter-spacing:.1em;color:var(--a-dim)}
+@media (max-width:620px){
+  html.ui-arch .page-arch .arch-hero .ah-dl{grid-template-columns:1fr;gap:12px;margin-top:24px}
+  /* 오른쪽 위 AU 썸네일과 머리줄이 겹치지 않게 아래로 */
+  html.ui-arch .page-arch .rel-hero.arch-hero{padding-top:62px}
+  /* 아래 상자가 반폭이라 한글 부제까지 넣으면 「더보기」가 잘린다 — 모바일은 영문 이름만 */
+  html.ui-arch .page-arch .widget h4 .kr{display:none}
+  html.ui-arch .page-arch .panel.widget h4{letter-spacing:.12em}
+}
 /* 멤버 카드 */
 html.ui-arch .page-arch .mini-prof .hd{border-bottom:1px solid var(--a-ln)}
 html.ui-arch .page-arch .mini-prof .hd .face{border-radius:0;box-shadow:0 0 0 1px var(--a-ln2)}
