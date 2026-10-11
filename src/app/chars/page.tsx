@@ -52,7 +52,7 @@ function CharsInner() {
   const sort = useCardSort(visible, next => setChars(mergeOrder(chars, next)), editOn && isAdmin);
 
   return (
-    <section className="page page-chars">
+    <section className="page page-arch page-chars">
       <div className="page-head">
         <PageTitle>{sec.id === 'main' ? 'CHARACTERS' : sec.name}</PageTitle>
         <EditableDesc k="chars-desc" def="운영자의 자캐 목록 · 3:4 두상 썸네일 · 클릭 시 프로필로 이동" />
@@ -96,5 +96,5 @@ function CharsInner() {
 
 export default function CharsPage() {
   // useSearchParams는 Suspense 경계 필요 (Next App Router)
-  return <Suspense fallback={<section className="page page-chars" />}><CharsInner /></Suspense>;
+  return <Suspense fallback={<section className="page page-arch page-chars" />}><CharsInner /></Suspense>;
 }

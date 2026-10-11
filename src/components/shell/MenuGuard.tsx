@@ -29,7 +29,8 @@ function GuardInner({ children }: { children: React.ReactNode }) {
 
   // Auth 및 메뉴 설정 로딩 완료 시까지 대기
   if (!ready || !loadedMenu) {
-    return <section className="page" style={{ minHeight: '100vh', background: 'var(--bg, #0f172a)' }} />;
+    // 본문 자리만 비워 둔다 — 이제 상단·배경은 따로 그려지므로 여기서 배경을 칠하지 않는다
+    return <section className="page" style={{ minHeight: '100vh' }} />;
   }
 
   const vis = hrefAccess(menuSet, path);
