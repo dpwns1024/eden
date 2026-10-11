@@ -253,6 +253,13 @@ html.ui-arch .page-arch .side-icons button:hover{opacity:1;color:#fff;background
 html.ui-arch .page-arch .side-icons button.ic-svg{padding:0}
 html.ui-arch .page-arch .side-icons button.on{color:#fff;background:rgba(var(--a-acr),.1);border-color:rgba(var(--a-acr),.7);box-shadow:0 0 18px -4px rgba(var(--a-acr),.55)}
 html.ui-arch .page-arch .profile-center{border-radius:0;border:1px solid var(--a-ln);box-shadow:0 24px 50px -28px rgba(0,0,0,.9)}
+/* 캐릭터 대표 테마색(--cc) 포인트 — 이름은 강철 그라데이션 그대로 두고 중간 톤에 색을 섞고,
+   아이콘 탭은 선택 칸의 테두리·빛과 아이콘 색에 (v2.0 사용자 요청). 색을 안 정한 캐릭터는 원래 ARCH 하늘색 */
+html.ui-arch .page-char-detail{--cc:#b8d8ff}
+html.ui-arch .page-char-detail .profile-info .pf-name{background:linear-gradient(180deg,#fff 0%,color-mix(in srgb,var(--cc) 22%,#e3e9ef) 30%,color-mix(in srgb,var(--cc) 55%,#6f7a87) 52%,color-mix(in srgb,var(--cc) 14%,#eef2f6) 70%,color-mix(in srgb,var(--cc) 40%,#8d98a5) 100%) !important;-webkit-background-clip:text !important;background-clip:text !important}
+html.ui-arch .page-char-detail .side-icons button{color:color-mix(in srgb,var(--cc) 45%,#8592a0)}
+html.ui-arch .page-char-detail .side-icons button:hover{color:#fff;border-color:color-mix(in srgb,var(--cc) 60%,transparent)}
+html.ui-arch .page-char-detail .side-icons button.on{color:color-mix(in srgb,var(--cc) 35%,#fff);background:color-mix(in srgb,var(--cc) 12%,transparent);border-color:color-mix(in srgb,var(--cc) 75%,#dfe6ee);box-shadow:0 0 18px -4px color-mix(in srgb,var(--cc) 70%,transparent)}
 html.ui-arch .page-arch .profile-info .pf-name:not([data-font]){font-family:'Jost','Noto Sans KR',sans-serif;font-weight:300}
 html.ui-arch .page-arch .profile-info .pf-name{background:var(--a-sil);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:.24em !important}
 html.ui-arch .page-arch .profile-info .sub{font:300 calc(12px*var(--fs,1))/1.6 'Noto Sans KR',sans-serif;letter-spacing:.03em;color:var(--a-mu)} /* 한 줄 소개·대사 — 넓은 자간은 한글에선 띄어 보여 좁게 (v2.0 사용자 요청) */

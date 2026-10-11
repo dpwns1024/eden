@@ -146,7 +146,9 @@ function CharDetailInner() {
   const editHref = auKey ? `/chars/${ch.id}/edit?au=${encodeURIComponent(auKey)}` : `/chars/${ch.id}/edit`;
 
   return (
-    <section className="page page-arch page-chars page-char-detail">
+    // 대표 테마색 — ARCH 디자인에서 이름(강철 그라데이션에 색을 섞음)·아이콘 탭의 포인트로 쓴다 (v2.0 사용자 요청)
+    <section className="page page-arch page-chars page-char-detail"
+      style={eff.color ? { ['--cc' as string]: eff.color } as React.CSSProperties : undefined}>
       <div className="page-head">
         {/* 제목 자리는 메뉴 이름 — 클릭 시 목록 복귀. 캐릭터 이름은 우측 프로필 패널에 크게 표시 */}
         <PageTitle href={tt.href}>{tt.title}</PageTitle>
