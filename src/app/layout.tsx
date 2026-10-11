@@ -14,6 +14,7 @@ import { TipLayer } from '@/components/ui/TipLayer';
 import { CursorLayer } from '@/components/shell/CursorLayer';
 import { ImgProtect } from '@/components/shell/ImgProtect';
 import { LetterSpacingFix } from '@/components/shell/LetterSpacingFix';
+import { BoardSkinSync } from '@/components/shell/BoardSkinSync';
 import { SetupGate } from '@/components/shell/SetupGate';
 import { DocTitle } from '@/components/shell/DocTitle';
 import { DocIcon } from '@/components/shell/DocIcon';
@@ -76,6 +77,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                           <CursorLayer />
                           <ImgProtect />
                           <LetterSpacingFix />
+                          <BoardSkinSync />
                           <DocTitle />
                           <DocIcon />
                           <SettingSync />

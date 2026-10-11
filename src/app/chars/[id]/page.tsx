@@ -100,21 +100,21 @@ function CharDetailInner() {
   if (!loaded) return <section className="page" />;
   if (!ch || !eff) {
     return (
-      <section className="page">
+      <section className="page page-chars">
         <div className="page-head"><PageTitle href={tt.href}>{tt.title}</PageTitle><p>캐릭터를 찾을 수 없습니다</p></div>
       </section>
     );
   }
   if (ch.visibility === 'private' && !isAdmin) {
     return (
-      <section className="page">
+      <section className="page page-chars">
         <div className="page-head"><PageTitle href={tt.href}>{tt.title}</PageTitle><p>비공개 캐릭터입니다</p></div>
       </section>
     );
   }
   if (ch.visibility === 'member' && !user) {
     return (
-      <section className="page">
+      <section className="page page-chars">
         <div className="page-head"><PageTitle href={tt.href}>{tt.title}</PageTitle><p>멤버공개 — 로그인 후 열람할 수 있습니다</p></div>
       </section>
     );
@@ -131,7 +131,7 @@ function CharDetailInner() {
   const editHref = auKey ? `/chars/${ch.id}/edit?au=${encodeURIComponent(auKey)}` : `/chars/${ch.id}/edit`;
 
   return (
-    <section className="page page-char-detail">
+    <section className="page page-chars page-char-detail">
       <div className="page-head">
         {/* 제목 자리는 메뉴 이름 — 클릭 시 목록 복귀. 캐릭터 이름은 우측 프로필 패널에 크게 표시 */}
         <PageTitle href={tt.href}>{tt.title}</PageTitle>
@@ -247,9 +247,11 @@ function CharDetailInner() {
         <div className="panel profile-info" ref={infoRef} style={{ fontFamily: familyOf(eff.bodyFontId) }}>
           {/* 크기는 캐릭터마다 직접 정한다 (등록·수정의 「이름 크기」) — 자동으로 줄이면
               이름 길이에 따라 어중간해져서, 정한 크기를 그대로 쓴다 (v2.0 사용자 확정) */}
-          <div style={{
-            fontFamily: familyOf(eff.fontId) ?? 'var(--serif)', fontSize: eff.nameSize ?? 38,
-            fontWeight: 600, letterSpacing: '.2em', lineHeight: 1.1,
+          {/* 글꼴은 전용 폰트를 정했을 때만 직접 지정 — 안 정했으면 CSS(.pf-name)가 정한다:
+              기본은 세리프 600, 게시판 디자인 ARCH면 Jost 300 (globals.css) */}
+          <div className="pf-name" data-font={eff.fontId ? '' : undefined} style={{
+            fontFamily: familyOf(eff.fontId), fontSize: eff.nameSize ?? 38,
+            letterSpacing: '.2em', lineHeight: 1.1,
           }}>{eff.name}</div>
           <div className="sub" style={{ marginBottom: 14 }}>{eff.sub}</div>
 
