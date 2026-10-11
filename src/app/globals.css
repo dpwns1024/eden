@@ -263,6 +263,8 @@ html.ui-arch .page-arch .spec dd{font:400 calc(12px*var(--fs,1))/1.5 'Jost','Not
 html.ui-arch .page-arch .prose{color:#b3bec9;font-weight:300;line-height:1.95;word-break:keep-all;padding-top:16px;border-top:1px solid var(--a-ln)}
 html.ui-arch .page-arch .prose b,html.ui-arch .page-arch .prose strong{color:#fff;font-weight:500}
 html.ui-arch .page-arch .prose a{color:var(--a-ac)}
+html.ui-arch .page-arch .prose hr{border-top-color:var(--a-ln2)}
+html.ui-arch .page-arch .prose blockquote{border-left-color:var(--a-ln2);color:#b3bec9}
 html.ui-arch .page-arch .au-item{border-radius:0}
 /* 공통 작은 부품 — 뱃지(pill)·세그먼트·안내 */
 html.ui-arch .page-arch .pill{border-radius:0;background:transparent;border:1px solid var(--a-ln2);color:#c9d2dc;font:400 calc(9px*var(--fs,1))/1.4 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em}
@@ -1357,6 +1359,14 @@ body.edit-on .main-grid.gridlines .wgt{outline-offset:0}
 .spec dd{color:var(--ink)}
 .prose{font-size:calc(14px*var(--fs,1));line-height:1.85;color:#3a3f47}
 .prose b{display:block;margin-bottom:4px}
+/* 글 편집기(.re-content)에서 쓴 요소가 출력에서도 같은 모양이 되게 (v2.0 사용자 제보 — 「수정창에선 구분선이 예쁜데
+   출력은 굵은 흰 줄」: 출력 쪽에 hr 모양이 없어 브라우저 기본 선이 나왔다) */
+.prose hr{border:none;border-top:1px solid var(--line);margin:14px 0}
+.prose blockquote{border-left:3px solid var(--line);padding:2px 14px;color:var(--sub);margin:10px 0}
+.prose ul,.prose ol{padding-left:22px;margin:8px 0}
+.prose img{max-width:100%;border-radius:9px}
+.prose h2{font-size:calc(20px*var(--fs,1));margin:14px 0 6px}
+.prose h3{font-size:calc(17px*var(--fs,1));margin:12px 0 5px}
 .tabnote{margin-top:16px;padding:12px;border:1px dashed var(--line);border-radius:var(--radius-s);font-size:calc(11px*var(--fs,1));color:var(--faint)}
 
 /* ---------- 자관 (4.5) ---------- */
