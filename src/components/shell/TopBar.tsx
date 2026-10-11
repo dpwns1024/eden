@@ -165,8 +165,9 @@ export function TopBar() {
       <button className="login-link" onClick={() => nav('/login')}>로그인</button>
     )
   );
+  // HTML(메인 블록·HTML 페이지·공통 상단)에 로그인 자리가 있으면 그 안으로.
   // 편집모드에선 상단 바에 둔다 — HTML 블록을 끌고 있을 때 편집모드 끄기 메뉴를 잃지 않게
-  const slot = memberSlot && pathname === '/' && !editOn ? memberSlot : null;
+  const slot = memberSlot && !editOn ? memberSlot : null;
 
   return (
     <header

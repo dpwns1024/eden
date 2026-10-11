@@ -81,7 +81,7 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-member .notif-menu .nset{padding:8px 12px 4px}
 
 /* ── 히어로 ── */
-.arx .ar-hero{position:relative;text-align:center;padding:clamp(34px,5vw,64px) 0 clamp(96px,10vw,140px);margin-bottom:clamp(40px,5vw,60px);border-bottom:1px solid var(--ln)}
+.arx .ar-hero{position:relative;text-align:center;padding:clamp(34px,5vw,64px) 0 clamp(60px,7vw,96px);margin-bottom:clamp(40px,5vw,60px);border-bottom:1px solid var(--ln)}
 .arx .ar-hero > *{position:relative;z-index:1}
 .arx .ar-h-side{position:absolute;top:clamp(34px,5vw,64px);display:flex;flex-direction:column;gap:7px;font:400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--dim);text-align:left}
 .arx .ar-h-side b{font-weight:400;color:var(--mu)}
@@ -356,6 +356,15 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-foot .kr{font-family:'Noto Sans KR',sans-serif;letter-spacing:.04em}
 .arx .ar-foot > :last-child{text-align:right}
 
+/* ── 하위 페이지 제목 ── */
+.arx .ar-ptitle{position:relative;padding:clamp(40px,6vw,84px) 0 clamp(22px,3vw,34px);border-bottom:1px solid var(--ln)}
+.arx .ar-ptitle .crumb{font:400 9px/1 'JetBrains Mono',monospace;letter-spacing:.26em;color:var(--dim)}
+.arx .ar-ptitle .crumb b{font-weight:400;color:var(--ac)}
+.arx .ar-ptitle h1{margin-top:18px;font:300 clamp(30px,5vw,58px)/1 'Jost',sans-serif;letter-spacing:.32em}
+.arx .ar-ptitle p{margin-top:16px;font:300 clamp(13px,1.4vw,15px)/1.8 'Noto Sans KR',sans-serif;color:#b3bec9;word-break:keep-all}
+.arx .ar-ptitle .doc{position:absolute;right:0;bottom:26px;font:400 8.5px/1.8 'JetBrains Mono',monospace;letter-spacing:.22em;color:var(--dim);text-align:right}
+.arx .ar-ptitle::after{content:'';position:absolute;left:0;bottom:-1px;width:120px;height:1px;background:var(--ac);box-shadow:0 0 12px var(--ac)}
+
 /* ── 반응형 ── */
 @media (max-width:1080px){
   .arx .ar-fgrid{grid-template-columns:1fr 1fr}
@@ -400,6 +409,8 @@ body:has(.arx)::before{display:none !important}
   .arx .ar-fbar span:last-child{display:none}
   .arx .ar-pop{max-height:min(560px,calc(100% + 380px))}
   .arx .ar-sh em{display:none}
+  .arx .ar-ptitle .doc{display:none}
+  .arx .ar-brand small{letter-spacing:.26em;white-space:nowrap}
 }
 @media (prefers-reduced-motion:reduce){.arx *,.arx *::before,.arx *::after{animation:none !important}
   .arx .ar-logo .lt{fill-opacity:1;stroke-opacity:0}
@@ -476,7 +487,6 @@ body:has(.arx)::before{display:none !important}
         <!-- 버튼 주소: 게시판(메뉴)을 만든 뒤 href="#" 을 그 주소로 바꾸세요 — 예: href="/board?b=게시판id" (같은 창에서 열립니다) -->
         <a class="ar-btn p" href="#">ABOUT ARCH<span>→</span></a>
       </div>
-      <div class="ar-sea" aria-hidden="true"><svg viewBox="0 0 2400 124" preserveAspectRatio="none"><g class="wv" style="--wl:520px;--t:64s"><path d="M0 36 Q130 34 260 36 T520 36 T780 36 T1040 36 T1300 36 T1560 36 T1820 36 T2080 36 T2340 36 T2600 36 T2860 36 T3120 36" stroke="rgba(200,215,232,.16)"/></g><g class="wv" style="--wl:400px;--t:50s"><path d="M0 52 Q100 49 200 52 T400 52 T600 52 T800 52 T1000 52 T1200 52 T1400 52 T1600 52 T1800 52 T2000 52 T2200 52 T2400 52 T2600 52 T2800 52 T3000 52" stroke="rgba(200,215,232,.22)"/></g><g class="wv" style="--wl:300px;--t:40s"><path d="M0 70 Q75 65.5 150 70 T300 70 T450 70 T600 70 T750 70 T900 70 T1050 70 T1200 70 T1350 70 T1500 70 T1650 70 T1800 70 T1950 70 T2100 70 T2250 70 T2400 70 T2550 70 T2700 70 T2850 70" stroke="rgba(200,215,232,.30)"/></g><g class="wv" style="--wl:240px;--t:30s"><path d="M0 90 Q60 84 120 90 T240 90 T360 90 T480 90 T600 90 T720 90 T840 90 T960 90 T1080 90 T1200 90 T1320 90 T1440 90 T1560 90 T1680 90 T1800 90 T1920 90 T2040 90 T2160 90 T2280 90 T2400 90 T2520 90 T2640 90 T2760 90" stroke="rgba(184,216,255,.55)"/><path class="sh" pathLength="1000" d="M0 90 Q60 84 120 90 T240 90 T360 90 T480 90 T600 90 T720 90 T840 90 T960 90 T1080 90 T1200 90 T1320 90 T1440 90 T1560 90 T1680 90 T1800 90 T1920 90 T2040 90 T2160 90 T2280 90 T2400 90 T2520 90 T2640 90 T2760 90"/></g><g class="wv" style="--wl:360px;--t:46s"><path d="M0 110 Q90 103 180 110 T360 110 T540 110 T720 110 T900 110 T1080 110 T1260 110 T1440 110 T1620 110 T1800 110 T1980 110 T2160 110 T2340 110 T2520 110 T2700 110 T2880 110" stroke="rgba(200,215,232,.24)"/></g></svg></div>
     </section>
 
     <!-- ── 01 기관 ── -->

@@ -28,6 +28,7 @@ export const FEATURES: { href: string; label: string }[] = [
   { href: '/memo', label: '메모장' },
   { href: '/guest', label: '방명록' },
   { href: '/intro', label: '소개' },
+  { href: '/page', label: 'HTML 페이지' },   // 사용자 HTML 한 장짜리 페이지 (여러 개는 섹션으로)
 ];
 
 export const DEFAULT_MENU: MenuItem[] = [
