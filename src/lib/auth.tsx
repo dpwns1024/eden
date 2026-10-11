@@ -58,6 +58,16 @@ export function setSignupOpen(open: boolean) {
   setSetting(SIGNUP_KEY, { open });
 }
 
+/** 로그인 화면 디자인 (v2.0 사용자 요청) — default: 기본 / arch: ARCH 테마(각진 어두운 카드 + 요원 말투) */
+const LOGIN_UI_KEY = 'ohome.loginui.v1';
+export type LoginSkin = 'default' | 'arch';
+export function loginSkin(): LoginSkin {
+  return getSetting<{ skin?: LoginSkin }>(LOGIN_UI_KEY, {})?.skin === 'arch' ? 'arch' : 'default';
+}
+export function setLoginSkin(skin: LoginSkin) {
+  setSetting(LOGIN_UI_KEY, { skin });
+}
+
 export function isSetupDone(): boolean {
   try { return !!localStorage.getItem(SETUP_KEY); } catch { return false; }
 }

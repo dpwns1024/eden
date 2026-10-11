@@ -3,7 +3,7 @@
 // 회원가입(가입코드) · 비밀번호 찾기 포함
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth, signupOpen as signupAllowed } from '@/lib/auth';
+import { useAuth, signupOpen as signupAllowed, loginSkin } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
 import { KInput } from '@/components/ui/Kit';
 import { Modal } from '@/components/ui/Modal';
@@ -32,7 +32,18 @@ export default function LoginPage() {
 
   // 회원가입을 받지 않으면 가입 버튼을 감춘다 (환경설정 → 회원/보안)
   const [canSignup, setCanSignup] = useState(false);
-  useEffect(() => { setCanSignup(signupAllowed()); }, []);
+  // 로그인 화면 디자인 (환경설정 → 회원/보안) — ARCH면 각진 어두운 카드 + 요원 말투
+  const [arch, setArch] = useState(false);
+  useEffect(() => { setCanSignup(signupAllowed()); setArch(loginSkin() === 'arch'); }, []);
+  const T = arch
+    ? { desc: 'ARCH 정식 요원만 접속할 수 있습니다 — 인가된 계정으로 인증하세요', id: '식별코드', findId: '식별코드 찾기',
+        findTitle: mock ? '식별코드·비밀번호 찾기' : '비밀번호 재설정',
+        findDesc: mock ? '지급한 단말기로 식별코드를 찾거나 임시 비밀번호를 발급합니다' : '지급한 단말기로 재설정 링크를 보냅니다',
+        mail: '단말기 코드 번호', found: '식별코드' }
+    : { desc: '로그인 후 멤버 전용 콘텐츠를 열람할 수 있습니다', id: '아이디', findId: '아이디 찾기',
+        findTitle: mock ? '아이디·비밀번호 찾기' : '비밀번호 재설정',
+        findDesc: mock ? '가입 시 등록한 이메일로 아이디를 찾거나 임시 비밀번호를 발급합니다' : '가입한 이메일로 재설정 링크를 보냅니다',
+        mail: '이메일', found: '아이디' };
 
   // 이미 로그인 상태면 메인으로
   useEffect(() => { if (user) router.replace('/'); }, [user, router]);
@@ -59,7 +70,7 @@ export default function LoginPage() {
     setFErr(''); setFInfo('');
     const r = await findId(fEmail.trim());
     if (!r.ok) { setFErr(r.error ?? '요청 실패'); return; }
-    setFInfo(`아이디: ${r.foundId}`);
+    setFInfo(`${arch ? '식별코드' : '아이디'}: ${r.foundId}`);
   };
 
   const doFind = async () => {
@@ -71,7 +82,7 @@ export default function LoginPage() {
   };
 
   return (
-    <section className="page login-page">
+    <section className={`page login-page ${arch ? 'login-arch' : ''}`}>
       {/* 타이틀은 카드 안 가운데 정렬 (v1.9 — 메뉴 페이지가 아니라 상단 대제목을 두지 않음) */}
       <div className="panel login-card" style={{ padding: 28, maxWidth: 480, margin: '40px auto 0' }}>
         <h1 style={{
@@ -79,10 +90,10 @@ export default function LoginPage() {
           margin: '4px 0 6px', color: 'var(--ink)',
         }}>LOGIN</h1>
         <div style={{ textAlign: 'center', marginBottom: 18 }}>
-          <EditableDesc k="login-desc" def="ARCH 등록 요원만 접속할 수 있습니다 — 인가된 계정으로 인증하세요" />
+          <EditableDesc k="login-desc" def={T.desc} />
         </div>
         <div style={{ display: 'grid', gap: 9 }}>
-          <KInput placeholder="아이디" value={id} onChange={e => setId(e.target.value)} />
+          <KInput placeholder={T.id} value={id} onChange={e => setId(e.target.value)} />
           <KInput placeholder="비밀번호" type="password" value={pw} onChange={e => setPw(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') doLogin(); }} />
           {err && <p style={{ fontSize: 11.5, color: 'var(--accent)' }}>{err}</p>}
@@ -122,19 +133,18 @@ export default function LoginPage() {
 
       {/* 아이디·비밀번호 찾기 모달 (4.8, v1.9) — 가입 이메일 기준 */}
       <Modal open={findOpen} onClose={() => { setFindOpen(false); setFInfo(''); setFErr(''); }} small
-        title={mock ? '아이디·비밀번호 찾기' : '비밀번호 재설정'}
-        desc={mock
-          ? '가입 시 등록한 이메일로 아이디를 찾거나 임시 비밀번호를 발급합니다'
-          : '가입한 이메일로 재설정 링크를 보냅니다'}
+        className={arch ? 'arch-modal' : undefined}
+        title={T.findTitle}
+        desc={T.findDesc}
         dirty={!!fEmail}
         actions={<>
           <button className="btn btn-ghost" onClick={() => { setFindOpen(false); setFInfo(''); setFErr(''); }}>CANCEL</button>
           {/* 서버 모드는 이메일이 곧 아이디라 「아이디 찾기」가 의미 없다 */}
-          {mock && <button className="btn btn-ghost" onClick={doFindId}>아이디 찾기</button>}
+          {mock && <button className="btn btn-ghost" onClick={doFindId}>{T.findId}</button>}
           <button className="btn btn-dark" onClick={doFind}>{mock ? '임시 비밀번호' : 'SEND'}</button>
         </>}>
         <div style={{ display: 'grid', gap: 9 }}>
-          <KInput placeholder="이메일" value={fEmail} onChange={e => setFEmail(e.target.value)} />
+          <KInput placeholder={T.mail} value={fEmail} onChange={e => setFEmail(e.target.value)} />
           {fErr && <p style={{ fontSize: 11.5, color: 'var(--accent)' }}>{fErr}</p>}
           {fInfo && <p style={{ fontSize: 12, color: 'var(--ink)', fontWeight: 600 }}>{fInfo}</p>}
         </div>
