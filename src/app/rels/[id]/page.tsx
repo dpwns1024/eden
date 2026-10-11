@@ -16,6 +16,7 @@ import {
   findByKey, charPath,
 } from '@/lib/charStore';
 import { RelQuestionSet, RELQ_SEED, RELQ_KEY, CP_LABEL } from '@/lib/relqStore';
+import { useBoardSkin } from '@/lib/boardSkin';
 import { putBlob } from '@/lib/blobStore';
 import { GrantsEditor } from '@/components/chars/GrantsEditor';
 import { TrpgLog, TRPG_SEED } from '@/lib/galleryStore';
@@ -388,6 +389,8 @@ export default function RelDetailPage() {
   const au = rel?.aus.find(a => a.id === auId) ?? rel?.aus[0];
   // AU별 프로필 데이터 (v1.9) — base(원본)는 Relation 최상위, 그 외 AU는 aus 항목에 저장
   const isBaseAu = (au?.id ?? 'base') === 'base';
+  // 게시판 디자인 ARCH — 히어로 배치(가운데 인장형)와 아래 상자 이름이 달라진다 (v2.0 사용자 선택)
+  const arch = useBoardSkin() === 'arch';
   const auArts = (isBaseAu ? rel?.arts : au?.arts) ?? [];
   const auTimeline = (isBaseAu ? rel?.timeline : au?.timeline) ?? [];
   const auQuestions = (isBaseAu ? rel?.questions : au?.questions) ?? [];
@@ -855,6 +858,40 @@ export default function RelDetailPage() {
           { label: 'CANCEL', kind: 'ghost', onClick: () => setDelAsk(false) },
         ]} />
 
+      {arch ? (
+        /* ARCH — 가운데 인장형 (v2.0 사용자 선택 「B · SEAL」): 문서 머리줄 · 자관명 · 가운데 CP 인장이 있는 선 ·
+           캐치프레이즈 · 두 사람의 한마디를 대화처럼(이름표 + 대사, 한 줄은 왼쪽 · 한 줄은 오른쪽) */
+        <div className="rel-hero arch-hero">
+          <div className="ah-crumb">PAIRING · <b>{(au?.label || 'ORIGINAL').toUpperCase()}</b></div>
+          <h1 style={{
+            fontFamily: familyOf(rel.fontId), color: auSt.nameColor,
+            textShadow: `0 4px 30px ${withAlpha(auSt.nameShadowColor ?? '#000000', 0.6 * ((auSt.nameShadow ?? 100) / 100))}`,
+          }}>{(!isBaseAu && au?.name?.trim()) || rel.name}</h1>
+          <div className="ah-div">
+            <i />
+            {auCpTag && (
+              <em style={auSt.cpTagBg || auSt.cpTagFg
+                ? { background: auSt.cpTagBg, color: auSt.cpTagFg, borderColor: auSt.cpTagBg }
+                : undefined}>{CP_LABEL[auCpTag]}</em>
+            )}
+            <i />
+          </div>
+          {(au?.catchphrase || rel.catchphrase) && (
+            <div className="catch" style={{ color: auSt.cpColor }}>{au?.catchphrase || rel.catchphrase}</div>
+          )}
+          {isDuo && (pairSlots[0]?.quote || pairSlots[1]?.quote) && (
+            <div className="ah-dl">
+              {pairSlots.map((m, i) => (m?.quote ? (
+                <div key={m.charId} className={`ah-line ${i === 1 ? 'r' : 'l'}`}
+                  style={{ ['--c' as string]: m.quoteMarkColor || charOf(m.charId)?.color || '#8592a0' } as React.CSSProperties}>
+                  <small>{(charOf(m.charId)?.name ?? '').toUpperCase()}</small>
+                  <span style={{ color: m.quoteColor }}>{m.quote}</span>
+                </div>
+              ) : <div key={i} />))}
+            </div>
+          )}
+        </div>
+      ) : (
       <div className="rel-hero">
         {isDuo && pairSlots[0] && (
           <div className="quote l" style={{
@@ -887,6 +924,7 @@ export default function RelDetailPage() {
           } as React.CSSProperties}>{pairSlots[1].quote}</div>
         )}
       </div>
+      )}
 
       {isDuo ? (
         <div className="rel-body" style={{ fontFamily: familyOf(rel.bodyFontId) }}>
@@ -1247,7 +1285,8 @@ export default function RelDetailPage() {
       <div className="g2" style={{ marginTop: 16 }}>
         {!au?.hideRp && (
         <div className="panel widget" style={{ margin: 0, ...(au?.hideLog ? { gridColumn: '1/-1' } : null) }}>
-          <h4>역극 <span className="more" onClick={() => router.push('/rp')}>더보기 ›</span></h4>
+          {/* ARCH에선 기관 홈페이지 말투 — 두 사람의 임무·일상 기록 (v2.0 사용자 요청) */}
+          <h4>{arch ? <span>MISSION LOG <small className="kr">임무 기록</small></span> : '역극'} <span className="more" onClick={() => router.push('/rp')}>더보기 ›</span></h4>
           {relRooms.length > 0 ? relRooms.map(rm => (
             <div key={rm.id} className="dday-row" style={{ cursor: 'var(--cur-pointer,pointer)' }} onClick={() => router.push('/rp')}>
               <span>{rm.title}</span>
@@ -1256,20 +1295,20 @@ export default function RelDetailPage() {
               </b>
             </div>
           )) : (
-            <p className="hint" style={{ margin: 0 }}>이 자관 기반으로 진행된 역극이 여기에 표시됩니다</p>
+            <p className="hint" style={{ margin: 0 }}>{arch ? '아직 등록된 임무 기록이 없습니다' : '이 자관 기반으로 진행된 역극이 여기에 표시됩니다'}</p>
           )}
         </div>
         )}
         {!au?.hideLog && (
         <div className="panel widget" style={{ margin: 0, ...(au?.hideRp ? { gridColumn: '1/-1' } : null) }}>
-          <h4>로그 <span className="more" onClick={() => router.push('/trpg')}>더보기 ›</span></h4>
+          <h4>{arch ? <span>FIELD REPORT <small className="kr">현장 보고</small></span> : '로그'} <span className="more" onClick={() => router.push('/trpg')}>더보기 ›</span></h4>
           {relLogs.length > 0 ? relLogs.map(l => (
             <div key={l.id} className="dday-row" style={{ cursor: 'var(--cur-pointer,pointer)' }} onClick={() => router.push(`/trpg/${l.id}`)}>
               {/* 번호 없이 제목만 — 연동 리스트에서는 순번이 의미가 없다 (사용자 확정) */}
               <span>{l.title}</span>
               <b style={{ fontSize: 11, color: 'var(--faint)' }}>{l.date?.replace(/-/g, '.') ?? ''}</b>
             </div>
-          )) : <p className="hint" style={{ margin: 0 }}>연동된 로그가 없습니다 — 로그 등록 시 자관을 선택하면 여기에 표시</p>}
+          )) : <p className="hint" style={{ margin: 0 }}>{arch ? '아직 등록된 현장 보고가 없습니다' : '연동된 로그가 없습니다 — 로그 등록 시 자관을 선택하면 여기에 표시'}</p>}
         </div>
         )}
       </div>
