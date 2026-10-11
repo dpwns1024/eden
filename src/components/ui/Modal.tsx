@@ -46,7 +46,8 @@ export function Modal({ open, title, desc, onClose, children, small, actions, di
       {askClose && (
         <div className="modal-ov" style={{ zIndex: 96 }}
           onMouseDown={e => { if (e.target === e.currentTarget) setAskClose(false); }}>
-          <div className="mng-box sm">
+          {/* 같은 디자인으로 — 바깥 창에 준 className을 확인 창에도 */}
+          <div className={`mng-box sm ${className ?? ''}`}>
             <h3>변경사항이 저장되지 않았습니다</h3>
             <p className="d">이대로 닫으면 입력한 내용이 사라집니다.</p>
             <div className="modal-actions">
