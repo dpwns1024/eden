@@ -67,7 +67,7 @@ export function GrantsEditor({ value, onChange }: {
           onFocus={() => setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 150)} />
         {open && matches.length > 0 && typeof document !== 'undefined' && createPortal(
-          <div style={{
+          <div className="grant-pop" style={{
             position: 'fixed', left: pos!.left, width: pos!.width, zIndex: 120,
             ...(pos!.bottom !== undefined ? { bottom: pos!.bottom } : { top: pos!.top }),
             background: 'var(--panel-solid)', border: '1px solid var(--line)', borderRadius: 10,

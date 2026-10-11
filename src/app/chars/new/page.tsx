@@ -19,17 +19,17 @@ function CharNewInner() {
   // 큰 글씨 — 추가 섹션이면 그 이름, 눌렀을 때도 그 목록으로 (v2.0 사용자 제보)
   const tt = useSectionTitle('chars', sec.id, 'ADD CHARACTER');
 
-  if (!loaded) return <section className="page" />;
+  if (!loaded) return <section className="page page-arch" />;
   if (!isAdmin) {
     return (
-      <section className="page">
+      <section className="page page-arch">
         <div className="page-head"><PageTitle href={tt.href}>{tt.title}</PageTitle><p>관리자 전용</p></div>
       </section>
     );
   }
 
   return (
-    <section className="page">
+    <section className="page page-arch">
       <div className="page-head">
         <PageTitle href={tt.href}>{tt.title}</PageTitle>
         <EditableDesc k="chars-new-desc" def="캐릭터 등록 — 아트 첫 장이 대표 · 탭 내용은 전용 편집 화면에서 작성" />
@@ -50,5 +50,5 @@ function CharNewInner() {
 
 export default function CharNewPage() {
   // useSearchParams는 Suspense 경계 필요 (Next App Router)
-  return <Suspense fallback={<section className="page" />}><CharNewInner /></Suspense>;
+  return <Suspense fallback={<section className="page page-arch" />}><CharNewInner /></Suspense>;
 }

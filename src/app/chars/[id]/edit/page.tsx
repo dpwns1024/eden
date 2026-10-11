@@ -25,10 +25,10 @@ function CharEditInner() {
   const ch = findByKey(chars, id);
   // 관리자 또는 「편집까지」 권한이 부여된 회원 (3차 회원-캐릭터 연결, v1.9)
   const canEdit = isAdmin || (ch && charGrant(ch, user?.id) === 'edit');
-  if (!loaded) return <section className="page" />;
+  if (!loaded) return <section className="page page-arch" />;
   if (!canEdit || !ch) {
     return (
-      <section className="page">
+      <section className="page page-arch">
         <div className="page-head"><PageTitle>EDIT</PageTitle><p>{!ch ? '캐릭터를 찾을 수 없습니다' : '편집 권한이 없습니다'}</p></div>
       </section>
     );
@@ -57,7 +57,7 @@ function CharEditInner() {
     : ch;
 
   return (
-    <section className="page">
+    <section className="page page-arch">
       <div className="page-head">
         <PageTitle>EDIT — {auKey ? `${ch.name} · ${auLabel}` : ch.name}</PageTitle>
         {!auKey && <EditableDesc k="chars-edit-desc" def="프로필 편집 — 변경은 [SAVE]를 눌러야 저장됩니다" />}
@@ -100,5 +100,5 @@ function CharEditInner() {
 
 export default function CharEditPage() {
   // useSearchParams는 Suspense 경계 필요 (Next App Router)
-  return <Suspense fallback={<section className="page" />}><CharEditInner /></Suspense>;
+  return <Suspense fallback={<section className="page page-arch" />}><CharEditInner /></Suspense>;
 }

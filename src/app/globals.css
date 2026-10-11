@@ -255,7 +255,7 @@ html.ui-arch .page-arch .side-icons button.on{color:#fff;background:rgba(var(--a
 html.ui-arch .page-arch .profile-center{border-radius:0;border:1px solid var(--a-ln);box-shadow:0 24px 50px -28px rgba(0,0,0,.9)}
 html.ui-arch .page-arch .profile-info .pf-name:not([data-font]){font-family:'Jost','Noto Sans KR',sans-serif;font-weight:300}
 html.ui-arch .page-arch .profile-info .pf-name{background:var(--a-sil);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:.24em !important}
-html.ui-arch .page-arch .profile-info .sub{font:400 calc(9.5px*var(--fs,1))/1.5 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.24em;color:var(--a-mu)}
+html.ui-arch .page-arch .profile-info .sub{font:300 calc(12px*var(--fs,1))/1.6 'Noto Sans KR',sans-serif;letter-spacing:.03em;color:var(--a-mu)} /* 한 줄 소개·대사 — 넓은 자간은 한글에선 띄어 보여 좁게 (v2.0 사용자 요청) */
 html.ui-arch .page-arch .profile-info h3{font:300 calc(20px*var(--fs,1))/1.2 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;background:var(--a-sil);-webkit-background-clip:text;background-clip:text;color:transparent}
 html.ui-arch .page-arch .spec{padding-top:14px;border-top:1px solid var(--a-ln);row-gap:9px;grid-template-columns:96px 1fr}
 html.ui-arch .page-arch .spec dt{font:400 calc(8.5px*var(--fs,1))/1.9 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.22em;color:#6f7b89;text-transform:uppercase}
@@ -297,6 +297,8 @@ html.ui-arch .page-arch .arch-hero .ah-line span::before{content:'\201C';margin-
 html.ui-arch .page-arch .arch-hero .ah-line span::after{content:'\201D';margin-left:2px;color:var(--c);filter:brightness(1.5)}
 html.ui-arch .page-arch .widget h4 .kr{margin-left:8px;font:300 calc(9.5px*var(--fs,1))/1 'Noto Sans KR',sans-serif;letter-spacing:.1em;color:var(--a-dim)}
 @media (max-width:620px){
+  /* 캐릭터 등록·수정 — 테마 컬러는 모바일에서 한 줄에 하나 (두 개면 칸이 넘쳐 겹쳤다) */
+  .ce-colors{grid-template-columns:1fr !important}
   html.ui-arch .page-arch .arch-hero .ah-dl{grid-template-columns:1fr;gap:12px;margin-top:24px}
   /* 오른쪽 위 AU 썸네일과 머리줄이 겹치지 않게 아래로 */
   html.ui-arch .page-arch .rel-hero.arch-hero{padding-top:62px}
@@ -308,7 +310,7 @@ html.ui-arch .page-arch .widget h4 .kr{margin-left:8px;font:300 calc(9.5px*var(-
 html.ui-arch .page-arch .mini-prof .hd{border-bottom:1px solid var(--a-ln)}
 html.ui-arch .page-arch .mini-prof .hd .face{border-radius:0;box-shadow:0 0 0 1px var(--a-ln2)}
 html.ui-arch .page-arch .mini-prof .hd b{font-family:'Jost','Noto Sans KR',sans-serif;font-weight:400;letter-spacing:.3em;color:#fff}
-html.ui-arch .page-arch .mini-prof .hd small{font-family:'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.16em;color:var(--a-mu)}
+html.ui-arch .page-arch .mini-prof .hd small{font-family:'Noto Sans KR',sans-serif;font-weight:300;letter-spacing:.04em;color:var(--a-mu)}
 html.ui-arch .page-arch .mini-prof .specs{color:var(--a-tx)}
 html.ui-arch .page-arch .mini-prof .specs b{font:400 calc(8.5px*var(--fs,1))/2 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em;color:#6f7b89;text-transform:uppercase;min-width:84px}
 html.ui-arch .page-arch .mini-prof .foot{border-top:1px solid var(--a-ln);color:var(--a-mu)}
@@ -365,6 +367,71 @@ html.ui-arch .page-arch .widget h4 .more{color:var(--a-ac)}
 html.ui-arch .page-arch .dday-row{border-bottom:1px solid var(--a-ln);color:var(--a-tx)}
 /* 오른쪽 상태(완결 · 공개)·날짜 — 기본은 굵은 세리프라 ARCH에선 튀었다 (v2.0 사용자 제보) → 가는 고딕, 옅은 색 */
 html.ui-arch .page-arch .dday-row b{font-family:'Noto Sans KR',sans-serif;font-weight:300;letter-spacing:.08em;color:var(--a-mu) !important;font-size:calc(11px*var(--fs,1)) !important}
+/* ── 캐릭터 등록·수정 화면 (기능은 그대로 — 색·테두리·글꼴만, 글자는 읽기 쉽게 고딕 위주) ── */
+html.ui-arch .page-arch .write-grid .btn{height:auto;min-height:30px;padding:7px 14px}
+/* 폼 안 버튼·뱃지는 한글이 많아 자간을 좁혀 읽기 쉽게 */
+html.ui-arch .page-arch .write-grid .btn{letter-spacing:.14em} /* 저장/취소는 아래 .form-actions 규칙이 다시 넓힘 */
+html.ui-arch .page-arch .write-grid .pill{font-family:'Noto Sans KR',sans-serif;letter-spacing:.06em}
+html.ui-arch .page-arch .form-actions .btn{height:42px;min-height:0;padding:0 14px}
+html.ui-arch .page-arch .form-actions .btn-onbk{border:1px solid var(--a-ln2);border-radius:0;background:rgba(8,11,15,.72);color:#c9d2dc;font:400 10.5px/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em}
+html.ui-arch .page-arch .form-actions .btn-onbk:hover{border-color:rgba(var(--a-acr),.6);color:#fff}
+html.ui-arch .page-arch .form-actions .btn-accent{border:1px solid rgba(var(--a-acr),.55);border-radius:0;background:linear-gradient(180deg,rgba(var(--a-acr),.22),rgba(var(--a-acr),.06));color:#fff;font:400 10.5px/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.4em}
+html.ui-arch .page-arch .form-actions .btn-accent:hover{border-color:rgba(var(--a-acr),.85);box-shadow:0 0 22px -6px rgba(var(--a-acr),.6)}
+html.ui-arch .page-arch .k-label{color:#c9d2dc;font-weight:500;letter-spacing:.04em}
+html.ui-arch .page-arch .cp-lb,html.ui-arch .page-arch .drag-h{color:var(--a-mu)}
+html.ui-arch .page-arch .fx{color:var(--a-mu)}
+html.ui-arch .page-arch .fx:hover{color:#fff}
+html.ui-arch .page-arch .mini-seg{background:rgba(5,8,12,.6);border:1px solid var(--a-ln2);padding:2px}
+html.ui-arch .page-arch .mini-seg button{color:var(--a-mu)}
+html.ui-arch .page-arch .mini-seg button:hover{color:#fff}
+html.ui-arch .page-arch .mini-seg button.on{background:rgba(var(--a-acr),.16);color:#fff;box-shadow:inset 0 0 0 1px rgba(var(--a-acr),.5)}
+html.ui-arch .page-arch .pill.dark{background:rgba(var(--a-acr),.14);border-color:rgba(var(--a-acr),.5);color:#fff}
+/* 드롭다운 · 숫자 · 색 */
+html.ui-arch .page-arch .k-select .cur{background:rgba(5,8,12,.6);border:1px solid var(--a-ln2);border-radius:0;color:var(--a-tx)}
+html.ui-arch .page-arch .k-select .cur::after{border-color:var(--a-mu)}
+html.ui-arch .page-arch .k-select.open .cur{border-color:rgba(var(--a-acr),.6);box-shadow:0 0 0 3px rgba(var(--a-acr),.08)}
+html.ui-arch .page-arch .k-select .opts{background:rgba(8,11,15,.97);border:1px solid var(--a-ln2);border-radius:0}
+html.ui-arch .page-arch .k-select .opts div{color:#c9d2dc;border-radius:0}
+html.ui-arch .page-arch .k-select .opts div:hover{background:rgba(var(--a-acr),.08)}
+html.ui-arch .page-arch .k-select .opts div.sel{background:rgba(var(--a-acr),.16);color:#fff}
+html.ui-arch .page-arch .k-step{border:1px solid var(--a-ln2);border-radius:0;background:rgba(5,8,12,.6)}
+html.ui-arch .page-arch .k-step button{color:var(--a-mu)}
+html.ui-arch .page-arch .k-step button:hover{background:rgba(var(--a-acr),.08);color:#fff}
+html.ui-arch .page-arch .k-step span,html.ui-arch .page-arch .k-step input{color:var(--a-tx);border-color:var(--a-ln2)}
+html.ui-arch .page-arch .k-step input:focus{background:rgba(var(--a-acr),.06)}
+html.ui-arch .page-arch .k-check .box,html.ui-arch .page-arch .k-radio .dot{background:rgba(5,8,12,.6);border-color:var(--a-ln2)}
+html.ui-arch .page-arch .k-check input:checked + .box{background:rgba(var(--a-acr),.7);border-color:rgba(var(--a-acr),.9)}
+/* 글 편집기 */
+html.ui-arch .page-arch .re-wrap{border:1px solid var(--a-ln2);border-radius:0;background:rgba(5,8,12,.55)}
+html.ui-arch .page-arch .re-wrap:focus-within{border-color:rgba(var(--a-acr),.55);box-shadow:0 0 0 3px rgba(var(--a-acr),.07)}
+html.ui-arch .page-arch .re-toolbar{background:rgba(13,18,25,.85);border-bottom:1px solid var(--a-ln)}
+html.ui-arch .page-arch .re-btn{color:var(--a-mu);border-radius:0}
+html.ui-arch .page-arch .re-btn:hover{background:rgba(var(--a-acr),.08);color:#fff}
+html.ui-arch .page-arch .re-btn.on{background:rgba(var(--a-acr),.18);color:#fff}
+html.ui-arch .page-arch .re-sep{background:var(--a-ln2)}
+html.ui-arch .page-arch .re-content{color:var(--a-tx)}
+html.ui-arch .page-arch .re-content a{color:var(--a-ac)}
+html.ui-arch .page-arch .re-content blockquote{border-left-color:var(--a-ln2);color:#b3bec9}
+html.ui-arch .page-arch .re-content hr{border-top-color:var(--a-ln2)}
+html.ui-arch .page-arch .re-ph{color:var(--a-dim)}
+/* 추가 탭 목록 줄 (인라인 모양을 덮어써야 해서 !important) */
+html.ui-arch .page-arch .ce-tab{border:1px solid var(--a-ln2) !important;border-radius:0 !important;background:rgba(5,8,12,.35)}
+html.ui-arch .page-arch .ce-tab b{color:#fff}
+html.ui-arch .page-arch .ce-tab-ic{border-radius:0 !important;background:rgba(var(--a-acr),.08) !important;box-shadow:inset 0 0 0 1px var(--a-ln2);color:#fff}
+/* 화면 맨 위(body)에 따로 뜨는 선택 창 — ARCH 게시판 화면일 때만 같은 결로 */
+html.ui-arch body:has(.page-arch) .k-sel-pop{background:rgba(8,11,15,.97);border:1px solid rgba(190,208,228,.22);border-radius:0}
+html.ui-arch body:has(.page-arch) .k-sel-pop div{color:#c9d2dc;border-radius:0}
+html.ui-arch body:has(.page-arch) .k-sel-pop div:hover{background:rgba(184,216,255,.08)}
+html.ui-arch body:has(.page-arch) .k-sel-pop div.sel{background:rgba(184,216,255,.16);color:#fff}
+html.ui-arch body:has(.page-arch) .picker-pop{background:rgba(8,11,15,.97);border:1px solid rgba(190,208,228,.22);border-radius:0}
+html.ui-arch body:has(.page-arch) .sym-pop{background:rgba(8,11,15,.97);border:1px solid rgba(190,208,228,.22);border-radius:0}
+html.ui-arch body:has(.page-arch) .sym-pop .sym-tabs button{border-radius:0;color:#8592a0}
+html.ui-arch body:has(.page-arch) .sym-pop .sym-tabs button.on{background:rgba(184,216,255,.16);color:#fff}
+html.ui-arch body:has(.page-arch) .sym-pop .sym-grid button{border-radius:0;color:#e4e9ef}
+html.ui-arch body:has(.page-arch) .sym-pop .sym-grid button:hover{background:rgba(184,216,255,.1)}
+html.ui-arch body:has(.page-arch) .grant-pop{background:rgba(8,11,15,.97) !important;border-color:rgba(190,208,228,.22) !important;border-radius:0 !important}
+html.ui-arch body:has(.page-arch) .grant-pop button{color:#e4e9ef !important;border-radius:0 !important}
+html.ui-arch body:has(.page-arch) .grant-pop button:hover{background:rgba(184,216,255,.08)}
 /* 입력칸 · 메뉴 비밀번호 화면 */
 html.ui-arch .page-arch .k-input{border:1px solid var(--a-ln2);border-radius:0;background:rgba(5,8,12,.6);color:var(--a-tx);box-shadow:none}
 html.ui-arch .page-arch .k-input::placeholder{color:var(--a-dim)}
@@ -658,6 +725,10 @@ html.ui-arch .page-arch .board-lock-err{color:#ff8a92}
 .tip-pop.on{opacity:1;transform:none}
 /* 드롭다운 색을 따르는 툴팁 변형 (신청자 리스트 잠금 등, v1.9) */
 .tip-pop.dd{background:var(--dd-bg);color:var(--dd-fg)}
+/* 게시판 디자인 ARCH — 말풍선도 각진 어두운 칸 (v2.0 사용자 요청) */
+html.ui-arch .tip-pop,html.ui-arch .tip-pop.dd{background:rgba(8,11,15,.96);color:#e4e9ef;border:1px solid rgba(190,208,228,.24);border-radius:0;
+  font-family:'Jost','Noto Sans KR',sans-serif;font-weight:400;letter-spacing:.12em;padding:6px 11px;
+  box-shadow:0 12px 30px -12px #000,0 0 16px -6px rgba(184,216,255,.35)}
 
 /* ================= TRPG 캐릭터 (v1.9 신규 — 1:1 인장 + 표정 전환) ================= */
 .tc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
