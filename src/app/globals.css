@@ -229,7 +229,8 @@ a{color:inherit;text-decoration:none}
 .mng-box.arch-modal .k-input:focus{border-color:rgba(184,216,255,.6) !important;box-shadow:0 0 0 1px rgba(184,216,255,.25) !important}
 .mng-box.arch-modal .btn-dark{border:1px solid rgba(184,216,255,.45) !important;border-radius:0 !important;background:linear-gradient(180deg,rgba(184,216,255,.18),rgba(184,216,255,.04)) !important;color:#fff !important;letter-spacing:.24em}
 .mng-box.arch-modal .btn-ghost{border:1px solid rgba(190,208,228,.14) !important;border-radius:0 !important;background:transparent !important;color:#8592a0 !important;letter-spacing:.16em}
-.mng-box.arch-modal p{color:#ff8a92}
+.mng-box.arch-modal .login-err{color:#ff8a92 !important}   /* 로그인 창 오류와 같은 색 */
+.mng-box.arch-modal .login-info{color:#e4e9ef !important}
 /* BGM 플레이어 — ARCH 디자인 (환경설정 → BGM → 플레이어 디자인) */
 .bgm.skin-arch{--bgm-bg:rgba(8,11,15,.88);--bgm-fg:#e4e9ef;--bgm-ic:#8592a0;--bgm-vol:#b8d8ff;--line-dark:rgba(190,208,228,.18);border-radius:0;border:1px solid rgba(190,208,228,.18);box-shadow:0 22px 50px -18px #000;padding:9px 16px 9px 10px}
 .bgm.skin-arch::before,.bgm.skin-arch::after{content:'';position:absolute;width:8px;height:8px;border-color:rgba(184,216,255,.7);border-style:solid;pointer-events:none}
