@@ -2,7 +2,7 @@
 // 환경설정 (기획서 5장) — 0차: 「디자인」 탭(테마) 실동작.
 // 나머지 카테고리는 해당 기능 마일스톤에서 함께 구현.
 import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { useAuth, inviteCode, setInviteCode, signupOpen, setSignupOpen } from '@/lib/auth';
+import { useAuth, inviteCode, setInviteCode, signupOpen, setSignupOpen, loginSkin, setLoginSkin, LoginSkin } from '@/lib/auth';
 import { useMembers } from '@/lib/members';
 import { useTheme } from '@/lib/ThemeProvider';
 import { ThemeVars } from '@/lib/theme';
@@ -1222,7 +1222,8 @@ function MemberPane() {
   const [regVer, setRegVer] = useState(0);   // 가입 계정 삭제 후 목록 갱신용
   const [removedIds, setRemovedIds] = useState<string[]>([]);   // 서버 모드에서 방금 지운 회원
   const [signupOn, setSignupOn] = useState(true);
-  useEffect(() => { setCode(inviteCode()); setSignupOn(signupOpen()); setCodeLoaded(true); }, []);
+  const [lskin, setLskin] = useState<LoginSkin>('default');
+  useEffect(() => { setCode(inviteCode()); setSignupOn(signupOpen()); setLskin(loginSkin()); setCodeLoaded(true); }, []);
   void regVer;
 
   const members = useMembers();
@@ -1283,6 +1284,16 @@ function MemberPane() {
       <div className="set-row" style={{ marginTop: 8 }}>
         <div className="l"><b>회원가입 받기</b><small>끄면 로그인 화면에서 회원가입 버튼이 사라지고, 가입 요청도 거절합니다 — 이미 있는 회원은 그대로 로그인</small></div>
         <KToggle checked={signupOn} onChange={v => { setSignupOn(v); setSignupOpen(v); toast(v ? '회원가입을 받습니다' : '회원가입을 닫았습니다'); }} />
+      </div>
+
+      {/* 로그인 화면 디자인 (v2.0 사용자 요청) */}
+      <div className="set-row">
+        <div className="l"><b>로그인 화면 디자인</b><small>ARCH — 각진 어두운 카드 · 식별코드/단말기 등 요원 말투 (비밀번호 찾기 창 포함)</small></div>
+        <div className="mini-seg">
+          {(['default', 'arch'] as LoginSkin[]).map(k => (
+            <button key={k} className={lskin === k ? 'on' : ''} onClick={() => { setLskin(k); setLoginSkin(k); }}>{k === 'arch' ? 'ARCH' : '기본'}</button>
+          ))}
+        </div>
       </div>
 
       {/* 가입코드 설정 */}
