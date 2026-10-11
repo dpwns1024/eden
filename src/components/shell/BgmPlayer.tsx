@@ -279,6 +279,9 @@ export function BgmPlayer() {
         <Marquee className="tt" text={track?.title ?? ''} active={playing} />
         {track?.desc && <div className="mq">{track.desc}</div>}
       </div>
+      {/* 모바일 패널 닫기 (PC에선 숨김) */}
+      <button type="button" className="bgm-x" aria-label="BGM 닫기"
+        onClick={e => { e.stopPropagation(); setMOpen(false); setListOpen(false); }}>×</button>
       <div className="ctrl">
         <button onClick={prev} data-tip="이전">◂◂</button>
         <button onClick={togglePlay} data-tip={playing ? '일시정지' : '재생'}>{playing ? '❚❚' : '▶'}</button>
