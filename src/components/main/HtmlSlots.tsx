@@ -4,7 +4,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useAppPathname, toPublicHref } from '@/lib/routeAlias';
 import { useAuth } from '@/lib/auth';
 import { useBoards } from '@/lib/boardStore';
 import { useMenuSettings, buildMenu, boardEntries } from '@/lib/menuStore';
@@ -43,7 +43,7 @@ export function useHtmlSlots(boxRef: React.RefObject<HTMLElement | null>, deps: 
  *       div.oh-sub > a.oh-link(.on)      하위 메뉴
  */
 export function SlotMenu() {
-  const pathname = usePathname();
+  const pathname = useAppPathname();
   const { user, isAdmin } = useAuth();
   const [menuSet, , menuLoaded] = useMenuSettings();
   const { boards, loaded: boardsLoaded } = useBoards();
@@ -79,12 +79,12 @@ export function SlotMenu() {
           <div className="oh-sub">
             {m.children.map(c => (ext(c.href)
               ? <a key={c.href} className="oh-link" href={c.href} target="_blank" rel="noreferrer">{c.label}</a>
-              : <Link key={c.href} className={`oh-link${isOn(c.href) ? ' on' : ''}`} href={c.href}>{c.label}</Link>))}
+              : <Link key={c.href} className={`oh-link${isOn(c.href) ? ' on' : ''}`} href={toPublicHref(c.href)}>{c.label}</Link>))}
           </div>
         </div>
       ) : m.href && (ext(m.href)
         ? <a key={m.href} className="oh-item" href={m.href} target="_blank" rel="noreferrer">{m.label}</a>
-        : <Link key={m.href} className={`oh-item${isOn(m.href) ? ' on' : ''}`} href={m.href}>{m.label}</Link>)))}
+        : <Link key={m.href} className={`oh-item${isOn(m.href) ? ' on' : ''}`} href={toPublicHref(m.href)}>{m.label}</Link>)))}
     </nav>
   );
 }

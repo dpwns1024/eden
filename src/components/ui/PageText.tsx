@@ -2,7 +2,8 @@
 // 페이지 타이틀/설명 문구 편집 (5.2) — 관리자가 각 페이지 상단 설명을 자유 수정
 // 호버 시 좌우반전 연필(✎)이 표시되고, 클릭하면 그 자리에서 입력 (localStorage → DB 이전 예정)
 import React, { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useAppPathname } from '@/lib/routeAlias';
 import { useAuth } from '@/lib/auth';
 import { useMenuSettings, pageTitleFor, menuLabelOf } from '@/lib/menuStore';
 import { canonSecKey } from '@/lib/sectionStore';
@@ -18,7 +19,7 @@ export function PageTitle({ children, href, style }: {
   children: React.ReactNode; href?: string; style?: React.CSSProperties;
 }) {
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = useAppPathname();
   const [ms] = useMenuSettings();
   /* 여러 개로 만든 섹션·게시판은 **같은 경로에 쿼리로** 갈린다 (`/gallery?s=fan`).
      예전에는 쿼리를 뺀 경로로만 찾아서, 추가한 메뉴에 붙인 타이틀·이름이 페이지에 안 나왔다

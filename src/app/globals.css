@@ -208,7 +208,7 @@ a{color:inherit;text-decoration:none}
 .vol i{position:absolute;left:0;top:0;height:100%;width:62%;background:var(--bgm-vol);border-radius:3px}
 .vol i::after{content:"";position:absolute;right:-4px;top:-3.5px;width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.5)}
 /* ═══ 게시판 디자인 — ARCH (환경설정 → 메인 페이지 → 게시판 디자인 · lib/boardSkin.ts) ═══
-   <html class="ui-arch">일 때, ARCH로 옮긴 게시판(<section class="page page-arch">)에만 적용 — 지금: 캐릭터 목록·프로필, 메뉴 비밀번호 화면.
+   <html class="ui-arch">일 때, ARCH로 옮긴 게시판(<section class="page page-arch">)에만 적용 — 지금: 캐릭터 목록·프로필, 자관(PAIRING) 목록·상세, 메뉴 비밀번호 화면.
    레이아웃은 그대로 두고 모양만 ARCH HTML 페이지(어두운 반투명 박스·꺾쇠·은빛 제목·모노 라벨)처럼.
    다른 게시판을 옮길 때는 그 페이지 <section>에 page-arch를 붙이고, 그 게시판만의 부품 모양을 아래에 더한다 */
 html.ui-arch .page-arch{--a-pn:rgba(13,18,25,.64);--a-ln:rgba(190,208,228,.10);--a-ln2:rgba(190,208,228,.22);--a-tx:#e4e9ef;--a-mu:#8592a0;--a-dim:#4a5461;
@@ -229,19 +229,21 @@ html.ui-arch .page-arch .searchbar button:hover{background:rgba(var(--a-acr),.08
 html.ui-arch .page-arch .searchbar input{color:var(--a-tx);font-family:'Noto Sans KR',sans-serif}
 html.ui-arch .page-arch .searchbar input::placeholder{color:var(--a-dim)}
 /* 공통 박스 — 어두운 반투명 + 가는 테두리 + 꺾쇠(왼쪽 위·오른쪽 아래) */
-html.ui-arch .page-arch .panel,html.ui-arch .page-arch .char-card{position:relative;border-radius:0;border:1px solid var(--a-ln);color:var(--a-tx);
+html.ui-arch .page-arch .panel,html.ui-arch .page-arch .char-card,html.ui-arch .page-arch .rel-card{position:relative;border-radius:0;border:1px solid var(--a-ln);color:var(--a-tx);
   background:linear-gradient(180deg,rgba(255,255,255,.028),transparent 46%),var(--a-pn);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 24px 50px -28px rgba(0,0,0,.9)}
 html.ui-arch .page-arch .panel::before,html.ui-arch .page-arch .panel::after,
 html.ui-arch .page-arch .char-card::before,html.ui-arch .page-arch .char-card::after,
+html.ui-arch .page-arch .rel-card::before,html.ui-arch .page-arch .rel-card::after,
+html.ui-arch .page-arch .rel-center::before,html.ui-arch .page-arch .rel-center::after,
 html.ui-arch .page-arch .profile-center::before,html.ui-arch .page-arch .profile-center::after{content:'';position:absolute;z-index:4;width:9px;height:9px;border-color:rgba(220,230,240,.55);border-style:solid;pointer-events:none}
-html.ui-arch .page-arch .panel::before,html.ui-arch .page-arch .char-card::before,html.ui-arch .page-arch .profile-center::before{left:0;top:0;border-width:1px 0 0 1px}
-html.ui-arch .page-arch .panel::after,html.ui-arch .page-arch .char-card::after,html.ui-arch .page-arch .profile-center::after{right:0;bottom:0;border-width:0 1px 1px 0}
+html.ui-arch .page-arch .panel::before,html.ui-arch .page-arch .char-card::before,html.ui-arch .page-arch .profile-center::before,html.ui-arch .page-arch .rel-card::before,html.ui-arch .page-arch .rel-center::before{left:0;top:0;border-width:1px 0 0 1px}
+html.ui-arch .page-arch .panel::after,html.ui-arch .page-arch .char-card::after,html.ui-arch .page-arch .profile-center::after,html.ui-arch .page-arch .rel-card::after,html.ui-arch .page-arch .rel-center::after{right:0;bottom:0;border-width:0 1px 1px 0}
 /* 캐릭터 카드 */
-html.ui-arch .page-arch .char-card:hover{border-color:rgba(var(--a-acr),.45);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 26px -8px rgba(var(--a-acr),.45),0 24px 50px -28px rgba(0,0,0,.9)}
-html.ui-arch .page-arch .char-card .thumb{border-bottom:1px solid var(--a-ln)}
-html.ui-arch .page-arch .char-card .thumb::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,transparent 62%,rgba(5,7,10,.5))}
-html.ui-arch .page-arch .char-card .thumb img{transition:transform .5s cubic-bezier(.2,.7,.2,1)}
-html.ui-arch .page-arch .char-card:hover .thumb img{transform:scale(1.04)}
+html.ui-arch .page-arch .char-card:hover,html.ui-arch .page-arch .rel-card:hover{border-color:rgba(var(--a-acr),.45);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 26px -8px rgba(var(--a-acr),.45),0 24px 50px -28px rgba(0,0,0,.9)}
+html.ui-arch .page-arch .char-card .thumb,html.ui-arch .page-arch .rel-card .thumb{border-bottom:1px solid var(--a-ln)}
+html.ui-arch .page-arch .char-card .thumb::after,html.ui-arch .page-arch .rel-card .thumb::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,transparent 62%,rgba(5,7,10,.5))}
+html.ui-arch .page-arch .char-card .thumb img,html.ui-arch .page-arch .rel-card .thumb img{transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+html.ui-arch .page-arch .char-card:hover .thumb img,html.ui-arch .page-arch .rel-card:hover .thumb img{transform:scale(1.04)}
 html.ui-arch .page-arch .char-card .nm{padding:13px 16px}
 html.ui-arch .page-arch .char-card .nm b{font:400 calc(13px*var(--fs,1))/1.2 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;color:#fff}
 html.ui-arch .page-arch .char-card .nm i{width:7px;height:7px;border-radius:0;transform:rotate(45deg);margin-right:3px;box-shadow:0 0 0 1px rgba(255,255,255,.18)}
@@ -262,6 +264,79 @@ html.ui-arch .page-arch .prose{color:#b3bec9;font-weight:300;line-height:1.95;wo
 html.ui-arch .page-arch .prose b,html.ui-arch .page-arch .prose strong{color:#fff;font-weight:500}
 html.ui-arch .page-arch .prose a{color:var(--a-ac)}
 html.ui-arch .page-arch .au-item{border-radius:0}
+/* 공통 작은 부품 — 뱃지(pill)·세그먼트·안내 */
+html.ui-arch .page-arch .pill{border-radius:0;background:transparent;border:1px solid var(--a-ln2);color:#c9d2dc;font:400 calc(9px*var(--fs,1))/1.4 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em}
+html.ui-arch .page-arch .mini-seg,html.ui-arch .page-arch .seg{border-radius:0}
+html.ui-arch .page-arch .mini-seg button,html.ui-arch .page-arch .seg button{border-radius:0}
+html.ui-arch .page-arch .hint{color:var(--a-mu)}
+/* 자관(PAIRING) — 목록 카드 */
+html.ui-arch .page-arch .rel-card .nm b{font:400 calc(13px*var(--fs,1))/1.3 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;color:#fff}
+html.ui-arch .page-arch .rel-card .nm span{font:400 calc(9.5px*var(--fs,1))/1.6 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.14em;color:var(--a-mu)}
+html.ui-arch .page-arch .rel-card .nm .who i{width:7px;height:7px;border-radius:0;transform:rotate(45deg);box-shadow:0 0 0 1px rgba(255,255,255,.18)}
+/* 자관 상세 — 히어로(자관명·캐치프레이즈·한마디) */
+html.ui-arch .page-arch .rel-hero h1{font-family:'Jost','Noto Sans KR',sans-serif;font-weight:300;letter-spacing:.32em;text-indent:.32em}
+html.ui-arch .page-arch .rel-hero .catch{font:300 calc(11px*var(--fs,1))/1.6 'Noto Sans KR',sans-serif;letter-spacing:.5em;text-indent:.5em;color:#b3bec9}
+html.ui-arch .page-arch .rel-hero .quote{font-family:'Noto Sans KR',sans-serif;font-weight:300;letter-spacing:.06em}
+html.ui-arch .page-arch .rel-hero .cp-top .pill{border-color:rgba(var(--a-acr),.5);color:var(--a-ac);padding:4px 12px;box-shadow:0 0 14px -4px rgba(var(--a-acr),.5)}
+/* 멤버 카드 */
+html.ui-arch .page-arch .mini-prof .hd{border-bottom:1px solid var(--a-ln)}
+html.ui-arch .page-arch .mini-prof .hd .face{border-radius:0;box-shadow:0 0 0 1px var(--a-ln2)}
+html.ui-arch .page-arch .mini-prof .hd b{font-family:'Jost','Noto Sans KR',sans-serif;font-weight:400;letter-spacing:.3em;color:#fff}
+html.ui-arch .page-arch .mini-prof .hd small{font-family:'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.16em;color:var(--a-mu)}
+html.ui-arch .page-arch .mini-prof .specs{color:var(--a-tx)}
+html.ui-arch .page-arch .mini-prof .specs b{font:400 calc(8.5px*var(--fs,1))/2 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em;color:#6f7b89;text-transform:uppercase;min-width:84px}
+html.ui-arch .page-arch .mini-prof .foot{border-top:1px solid var(--a-ln);color:var(--a-mu)}
+html.ui-arch .page-arch .rel-desc{color:#b3bec9;border-top:1px solid var(--a-ln);font-weight:300}
+/* 가운데 일러 · AU 썸네일 */
+html.ui-arch .page-arch .rel-center,html.ui-arch .page-arch .multi-illust{border-radius:0;border:1px solid var(--a-ln);box-shadow:0 24px 50px -28px rgba(0,0,0,.9)}
+html.ui-arch .page-arch .rel-center .fb{border-radius:0}
+html.ui-arch .page-arch .au-item{border-width:1px}
+html.ui-arch .page-arch .au-item.on{border-color:rgba(var(--a-acr),.8) !important;box-shadow:0 0 16px -4px rgba(var(--a-acr),.6)}
+html.ui-arch .page-arch .au-item small{font-family:'JetBrains Mono',monospace;letter-spacing:.12em}
+/* 다인 자관 멤버 줄 */
+html.ui-arch .page-arch .mrow,html.ui-arch .page-arch .multi-row{border-bottom:1px solid var(--a-ln)}
+html.ui-arch .page-arch .mrow:hover,html.ui-arch .page-arch .multi-row:hover{background:rgba(var(--a-acr),.05)}
+html.ui-arch .page-arch .mrow .face,html.ui-arch .page-arch .multi-row .face{border-radius:0}
+html.ui-arch .page-arch .mrow .nm b,html.ui-arch .page-arch .multi-row b{font-family:'Jost','Noto Sans KR',sans-serif;font-weight:400;letter-spacing:.2em;color:#fff}
+html.ui-arch .page-arch .mrow .nm small,html.ui-arch .page-arch .mrow .nm .ext,html.ui-arch .page-arch .multi-row .meta{color:var(--a-mu)}
+/* 타임라인/문답 탭 */
+html.ui-arch .page-arch .rel-tabs{border-bottom:1px solid var(--a-ln)}
+html.ui-arch .page-arch .rel-tabs > button{font:300 calc(14px*var(--fs,1))/1.2 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;color:var(--a-mu)}
+html.ui-arch .page-arch .rel-tabs > button:hover{color:#fff}
+html.ui-arch .page-arch .rel-tabs > button.on{color:#fff;border-bottom:1px solid var(--a-ac);box-shadow:0 8px 12px -10px rgba(var(--a-acr),.8)}
+/* 타임라인 */
+html.ui-arch .page-arch .tl-item{border-left:1px solid var(--a-ln2)}
+html.ui-arch .page-arch .tl-item::before{left:-5px;width:9px;height:9px;border-radius:0;transform:rotate(45deg);background:#05070a;border:1px solid var(--a-ac);box-shadow:0 0 8px rgba(var(--a-acr),.6)}
+html.ui-arch .page-arch .tl-item .era{font-family:'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--a-ac)}
+html.ui-arch .page-arch .tl-item .desc{color:#c9d2dc;font-weight:300}
+/* 말풍선 — 캐릭터 색 테두리의 어두운 칸 */
+html.ui-arch .page-arch .tl-say .who,html.ui-arch .page-arch .qa-ans .who{font-family:'Jost','Noto Sans KR',sans-serif;font-weight:500;letter-spacing:.24em;filter:brightness(1.35)}
+html.ui-arch .page-arch .tl-say .bub,html.ui-arch .page-arch .qa-ans .bub{border-radius:0;background:linear-gradient(180deg,rgba(var(--cc),.16),rgba(var(--cc),.06));border:1px solid rgba(var(--cc),.55);color:var(--a-tx);font-weight:300}
+/* 문답 */
+html.ui-arch .page-arch .qa-no{font-family:'JetBrains Mono',monospace;color:var(--a-ac)}
+html.ui-arch .page-arch .qa-q{font-family:'Noto Sans KR',sans-serif;font-weight:400;color:#fff;letter-spacing:.01em}
+html.ui-arch .page-arch .qa-date{font-family:'JetBrains Mono',monospace;letter-spacing:.14em;color:var(--a-dim)}
+html.ui-arch .page-arch .qa-note{color:var(--a-mu);border-left:1px solid var(--a-ln2)}
+html.ui-arch .page-arch .qa-list{border-left:1px solid var(--a-ln)}
+html.ui-arch .page-arch .qa-search{border:1px solid var(--a-ln2);border-radius:0;background:rgba(5,8,12,.6)}
+html.ui-arch .page-arch .qa-search input{color:var(--a-tx)}
+html.ui-arch .page-arch .qa-search input::placeholder{color:var(--a-dim)}
+html.ui-arch .page-arch .qa-search span{color:var(--a-mu)}
+html.ui-arch .page-arch .qa-item{border-radius:0;border-left:1px solid transparent}
+html.ui-arch .page-arch .qa-item:hover{background:rgba(var(--a-acr),.05)}
+html.ui-arch .page-arch .qa-item.on{background:rgba(var(--a-acr),.08);border-left-color:var(--a-ac);color:#fff}
+html.ui-arch .page-arch .qa-item b{font-weight:400;color:var(--a-tx)}
+html.ui-arch .page-arch .qa-item.on b{color:#fff}
+html.ui-arch .page-arch .qa-item small,html.ui-arch .page-arch .qa-item.on small{font-family:'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.1em;color:var(--a-mu);opacity:1}
+html.ui-arch .page-arch .qa-input{border-top:1px solid var(--a-ln)}
+html.ui-arch .page-arch .qa-input .char-pick .f{border-radius:0;box-shadow:0 0 0 1px var(--a-ln2)}
+html.ui-arch .page-arch .qa-input .char-pick small{color:var(--a-tx);font-family:'Jost','Noto Sans KR',sans-serif;letter-spacing:.16em}
+html.ui-arch .page-arch .qa-locked{color:var(--a-mu);font-family:'JetBrains Mono','Noto Sans KR',monospace}
+html.ui-arch .page-arch .qa-input .k-textarea,html.ui-arch .page-arch .k-textarea{border:1px solid var(--a-ln2);border-radius:0;background:rgba(5,8,12,.6);color:var(--a-tx)}
+/* 아래 작은 상자(역극·로그 등 위젯) */
+html.ui-arch .page-arch .widget h4{font:400 calc(9.5px*var(--fs,1))/1.4 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.26em;color:var(--a-mu)}
+html.ui-arch .page-arch .widget h4 .more{color:var(--a-ac)}
+html.ui-arch .page-arch .dday-row{border-bottom:1px solid var(--a-ln);color:var(--a-tx)}
 /* 입력칸 · 메뉴 비밀번호 화면 */
 html.ui-arch .page-arch .k-input{border:1px solid var(--a-ln2);border-radius:0;background:rgba(5,8,12,.6);color:var(--a-tx);box-shadow:none}
 html.ui-arch .page-arch .k-input::placeholder{color:var(--a-dim)}

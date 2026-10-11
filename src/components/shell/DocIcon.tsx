@@ -6,7 +6,7 @@
 // 그리고 Next는 src/app/favicon.ico를 자동으로 걸기 때문에, 그냥 <link>를 더하면
 // 기본 아이콘이 남아 어느 쪽이 이길지 브라우저마다 달라진다 — 기존 것을 지우고 우리 것만 남긴다.
 import { useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { useAppPathname } from '@/lib/routeAlias';
 import { useSiteSettings } from '@/lib/siteStore';
 import { useBlobUrl } from '@/lib/blobStore';
 
@@ -16,7 +16,7 @@ const ORIG = 'data-ohome-icon-orig';   // 남의 링크를 덮어쓰기 전 원�
 export function DocIcon() {
   const [site, , loaded] = useSiteSettings();
   const url = useBlobUrl(site.favicon);
-  const pathname = usePathname();
+  const pathname = useAppPathname();
 
   useEffect(() => {
     if (!loaded) return;

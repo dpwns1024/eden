@@ -1,5 +1,7 @@
 // 캐릭터·자관 데이터 저장소 — localStorage (→ Supabase 이전 예정)
 // 기획서 4.4(캐릭터), 4.5(자관)
+import { toPublicHref } from './routeAliasCore';
+
 export type Visibility = 'public' | 'member' | 'private'; // 공개범위 3단계
 
 export interface ColorChip { hex: string; label: string }
@@ -402,6 +404,7 @@ export const findChar = (chars: Character[], id: string) => chars.find(c => c.id
 export const findByKey = <T extends { id: string; slug?: string }>(list: T[], key: string) =>
   list.find(x => x.id === key || (x.slug ?? '') === key);
 /** 이 캐릭터의 주소 — 별명을 정했으면 그것, 아니면 id */
-export const charPath = (c: { id: string; slug?: string }) => `/chars/${c.slug?.trim() || c.id}`;
+// 주소창에 보일 요약 주소로 바로 만든다 (/chars → /profile, lib/routeAlias.ts)
+export const charPath = (c: { id: string; slug?: string }) => toPublicHref(`/chars/${c.slug?.trim() || c.id}`);
 /** 이 자관의 주소 — 별명을 정했으면 그것, 아니면 id */
-export const relPath = (r: { id: string; slug?: string }) => `/rels/${r.slug?.trim() || r.id}`;
+export const relPath = (r: { id: string; slug?: string }) => toPublicHref(`/rels/${r.slug?.trim() || r.id}`);

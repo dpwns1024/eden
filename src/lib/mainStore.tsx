@@ -2,7 +2,8 @@
 // 메인 위젯 시스템 + 편집모드 상태 (기획서 4.0)
 // 저장소: localStorage → 추후 Supabase site_settings 로 이전
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useAppPathname } from '@/lib/routeAlias';
 import { ConfirmModal } from '@/components/ui/Modal';
 import { useAuth } from './auth';
 import { getRawSetting, setSetting } from './settingStore';
@@ -132,7 +133,7 @@ const Ctx = createContext<MainCtx | null>(null);
 
 export function MainStoreProvider({ children }: { children: React.ReactNode }) {
   const { isAdmin } = useAuth();
-  const pathname = usePathname();
+  const pathname = useAppPathname();
   const router = useRouter();
   const [state, setState] = useState<MainState>(DEFAULT_STATE);
   const [editOn, setEditOn] = useState(false);

@@ -472,10 +472,10 @@ export default function RelDetailPage() {
     && ((user && rm.memberIds.includes(user.id)) || (rm.status === 'done' && rm.isPublic))),
     [rooms, rel, user]);
 
-  if (!loaded) return <section className="page" />;
+  if (!loaded) return <section className="page page-arch" />;
   if (!rel || (rel.visibility === 'private' && !isAdmin) || (rel.visibility === 'member' && !user)) {
     return (
-      <section className="page">
+      <section className="page page-arch">
         <div className="page-head"><PageTitle>RELATIONS</PageTitle><p>자관을 찾을 수 없거나 열람 권한이 없습니다</p></div>
       </section>
     );
@@ -757,7 +757,7 @@ export default function RelDetailPage() {
   };
 
   return (
-    <section className="page page-rel-detail">
+    <section className="page page-arch page-rel-detail">
       {/* 헤더 이미지 (v1.5) — 풀폭 블러 + 아래로 페이드아웃.
           AU별 완전 분리 (v1.9 사용자 확정): AU는 자기 헤더만 — base 것을 물려받지 않음.
           이미지가 없으면 아무것도 안 그리는 게 기본(v2.0) — 다만 자관 수정에서 배경 그라데이션을

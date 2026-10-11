@@ -6,7 +6,8 @@
  * - 비밀번호를 건 메뉴는 방문자에게 비밀번호 입력 화면을 띄운다 (MenuLock — 대조는 서버가)
  */
 import React, { Suspense } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useAppPathname } from '@/lib/routeAlias';
 import { useAuth } from '@/lib/auth';
 import { useMenuSettings, hrefAccess, menuLabelOf, menuLabelFor } from '@/lib/menuStore';
 import { governingLock } from '@/lib/menuLock';
@@ -14,7 +15,7 @@ import { useLockOpen, MenuLockScreen } from '@/components/ui/MenuLock';
 import { PageTitle } from '@/components/ui/PageText';
 
 function GuardInner({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+  const pathname = useAppPathname();
   const sp = useSearchParams();
   const { user, isAdmin, ready } = useAuth();
   const [menuSet, , loadedMenu] = useMenuSettings();
