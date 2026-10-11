@@ -3,7 +3,7 @@
 // 회원가입(가입코드) · 비밀번호 찾기 포함
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/auth';
+import { useAuth, signupOpen as signupAllowed } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
 import { KInput } from '@/components/ui/Kit';
 import { Modal } from '@/components/ui/Modal';
@@ -29,6 +29,10 @@ export default function LoginPage() {
   const [fEmail, setFEmail] = useState('');
   const [fErr, setFErr] = useState('');
   const [fInfo, setFInfo] = useState('');     // 결과 안내 (아이디·임시 비밀번호)
+
+  // 회원가입을 받지 않으면 가입 버튼을 감춘다 (환경설정 → 회원/보안)
+  const [canSignup, setCanSignup] = useState(false);
+  useEffect(() => { setCanSignup(signupAllowed()); }, []);
 
   // 이미 로그인 상태면 메인으로
   useEffect(() => { if (user) router.replace('/'); }, [user, router]);
@@ -67,15 +71,15 @@ export default function LoginPage() {
   };
 
   return (
-    <section className="page">
+    <section className="page login-page">
       {/* 타이틀은 카드 안 가운데 정렬 (v1.9 — 메뉴 페이지가 아니라 상단 대제목을 두지 않음) */}
-      <div className="panel" style={{ padding: 28, maxWidth: 480, margin: '40px auto 0' }}>
+      <div className="panel login-card" style={{ padding: 28, maxWidth: 480, margin: '40px auto 0' }}>
         <h1 style={{
           fontFamily: 'var(--serif)', fontSize: 24, letterSpacing: '.3em', textAlign: 'center',
           margin: '4px 0 6px', color: 'var(--ink)',
         }}>LOGIN</h1>
         <div style={{ textAlign: 'center', marginBottom: 18 }}>
-          <EditableDesc k="login-desc" def="로그인 후 멤버 전용 콘텐츠를 열람할 수 있습니다" />
+          <EditableDesc k="login-desc" def="ARCH 등록 요원만 접속할 수 있습니다 — 인가된 계정으로 인증하세요" />
         </div>
         <div style={{ display: 'grid', gap: 9 }}>
           <KInput placeholder="아이디" value={id} onChange={e => setId(e.target.value)} />
@@ -84,9 +88,11 @@ export default function LoginPage() {
           {err && <p style={{ fontSize: 11.5, color: 'var(--accent)' }}>{err}</p>}
           <button className="btn btn-dark" style={{ justifyContent: 'center', padding: 10 }} onClick={doLogin}>로그인</button>
         </div>
-        <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-          <button className="btn btn-ghost" style={{ flex: 1, justifyContent: 'center', padding: 7, fontSize: 11 }}
-            onClick={() => setSignupOpen(true)}>회원가입</button>
+        <div className="login-sub" style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+          {canSignup && (
+            <button className="btn btn-ghost" style={{ flex: 1, justifyContent: 'center', padding: 7, fontSize: 11 }}
+              onClick={() => setSignupOpen(true)}>회원가입</button>
+          )}
           <button className="btn btn-ghost" style={{ flex: 1, justifyContent: 'center', padding: 7, fontSize: 11 }}
             onClick={() => setFindOpen(true)}>비밀번호 찾기</button>
         </div>
