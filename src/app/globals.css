@@ -363,6 +363,8 @@ html.ui-arch .page-arch .qa-input .k-textarea,html.ui-arch .page-arch .k-textare
 html.ui-arch .page-arch .widget h4{font:400 calc(9.5px*var(--fs,1))/1.4 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.26em;color:var(--a-mu)}
 html.ui-arch .page-arch .widget h4 .more{color:var(--a-ac)}
 html.ui-arch .page-arch .dday-row{border-bottom:1px solid var(--a-ln);color:var(--a-tx)}
+/* 오른쪽 상태(완결 · 공개)·날짜 — 기본은 굵은 세리프라 ARCH에선 튀었다 (v2.0 사용자 제보) → 가는 고딕, 옅은 색 */
+html.ui-arch .page-arch .dday-row b{font-family:'Noto Sans KR',sans-serif;font-weight:300;letter-spacing:.08em;color:var(--a-mu) !important;font-size:calc(11px*var(--fs,1)) !important}
 /* 입력칸 · 메뉴 비밀번호 화면 */
 html.ui-arch .page-arch .k-input{border:1px solid var(--a-ln2);border-radius:0;background:rgba(5,8,12,.6);color:var(--a-tx);box-shadow:none}
 html.ui-arch .page-arch .k-input::placeholder{color:var(--a-dim)}
