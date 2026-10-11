@@ -68,6 +68,8 @@ export function BgmPlayer() {
   const [volume, setVolume] = useState(settings.volume);
   // 접기 상태 — 방문자별 기억 (4.1)
   const [folded, setFolded] = useState(false);
+  // 모바일 — 평소엔 오른쪽 가장자리의 작은 탭만, 누르면 오른쪽에서 패널이 밀려 나온다 (v2.0 사용자 요청)
+  const [mOpen, setMOpen] = useState(false);
   const playerRef = useRef<YTPlayer | null>(null);
   const readyRef = useRef(false);       // onReady 이후에만 playVideo가 실제 동작 (그 전엔 무시됨)
   const startedRef = useRef(false);     // 한 번이라도 실제 재생 시작됨 — 첫 재생은 loadVideoById 경로 필수
@@ -83,6 +85,13 @@ export function BgmPlayer() {
   useEffect(() => {
     try { setFolded(localStorage.getItem('ohome.bgm.fold') === '1'); } catch { /* 무시 */ }
   }, []);
+  useEffect(() => {
+    if (!mOpen) return;
+    const close = (e: Event) => { if (!rootRef.current?.contains(e.target as Node)) { setMOpen(false); setListOpen(false); } };
+    document.addEventListener('pointerdown', close);
+    return () => document.removeEventListener('pointerdown', close);
+  }, [mOpen]);
+  const isMobile = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 620px)').matches;
   const setFold = (v: boolean) => {
     setFolded(v);
     setListOpen(false);
@@ -250,15 +259,20 @@ export function BgmPlayer() {
   return (
     <div
       ref={rootRef}
-      className={`bgm ${folded ? 'folded' : ''} ${settings.position === 'bl' ? 'bgm-left' : ''} ${settings.skin === 'arch' ? 'skin-arch' : ''}`}
+      className={`bgm ${folded ? 'folded' : ''} ${settings.position === 'bl' ? 'bgm-left' : ''} ${settings.skin === 'arch' ? 'skin-arch' : ''} ${mOpen ? 'm-open' : ''} ${playing ? 'is-playing' : ''}`}
       style={settings.position === 'bl' ? { right: 'auto', left: 20 } : undefined}
-      onClick={() => { if (folded) setFold(false); }}
+      onClick={() => { if (folded && !isMobile()) setFold(false); }}
       data-tip={folded ? '펼치기' : undefined}
     >
       {/* 숨겨진 유튜브 플레이어 */}
       <div style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden', opacity: 0, pointerEvents: 'none' }}>
         <div ref={holderRef} />
       </div>
+      {/* 모바일 전용 탭 — 패널 왼쪽에 붙어 있어 닫혀 있을 땐 화면 끝에 조금만 보인다 (PC에선 숨김) */}
+      <button type="button" className="bgm-tab" aria-label={mOpen ? 'BGM 닫기' : 'BGM 열기'} aria-expanded={mOpen}
+        onClick={e => { e.stopPropagation(); setMOpen(o => !o); setListOpen(false); }}>
+        <span className="eq"><i /><i /><i /></span>
+      </button>
       <div className="disc" style={{ animationPlayState: playing ? 'running' : 'paused' }} />
       <div className="title">
         {/* 흐르는 글씨는 제목만 — 설명은 항상 말줄임 (정신없지 않게) */}
