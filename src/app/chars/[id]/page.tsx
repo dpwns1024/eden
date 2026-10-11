@@ -7,7 +7,7 @@ import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useLocalList } from '@/lib/postStore';
-import { Character, CHAR_SEED, charGrant, charWithAu, chipBorder, Relation, REL_SEED , findByKey} from '@/lib/charStore';
+import { Character, CHAR_SEED, charGrant, charWithAu, chipBorder, Relation, REL_SEED , findByKey, charPath } from '@/lib/charStore';
 import { sanitizeHtml } from '@/lib/sanitize';
 import { useFonts } from '@/lib/fontStore';
 import { useTheme } from '@/lib/ThemeProvider';
@@ -16,7 +16,7 @@ import { BlobImg, useBlobUrl } from '@/lib/blobStore';
 import { CroppedBlobImg, CropEditor, type CropValue } from '@/components/ui/CropEditor';
 
 import { EditableDesc, PageTitle } from '@/components/ui/PageText';
-import { useSectionTitle } from '@/lib/sectionStore';
+import { useSectionTitle, filterSection, MAIN_SEC } from '@/lib/sectionStore';
 import { ConfirmModal } from '@/components/ui/Modal';
 
 function CharDetailInner() {
@@ -79,6 +79,20 @@ function CharDetailInner() {
   // AU 전환 시 탭 구성·아트가 달라지므로 리셋
   useEffect(() => { setTab('basic'); setArtIdx(0); }, [auKey]);
 
+  // 다음 캐릭터 (v2.0 사용자 요청) — 목록 화면과 같은 순서·같은 목록(섹션)·같은 공개 범위에서 다음 것, 끝이면 처음으로.
+  // 상대 캐릭터(목록에 없는 캐릭터)에서는 내놓지 않는다
+  const siblings = ch?.own
+    ? filterSection(chars, ch.secId || MAIN_SEC).filter(c => c.own && (isAdmin || c.visibility === 'public'))
+    : [];
+  const sibIdx = ch ? siblings.findIndex(c => c.id === ch.id) : -1;
+  const nextChar = sibIdx >= 0 && siblings.length > 1 ? siblings[(sibIdx + 1) % siblings.length] : null;
+  // 같은 화면에서 다른 캐릭터로 넘어가면 탭·아트·AU 선택을 처음 상태로
+  const prevIdRef = useRef(ch?.id);
+  useEffect(() => {
+    if (prevIdRef.current && prevIdRef.current !== ch?.id) { setTab('basic'); setArtIdx(0); setAuKey(null); }
+    prevIdRef.current = ch?.id;
+  }, [ch?.id]);
+
   // 캐릭터 테마색 → 페이지 임시 테마 (4.18 방식, v1.9) — 「캐릭터 테마색」 선택 시에만, 벗어나면 원복
   const { setPageTheme } = useTheme();
   const pageColor = auRegistered && eff?.themeMode === 'custom' ? eff.color : null;
@@ -138,6 +152,9 @@ function CharDetailInner() {
         {/* 캐릭터별로 별도 저장 — 키에 캐릭터 id 포함 */}
         <EditableDesc k={`char-detail-desc:${ch.id}`} def="좌측 아이콘 탭 → 우측 정보 전환" />
         <div className="head-actions">
+          {nextChar && (
+            <button className="btn btn-dark" data-tip={nextChar.name} onClick={() => router.push(charPath(nextChar))}>NEXT ›</button>
+          )}
           {/* 관리자 또는 「편집까지」 권한 회원 (3차 회원-캐릭터 연결, v1.9)
               — AU 선택 상태의 EDIT은 그 AU 전용 프로필 편집으로 진입 */}
           {(isAdmin || charGrant(ch, user?.id) === 'edit') && (

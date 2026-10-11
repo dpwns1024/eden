@@ -246,7 +246,7 @@ html.ui-arch .page-chars .char-card .nm{padding:13px 16px}
 html.ui-arch .page-chars .char-card .nm b{font:400 calc(13px*var(--fs,1))/1.2 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;color:#fff}
 html.ui-arch .page-chars .char-card .nm i{width:7px;height:7px;border-radius:0;transform:rotate(45deg);margin-right:3px;box-shadow:0 0 0 1px rgba(255,255,255,.18)}
 /* 상세 — 왼쪽 아이콘 탭 · 가운데 아트 · 오른쪽 정보 */
-html.ui-arch .page-chars .side-icons button{border-radius:0;border:1px solid var(--a-ln2);background:rgba(8,11,15,.62);color:var(--a-mu);font-size:calc(17px*var(--fs,1))}
+html.ui-arch .page-chars .side-icons button{border-radius:0;border:1px solid var(--a-ln2);background:rgba(8,11,15,.62);color:var(--a-mu);font-size:calc(17px*var(--fs,1));padding:4px 0 0;line-height:1} /* 글리프 세로 가운데 (실측 — 기본 디자인의 아래 여백 보정은 이 글꼴 크기에선 위로 쏠림) */
 html.ui-arch .page-chars .side-icons button:hover{opacity:1;color:#fff;background:rgba(8,11,15,.82);border-color:rgba(var(--a-acr),.5)}
 html.ui-arch .page-chars .side-icons button.on{color:#fff;background:rgba(var(--a-acr),.1);border-color:rgba(var(--a-acr),.7);box-shadow:0 0 18px -4px rgba(var(--a-acr),.55)}
 html.ui-arch .page-chars .profile-center{border-radius:0;border:1px solid var(--a-ln);box-shadow:0 24px 50px -28px rgba(0,0,0,.9)}
