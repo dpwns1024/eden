@@ -212,7 +212,10 @@ function CharDetailInner() {
       <div className="profile-wrap">
         {/* 좌측 아이콘 탭 — AU면 그 AU의 탭 구성 */}
         <div className="side-icons">
-          <button className={tab === 'basic' ? 'on' : ''} data-tip="기본 정보" onClick={() => pickTab('basic')}>☰</button>
+          {/* 기본 정보 아이콘은 글자(☰) 대신 그림 — 기기마다 글꼴이 달라 ☰만 아래로 처져 보였다 (v2.0 사용자 제보) */}
+          <button className={`ic-svg ${tab === 'basic' ? 'on' : ''}`} data-tip="기본 정보" aria-label="기본 정보" onClick={() => pickTab('basic')}>
+            <svg viewBox="0 0 18 14" aria-hidden><rect y="0.5" width="18" height="2" /><rect y="6" width="18" height="2" /><rect y="11.5" width="18" height="2" /></svg>
+          </button>
           {eff.tabs.map(t => (
             <button key={t.id} className={tab === t.id ? 'on' : ''} data-tip={t.title} onClick={() => pickTab(t.id)}>{t.icon}</button>
           ))}
