@@ -50,6 +50,7 @@ import { useBgm, BgmTrack, parseVideoId } from '@/lib/bgmStore';
 import { useFonts, fontCssUrl, FontDef, FontRole, ROLE_LABEL, FOLLOW_MENU, FOLLOW_TITLE } from '@/lib/fontStore';
 import { useToast } from '@/components/ui/Toast';
 import { getSplashConf, setSplashConf, SplashConf } from '@/lib/splashStore';
+import { useSiteHeader } from '@/lib/htmlPageStore';
 import { PageTitle, EditableDesc, getPageText, setPageText } from '@/components/ui/PageText';
 import { putBlob } from '@/lib/blobStore';
 import { getSetting, setSetting, pushLocalSettings, unsyncedSettingKeys, SETTING_KEYS } from '@/lib/settingStore';
@@ -700,8 +701,34 @@ function MainPagePane() {
       />
       <p className="hint">토글을 끄면 <b>모바일에서만</b> 빠지고 PC 메인에는 그대로 표시됩니다 · 순서는 <b>모바일 세로 나열 순서</b> — PC 배치는 메인에서 편집모드로 자유 조정</p>
       <p className="hint">메인에서 위젯을 완전히 빼거나 더하려면 편집모드에서 — 추가는 상단바 [＋ 위젯], 삭제는 위젯 우클릭 → 위젯 삭제</p>
+      <SiteHeaderPane />
       <SplashPane />
     </div>
+  );
+}
+
+/** 공통 상단 HTML (v2.0 사용자 요청) — 메인이 아닌 모든 페이지 맨 위에 그리는 HTML (lib/htmlPageStore.ts) */
+function SiteHeaderPane() {
+  const toast = useToast();
+  const [html, save, loaded] = useSiteHeader();
+  const [draft, setDraft] = useState<string | null>(null);
+  const cur = draft ?? html;
+  return (
+    <>
+      <hr style={{ margin: '24px 0', border: 'none', borderTop: '1.5px solid var(--line)' }} />
+      <h3>다른 페이지 공통 상단 (HTML)</h3>
+      <div className="d">
+        메인이 아닌 모든 페이지 맨 위에 그릴 HTML — 메인 HTML의 상단(로고·메뉴·로그인)을 다른 페이지에서도 그대로 보이게 할 때 씁니다.
+        비워 두면 원래대로 배너·메뉴 위젯이 나옵니다 · <code>data-ohome=&quot;menu&quot;</code> / <code>data-ohome=&quot;member&quot;</code> 자리 사용 가능 · 스크립트는 걷어 냅니다
+      </div>
+      <KTextarea value={cur} disabled={!loaded} onChange={e => setDraft(e.target.value)} placeholder="<div>…</div>"
+        style={{ minHeight: 200, fontFamily: 'var(--mono, Consolas, "D2Coding", monospace)', fontSize: 12, lineHeight: 1.6 }} />
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10 }}>
+        {html && <button className="btn btn-ghost" onClick={() => { save(''); setDraft(null); toast('공통 상단을 껐습니다'); }}>비우기</button>}
+        <button className="btn btn-dark" disabled={draft === null || draft === html}
+          onClick={() => { save(draft ?? ''); setDraft(null); toast('공통 상단을 저장했습니다'); }}>SAVE</button>
+      </div>
+    </>
   );
 }
 

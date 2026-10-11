@@ -21,9 +21,7 @@ import { useSched, eventColor } from '@/lib/schedStore';
 import { StickyMemo, MEMO_SEED, MEMO_SIZE_W, useMemoSettings } from '@/lib/memoStore';
 import { BlobImg, useBlobUrl } from '@/lib/blobStore';
 import { normalizeInternalLink } from '@/lib/link';
-import { createPortal } from 'react-dom';
-import { SLOT_ATTR, setMemberSlot, clearMemberSlot } from '@/lib/htmlSlots';
-import { SlotMenu } from '@/components/main/HtmlSlots';
+import { useHtmlSlots, stripScripts } from '@/components/main/HtmlSlots';
 import {
   Applicant, APPLY_SEED, useCommSettings, badgeStyle, maskName, inTrash,
 } from '@/lib/commStore';
@@ -727,19 +725,11 @@ export function HtmlBlockWidget({ conf }: { conf: WidgetConf }) {
   };
   const bgUrl = useBlobUrl(s.bgImageId);
   useEditEvent(conf.id, () => setOpen(true));
-  const html = s.html ? s.html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') : '';
+  const html = stripScripts(s.html);
 
-  /* 메뉴·로그인 자리 (lib/htmlSlots.ts) — HTML을 그린 뒤 data-ohome 자리를 찾아 채운다.
-     HTML이 바뀌면 자리도 새로 생기므로 다시 찾는다 */
+  // 메뉴·로그인 자리 (lib/htmlSlots.ts) — HTML을 그린 뒤 data-ohome 자리를 찾아 채운다
   const boxRef = useRef<HTMLDivElement>(null);
-  const [menuSlots, setMenuSlots] = useState<Element[]>([]);
-  useEffect(() => {
-    const box = boxRef.current;
-    setMenuSlots(box ? Array.from(box.querySelectorAll(`[${SLOT_ATTR}="menu"]`)) : []);
-    const member = box?.querySelector(`[${SLOT_ATTR}="member"]`) ?? null;
-    if (member) setMemberSlot(member);
-    return () => { if (member) clearMemberSlot(member); };
-  }, [html, s.autoH]);
+  const slots = useHtmlSlots(boxRef, [html, s.autoH]);
 
   // 화면 맞춤: 콘텐츠가 가용 폭보다 넓으면(고정폭 HTML) 폭에 맞춰 통째로 축소 — 잘림 없음.
   // 반응형 HTML이면 넘침이 없으므로 배율 1 그대로.
@@ -804,7 +794,7 @@ export function HtmlBlockWidget({ conf }: { conf: WidgetConf }) {
 
   return (
     <div className="htmlblock-wgt" style={bgStyle} ref={boxRef}>
-      {menuSlots.map((el, i) => createPortal(<SlotMenu />, el, `menu-${i}`))}
+      {slots}
       {html ? (
         s.autoH ? (
           <div style={{ height: fit ? fit.h * fit.s : undefined }}>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { useMainStore, WidgetConf, widgetLabel } from '@/lib/mainStore';
 import { WidgetFrame } from '@/components/main/WidgetFrame';
@@ -8,6 +8,8 @@ import { renderWidget } from '@/components/main/widgets';
 import { ConfirmModal } from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/Toast';
 import { useMainZoom } from '@/lib/useMainZoom';
+import { useSiteHeader } from '@/lib/htmlPageStore';
+import { useHtmlSlots, stripScripts } from '@/components/main/HtmlSlots';
 
 const EDITABLE = ['banner', 'menu_pc', 'menu'];
 
@@ -25,8 +27,25 @@ export function GlobalHeader() {
     setMounted(true);
   }, []);
 
+  /* 공통 상단 HTML (v2.0 사용자 요청) — 설정해 두면 메인이 아닌 모든 페이지 맨 위에 이것을 그린다.
+     메인 HTML의 상단(로고·메뉴·로그인)을 다른 페이지에서도 그대로 이어 보이게 하려는 것 —
+     그때는 배너·메뉴 위젯 대신 이것만 나온다 (lib/htmlPageStore.ts) */
+  const [siteHead] = useSiteHeader();
+  const headHtml = stripScripts(siteHead).trim();
+  const headRef = useRef<HTMLDivElement>(null);
+  const headSlots = useHtmlSlots(headRef, [headHtml, pathname, mounted]);
+
   if (!mounted || !pathname || pathname === '/' || pathname === '') {
     return null;
+  }
+
+  if (headHtml) {
+    return (
+      <>
+        <div ref={headRef} className="site-head-html" dangerouslySetInnerHTML={{ __html: headHtml }} />
+        {headSlots}
+      </>
+    );
   }
 
   const enabled = state.widgets.filter(w => w.enabled);
