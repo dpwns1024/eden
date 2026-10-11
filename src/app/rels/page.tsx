@@ -1,12 +1,11 @@
 'use client';
 // EditableDesc 주입
 // 자관 리스트 (4.5) — 4:3 가로 썸네일 · 공개범위 3단계 · 멤버 색 점
-import React, { useState } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useLocalList } from '@/lib/postStore';
 import { Relation, REL_SEED, Character, CHAR_SEED, relPath } from '@/lib/charStore';
-import { SearchBar } from '@/components/ui/Kit';
 import { useToast } from '@/components/ui/Toast';
 import { CroppedBlobImg } from '@/components/ui/CropEditor';
 import { EditableDesc, PageTitle } from '@/components/ui/PageText';
@@ -20,12 +19,10 @@ export default function RelsPage() {
   const { editOn } = useMainStore();
   const [rels, setRels] = useLocalList<Relation>('ohome.rels.v1', REL_SEED);
   const [chars] = useLocalList<Character>('ohome.chars.v1', CHAR_SEED);
-  const [q, setQ] = useState('');
 
   const colorOf = (id: string) => chars.find(c => c.id === id)?.color ?? '#666';
   const visible = rels
-    .filter(r => isAdmin || r.visibility !== 'private')
-    .filter(r => !q || r.name.toLowerCase().includes(q.toLowerCase()));
+    .filter(r => isAdmin || r.visibility !== 'private');
 
   // 편집모드 카드 드래그 정렬 (v1.9)
   const sort = useCardSort(visible, next => setRels(mergeOrder(rels, next)), editOn && isAdmin);
@@ -35,10 +32,12 @@ export default function RelsPage() {
       <div className="page-head">
         <PageTitle>RELATIONS</PageTitle>
         <EditableDesc k="rels-desc" def="자관 목록 · 4:3 가로 썸네일 · 공개범위: 전체공개/멤버공개/나만보기" />
-        <div className="head-actions">
-          <SearchBar onSearch={setQ} />
-          {isAdmin && <button className="btn btn-dark" onClick={() => router.push('/rels/new')}>＋ ADD RELATION</button>}
-        </div>
+        {/* 검색창은 뺐다 (v2.0 사용자 요청) — 버튼이 없으면 줄 자체를 두지 않아 빈 여백이 안 생긴다 */}
+        {isAdmin && (
+          <div className="head-actions">
+            <button className="btn btn-dark" onClick={() => router.push('/rels/new')}>＋ ADD RELATION</button>
+          </div>
+        )}
       </div>
       <div className="g3 rels-grid">
         {visible.map((r, i) => {
