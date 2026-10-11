@@ -39,11 +39,18 @@ export default function LoginPage() {
     ? { desc: 'ARCH 정식 요원만 접속할 수 있습니다 — 인가된 계정으로 인증하세요', id: '식별코드', findId: '식별코드 찾기',
         findTitle: mock ? '식별코드·비밀번호 찾기' : '비밀번호 재설정',
         findDesc: mock ? '지급한 단말기로 식별코드를 찾거나 임시 비밀번호를 발급합니다' : '지급한 단말기로 재설정 링크를 보냅니다',
-        mail: '단말기 코드 번호', found: '식별코드' }
+        mail: '단말기 코드 번호', found: '식별코드', cancel: '취소', send: '보내기' }
     : { desc: '로그인 후 멤버 전용 콘텐츠를 열람할 수 있습니다', id: '아이디', findId: '아이디 찾기',
         findTitle: mock ? '아이디·비밀번호 찾기' : '비밀번호 재설정',
         findDesc: mock ? '가입 시 등록한 이메일로 아이디를 찾거나 임시 비밀번호를 발급합니다' : '가입한 이메일로 재설정 링크를 보냅니다',
-        mail: '이메일', found: '아이디' };
+        mail: '이메일', found: '아이디', cancel: 'CANCEL', send: 'SEND' };
+  /* 서버가 돌려준 오류 문구도 ARCH 말투로 — 「이메일 형식이…」 대신 「식별코드가…」 */
+  const loginErr = (m: string) => (!arch ? m
+    : /이메일 형식/.test(m) ? '식별코드가 올바르지 않습니다.'
+    : m.replace(/아이디|이메일/g, '식별코드'));
+  const findErr = (m: string) => (!arch ? m
+    : /이메일 형식|올바르지 않/.test(m) ? '단말기 코드 번호가 올바르지 않습니다.'
+    : m.replace(/이메일/g, '단말기 코드 번호').replace(/아이디/g, '식별코드'));
 
   // 이미 로그인 상태면 메인으로
   useEffect(() => { if (user) router.replace('/'); }, [user, router]);
@@ -51,7 +58,7 @@ export default function LoginPage() {
   const doLogin = async () => {
     setErr('');
     const r = await login(id.trim(), pw);
-    if (!r.ok) { setErr(r.error ?? '로그인 실패'); return; }
+    if (!r.ok) { setErr(loginErr(r.error ?? '로그인 실패')); return; }
     toast('로그인되었습니다');
     router.push('/');
   };
@@ -69,14 +76,14 @@ export default function LoginPage() {
   const doFindId = async () => {
     setFErr(''); setFInfo('');
     const r = await findId(fEmail.trim());
-    if (!r.ok) { setFErr(r.error ?? '요청 실패'); return; }
+    if (!r.ok) { setFErr(findErr(r.error ?? '요청 실패')); return; }
     setFInfo(`${arch ? '식별코드' : '아이디'}: ${r.foundId}`);
   };
 
   const doFind = async () => {
     setFErr(''); setFInfo('');
     const r = await resetPassword(fEmail.trim());
-    if (!r.ok) { setFErr(r.error ?? '요청 실패'); return; }
+    if (!r.ok) { setFErr(findErr(r.error ?? '요청 실패')); return; }
     if (r.tempPassword) setFInfo(`임시 비밀번호: ${r.tempPassword} — 로그인 후 마이페이지에서 변경해 주세요`);
     else { setFindOpen(false); toast('재설정 링크를 이메일로 보냈습니다'); }
   };
@@ -138,10 +145,10 @@ export default function LoginPage() {
         desc={T.findDesc}
         dirty={!!fEmail}
         actions={<>
-          <button className="btn btn-ghost" onClick={() => { setFindOpen(false); setFInfo(''); setFErr(''); }}>CANCEL</button>
+          <button className="btn btn-ghost" onClick={() => { setFindOpen(false); setFInfo(''); setFErr(''); }}>{T.cancel}</button>
           {/* 서버 모드는 이메일이 곧 아이디라 「아이디 찾기」가 의미 없다 */}
           {mock && <button className="btn btn-ghost" onClick={doFindId}>{T.findId}</button>}
-          <button className="btn btn-dark" onClick={doFind}>{mock ? '임시 비밀번호' : 'SEND'}</button>
+          <button className="btn btn-dark" onClick={doFind}>{mock ? '임시 비밀번호' : T.send}</button>
         </>}>
         <div style={{ display: 'grid', gap: 9 }}>
           <KInput placeholder={T.mail} value={fEmail} onChange={e => setFEmail(e.target.value)} />
