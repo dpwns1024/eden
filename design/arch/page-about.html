@@ -420,7 +420,7 @@ body:has(.arx)::before{display:none !important}
 /* ── 하위 페이지 틀: 바탕은 공통 상단이 깔아 준다 ── */
 .arx.arp{min-height:0;overflow:visible;background:transparent}
 .arx.arp::after{display:none}
-.arx.arp .ar-wrap{min-height:calc(100vh - 150px)}
+.arx.arp .ar-wrap{min-height:0;padding-bottom:0}
 </style>
 
 <!-- ARCH 소개 페이지 — HTML 페이지(EDIT)에 붙여넣기 · 상단 로고·메뉴는 공통 상단이 그립니다 -->
@@ -498,19 +498,6 @@ body:has(.arx)::before{display:none !important}
     </section>
 
     <!-- ── 03 여기에 섹션을 더 넣으세요 — 위 01·02와 같은 모양(ar-sec + ar-sh 제목)으로 복사해서 쓰면 됩니다 ── -->
-
-    <!-- ── 푸터 ── -->
-    <footer class="ar-foot">
-      <div class="fb"><svg class="mk" viewBox="0 0 200 200" aria-hidden="true">
-   <path d="M100 18 L164 40 V102 C164 140 136 166 100 182 C64 166 36 140 36 102 V40 Z" fill="none" stroke="url(#arS)" stroke-width="3"/>
-   <path d="M100 30 L154 48 V102 C154 134 130 156 100 170 C70 156 46 134 46 102 V48 Z" fill="none" stroke="rgba(220,230,240,.25)" stroke-width="1"/>
-   <path d="M64 136 L100 62 L136 136" fill="none" stroke="url(#arS)" stroke-width="7" stroke-linejoin="miter"/>
-   <rect x="22" y="112" width="156" height="1.6" fill="url(#arL)"/>
-   <path d="M100 40 L102.5 50 L100 60 L97.5 50 Z" fill="#fff"/>
-   <circle cx="100" cy="50" r="9" fill="url(#arG)"/></svg><svg class="wm" viewBox="-44 -24 558 132" role="img" aria-label="ARCH"><path d="M0 100 L45 0 L90 100 M136 100 V0 H178 A25 25 0 0 1 178 52 H136 M174 52 L210 100 M343.2 16.5 A50 50 0 1 0 343.2 83.5 M390 0 V100 M470 0 V100 M390 50 H470" fill="none" stroke="url(#arS)" stroke-width="4.5" stroke-linejoin="miter"/><rect x="-40" y="62.6" width="550" height="1.4" fill="url(#arL)"/><circle cx="45" cy="-14" r="2.2" fill="#fff"/></svg></div>
-      <span class="kr">본 페이지는 ARCH 내부 열람용 자료이며 무단 전재 및 재배포를 금합니다. · HQ — THE AEGIS</span>
-      <span>© ARCH · ARCANE RESPONSE CONTROL HUB<br>SESSION 0x2F7A // END OF PAGE</span>
-    </footer>
 
   </div>
 </div>

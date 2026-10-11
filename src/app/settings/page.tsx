@@ -50,7 +50,7 @@ import { useBgm, BgmTrack, parseVideoId } from '@/lib/bgmStore';
 import { useFonts, fontCssUrl, FontDef, FontRole, ROLE_LABEL, FOLLOW_MENU, FOLLOW_TITLE } from '@/lib/fontStore';
 import { useToast } from '@/components/ui/Toast';
 import { getSplashConf, setSplashConf, SplashConf } from '@/lib/splashStore';
-import { useSiteHeader } from '@/lib/htmlPageStore';
+import { useSiteHeader, useSiteFooter } from '@/lib/htmlPageStore';
 import { PageTitle, EditableDesc, getPageText, setPageText } from '@/components/ui/PageText';
 import { putBlob } from '@/lib/blobStore';
 import { getSetting, setSetting, pushLocalSettings, unsyncedSettingKeys, SETTING_KEYS } from '@/lib/settingStore';
@@ -707,28 +707,41 @@ function MainPagePane() {
   );
 }
 
-/** 공통 상단 HTML (v2.0 사용자 요청) — 메인이 아닌 모든 페이지 맨 위에 그리는 HTML (lib/htmlPageStore.ts) */
+/** 공통 상단·하단 HTML (v2.0 사용자 요청) — 메인이 아닌 모든 페이지 맨 위·맨 아래에 그리는 HTML (lib/htmlPageStore.ts) */
 function SiteHeaderPane() {
-  const toast = useToast();
-  const [html, save, loaded] = useSiteHeader();
-  const [draft, setDraft] = useState<string | null>(null);
-  const cur = draft ?? html;
+  const [head, saveHead, headLoaded] = useSiteHeader();
+  const [foot, saveFoot, footLoaded] = useSiteFooter();
   return (
     <>
       <hr style={{ margin: '24px 0', border: 'none', borderTop: '1.5px solid var(--line)' }} />
-      <h3>다른 페이지 공통 상단 (HTML)</h3>
+      <SiteHtmlBox title="다른 페이지 공통 상단 (HTML)" value={head} save={saveHead} loaded={headLoaded}
+        desc="메인이 아닌 모든 페이지 맨 위에 그릴 HTML — 메인 HTML의 상단(로고·메뉴·로그인)을 다른 페이지에서도 그대로 보이게 할 때 씁니다. 비워 두면 원래대로 배너·메뉴 위젯이 나옵니다" />
+      <SiteHtmlBox title="다른 페이지 공통 하단 (HTML)" value={foot} save={saveFoot} loaded={footLoaded}
+        desc="메인이 아닌 모든 페이지 맨 아래에 그릴 HTML — 푸터·워터마크용. 비워 두면 아무것도 나오지 않습니다" />
+    </>
+  );
+}
+
+function SiteHtmlBox({ title, desc, value, save, loaded }: {
+  title: string; desc: string; value: string; save: (v: string) => void; loaded: boolean;
+}) {
+  const toast = useToast();
+  const [draft, setDraft] = useState<string | null>(null);
+  const cur = draft ?? value;
+  return (
+    <div style={{ marginBottom: 22 }}>
+      <h3>{title}</h3>
       <div className="d">
-        메인이 아닌 모든 페이지 맨 위에 그릴 HTML — 메인 HTML의 상단(로고·메뉴·로그인)을 다른 페이지에서도 그대로 보이게 할 때 씁니다.
-        비워 두면 원래대로 배너·메뉴 위젯이 나옵니다 · <code>data-ohome=&quot;menu&quot;</code> / <code>data-ohome=&quot;member&quot;</code> 자리 사용 가능 · 스크립트는 걷어 냅니다
+        {desc} · <code>data-ohome=&quot;menu&quot;</code> / <code>data-ohome=&quot;member&quot;</code> 자리 사용 가능 · 스크립트는 걷어 냅니다
       </div>
       <KTextarea value={cur} disabled={!loaded} onChange={e => setDraft(e.target.value)} placeholder="<div>…</div>"
-        style={{ minHeight: 200, fontFamily: 'var(--mono, Consolas, "D2Coding", monospace)', fontSize: 12, lineHeight: 1.6 }} />
+        style={{ minHeight: 180, fontFamily: 'var(--mono, Consolas, "D2Coding", monospace)', fontSize: 12, lineHeight: 1.6 }} />
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10 }}>
-        {html && <button className="btn btn-ghost" onClick={() => { save(''); setDraft(null); toast('공통 상단을 껐습니다'); }}>비우기</button>}
-        <button className="btn btn-dark" disabled={draft === null || draft === html}
-          onClick={() => { save(draft ?? ''); setDraft(null); toast('공통 상단을 저장했습니다'); }}>SAVE</button>
+        {value && <button className="btn btn-ghost" onClick={() => { save(''); setDraft(null); toast(`${title} — 비웠습니다`); }}>비우기</button>}
+        <button className="btn btn-dark" disabled={draft === null || draft === value}
+          onClick={() => { save(draft ?? ''); setDraft(null); toast(`${title} — 저장했습니다`); }}>SAVE</button>
       </div>
-    </>
+    </div>
   );
 }
 

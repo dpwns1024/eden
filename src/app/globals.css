@@ -909,11 +909,12 @@ body.edit-on .main-grid{grid-template-columns:230px 1fr 260px}
 @media (hover:hover){.oh-menu .oh-grp:hover .oh-sub{display:flex}}
 .oh-menu .oh-link{white-space:nowrap}
 /* HTML 페이지 (/page) — 틀 없이 화면 폭 전체 · 공통 상단 HTML (lib/htmlPageStore.ts) */
-.htmlpage{position:relative;min-height:60vh}
+.htmlpage{position:relative;min-height:60vh;animation:fade .35s}   /* 다른 페이지(.page)와 같은 등장 효과 */
 .htmlpage-body{display:flow-root}
 .htmlpage-edit{position:absolute;right:16px;top:12px;z-index:60;padding:5px 12px !important;font-size:11px !important}
 .htmlpage-empty{text-align:center;padding:90px 20px !important}
 .site-head-html{position:relative;z-index:50}
+.site-foot-html{position:relative}
 .board-lock{max-width:340px;margin:36px auto;display:grid;gap:10px;justify-items:stretch;text-align:center}
 .board-lock-ic{width:30px;height:30px;justify-self:center;color:var(--accent,#607ca0);margin-bottom:2px}
 .board-lock b{font-size:15px}

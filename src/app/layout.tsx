@@ -8,6 +8,7 @@ import { FontProvider } from '@/lib/fontStore';
 import { ToastProvider } from '@/components/ui/Toast';
 import { TopBar } from '@/components/shell/TopBar';
 import { GlobalHeader } from '@/components/shell/GlobalHeader';
+import { SiteFooter } from '@/components/shell/SiteFooter';
 import { BgmPlayer } from '@/components/shell/BgmPlayer';
 import { TipLayer } from '@/components/ui/TipLayer';
 import { CursorLayer } from '@/components/shell/CursorLayer';
@@ -67,6 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                               {children}
                             </PageFrame>
                           </main>
+                          <SiteFooter />
                           <BgmPlayer />
                           <SplashScreen />
                           <TipLayer />
