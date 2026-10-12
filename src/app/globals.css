@@ -335,15 +335,41 @@ html.ui-arch .page-arch .rel-body.rel-banner .rb-catch{margin-top:12px;font:300 
 html.ui-arch .page-arch .rel-body.rel-banner .mini-prof .specs{display:grid;grid-template-columns:1fr 1fr;column-gap:24px}
 /* 배너형에선 아래 타임라인·임무/현장 상자도 배너·카드와 같은 폭으로 (원래는 본문보다 좁게 가운데) */
 html.ui-arch .page-arch .rel-banner ~ .timeline,html.ui-arch .page-arch .rel-banner ~ .g2{max-width:none}
+/* 블록 사이 간격을 모두 같게 (v2.0 사용자 요청) — 배너·카드 사이(grid gap)와 같은 20px, 모바일도 */
+html.ui-arch .page-arch .rel-banner ~ .timeline{margin-top:20px}
+html.ui-arch .page-arch .rel-banner ~ .g2{margin-top:20px !important;gap:20px}
+/* AU 줄·관리자 버튼이 없으면(비로그인 + AU 하나) 그 자리를 비워 둘 필요가 없다 (v2.0 사용자 요청) */
+html.ui-arch .page-arch .rel-body.rel-banner.rb-bare{margin-top:0}
+/* 타임라인 B · LOG (v2.0 사용자 선택) — 왼쪽 기록 번호·연도 / 오른쪽 설명·대사 한 줄씩 */
+html.ui-arch .page-arch .tl-item.tl-log{display:grid;grid-template-columns:200px minmax(0,1fr);padding:0;border-left:0;border-top:1px solid var(--a-ln)}
+html.ui-arch .page-arch .tl-item.tl-log:first-child{border-top:0}
+html.ui-arch .page-arch .tl-item.tl-log::before{display:none}
+html.ui-arch .page-arch .tl-log .tl-dt{padding:22px 20px 22px 0;min-width:0}
+html.ui-arch .page-arch .tl-log .tl-dt span{display:block;margin-bottom:12px;font:400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.26em;color:#6f7b89}
+html.ui-arch .page-arch .tl-log .tl-dt b{display:block;font:300 calc(30px*var(--fs,1))/1.15 'Jost','Noto Sans KR',sans-serif;letter-spacing:.1em;color:#fff;word-break:keep-all;overflow-wrap:anywhere}
+html.ui-arch .page-arch .tl-log .tl-ln{padding:18px 0 18px 28px;border-left:1px solid var(--a-ln);display:grid;align-content:center;min-width:0}
+html.ui-arch .page-arch .tl-log .desc{margin:4px 0 8px;font-size:calc(13.5px*var(--fs,1));line-height:1.85;color:#c9d2dc;font-weight:300;white-space:pre-line}
+html.ui-arch .page-arch .tl-log .tl-row{display:grid;grid-template-columns:96px minmax(0,1fr);align-items:baseline;padding:9px 0;border-bottom:1px dashed rgba(190,208,228,.08)}
+html.ui-arch .page-arch .tl-log .tl-row:last-child{border-bottom:0}
+html.ui-arch .page-arch .tl-log .tl-row .who{font:400 9.5px/1.6 'JetBrains Mono',monospace;letter-spacing:.26em;color:rgb(var(--cc));filter:brightness(1.5)}
+html.ui-arch .page-arch .tl-log .tl-row span{font-size:calc(14.5px*var(--fs,1));line-height:1.7;font-weight:300;color:var(--a-tx);white-space:pre-line;word-break:keep-all;overflow-wrap:anywhere}
+@media (max-width:620px){
+  html.ui-arch .page-arch .tl-item.tl-log{grid-template-columns:minmax(0,1fr)}
+  html.ui-arch .page-arch .tl-log .tl-dt{display:flex;align-items:baseline;gap:12px;padding:18px 0 4px}
+  html.ui-arch .page-arch .tl-log .tl-dt span{margin:0;flex-shrink:0}
+  html.ui-arch .page-arch .tl-log .tl-dt b{font-size:calc(22px*var(--fs,1))}
+  html.ui-arch .page-arch .tl-log .tl-ln{padding:6px 0 16px;border-left:0}
+  html.ui-arch .page-arch .tl-log .tl-row{grid-template-columns:64px minmax(0,1fr)}
+}
 /* 멤버 카드 B (v2.0 사용자 선택) — 왼쪽 큰 3:4 초상(카드 높이만큼 늘어남, 최소 3:4) · 오른쪽 이름·한마디·정보 */
 html.ui-arch .page-arch .mini-prof.mp-b{display:grid;grid-template-columns:clamp(150px,36%,210px) minmax(0,1fr)}
 html.ui-arch .page-arch .mp-b .mp-pt{position:relative;overflow:hidden;border-right:1px solid var(--a-ln);background:#0a0d11}
 html.ui-arch .page-arch .mp-b .mp-pt::before{content:'';display:block;padding-top:133.333%}
 html.ui-arch .page-arch .mp-b .mp-pt::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,transparent 62%,rgba(5,7,10,.45)),linear-gradient(0deg,rgba(5,7,10,.35),transparent 30%)}
-html.ui-arch .page-arch .mp-b .mp-r{min-width:0;display:flex;flex-direction:column;padding-bottom:6px}
+html.ui-arch .page-arch .mp-b .mp-r{min-width:0;display:flex;flex-direction:column;justify-content:center;padding:6px 0} /* 초상이 더 길 때 위아래 여백을 같게 (v2.0 사용자 요청) */
 html.ui-arch .page-arch .mp-b .hd{padding:20px 20px 14px}
-html.ui-arch .page-arch .mp-b .mp-quote{margin:14px 20px 2px}
-html.ui-arch .page-arch .rel-body.rel-banner .mini-prof.mp-b .specs{grid-template-columns:1fr;margin:12px 20px 0;padding:12px 0 10px;border-top:1px solid var(--a-ln)}
+html.ui-arch .page-arch .mp-b .mp-quote{margin:16px 20px 0}
+html.ui-arch .page-arch .rel-body.rel-banner .mini-prof.mp-b .specs{grid-template-columns:1fr;margin:4px 20px 0;padding:12px 0 10px}
 html.ui-arch .page-arch .mp-b .kw-row{padding:2px 20px 12px}
 html.ui-arch .page-arch .mp-b .rel-desc{padding:12px 20px}
 html.ui-arch .page-arch .mp-b .card-thumbs{padding:11px 20px}
@@ -353,16 +379,18 @@ html.ui-arch .page-arch .mp-b .card-thumbs{padding:11px 20px}
 @media (max-width:620px){
   html.ui-arch .page-arch .mini-prof.mp-b{grid-template-columns:112px minmax(0,1fr)}
   html.ui-arch .page-arch .mp-b .hd{padding:16px 14px 11px}
-  html.ui-arch .page-arch .mp-b .mp-quote{margin:11px 14px 0}
-  html.ui-arch .page-arch .rel-body.rel-banner .mini-prof.mp-b .specs{margin:10px 14px 0}
+  html.ui-arch .page-arch .mp-b .mp-quote{margin:12px 14px 0}
+  html.ui-arch .page-arch .rel-body.rel-banner .mini-prof.mp-b .specs{margin:2px 14px 0}
   html.ui-arch .page-arch .mp-b .specs b{min-width:64px}
   html.ui-arch .page-arch .mp-b .kw-row{padding:2px 14px 10px}
   html.ui-arch .page-arch .mp-b .rel-desc{padding:10px 14px}
   html.ui-arch .page-arch .mp-b .card-thumbs{padding:10px 14px;grid-template-columns:repeat(3,1fr)}
 }
-html.ui-arch .page-arch .mp-quote{margin:14px 16px 0;padding:2px 0 2px 12px;border-left:2px solid var(--c)}
-html.ui-arch .page-arch .mp-quote small{display:block;margin-bottom:3px;font:400 8.5px/1.4 'JetBrains Mono',monospace;letter-spacing:.26em;color:var(--c);filter:brightness(1.5)}
-html.ui-arch .page-arch .mp-quote span{font:300 calc(14px*var(--fs,1))/1.6 'Noto Sans KR',sans-serif;color:var(--a-tx);word-break:keep-all}
+/* 한마디 (v2.0 사용자 요청 — 이름 반복 없이) — 캐릭터 색 큰 따옴표 + 대사, 뒤로 옅어지는 선 */
+html.ui-arch .page-arch .mp-quote{position:relative;margin:16px 16px 0;padding:6px 0 12px 34px}
+html.ui-arch .page-arch .mp-quote::before{content:'\201C';position:absolute;left:0;top:-4px;font:400 50px/1 Georgia,'Times New Roman',serif;color:var(--c);filter:brightness(1.45);text-shadow:0 0 14px var(--c)}
+html.ui-arch .page-arch .mp-quote::after{content:'';position:absolute;left:34px;right:0;bottom:0;height:1px;background:linear-gradient(90deg,var(--c),transparent 70%);opacity:.55}
+html.ui-arch .page-arch .mp-quote span{display:block;font:300 calc(15px*var(--fs,1))/1.65 'Noto Sans KR',sans-serif;color:var(--a-tx);word-break:keep-all}
 @media (max-width:960px){
   html.ui-arch .page-arch .rel-body.rel-banner{grid-template-columns:1fr;grid-template-areas:"art" "l" "r";margin-top:58px}
   html.ui-arch .page-arch .rel-body.rel-banner > .rel-center{height:clamp(280px,70vw,420px)}
