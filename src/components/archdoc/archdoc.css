@@ -225,3 +225,18 @@ body:has(.arx)::before{display:none !important}
 .ar-more-close{height:30px;padding:0 16px;border:1px solid rgba(190,208,228,.22);background:rgba(8,11,15,.72);color:#c9d2dc;cursor:pointer;
   font:400 10px/1 'Jost',sans-serif;letter-spacing:.3em}
 .ar-more-close:hover{border-color:rgba(184,216,255,.7);color:#fff}
+
+/* 직급 체계 — 등급 띠(.ar-grade)와 같은 모양, 글자 칸은 누를 수 있는 버튼 */
+.arx .ar-ranks{margin-top:14px}
+.arx .ar-rank-bar{flex-wrap:wrap;row-gap:10px}
+.arx .ar-rank-bar button{display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 7px;border:1px solid var(--ln2);background:none;cursor:pointer;
+  font:500 13px/1 'Saira Semi Condensed',sans-serif;letter-spacing:.02em;color:var(--mu);transition:color .2s,border-color .2s,box-shadow .2s}
+.arx .ar-rank-bar button:hover{color:#fff;border-color:rgba(var(--acr),.45)}
+.arx .ar-rank-bar button.s{color:#fff;border-color:rgba(var(--acr),.6);box-shadow:0 0 16px -4px rgba(var(--acr),.6)}
+.arx .ar-rank-sep{align-self:stretch;width:1px;margin:2px 2px;background:var(--ln2)}
+.arx .ar-rank-card{margin-top:10px;animation:arIn .35s ease both}
+.arx .ar-rank-card h3{font-size:28px}
+@media (max-width:560px){
+  .arx .ar-rank-bar{gap:10px;padding:12px 14px}
+  .arx .ar-rank-card h3{font-size:24px}
+}
