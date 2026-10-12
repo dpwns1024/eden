@@ -1249,24 +1249,45 @@ export default function RelDetailPage() {
           <div>
             {auTimeline.map((item, i) => (
               /* 수정·삭제는 우클릭 메뉴로 (v2.0 사용자 요청) — 늘 떠 있는 [삭제] 글자는 없앴다 */
-              <div className="tl-item" key={i}
+              <div className={`tl-item${arch && isDuo ? ' tl-a' : ''}`} key={i}
                 onContextMenu={e => {
                   if (!isAdmin) return;
                   e.preventDefault();
                   setTlCtx({ x: e.clientX, y: e.clientY, idx: i });
                 }}>
-                {item.era && <div className="era">{item.era}</div>}
-                {item.desc && <div className="desc">{item.desc}</div>}
-                {item.says.map((s, j) => {
-                  const c = charOf(s.charId);
-                  return (
-                    <div key={j} className={`tl-say ${sideOf(s.charId)}`}
-                      style={{ ['--cc' as string]: rgbTriple(c?.color ?? '#5d636d') }}>
-                      <div className="who" style={{ fontFamily: familyOf(c?.fontId) }}>{c?.name}</div>
-                      <div className="bub">{s.text}</div>
+                {(() => {
+                  const says = item.says.map((s, j) => {
+                    const c = charOf(s.charId);
+                    return (
+                      <div key={j} className={`tl-say ${sideOf(s.charId)}`}
+                        style={{ ['--cc' as string]: rgbTriple(c?.color ?? '#5d636d') }}>
+                        <div className="who" style={{ fontFamily: familyOf(c?.fontId) }}>{c?.name}</div>
+                        <div className="bub">{s.text}</div>
+                      </div>
+                    );
+                  });
+                  if (!(arch && isDuo)) {
+                    return <>
+                      {item.era && <div className="era">{item.era}</div>}
+                      {item.desc && <div className="desc">{item.desc}</div>}
+                      {says}
+                    </>;
+                  }
+                  /* ARCH 타임라인 A · LANE (v2.0 사용자 선택) — 왼쪽 칸에 연도·사건, 같은 줄 오른쪽에
+                     가운데 640px 레인 안에서 좌우로 대사. 사건 설명이 짧으면(한 줄 제목) 연도 아래에,
+                     길면(문단) 왼쪽 좁은 칸에 세로로 길게 늘어지지 않게 오른쪽 레인 위에 둔다 */
+                  const short = !!item.desc && !item.desc.includes('\n') && item.desc.length <= 24;
+                  return <>
+                    <div className="tl-dt">
+                      {item.era && <div className="era">{item.era}</div>}
+                      {short && <div className="desc">{item.desc}</div>}
                     </div>
-                  );
-                })}
+                    <div className="tl-rt">
+                      {item.desc && !short && <div className="desc">{item.desc}</div>}
+                      {says.length > 0 && <div className="tl-lane">{says}</div>}
+                    </div>
+                  </>;
+                })()}
               </div>
             ))}
             {auTimeline.length === 0 && <p className="hint">타임라인이 비어 있습니다 — 우상단 [＋ ADD RECORD]로 추가</p>}
