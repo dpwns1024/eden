@@ -73,6 +73,9 @@ const legacyKey = (raw: string): string | null => {
   if (k === svgKey(ICONS.target.svg)) return 'guide';
   return null;
 };
+/** 아이콘 값 → 미리 만든 아이콘 키. 예전 그림이 그대로(svg:…) 저장된 것도 센티넬·가이드로 알아본다 */
+export const iconKeyOf = (icon: string): string =>
+  (icon.startsWith('svg:') ? (legacyKey(icon.slice(4)) ?? icon) : icon);
 export const iconSvg = (icon: string): string => {
   if (!icon.startsWith('svg:')) return ICONS[icon]?.svg ?? '';
   // 예전 그림이 그대로 저장된 문서도 새 마크로 보여 준다
@@ -93,7 +96,8 @@ export const GUIDE_MORE: ArchMore = {
 };
 /** 이 분류 카드의 상세 버튼 — 손댄 적 없는 가이드 카드는 기본 규약 */
 export const moreOf = (it: ArchClass): ArchMore | null =>
-  it.more !== undefined ? it.more : (it.icon === 'guide' ? GUIDE_MORE : null);
+  // 처음 탭 문서를 저장할 때 아이콘이 그림 그대로(svg:…) 저장된 문서가 있다(v2.0 사용자 제보 — 버튼이 안 보였다)
+  it.more !== undefined ? it.more : (iconKeyOf(it.icon) === 'guide' ? GUIDE_MORE : null);
 
 /* ── 저장 ── */
 export function useArchDocs(): [Record<string, ArchDoc>, (id: string, doc: ArchDoc | null) => void, boolean] {
