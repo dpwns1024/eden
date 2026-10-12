@@ -48,7 +48,8 @@ export interface Backend {
   currentUser(): Promise<BackendUser | null>;
   onAuthChange(cb: (u: BackendUser | null) => void): () => void;
   signIn(id: string, password: string): Promise<{ ok: boolean; error?: string }>;
-  signUp(id: string, password: string, nickname: string): Promise<{ ok: boolean; error?: string }>;
+  /** invite — 가입코드. 주면 서버가 대조해 정식 회원 증명을 만든다(Firebase). 설치 화면의 첫 계정은 생략 */
+  signUp(id: string, password: string, nickname: string, invite?: string): Promise<{ ok: boolean; error?: string }>;
   signOut(): Promise<void>;
   resetPassword(email: string): Promise<{ ok: boolean; error?: string }>;
   updateProfile(patch: { nickname?: string; avatarUrl?: string | null; avatarColor?: string | null }): Promise<{ ok: boolean; error?: string }>;
@@ -93,6 +94,9 @@ export interface Backend {
    *  관리자 키가 있어야 하는데, 공개 홈에 그 키를 두면 누구나 계정을 지울 수 있게 된다.
    *  계정 삭제는 각 서비스 콘솔에서 (설치 가이드에 안내). */
   deleteMember(id: string): Promise<void>;
+  /** 관리자: 정식 회원 증명 직접 발급 (Firebase — 보안 규칙 갱신 전 가입한 회원 옮겨 담기).
+   *  규칙이 아직 옛것이면 error: 'rules' */
+  grantMembers?(ids: string[]): Promise<{ ok: boolean; error?: string }>;
 }
 
 /** 콘텐츠 컬렉션 이름 (localStorage 키 → 컬렉션/테이블) — 두 백엔드가 같은 이름을 쓴다 */
@@ -168,7 +172,10 @@ export function metaOf(item: ListItem, uid: string | null, floor = 'public') {
   const rawAuthor = typeof item.authorId === 'string' ? item.authorId : '';
   const authorId = rawAuthor || uid || null;
   const hasListHidden = typeof item.listHidden === 'boolean';
-  const own = hasListHidden
+  /* 비밀글(게시판·방명록의 「비밀글」 체크) — 예전엔 화면에서만 가려 F12로 내용이 보였다 (v2.0 보안 점검).
+     나만보기로 저장해 서버가 작성자 본인(회원)과 관리자에게만 내주게 한다 */
+  const own = item.secret === true ? 'private'
+    : hasListHidden
     ? (item.listHidden ? 'private' : 'public')
     : (typeof item.visibility === 'string' ? item.visibility : 'public');
   /* 메뉴를 비공개로 둔 곳의 글은 그 기준까지 좁혀 저장한다 (v2.0 사용자 요청 — visFloor 참조).

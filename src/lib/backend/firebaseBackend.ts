@@ -10,7 +10,7 @@ import {
   Backend, BackendCheck, BackendConfig, BackendUser, ListItem, diffList, metaOf,
 } from './types';
 import { visFloorOf, lockKeyOfItem } from '../visFloor';
-import { lockHash, lockedKeys } from '../menuLock';
+import { lockHash, lockedKeys, INVITE_LOCK_KEY } from '../menuLock';
 
 type FirebaseCfg = Extract<BackendConfig, { kind: 'firebase' }>;
 
@@ -234,9 +234,24 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
       } catch (e) { return { ok: false, error: humanError(e) }; }
     },
 
-    async signUp(id, password, nickname) {
+    async signUp(id, password, nickname, invite) {
       try {
         const cred = await authMod.createUserWithEmailAndPassword(auth, id, password);
+        /* 정식 회원 증명 (v2.0 보안 점검) — 가입코드의 해시를 members/{uid}에 쓰면 보안 규칙이 서버에서
+           정답(board_secrets/__invite)과 대조해 맞을 때만 받아 준다. 가입코드는 화면 어디에도 내려오지 않는다.
+           틀리면 방금 만든 로그인 계정을 지워, 회원이 아닌 계정이 남지 않게 한다.
+           (설치 화면의 첫 계정은 invite 없이 — 관리자 등록으로 회원이 된다) */
+        if (invite !== undefined) {
+          try {
+            const key = await lockHash(INVITE_LOCK_KEY, invite);
+            const w = await withLimit(setDoc(doc(db, 'members', cred.user.uid), { uid: cred.user.uid, key, at: Date.now() }));
+            if (w === TIMEOUT) throw new Error('timeout');
+          } catch (e) {
+            const denied = ((e as { code?: string })?.code ?? '').includes('permission-denied');
+            try { await authMod.deleteUser(cred.user); } catch { /* 무시 */ }
+            return { ok: false, error: denied ? '가입코드가 올바르지 않거나 지금은 회원가입을 받지 않습니다.' : NO_REACH };
+          }
+        }
         await authMod.updateProfile(cred.user, { displayName: nickname });
         const r = await withLimit(
           setDoc(doc(db, 'profiles', cred.user.uid), { nickname, createdAt: Date.now() }, { merge: true }));
@@ -478,8 +493,24 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
     },
 
     async deleteMember(id) {
-      // profiles 문서만 지운다 — Authentication 계정은 관리자 키가 있어야 지울 수 있다
+      // profiles 문서와 회원 증명을 지운다 — Authentication 계정은 관리자 키가 있어야 지울 수 있지만,
+      // 회원 증명(members)이 없으면 로그인해도 회원 전용 글·잠긴 메뉴를 받을 수 없다 (v2.0 보안 점검)
+      try { await deleteDoc(doc(db, 'members', id)); } catch { /* 새 규칙 전 — 무시 */ }
       await deleteDoc(doc(db, 'profiles', id));
+    },
+
+    async grantMembers(ids) {
+      try {
+        for (let i = 0; i < ids.length; i += 400) {
+          const batch = writeBatch(db);
+          ids.slice(i, i + 400).forEach(id => batch.set(doc(db, 'members', id), { uid: id, key: 'admin', at: Date.now() }));
+          await batch.commit();
+        }
+        return { ok: true };
+      } catch (e) {
+        const code = (e as { code?: string })?.code ?? '';
+        return { ok: false, error: code.includes('permission-denied') ? 'rules' : humanError(e) };
+      }
     },
   };
 

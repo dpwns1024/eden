@@ -11,9 +11,14 @@ import { boardSkin } from '@/lib/boardSkin';
 /** 이 잠긴 메뉴를 지금 볼 수 있는가 — 회원·관리자는 항상, 방문자는 비밀번호를 통과했을 때만.
  *  lockHref = 이 주소를 다스리는 잠긴 메뉴 (governingLock) — null이면 잠기지 않은 곳 */
 export function useLockOpen(lockHref: string | null): 'loading' | 'open' | 'locked' {
+  return useLockKeyOpen(lockHref ? lockKeyOf(lockHref) : null);
+}
+
+/** 잠금키로 직접 묻기 — 메뉴가 아닌 잠금(FIELD REPORT 글 비밀번호, lib/logLock.ts)용 */
+export function useLockKeyOpen(lockKey: string | null): 'loading' | 'open' | 'locked' {
   const { user, ready } = useAuth();
   const [unlocked, setUnlocked] = useState<string[] | null>(null);
-  const needCheck = !!lockHref && ready && !user;
+  const needCheck = !!lockKey && ready && !user;
   useEffect(() => {
     if (!needCheck) return;
     let alive = true;
@@ -22,11 +27,11 @@ export function useLockOpen(lockHref: string | null): 'loading' | 'open' | 'lock
     be.unlockedLocks().then(l => { if (alive) setUnlocked(l); }).catch(() => { if (alive) setUnlocked([]); });
     return () => { alive = false; };
   }, [needCheck]);
-  if (!lockHref) return 'open';
+  if (!lockKey) return 'open';
   if (!ready) return 'loading';
   if (user) return 'open';
   if (unlocked === null) return 'loading';
-  return unlocked.includes(lockKeyOf(lockHref)) ? 'open' : 'locked';
+  return unlocked.includes(lockKey) ? 'open' : 'locked';
 }
 
 export function MenuLockScreen({ lockHref, title }: { lockHref: string; title: string }) {
