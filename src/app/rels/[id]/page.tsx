@@ -94,8 +94,9 @@ function RelArtCropModal({ fileRef, ratio, crop, onClose, onApply }: {
 
 const noteOf = (m: RelMember) => (m.linkedNote === '상대 캐릭터' ? '' : m.linkedNote ?? '');
 
-function MiniProf({ member, char, isAdmin, onGo, onRemove, auUnregistered, side, onMoveSide, onFaceCrop }: {
+function MiniProf({ member, char, isAdmin, onGo, onRemove, auUnregistered, side, onMoveSide, onFaceCrop, showQuote }: {
   member: RelMember; char?: Character; isAdmin: boolean; onGo: () => void; onRemove: () => void;
+  showQuote?: boolean;        // ARCH 배너형 — 한마디를 카드 안(이름 아래)에 (v2.0 사용자 선택 C)
   auUnregistered?: boolean;   // AU 선택 중인데 이 캐릭터의 AU 프로필이 미등록 (v1.9)
   side?: 'l' | 'r';           // 페어에서 지금 어느 자리인지 (좌우 옮기기 메뉴용, v2.0)
   onMoveSide?: () => void;
@@ -156,6 +157,12 @@ function MiniProf({ member, char, isAdmin, onGo, onRemove, auUnregistered, side,
           <small>{[char.sub, noteOf(member)].filter(Boolean).join(' · ')}</small>
         </div>
       </div>
+      {showQuote && member.quote && (
+        <div className="mp-quote" style={{ ['--c' as string]: member.quoteMarkColor || char.color || '#8592a0' } as React.CSSProperties}>
+          <small>{char.name.toUpperCase()}</small>
+          <span style={{ color: member.quoteColor }}>{member.quote}</span>
+        </div>
+      )}
       <div className="specs">
         {char.specs.map(s => <div key={s.label}><b>{s.label}</b> {s.value}</div>)}
       </div>
@@ -858,7 +865,7 @@ export default function RelDetailPage() {
           { label: 'CANCEL', kind: 'ghost', onClick: () => setDelAsk(false) },
         ]} />
 
-      {arch ? (
+      {arch && isDuo ? null : arch ? (
         /* ARCH — 가운데 인장형 (v2.0 사용자 선택 「B · SEAL」): 자관명 · 가운데 CP 인장이 있는 선 ·
            캐치프레이즈 · 두 사람의 한마디를 대화처럼(이름표 + 대사, 한 줄은 왼쪽 · 한 줄은 오른쪽) */
         <div className="rel-hero arch-hero">
@@ -926,11 +933,13 @@ export default function RelDetailPage() {
       )}
 
       {isDuo ? (
-        <div className="rel-body" style={{ fontFamily: familyOf(rel.bodyFontId) }}>
+        /* ARCH — 배너형 (v2.0 사용자 선택 「C · BANNER」): 가운데 일러가 맨 위 가로 배너가 되고(넘기기·전신/일러 전환·
+           위치 조정 그대로) 그 위에 자관명·CP·캐치프레이즈, 아래에 두 사람 카드를 나란히(한마디는 카드 안) */
+        <div className={`rel-body ${arch ? 'rel-banner' : ''}`} style={{ fontFamily: familyOf(rel.bodyFontId) }}>
           {pairSlots[0]
             ? <MiniProf member={pairSlots[0]} char={charOf(pairSlots[0].charId)} isAdmin={isAdmin}
                 auUnregistered={auUnregOf(pairSlots[0].charId)}
-                side="l" onMoveSide={() => moveSide(pairSlots[0]!.charId)}
+                side="l" onMoveSide={() => moveSide(pairSlots[0]!.charId)} showQuote={arch}
                 onFaceCrop={ref => setFaceEdit({ charId: pairSlots[0]!.charId, ref, crop: pairSlots[0]!.faceCrop })}
                 onGo={() => router.push(charHref(pairSlots[0]!.charId))}
                 onRemove={() => removeMember(pairSlots[0]!.charId)} />
@@ -977,6 +986,28 @@ export default function RelDetailPage() {
                 <div className="ph" style={{ position: 'absolute', inset: 0 }}><span>MAIN ILLUST</span></div>
               )}
             </div>
+            {arch && (
+              <>
+                <div className="rb-shade" />
+                <div className="rb-text">
+                  <h1 style={{
+                    fontFamily: familyOf(rel.fontId), color: auSt.nameColor,
+                    textShadow: `0 4px 30px ${withAlpha(auSt.nameShadowColor ?? '#000000', 0.6 * ((auSt.nameShadow ?? 100) / 100))}`,
+                  }}>{(!isBaseAu && au?.name?.trim()) || rel.name}</h1>
+                  <div className="rb-seal">
+                    {auCpTag && (
+                      <em style={auSt.cpTagBg || auSt.cpTagFg
+                        ? { background: auSt.cpTagBg, color: auSt.cpTagFg, borderColor: auSt.cpTagBg }
+                        : undefined}>{CP_LABEL[auCpTag]}</em>
+                    )}
+                    <i />
+                  </div>
+                  {(au?.catchphrase || rel.catchphrase) && (
+                    <div className="rb-catch" style={{ color: auSt.cpColor }}>{au?.catchphrase || rel.catchphrase}</div>
+                  )}
+                </div>
+              </>
+            )}
             {/* 스위치 색 — 자관별 지정(EDIT) 없으면 테마·포인트색 (v1.9).
                 전신이 하나도 없으면 고를 것이 없으므로 스위치 자체를 숨긴다 */}
             {hasFull && (
@@ -992,7 +1023,7 @@ export default function RelDetailPage() {
           {pairSlots[1]
             ? <MiniProf member={pairSlots[1]} char={charOf(pairSlots[1].charId)} isAdmin={isAdmin}
                 auUnregistered={auUnregOf(pairSlots[1].charId)}
-                side="r" onMoveSide={() => moveSide(pairSlots[1]!.charId)}
+                side="r" onMoveSide={() => moveSide(pairSlots[1]!.charId)} showQuote={arch}
                 onFaceCrop={ref => setFaceEdit({ charId: pairSlots[1]!.charId, ref, crop: pairSlots[1]!.faceCrop })}
                 onGo={() => router.push(charHref(pairSlots[1]!.charId))}
                 onRemove={() => removeMember(pairSlots[1]!.charId)} />

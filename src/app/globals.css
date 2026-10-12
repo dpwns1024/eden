@@ -315,6 +315,39 @@ html.ui-arch .page-arch .widget h4 .kr{margin-left:8px;font:300 calc(9.5px*var(-
   html.ui-arch .page-arch .widget h4 .kr{display:none}
   html.ui-arch .page-arch .panel.widget h4{letter-spacing:.12em}
 }
+/* 자관 배너형 (사용자 선택 C · BANNER) — 가운데 일러를 맨 위 가로 배너로, 그 위에 자관명·CP·캐치프레이즈,
+   아래 두 사람 카드를 나란히(한마디는 카드 안). 넘기기·전신/일러 전환·위치 조정 기능은 그대로 */
+html.ui-arch .page-arch .rel-body.rel-banner{grid-template-columns:1fr 1fr;grid-template-rows:auto auto;grid-template-areas:"art art" "l r";gap:20px;margin-top:64px;max-width:none;align-items:stretch}
+html.ui-arch .page-arch .rel-body.rel-banner > :first-child{grid-area:l}
+html.ui-arch .page-arch .rel-body.rel-banner > :last-child{grid-area:r}
+html.ui-arch .page-arch .rel-body.rel-banner > .rel-center{grid-area:art;aspect-ratio:auto;height:clamp(300px,36vw,500px);order:0}
+html.ui-arch .page-arch .rel-body.rel-banner .rel-center .fb{width:34%}
+html.ui-arch .page-arch .rel-body.rel-banner .rel-center .fb-l{left:12%}
+html.ui-arch .page-arch .rel-body.rel-banner .rel-center .fb-r{right:12%}
+html.ui-arch .page-arch .rel-body.rel-banner .rb-shade{position:absolute;inset:0;z-index:4;pointer-events:none;
+  background:linear-gradient(90deg,rgba(5,7,10,.88) 0%,rgba(5,7,10,.5) 40%,transparent 68%),linear-gradient(0deg,rgba(5,7,10,.8),transparent 46%)}
+html.ui-arch .page-arch .rel-body.rel-banner .rb-text{position:absolute;left:44px;bottom:38px;z-index:5;max-width:72%;pointer-events:none}
+html.ui-arch .page-arch .rel-body.rel-banner .rb-text h1{font:300 clamp(40px,5.2vw,74px)/1.05 'Jost','Noto Sans KR',sans-serif;letter-spacing:.28em;color:#fff;word-break:keep-all}
+html.ui-arch .page-arch .rel-body.rel-banner .rb-seal{display:flex;align-items:center;gap:12px;margin-top:18px;max-width:240px}
+html.ui-arch .page-arch .rel-body.rel-banner .rb-seal em{font-style:normal;font:400 9px/1 'JetBrains Mono',monospace;letter-spacing:.3em;padding:5px 9px 5px 12px;border:1px solid rgba(var(--a-acr),.5);color:var(--a-ac);box-shadow:0 0 14px -4px rgba(var(--a-acr),.55)}
+html.ui-arch .page-arch .rel-body.rel-banner .rb-seal i{flex:1;height:1px;background:linear-gradient(90deg,rgba(var(--a-acr),.6),transparent)}
+html.ui-arch .page-arch .rel-body.rel-banner .rb-catch{margin-top:12px;font:300 12px/1.6 'Noto Sans KR',sans-serif;letter-spacing:.45em;color:#b3bec9}
+html.ui-arch .page-arch .rel-body.rel-banner .mini-prof .specs{display:grid;grid-template-columns:1fr 1fr;column-gap:24px}
+/* 배너형에선 아래 타임라인·임무/현장 상자도 배너·카드와 같은 폭으로 (원래는 본문보다 좁게 가운데) */
+html.ui-arch .page-arch .rel-banner ~ .timeline,html.ui-arch .page-arch .rel-banner ~ .g2{max-width:none}
+html.ui-arch .page-arch .mp-quote{margin:14px 16px 0;padding:2px 0 2px 12px;border-left:2px solid var(--c)}
+html.ui-arch .page-arch .mp-quote small{display:block;margin-bottom:3px;font:400 8.5px/1.4 'JetBrains Mono',monospace;letter-spacing:.26em;color:var(--c);filter:brightness(1.5)}
+html.ui-arch .page-arch .mp-quote span{font:300 calc(14px*var(--fs,1))/1.6 'Noto Sans KR',sans-serif;color:var(--a-tx);word-break:keep-all}
+@media (max-width:960px){
+  html.ui-arch .page-arch .rel-body.rel-banner{grid-template-columns:1fr;grid-template-areas:"art" "l" "r";margin-top:58px}
+  html.ui-arch .page-arch .rel-body.rel-banner > .rel-center{height:clamp(280px,70vw,420px)}
+  html.ui-arch .page-arch .rel-body.rel-banner .rb-text{left:20px;bottom:22px;max-width:88%}
+  html.ui-arch .page-arch .rel-body.rel-banner .rb-text h1{font-size:clamp(30px,9vw,48px);letter-spacing:.22em}
+  html.ui-arch .page-arch .rel-body.rel-banner .rb-catch{letter-spacing:.3em}
+}
+@media (max-width:620px){
+  html.ui-arch .page-arch .rel-body.rel-banner .mini-prof .specs{grid-template-columns:1fr}
+}
 /* 멤버 카드 */
 html.ui-arch .page-arch .mini-prof .hd{border-bottom:1px solid var(--a-ln)}
 html.ui-arch .page-arch .mini-prof .hd .face{border-radius:0;box-shadow:0 0 0 1px var(--a-ln2)}
