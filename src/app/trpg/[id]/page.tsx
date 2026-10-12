@@ -3,7 +3,8 @@
 // 일반 텍스트면 로그용 기본 서식으로 표시
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { findLogByRef } from '@/lib/logPath';
+import { findLogByRef, normalizeLogSlug, logPath } from '@/lib/logPath';
+import { MAIN_SEC as MAIN_SEC_ID } from '@/lib/sectionStore';
 import { useHrefBlock } from '@/components/shell/MenuGuard';
 import { sectionHref, MAIN_SEC, secStamp, useSectionTitle } from '@/lib/sectionStore';
 import { useAuth } from '@/lib/auth';
@@ -127,7 +128,7 @@ export default function TrpgDetailPage() {
   // 로그 정보 수정 — 메타 + 본문 교체(파일/직접 입력) + 썸네일 교체(이미지 크롭/단색·그라데이션)
   const [eOpen, setEOpen] = useState(false);
   const [e, setE] = useState({
-    noText: '', title: '', catchphrase: '', writer: '', withText: '',
+    noText: '', slug: '', title: '', catchphrase: '', writer: '', withText: '',
     relId: 'none', date: '', visibility: 'public' as TrpgLog['visibility'], password: '',
     pwClear: false,      // 걸려 있던 열람 비밀번호 풀기 (서버 대조 방식은 지금 비밀번호를 보여 줄 수 없어 따로 둔다)
     listHidden: false,   // 목록 표시 여부 (v2.0 — 접근권한과 별개)
@@ -154,6 +155,13 @@ export default function TrpgDetailPage() {
 
   const saveEdit = async () => {
     if (!e.title.trim()) { toast('시나리오 타이틀을 입력해 주세요'); return; }
+    // 주소 이름 — 같은 섹션 안에서 겹치면 안 된다 (비우면 번호 주소)
+    const slug = normalizeLogSlug(e.slug);
+    if (slug === null) { toast('주소 이름은 숫자만으로 정할 수 없습니다 — 영문을 섞어 주세요'); return; }
+    const mySec = l?.secId ?? MAIN_SEC_ID;
+    if (slug && logs.some(x => x.id !== id && x.slug === slug && (x.secId ?? MAIN_SEC_ID) === mySec)) {
+      toast('이미 다른 글이 쓰는 주소 이름입니다'); return;
+    }
     // 본문 교체 준비 — 본문은 목록과 분리 저장이라(v2.0) 이제 TrpgLogBody 조각으로 만든다
     let bodyPatch: Partial<TrpgLogBody> = {};
     if (bodyMode === 'file' && eFile) {
@@ -198,6 +206,7 @@ export default function TrpgDetailPage() {
     const nextLog: TrpgLog = {
       ...(l as TrpgLog),
       noText: e.noText.trim() || undefined,
+      slug: slug || undefined,
       title: e.title.trim(), catchphrase: e.catchphrase.trim() || undefined,
       writer: e.writer.trim(), withText: e.withText.trim(),
       relId: e.relId === 'none' ? undefined : e.relId,
@@ -211,6 +220,8 @@ export default function TrpgDetailPage() {
       originalFileId: undefined, originalName: undefined,
     };
     setLogs(logs.map(x => x.id === id ? nextLog : x));
+    // 주소 이름을 바꿨으면 주소창도 새 주소로 — 예전 이름으로는 더 이상 찾을 수 없다
+    if ((l?.slug ?? '') !== (slug || '')) router.replace(logPath(nextLog));
     // 본문은 별도 문서에 upsert — 「현재 유지」면 기존 값(분리된 게 있으면 그것, 없으면 구버전 로그의
     // 내장 값)을 그대로 옮겨 담아, 한 번이라도 수정하면 자동으로 분리 저장 쪽으로 옮겨지게 한다
     const nextBody: TrpgLogBody = {
@@ -380,7 +391,7 @@ html,body{margin:0!important;padding:0!important;height:auto!important;min-heigh
           {rel && <button className="btn btn-dark" onClick={() => router.push(`/rels/${rel.id}`)}>{rel.name} ›</button>}
           {isAdmin && <button className="btn btn-dark" onClick={() => {
             setE({
-              noText: l.noText ?? '', title: l.title, catchphrase: l.catchphrase ?? '', writer: l.writer,
+              noText: l.noText ?? '', slug: l.slug ?? '', title: l.title, catchphrase: l.catchphrase ?? '', writer: l.writer,
               withText: l.withText, relId: l.relId ?? 'none', date: l.date ?? '',
               // 서버 대조 방식은 비밀번호를 내려받지 않으므로 칸을 비워 두고 「바꿀 때만 입력」
               visibility: l.visibility, password: logPwOnServer() ? '' : l.password ?? '', pwClear: false, listHidden: !!l.listHidden,
@@ -490,6 +501,7 @@ html,body{margin:0!important;padding:0!important;height:auto!important;min-heigh
             <KInput placeholder="№ 표기 (선택 — 비우면 자동)" value={e.noText} onChange={ev => setE(s => ({ ...s, noText: ev.target.value }))}
               style={{ maxWidth: 200 }} />
           </div>
+          <KInput placeholder="주소 이름 (선택 — 영문·숫자·하이픈, 비우면 번호 /report/003)" value={e.slug} onChange={ev => setE(s => ({ ...s, slug: ev.target.value }))} />
           <KInput placeholder="캐치프레이즈 (선택)" value={e.catchphrase} onChange={ev => setE(s => ({ ...s, catchphrase: ev.target.value }))} />
           <div style={{ display: 'flex', gap: 8 }}>
             <KInput placeholder="라이터 (선택)" value={e.writer} onChange={ev => setE(s => ({ ...s, writer: ev.target.value }))} />

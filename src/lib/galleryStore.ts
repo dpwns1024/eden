@@ -59,6 +59,7 @@ export interface TrpgLog {
   id: string;
   no: number;                // 내부 순번 (정렬용 — 자동 부여)
   noText?: string;           // № 자리 표시 텍스트 (선택 — 비우면 자동 № 0XX)
+  slug?: string;             // 주소 이름 (선택 — 비우면 번호: /report/003) (v2.0, lib/logPath.ts)
   title: string;             // 시나리오 타이틀 (필수)
   catchphrase?: string;      // 캐치프레이즈 한 줄 (선택)
   writer: string;            // 라이터 (필수)

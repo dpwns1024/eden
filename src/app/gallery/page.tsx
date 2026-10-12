@@ -7,7 +7,8 @@ import { useAuth } from '@/lib/auth';
 import { useSectionParam, filterSection, sectionSetter, secQuery } from '@/lib/sectionStore';
 import { useLocalList, fmtDate } from '@/lib/postStore';
 import { BackupPost, BACKUP_SEED } from '@/lib/galleryStore';
-import { SearchBar, Pager } from '@/components/ui/Kit';
+import { Pager } from '@/components/ui/Kit';
+import { useBoardSkin } from '@/lib/boardSkin';
 import { CroppedBlobImg } from '@/components/ui/CropEditor';
 import { EditableDesc, PageTitle } from '@/components/ui/PageText';
 import { useBoardSettings, boardBadgeStyle } from '@/lib/boardStore';
@@ -70,13 +71,12 @@ function BackupPageInner() {
     };
   };
 
-  const [q, setQ] = useState('');
+  // 검색은 없앴다 (v2.0 사용자 요청 — PC·모바일 모두)
+  const arch = useBoardSkin() === 'arch';   // ARCH 디자인 — 각진 카드·단말기 말투
   const [unveiled, setUnveiled] = useState<Record<string, boolean>>({});
 
   const visible = posts
-    .filter(p => isAdmin || p.visibility === 'public' || (p.visibility === 'member' && user))
-    .filter(p => !q || p.title.includes(q) || p.category.includes(q)
-      || (p.tags ?? []).some(t => t.toLowerCase().includes(q.toLowerCase())));
+    .filter(p => isAdmin || p.visibility === 'public' || (p.visibility === 'member' && user));
 
   const sort = useCardSort(visible, next => setPosts(mergeOrder(posts, next)), editOn && isAdmin);
 
@@ -86,25 +86,24 @@ function BackupPageInner() {
   const cur = Math.min(page, pages);
   const start = (cur - 1) * PER;
   const paged = visible.slice(start, start + PER);
-  useEffect(() => { setPage(1); }, [q, view]);
+  useEffect(() => { setPage(1); }, [view]);
 
   const count = (p: BackupPost) => Math.max(p.images.length, p.phList.length);
   const meta = (p: BackupPost) =>
     `${count(p)}장 · ${fmtDate(p.madeDate ? p.madeDate + 'T00:00:00' : p.date)}`;
 
   return (
-    <section className="page">
+    <section className="page page-arch page-gallery">
       <div className="page-head">
         <PageTitle>{sec.id === 'main' ? 'GALLERY' : sec.name}</PageTitle>
         <EditableDesc k="backup-desc" def="로그형(웹툰 스크롤) / 단일형(좌우 넘김) · 리스트/갤러리 보기 전환" />
       </div>
       <div className="toolrow">
         <div className="seg">
-          <button className={view === 'gal' ? 'on' : ''} onClick={() => setView('gal')}>갤러리</button>
-          <button className={view === 'list' ? 'on' : ''} onClick={() => setView('list')}>리스트</button>
+          <button className={view === 'gal' ? 'on' : ''} onClick={() => setView('gal')}>{arch ? 'GRID' : '갤러리'}</button>
+          <button className={view === 'list' ? 'on' : ''} onClick={() => setView('list')}>{arch ? 'LIST' : '리스트'}</button>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <SearchBar onSearch={setQ} />
           {user && <button className="btn btn-dark" onClick={() => router.push('/gallery/write' + secQuery('gallery', sec.id))}>✎ WRITE</button>}
         </div>
       </div>
@@ -136,8 +135,7 @@ function BackupPageInner() {
                 </div>
                 <div className="info">
                   <b>{p.title}</b>
-                  <small>
-                    {meta(p)}
+                  <small><span className="g-meta">{meta(p)}</span>
                     {(p.tags ?? []).map(t => <i key={t} className="tag-in">#{t}</i>)}
                   </small>
                 </div>

@@ -24,7 +24,7 @@ import { DragList } from '@/components/ui/DragList';
 import { OrderMenu, orderNoOf, moveToOrder } from '@/components/ui/OrderMenu';
 import { useBoardSkin } from '@/lib/boardSkin';
 import { hasLogPw, logPwOnServer, setLogPassword } from '@/lib/logLock';
-import { logPath } from '@/lib/logPath';
+import { logPath, normalizeLogSlug } from '@/lib/logPath';
 
 function TrpgPageInner() {
   const router = useRouter();
@@ -58,6 +58,7 @@ function TrpgPageInner() {
   // ADD LOG 모달
   const [addOpen, setAddOpen] = useState(false);
   const [nNo, setNNo] = useState('');          // № 자리 표시 텍스트 — 비우면 자동 № 0XX
+  const [nSlug, setNSlug] = useState('');      // 주소 이름 — 비우면 번호 (/report/003)
   const [nVis, setNVis] = useState<'public' | 'member' | 'private'>('public'); // 접근권한
   const [nListHidden, setNListHidden] = useState(false);   // 목록 표시 여부 (v2.0 — 접근권한과 별개)
   const [nPw, setNPw] = useState('');          // 열람 비밀번호 (선택)
@@ -180,6 +181,9 @@ function TrpgPageInner() {
 
   const add = async () => {
     if (!nTitle.trim()) { toast('시나리오 타이틀을 입력해 주세요'); return; }
+    const slug = normalizeLogSlug(nSlug);
+    if (slug === null) { toast('주소 이름은 숫자만으로 정할 수 없습니다 — 영문을 섞어 주세요'); return; }
+    if (slug && logs.some(l => l.slug === slug)) { toast('이미 다른 글이 쓰는 주소 이름입니다'); return; }
     const id = newId();
     // 열람 비밀번호 — 서버가 대조하는 곳(Firebase)이면 정답 해시를 먼저 서버에 두고, 글에는 표시만 남긴다
     const pw = nPw.trim();
@@ -194,6 +198,7 @@ function TrpgPageInner() {
       id,
       no: Math.max(0, ...logs.map(l => l.no)) + 1,
       noText: nNo.trim() || undefined,
+      slug: slug || undefined,
       title: nTitle.trim(), catchphrase: nCatch.trim() || undefined,
       writer: nWriter.trim(), withText: nWith.trim(),
       relId: nRel === 'none' ? undefined : nRel,
@@ -219,7 +224,7 @@ function TrpgPageInner() {
     setLogs([log, ...logs]);
     setBodies([...bodies, body]);
     setAddOpen(false);
-    setNNo(''); setNVis('public'); setNPw(''); setNListHidden(false); setNTitle(''); setNCatch(''); setNWriter(''); setNWith(''); setNBody(''); setNRich(''); setNFileName(''); setNDate(''); setNFile(null);
+    setNNo(''); setNSlug(''); setNVis('public'); setNPw(''); setNListHidden(false); setNTitle(''); setNCatch(''); setNWriter(''); setNWith(''); setNBody(''); setNRich(''); setNFileName(''); setNDate(''); setNFile(null);
     setNThumb(null); setNThumbUrl(''); setNThumbCrop(undefined);
     toast(nFile ? '로그가 등록되었습니다 — 원본 파일도 보관됩니다' : '로그가 등록되었습니다');
   };
@@ -388,6 +393,7 @@ function TrpgPageInner() {
             <KInput placeholder="№ 표기 (선택 — 비우면 자동)" value={nNo} onChange={e => setNNo(e.target.value)}
               style={{ maxWidth: 200 }} />
           </div>
+          <KInput placeholder="주소 이름 (선택 — 영문·숫자·하이픈, 비우면 번호 /report/003)" value={nSlug} onChange={e => setNSlug(e.target.value)} />
           <KInput placeholder="캐치프레이즈 (선택)" value={nCatch} onChange={e => setNCatch(e.target.value)} />
           <div style={{ display: 'flex', gap: 8 }}>
             <KInput placeholder="라이터 (선택)" value={nWriter} onChange={e => setNWriter(e.target.value)} />
