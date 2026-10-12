@@ -26,10 +26,15 @@ export interface ArchCard {
   quote?: { label: string; text: string } | null;    // 인용 띠
   facts: ArchFact[];                   // 아래 2열 정보
 }
+export interface ArchMoreRow { k: string; v: string }
+/** 분류 카드 오른쪽 위 「상세」 버튼 — 누르면 작은 창에 항목별 설명 */
+export interface ArchMore { label: string; title: string; rows: ArchMoreRow[] }
 export interface ArchClass {
   id: string;
   icon: string;                        // 미리 만든 아이콘 키(ICONS) · 'none' · 또는 'svg:<svg…>'
   title: string; sub: string; body: string; letter: string;
+  /** 상세 버튼. undefined = 손댄 적 없음(기본값이 있으면 그것), null = 관리자가 뺐음 */
+  more?: ArchMore | null;
 }
 export type ArchBlock =
   | { id: string; type: 'head'; num: string; title: string; sub: string; doc: string }
@@ -74,6 +79,21 @@ export const iconSvg = (icon: string): string => {
   const lk = legacyKey(icon.slice(4));
   return lk ? ICONS[lk].svg : icon.slice(4);
 };
+
+/** 가이드 카드의 기본 상세 — 「가이딩」 규약 (v2.0 사용자 요청). 관리자가 고치거나 빼면 그 값이 우선 */
+export const GUIDE_MORE: ArchMore = {
+  label: '가이딩(Guiding) 상세 규약',
+  title: "'가이딩(Guiding)' 상세 규약",
+  rows: [
+    { k: '방식', v: "가이딩은 가이드와의 '신체 접촉'을 통해 이루어집니다." },
+    { k: '효율', v: '가벼운 접촉도 가능하지만, 스킨십의 농도가 깊어질수록 효과가 극대화됩니다. 이 설정 때문에 센티넬과 가이드의 관계는 필연적으로 깊고 애틋해질 수밖에 없습니다.' },
+    { k: '쾌락', v: "가이딩을 받을 때 센티넬이 느끼는 안정감과 쾌락은 '극상'이라고 표현될 정도로 강렬합니다. 이는 두 사람의 관계를 더욱 특별하게 만드는 장치입니다." },
+    { k: '속성 버프', v: '가이드가 부여하는 속성 버프는 스킨십의 정도에 따라 그 효과가 결정됩니다. 파트너와의 접촉이 깊고 길어질수록 버프의 강도와 지속 시간이 함께 증가합니다.' },
+  ],
+};
+/** 이 분류 카드의 상세 버튼 — 손댄 적 없는 가이드 카드는 기본 규약 */
+export const moreOf = (it: ArchClass): ArchMore | null =>
+  it.more !== undefined ? it.more : (it.icon === 'guide' ? GUIDE_MORE : null);
 
 /* ── 저장 ── */
 export function useArchDocs(): [Record<string, ArchDoc>, (id: string, doc: ArchDoc | null) => void, boolean] {

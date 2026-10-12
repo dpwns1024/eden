@@ -200,3 +200,28 @@ body:has(.arx)::before{display:none !important}
 .arx .ad-ui .btn-dark{background:rgba(var(--acr),.14);border-color:rgba(var(--acr),.45);color:#fff}
 .arx .ad-ui .btn:disabled{opacity:.4}
 .arx .ad-ui .k-input{height:32px;padding:0 10px;border:1px solid var(--ln2);border-radius:0;background:rgba(5,8,12,.6);color:var(--tx);box-shadow:none}
+
+/* 분류 카드 오른쪽 위 상세 버튼 (가이드 — 「가이딩」 규약) */
+.arx .ar-cl .ar-more-btn{position:absolute;right:16px;top:18px;z-index:2;display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 10px 0 12px;
+  border:1px solid rgba(var(--acr),.38);background:linear-gradient(180deg,rgba(var(--acr),.1),rgba(var(--acr),.02));cursor:pointer;
+  font:400 10px/1 'Noto Sans KR',sans-serif;letter-spacing:.06em;color:#dfe9f5;transition:border-color .25s,box-shadow .25s,color .25s}
+.arx .ar-cl .ar-more-btn i{font:normal 400 12px/1 'JetBrains Mono',monospace;color:var(--ac);transition:transform .25s}
+.arx .ar-cl .ar-more-btn:hover{border-color:rgba(var(--acr),.75);color:#fff;box-shadow:0 0 18px -5px rgba(var(--acr),.6)}
+.arx .ar-cl .ar-more-btn:hover i{transform:translateX(2px)}
+@media (max-width:560px){ .arx .ar-cl .ar-more-btn{right:14px;top:16px} }
+
+/* 상세 창 (portal — .arx 바깥이라 색을 직접) */
+.mng-box.ar-more-modal{position:relative;width:min(440px,92vw);padding:24px 24px 18px;border-radius:0;border:1px solid rgba(190,208,228,.22);color:#e4e9ef;
+  background:linear-gradient(180deg,rgba(184,216,255,.06),transparent 120px),rgba(8,11,15,.97);box-shadow:0 30px 70px -20px #000}
+.mng-box.ar-more-modal::before,.mng-box.ar-more-modal::after{content:'';position:absolute;width:9px;height:9px;border-color:rgba(184,216,255,.75);border-style:solid;pointer-events:none}
+.mng-box.ar-more-modal::before{left:-1px;top:-1px;border-width:1px 0 0 1px}
+.mng-box.ar-more-modal::after{right:-1px;bottom:-1px;border-width:0 1px 1px 0}
+.mng-box.ar-more-modal :is(h2,h3,.mng-title,.m-title){font:400 14px/1.5 'Noto Sans KR',sans-serif !important;letter-spacing:.06em;color:#fff !important}
+.ar-more-list{margin:16px 0 0;display:grid;gap:0;border-top:1px solid rgba(190,208,228,.12)}
+.ar-more-list > div{padding:13px 0;border-bottom:1px solid rgba(190,208,228,.08)}
+.ar-more-list dt{font:400 9px/1 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.24em;color:#b8d8ff}
+.ar-more-list dd{margin:8px 0 0;font:300 13px/1.85 'Noto Sans KR',sans-serif;color:#c3ccd6;word-break:keep-all}
+.ar-more-foot{display:flex;justify-content:flex-end;margin-top:14px}
+.ar-more-close{height:30px;padding:0 16px;border:1px solid rgba(190,208,228,.22);background:rgba(8,11,15,.72);color:#c9d2dc;cursor:pointer;
+  font:400 10px/1 'Jost',sans-serif;letter-spacing:.3em}
+.ar-more-close:hover{border-color:rgba(184,216,255,.7);color:#fff}
