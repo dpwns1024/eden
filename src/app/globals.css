@@ -350,11 +350,21 @@ html.ui-arch .page-arch .rel-banner .rb-admin{position:absolute;top:16px;left:16
   html.ui-arch .page-arch .rel-banner .rb-au{top:10px;right:10px;max-width:58%}
   html.ui-arch .page-arch .rel-banner .rb-admin{top:10px;left:10px;flex-direction:column;align-items:flex-start}
 }
-/* 타임라인 A · LANE (v2.0 사용자 선택) — 구조는 그대로, 대사만 가운데 640px 폭 안에서 좌우로.
-   본문 폭이 넓어진 배너형에서 말풍선이 화면 양 끝으로 흩어지던 것 */
-html.ui-arch .page-arch .rel-banner ~ .timeline:not(.multi) .tl-say{max-width:min(448px,70%)}
-html.ui-arch .page-arch .rel-banner ~ .timeline:not(.multi) .tl-say.l{margin-left:max(0px,calc(50% - 320px))}
-html.ui-arch .page-arch .rel-banner ~ .timeline:not(.multi) .tl-say.r{margin-right:max(0px,calc(50% - 320px))}
+/* 타임라인 A · LANE (v2.0 사용자 선택) — 왼쪽 200px 칸에 연도·사건, 같은 줄 오른쪽 가운데 640px 레인에서 좌우로 대사 */
+html.ui-arch .page-arch .tl-item.tl-a{display:grid;grid-template-columns:200px minmax(0,1fr);column-gap:24px;padding-bottom:34px}
+html.ui-arch .page-arch .tl-item.tl-a:last-child{padding-bottom:4px}
+html.ui-arch .page-arch .tl-a .tl-dt{min-width:0}
+html.ui-arch .page-arch .tl-a .tl-dt .desc{margin:6px 0 0;font-size:calc(15px*var(--fs,1));word-break:keep-all}
+html.ui-arch .page-arch .tl-a .tl-rt{min-width:0;display:grid;gap:14px;align-content:start}
+html.ui-arch .page-arch .tl-a .tl-rt > .desc{margin:0;font-size:calc(13.5px*var(--fs,1));line-height:1.85}
+html.ui-arch .page-arch .tl-a .tl-lane{width:100%;max-width:640px;margin:0 auto;display:grid;gap:14px}
+html.ui-arch .page-arch .tl-a .tl-say{max-width:70%;margin:0}
+html.ui-arch .page-arch .tl-a .tl-say.r{justify-self:end}
+html.ui-arch .page-arch .tl-a .tl-say.l{justify-self:start}
+@media (max-width:620px){
+  html.ui-arch .page-arch .tl-item.tl-a{grid-template-columns:minmax(0,1fr);row-gap:12px;padding-bottom:26px}
+  html.ui-arch .page-arch .tl-a .tl-say{max-width:82%}
+}
 /* 멤버 카드 B (v2.0 사용자 선택) — 왼쪽 큰 3:4 초상(카드 높이만큼 늘어남, 최소 3:4) · 오른쪽 이름·한마디·정보 */
 html.ui-arch .page-arch .mini-prof.mp-b{display:grid;grid-template-columns:clamp(140px,32%,186px) minmax(0,1fr)}
 html.ui-arch .page-arch .mp-b .mp-pt{position:relative;overflow:hidden;border-right:1px solid var(--a-ln);background:#0a0d11}
