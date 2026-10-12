@@ -14,6 +14,7 @@ import { KInput, KTextarea, KSelect, KCheck } from '@/components/ui/Kit';
 import { CroppedBlobImg } from '@/components/ui/CropEditor';
 import { EditableDesc, PageTitle } from '@/components/ui/PageText';
 import { useToast } from '@/components/ui/Toast';
+import { useBoardSkin } from '@/lib/boardSkin';
 import { useMembers } from '@/lib/members';
 import { pushNotif } from '@/lib/notifStore';
 
@@ -35,6 +36,10 @@ export default function RpPage() {
   const { user, isAdmin } = useAuth();
   const toast = useToast();
   const del = useConfirmDelete();
+  /* ARCH 디자인이면 교신(COMMS) 말투로 (v2.0 사용자 요청) — 방→채널, 진행중→LIVE, 완결→CLOSED,
+     공개 전환→기밀 해제(DECLASSIFIED), 메시지→송신. 기본 디자인은 원래 문구 그대로 */
+  const arch = useBoardSkin() === 'arch';
+  const cw = (archText: string, plain: string) => (arch ? archText : plain);
   const [rooms, setRooms, loaded] = useLocalList<RpRoom>('ohome.rp.v1', RP_SEED);
   const [msgRows, setMsgRows] = useLocalList<RpMessageRow>(RP_MSG_KEY, RP_MSG_SEED);
   const msgsOf = (r: RpRoom) => messagesFor(msgRows, r.id, r.messages);
@@ -109,7 +114,7 @@ export default function RpPage() {
     memberIdsOf(sel).filter(id => id !== user.id).forEach(id =>
       pushNotif({
         type: 'rp', toUserId: id, href: '/rp', dedupeKey: `rp:${sel.id}`,
-        title: `역극 「${sel.title}」 새 메시지`,
+        title: cw(`교신 「${sel.title}」 새 송신`, `역극 「${sel.title}」 새 메시지`),
         body: t.slice(0, 60),
       }));
   };
@@ -151,7 +156,7 @@ export default function RpPage() {
   };
   const removeMsg = (m: RpMessage) => {
     if (!sel) return;
-    del.ask('이 메시지를 삭제하시겠습니까?', () => {
+    del.ask(cw('이 송신을 삭제하시겠습니까?', '이 메시지를 삭제하시겠습니까?'), () => {
       if (msgRows.some(x => x.id === m.id)) setMsgRows(msgRows.filter(x => x.id !== m.id));
       else setRooms(rooms.map(r => r.id === sel.id
         ? { ...r, messages: r.messages.filter(x => x.id !== m.id) } : r));
@@ -175,7 +180,7 @@ export default function RpPage() {
   const newRelAus = (rels.find(r => r.id === nRel)?.aus ?? []).filter(a => a.id !== 'base');
   const createRoom = () => {
     if (!user) return;
-    if (!nTitle.trim()) { toast('방 제목을 입력해 주세요'); return; }
+    if (!nTitle.trim()) { toast(cw('채널 이름을 입력해 주세요', '방 제목을 입력해 주세요')); return; }
     const members = Array.from(new Set([user.id, ...nMembers]));
     const room: RpRoom = {
       id: newId(), title: nTitle.trim(), relId: nRel === 'none' ? undefined : nRel,
@@ -277,38 +282,38 @@ ${rows}
 
   const roomLabel = (r: RpRoom) => {
     const rel = rels.find(x => x.id === r.relId);
-    if (!rel) return '자유 개설';
+    if (!rel) return cw('독립 채널', '자유 개설');
     const names = relCharNames(r.relId);
     const isPair = rel.kind === 'pair' || rel.members.length === 2;
     return isPair && names.length ? names.join(' · ') : rel.name;
   };
   const roomSub = (r: RpRoom) => [
     roomLabel(r),
-    r.status === 'done' ? (r.isPublic ? '완결 · 공개 전환됨' : '완결') : '진행중',
+    r.status === 'done' ? (r.isPublic ? cw('CLOSED · 기밀 해제', '완결 · 공개 전환됨') : cw('CLOSED', '완결')) : cw('LIVE', '진행중'),
   ].join(' · ');
 
-  const speakerLabel = speaker === 'desc' ? '지문 (DESC)' : (rpChars.find(c => c.id === speaker)?.name ?? '');
+  const speakerLabel = speaker === 'desc' ? cw('상황 서술 (DESC)', '지문 (DESC)') : (rpChars.find(c => c.id === speaker)?.name ?? '');
   const speakerChar = rpChars.find(c => c.id === speaker);
 
   return (
     <section className={`page page-arch page-rp ${mFocus ? 'rp-focus' : ''}`}>
       <div className="page-head">
         <PageTitle>ROLEPLAY</PageTitle>
-        <EditableDesc k="rp-desc" def="실시간 채팅형 · 참여자에게만 존재 노출 · 캐릭터 선택 발화" />
+        <EditableDesc k="rp-desc" def={cw('실시간 교신 · 참여 요원에게만 채널 노출 · 캐릭터를 골라 송신', '실시간 채팅형 · 참여자에게만 존재 노출 · 캐릭터 선택 발화')} />
       </div>
 
       <div className={`rp-layout ${mListOpen ? 'mopen' : ''}`}>
         <button type="button" className="rp-mfold" onClick={() => setMListOpen(o => !o)}>
-          <b>{sel ? sel.title : '방 목록'}</b>
-          <small>MY ROOMS {myRooms.length} {mListOpen ? '▴' : '▾'}</small>
+          <b>{sel ? sel.title : cw('채널 목록', '방 목록')}</b>
+          <small>{cw('CHANNELS', 'MY ROOMS')} {myRooms.length} {mListOpen ? '▴' : '▾'}</small>
         </button>
 
         <div className="panel rp-rooms">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px 12px', flexShrink: 0 }}>
-            <b style={{ fontSize: 12, letterSpacing: '.1em', color: 'var(--sub)' }}>MY ROOMS</b>
+            <b style={{ fontSize: 12, letterSpacing: '.1em', color: 'var(--sub)' }}>{cw('CHANNELS', 'MY ROOMS')}</b>
             {user && (
               <button className="btn btn-dark" style={{ padding: '0 12px', height: 30, fontSize: 11 }}
-                onClick={() => setNewOpen(true)}>＋ NEW ROOM</button>
+                onClick={() => setNewOpen(true)}>{cw('＋ OPEN', '＋ NEW ROOM')}</button>
             )}
           </div>
           <div className="rp-rooms-list">
@@ -322,8 +327,8 @@ ${rows}
             {myRooms.length === 0 && (
               <p className="hint" style={{ padding: '10px 6px 0' }}>
                 {!user
-                  ? '공개된 역극 방이 없습니다'
-                  : (fStatus === 'all' ? '참여 중인 방이 없습니다' : '이 상태의 방이 없습니다')}
+                  ? cw('기밀 해제된 교신 기록이 없습니다', '공개된 역극 방이 없습니다')
+                  : (fStatus === 'all' ? cw('참여 중인 채널이 없습니다', '참여 중인 방이 없습니다') : cw('해당 상태의 채널이 없습니다', '이 상태의 방이 없습니다'))}
               </p>
             )}
           </div>
@@ -339,14 +344,14 @@ ${rows}
                   <small>{roomLabel(sel)}</small>
                 </div>
                 <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                  <span className="pill">{sel.status === 'done' ? (sel.isPublic ? '완결 · 공개' : '완결') : '진행중'}</span>
+                  <span className="pill">{sel.status === 'done' ? (sel.isPublic ? cw('DECLASSIFIED', '완결 · 공개') : cw('CLOSED', '완결')) : cw('LIVE', '진행중')}</span>
                   {canManage && brokenChars.length > 0 && (
                     <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 10.5, color: 'var(--accent)' }}
                       onClick={() => setRelinkOpen(true)}>RELINK</button>
                   )}
                   {canManage && sel.status === 'ongoing' && (
                     <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 10.5 }}
-                      onClick={() => setEndAsk(true)}>END</button>
+                      onClick={() => setEndAsk(true)}>{cw('CLOSE', 'END')}</button>
                   )}
                   {canManage && sel.status === 'done' && (
                     <>
@@ -354,7 +359,7 @@ ${rows}
                         onClick={() => patchRoom({ status: 'ongoing', isPublic: false })}>REOPEN</button>
                       <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 10.5 }}
                         onClick={() => patchRoom({ isPublic: !sel.isPublic })}>
-                        {sel.isPublic ? 'UNPUBLISH' : 'PUBLISH'}
+                        {sel.isPublic ? cw('CLASSIFY', 'UNPUBLISH') : cw('DECLASSIFY', 'PUBLISH')}
                       </button>
                       <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 10.5 }}
                         onClick={exportHtml}>EXPORT</button>
@@ -412,7 +417,7 @@ ${rows}
                   );
                 })}
                 {msgsOf(sel).length === 0 && (
-                  <p className="hint" style={{ textAlign: 'center', marginTop: 30 }}>첫 메시지를 남겨보세요</p>
+                  <p className="hint" style={{ textAlign: 'center', marginTop: 30 }}>{cw('첫 교신을 시작하세요', '첫 메시지를 남겨보세요')}</p>
                 )}
               </div>
 
@@ -442,56 +447,56 @@ ${rows}
                       onFocus={() => setMFocus(true)}
                       onBlur={() => setTimeout(() => setMFocus(false), 180)}
                       onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} />
-                    <button className="btn btn-dark" onClick={send}>SEND</button>
+                    <button className="btn btn-dark" onClick={send}>{cw('TRANSMIT', 'SEND')}</button>
                   </div>
                 ) : (
                   <div className="rp-input-guest" style={{ padding: '14px 16px', textAlign: 'center', color: 'var(--sub)', fontSize: 12.5, borderTop: '1px solid var(--border)' }}>
-                    🔒 메시지를 작성하려면 로그인이 필요합니다.
+                    {cw('🔒 송신 권한이 없습니다 — 정식 요원은 로그인 후 교신할 수 있습니다', '🔒 메시지를 작성하려면 로그인이 필요합니다.')}
                   </div>
                 )
               )}
             </>
           ) : (
             <div style={{ display: 'grid', placeItems: 'center', flex: 1 }}>
-              <p className="hint">방을 개설하거나 선택하면 여기에 채팅이 표시됩니다</p>
+              <p className="hint">{cw('채널을 열거나 선택하면 교신 기록이 표시됩니다 — NO SIGNAL', '방을 개설하거나 선택하면 여기에 채팅이 표시됩니다')}</p>
             </div>
           )}
         </div>
 
         {/* 우측 상태 필터 */}
         <div className="panel tagside" style={{ padding: 16, alignSelf: 'start' }}>
-          <h4>상태</h4>
+          <h4>{cw('STATUS', '상태')}</h4>
           <div className={`tag ${fStatus === 'ongoing' ? 'on' : ''}`} onClick={() => setFStatus('ongoing')}>
-            진행중 <small>{cntS('ongoing')}</small>
+            {cw('LIVE', '진행중')} <small>{cntS('ongoing')}</small>
           </div>
           <div className={`tag ${fStatus === 'all' ? 'on' : ''}`} onClick={() => setFStatus('all')}>
-            전체 <small>{cntS('all')}</small>
+            {cw('ALL', '전체')} <small>{cntS('all')}</small>
           </div>
           <div className={`tag ${fStatus === 'done' ? 'on' : ''}`} onClick={() => setFStatus('done')}>
-            완결 <small>{cntS('done')}</small>
+            {cw('CLOSED', '완결')} <small>{cntS('done')}</small>
           </div>
         </div>
       </div>
 
       {/* 방 개설 모달 */}
       {user && (
-        <Modal open={newOpen} onClose={() => setNewOpen(false)} small title="역극 방 개설"
-          desc="비참여자에게는 방의 존재가 보이지 않습니다" dirty
+        <Modal open={newOpen} onClose={() => setNewOpen(false)} small title={cw('교신 채널 개설', '역극 방 개설')}
+          desc={cw('비참여자에게는 채널의 존재가 보이지 않습니다', '비참여자에게는 방의 존재가 보이지 않습니다')} dirty
           actions={<>
             <button className="btn btn-ghost" onClick={() => setNewOpen(false)}>CANCEL</button>
             <button className="btn btn-dark" onClick={createRoom}>ADD</button>
           </>}>
           <div style={{ display: 'grid', gap: 11 }}>
             <div>
-              <label className="k-label" style={{ marginBottom: 5 }}>Title</label>
+              <label className="k-label" style={{ marginBottom: 5 }}>{cw('Channel', 'Title')}</label>
               <KInput value={nTitle} onChange={e => setNTitle(e.target.value)} />
             </div>
             <div>
-              <label className="k-label" style={{ marginBottom: 5 }}>기반 자관 (선택)</label>
+              <label className="k-label" style={{ marginBottom: 5 }}>{cw('연결 페어링 (선택)', '기반 자관 (선택)')}</label>
               <div style={{ display: 'flex', gap: 8 }}>
                 <KSelect value={nRel} onChange={v => { setNRel(v); setNAu('base'); }}
                   minWidth={160}
-                  options={[{ value: 'none', label: '자유 개설 (자관 없음)' }, ...rels.map(r => ({ value: r.id, label: r.name }))]} />
+                  options={[{ value: 'none', label: cw('독립 채널 (페어링 없음)', '자유 개설 (자관 없음)') }, ...rels.map(r => ({ value: r.id, label: r.name }))]} />
                 {newRelAus.length > 0 && (
                   <KSelect value={nAu} onChange={setNAu} minWidth={140}
                     options={[{ value: 'base', label: '원래 설정' },
@@ -500,7 +505,7 @@ ${rows}
               </div>
             </div>
             <div>
-              <label className="k-label" style={{ marginBottom: 7 }}>참여 회원</label>
+              <label className="k-label" style={{ marginBottom: 7 }}>{cw('참여 요원', '참여 회원')}</label>
               {nRel === 'none' ? (
                 <div style={{ display: 'grid', gap: 8 }}>
                   {pool.filter(p => p.id !== user.id).map(p => (
@@ -512,8 +517,8 @@ ${rows}
               ) : (
                 <p className="hint" style={{ margin: 0 }}>
                   {newRelGrantNames.length
-                    ? `이 자관 캐릭터에 권한이 있는 회원이 자동으로 참여합니다 — ${newRelGrantNames.join(' · ')}`
-                    : '아직 이 자관 캐릭터에 권한을 준 회원이 없습니다 — 캐릭터 수정의 「회원 권한」에서 지정하면 이 방에도 자동으로 반영됩니다'}
+                    ? cw(`이 페어링 캐릭터에 권한이 있는 요원이 자동으로 참여합니다 — ${newRelGrantNames.join(' · ')}`, `이 자관 캐릭터에 권한이 있는 회원이 자동으로 참여합니다 — ${newRelGrantNames.join(' · ')}`)
+                    : cw('아직 이 페어링 캐릭터에 권한을 준 요원이 없습니다 — 캐릭터 수정의 「회원 권한」에서 지정하면 이 채널에도 자동으로 반영됩니다', '아직 이 자관 캐릭터에 권한을 준 회원이 없습니다 — 캐릭터 수정의 「회원 권한」에서 지정하면 이 방에도 자동으로 반영됩니다')}
                 </p>
               )}
             </div>
@@ -522,7 +527,7 @@ ${rows}
       )}
 
       {/* 메시지 수정 모달 */}
-      <Modal open={editMsg !== null} onClose={() => setEditMsg(null)} small title="메시지 수정" dirty
+      <Modal open={editMsg !== null} onClose={() => setEditMsg(null)} small title={cw('송신 수정', '메시지 수정')} dirty
         actions={<>
           <button className="btn btn-ghost" onClick={() => setEditMsg(null)}>CANCEL</button>
           <button className="btn btn-dark" onClick={saveMsg}>SAVE</button>
@@ -557,11 +562,11 @@ ${rows}
       </Modal>
 
       {/* 완결 확인 모달 */}
-      <ConfirmModal open={endAsk} title="역극을 완결 처리하시겠습니까?"
-        body="완결 후에는 공개 전환과 로그 내보내기를 사용할 수 있습니다."
+      <ConfirmModal open={endAsk} title={cw('교신을 종료하시겠습니까?', '역극을 완결 처리하시겠습니까?')}
+        body={cw('종료 후에는 기밀 해제(공개 전환)와 기록 내보내기를 사용할 수 있습니다.', '완결 후에는 공개 전환과 로그 내보내기를 사용할 수 있습니다.')}
         onClose={() => setEndAsk(false)}
         buttons={[
-          { label: 'END', kind: 'dark', onClick: () => { patchRoom({ status: 'done' }); setEndAsk(false); } },
+          { label: cw('CLOSE', 'END'), kind: 'dark', onClick: () => { patchRoom({ status: 'done' }); setEndAsk(false); } },
           { label: 'CANCEL', kind: 'ghost', onClick: () => setEndAsk(false) },
         ]} />
       {del.element}

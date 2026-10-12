@@ -1482,7 +1482,8 @@ export default function RelDetailPage() {
             <div key={rm.id} className="dday-row" style={{ cursor: 'var(--cur-pointer,pointer)' }} onClick={() => router.push('/rp')}>
               <span>{rm.title}</span>
               <b style={{ fontSize: 11, color: 'var(--faint)' }}>
-                {rm.status === 'done' ? (rm.isPublic ? '완결 · 공개' : '완결') : '진행중'}
+                {/* ARCH에선 교신 말투 (v2.0) */}
+                {rm.status === 'done' ? (rm.isPublic ? (arch ? 'DECLASSIFIED' : '완결 · 공개') : (arch ? 'CLOSED' : '완결')) : (arch ? 'LIVE' : '진행중')}
               </b>
             </div>
           )) : (
