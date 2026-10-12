@@ -17,6 +17,7 @@
     "@tiptap/starter-kit": "^3.30.2",
     "dompurify": "^3.4.14",
     "firebase": "^12.18.0",
+    "html-to-image": "1.11.13",
     "jszip": "^3.10.1",
     "marked": "^18.0.10",
     "next": "16.3.1",

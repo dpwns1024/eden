@@ -15,6 +15,7 @@ import { CursorLayer } from '@/components/shell/CursorLayer';
 import { ImgProtect } from '@/components/shell/ImgProtect';
 import { ContentGuard } from '@/components/shell/ContentGuard';
 import { ScrollTop } from '@/components/shell/ScrollTop';
+import { ExcerptMaker } from '@/components/shell/ExcerptMaker';
 import { SecurityMigrate } from '@/components/shell/SecurityMigrate';
 import { LetterSpacingFix } from '@/components/shell/LetterSpacingFix';
 import { BoardSkinSync } from '@/components/shell/BoardSkinSync';
@@ -89,6 +90,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         <ImgProtect />
                         <ContentGuard />
                         <ScrollTop />
+                        <ExcerptMaker />
                         <SecurityMigrate />
                         <LetterSpacingFix />
                         <BoardSkinSync />
