@@ -24,6 +24,7 @@ import { DragList } from '@/components/ui/DragList';
 import { OrderMenu, orderNoOf, moveToOrder } from '@/components/ui/OrderMenu';
 import { useBoardSkin } from '@/lib/boardSkin';
 import { hasLogPw, logPwOnServer, setLogPassword } from '@/lib/logLock';
+import { logPath } from '@/lib/logPath';
 
 function TrpgPageInner() {
   const router = useRouter();
@@ -233,7 +234,7 @@ function TrpgPageInner() {
   const Ticket = ({ l }: { l: TrpgLog }) => (
     <div className="ticket"
       onContextMenu={e => openOrder(e, l.id)}
-      onClick={() => { if (!editOn) router.push(`/trpg/${l.id}`); }}>
+      onClick={() => { if (!editOn) router.push(logPath(l)); }}>
       <div className="stub-line" />
       <div className={`wide ${!l.thumbId && !l.thumbColor ? `ph ${l.ph}` : ''}`} style={thumbStyle(l)}>
         {l.thumbId && <CroppedBlobImg fileRef={l.thumbId} crop={l.thumbCrop} />}
@@ -265,7 +266,7 @@ function TrpgPageInner() {
   const TermRow = ({ l }: { l: TrpgLog }) => (
     <div className="fr-ln"
       onContextMenu={e => openOrder(e, l.id)}
-      onClick={() => { if (!editOn) router.push(`/trpg/${l.id}`); }}>
+      onClick={() => { if (!editOn) router.push(logPath(l)); }}>
       <span className="fr-id">{editOn && <span className="drag-h" style={{ marginRight: 6 }}>⠿</span>}{termId(l)}</span>
       <span className="fr-tt">
         {l.title}
@@ -316,7 +317,7 @@ function TrpgPageInner() {
                 {basicShown.slice(logStart, logStart + PER_LOG).map((l, i) => (
                   <div key={l.id} className="list-item" {...gridDragProps(logStart + i)}
                     onContextMenu={e => openOrder(e, l.id)}
-                    onClick={() => { if (!editOn) router.push(`/trpg/${l.id}`); }}>
+                    onClick={() => { if (!editOn) router.push(logPath(l)); }}>
                     {editOn && <span className="drag-h">⠿</span>}
                     <div className={`th ${!l.thumbId && !l.thumbColor ? `ph ${l.ph}` : ''}`} style={{ ...thumbStyle(l), position: 'relative' }}>
                       {l.thumbId && <CroppedBlobImg fileRef={l.thumbId} crop={l.thumbCrop} />}
