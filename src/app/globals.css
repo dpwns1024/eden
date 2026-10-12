@@ -335,6 +335,31 @@ html.ui-arch .page-arch .rel-body.rel-banner .rb-catch{margin-top:12px;font:300 
 html.ui-arch .page-arch .rel-body.rel-banner .mini-prof .specs{display:grid;grid-template-columns:1fr 1fr;column-gap:24px}
 /* 배너형에선 아래 타임라인·임무/현장 상자도 배너·카드와 같은 폭으로 (원래는 본문보다 좁게 가운데) */
 html.ui-arch .page-arch .rel-banner ~ .timeline,html.ui-arch .page-arch .rel-banner ~ .g2{max-width:none}
+/* 멤버 카드 B (v2.0 사용자 선택) — 왼쪽 큰 3:4 초상(카드 높이만큼 늘어남, 최소 3:4) · 오른쪽 이름·한마디·정보 */
+html.ui-arch .page-arch .mini-prof.mp-b{display:grid;grid-template-columns:clamp(150px,36%,210px) minmax(0,1fr)}
+html.ui-arch .page-arch .mp-b .mp-pt{position:relative;overflow:hidden;border-right:1px solid var(--a-ln);background:#0a0d11}
+html.ui-arch .page-arch .mp-b .mp-pt::before{content:'';display:block;padding-top:133.333%}
+html.ui-arch .page-arch .mp-b .mp-pt::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,transparent 62%,rgba(5,7,10,.45)),linear-gradient(0deg,rgba(5,7,10,.35),transparent 30%)}
+html.ui-arch .page-arch .mp-b .mp-r{min-width:0;display:flex;flex-direction:column;padding-bottom:6px}
+html.ui-arch .page-arch .mp-b .hd{padding:20px 20px 14px}
+html.ui-arch .page-arch .mp-b .mp-quote{margin:14px 20px 2px}
+html.ui-arch .page-arch .rel-body.rel-banner .mini-prof.mp-b .specs{grid-template-columns:1fr;margin:12px 20px 0;padding:12px 0 10px;border-top:1px solid var(--a-ln)}
+html.ui-arch .page-arch .mp-b .kw-row{padding:2px 20px 12px}
+html.ui-arch .page-arch .mp-b .rel-desc{padding:12px 20px}
+html.ui-arch .page-arch .mp-b .card-thumbs{padding:11px 20px}
+@media (min-width:621px) and (max-width:960px){
+  html.ui-arch .page-arch .rel-body.rel-banner .mini-prof.mp-b .specs{grid-template-columns:1fr 1fr}
+}
+@media (max-width:620px){
+  html.ui-arch .page-arch .mini-prof.mp-b{grid-template-columns:112px minmax(0,1fr)}
+  html.ui-arch .page-arch .mp-b .hd{padding:16px 14px 11px}
+  html.ui-arch .page-arch .mp-b .mp-quote{margin:11px 14px 0}
+  html.ui-arch .page-arch .rel-body.rel-banner .mini-prof.mp-b .specs{margin:10px 14px 0}
+  html.ui-arch .page-arch .mp-b .specs b{min-width:64px}
+  html.ui-arch .page-arch .mp-b .kw-row{padding:2px 14px 10px}
+  html.ui-arch .page-arch .mp-b .rel-desc{padding:10px 14px}
+  html.ui-arch .page-arch .mp-b .card-thumbs{padding:10px 14px;grid-template-columns:repeat(3,1fr)}
+}
 html.ui-arch .page-arch .mp-quote{margin:14px 16px 0;padding:2px 0 2px 12px;border-left:2px solid var(--c)}
 html.ui-arch .page-arch .mp-quote small{display:block;margin-bottom:3px;font:400 8.5px/1.4 'JetBrains Mono',monospace;letter-spacing:.26em;color:var(--c);filter:brightness(1.5)}
 html.ui-arch .page-arch .mp-quote span{font:300 calc(14px*var(--fs,1))/1.6 'Noto Sans KR',sans-serif;color:var(--a-tx);word-break:keep-all}
@@ -371,6 +396,8 @@ html.ui-arch .page-arch .mrow .nm b,html.ui-arch .page-arch .multi-row b{font-fa
 html.ui-arch .page-arch .mrow .nm small,html.ui-arch .page-arch .mrow .nm .ext,html.ui-arch .page-arch .multi-row .meta{color:var(--a-mu)}
 /* 타임라인/문답 탭 */
 html.ui-arch .page-arch .rel-tabs{border-bottom:1px solid var(--a-ln)}
+/* 패널 위 여백은 줄인다 (v2.0 사용자 요청 — 「메뉴 이름 위로 여백이 너무 많아」). 탭 버튼 자체의 위아래 16px는 그대로 — 오른쪽 추가 버튼과 세로 가운데 */
+html.ui-arch .page-arch .timeline{padding-top:6px}
 html.ui-arch .page-arch .rel-tabs > button{font:300 calc(14px*var(--fs,1))/1.2 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;color:var(--a-mu);padding:16px 14px}
 /* 탭 줄 오른쪽 버튼 — 아래 경계선에 붙지 않게 조금 낮게(32px) 하고 탭 글자와 세로 가운데 (v2.0 사용자 요청) */
 html.ui-arch .page-arch .rel-tabs .btn{height:32px !important}

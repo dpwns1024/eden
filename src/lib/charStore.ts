@@ -146,6 +146,8 @@ export interface RelMember {
   /** 멤버 카드 얼굴칸(1:1) 크롭 (v2.0) — 캐릭터의 리스트 썸네일은 3:4라
    *  정사각 칸에 그대로 쓰면 어긋난다. 자관에서 따로 잡아 저장한다. */
   faceCrop?: import('@/components/ui/CropEditor').CropValue;
+  /** ARCH 배너형 카드 B의 세로 초상(3:4) 크롭 (v2.0) — 없으면 캐릭터 리스트 썸네일 크롭 */
+  portCrop?: import('@/components/ui/CropEditor').CropValue;
   /** 멤버 카드 이름 크기 px (v2.0) — 기본 17. 카드 폭이 좁아 이름마다 알맞은 크기가 다르다 */
   nameSize?: number;
   quoteColor?: string;           // 히어로 대사 글씨색 (페어, v1.9 — 기본 #d7dae0)
@@ -318,6 +320,8 @@ export interface RelAu {
   mset?: Record<string, RelAuMember>;
   quotes?: string[];
   cp?: RelCpTag;          // 없으면 자관 기본(Relation.cp)
+  /** 뱃지 글자를 직접 쓴 값 (v2.0 사용자 요청 — CP/NCP 고르기 대신). 없으면 cp → 자관 값, ''이면 뱃지 없음 */
+  cpText?: string;
   arts?: string[];        // AU별 중앙/그룹 일러 (base는 Relation.arts)
   timeline?: TlItem[];    // base는 Relation.timeline
   questions?: QaEntry[];  // base는 Relation.questions
@@ -376,6 +380,7 @@ export interface Relation {
   illustMode: 'duo' | 'one';     // 2인: 전신 2장 / 일러 1장 (v1.8)
   aus: RelAu[];                  // AU 리스트 (첫 항목 = 원본 base)
   cp?: RelCpTag;                 // 자관 기본 CP/NCP (등록 시 선택, v1.9)
+  cpText?: string;               // 뱃지 글자 직접 입력 (v2.0 — RelAu.cpText 설명 참조)
   fullFront?: string;            // 전신 모드에서 앞에 보일 캐릭터 id (v1.9 — 미리보기에서 클릭 선택)
   pairRight?: string;            // 페어에서 오른쪽 자리에 둘 캐릭터 id (v2.0 — 없으면 등록 순서대로)
   /** 상세 중앙 일러가 어디를 보여 줄지 (v2.0 사용자 요청) — 리스트 썸네일(thumbCrop)과 별개.

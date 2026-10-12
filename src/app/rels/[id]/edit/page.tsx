@@ -57,7 +57,8 @@ function RelEditInner() {
                 nameShadowColor: v.nameShadowColor, nameShadow: v.nameShadow,
                 headerBgG1: v.headerBgG1, headerBgG2: v.headerBgG2, headerBgAngle: v.headerBgAngle,
                 pageBgG1: v.pageBgG1, pageBgG2: v.pageBgG2, pageBgAngle: v.pageBgAngle }),
-            cp: v.cp,
+            // 뱃지 글자 (v2.0) — AU 편집이면 그 AU에만 (아래 aus), 아니면 자관 본체에
+            ...(auObj ? {} : { cp: v.cp, cpText: v.cpText }),
             qaHide: v.qaHide,
             fullFront: v.fullFront ?? r.fullFront,
             illustMode: v.kind === 'pair' ? r.illustMode : 'one',
@@ -81,7 +82,7 @@ function RelEditInner() {
             ...(auObj
               ? {
                 aus: r.aus.map(a => (a.id === auObj.id ? {
-                  ...a, arts: v.arts, catchphrase: v.catchphrase,
+                  ...a, arts: v.arts, catchphrase: v.catchphrase, cp: v.cp, cpText: v.cpText,
                   // AU별 자관명 (v2.0 사용자 요청) — 비우면 자관 이름 그대로 쓰게 아예 지운다
                   name: v.auName?.trim() ? v.auName.trim() : undefined,
                   // AU별 색·배경 (v2.0 사용자 요청) — 「직접 지정」을 끄면 undefined가 되어
