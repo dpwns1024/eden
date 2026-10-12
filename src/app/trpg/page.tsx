@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useSectionParam, filterSection, sectionSetter, secStamp } from '@/lib/sectionStore';
 import { useLocalList, newId } from '@/lib/postStore';
-import { TrpgLog, TRPG_SEED, TrpgLogBody, TRPG_BODY_SEED, bodyVisibility, decodeLogText, logNo, saveLogBody } from '@/lib/galleryStore';
+import { TrpgLog, TRPG_SEED, TrpgLogBody, TRPG_BODY_SEED, bodyVisibility, bodyPwLock, decodeLogText, logNo, saveLogBody } from '@/lib/galleryStore';
 import { Relation, REL_SEED } from '@/lib/charStore';
 import { SearchBar, KInput, KTextarea, KRadio, KSelect, KDate, Pager } from '@/components/ui/Kit';
 import { Modal } from '@/components/ui/Modal';
@@ -23,6 +23,7 @@ import { mergeOrder } from '@/lib/cardSort';
 import { DragList } from '@/components/ui/DragList';
 import { OrderMenu, orderNoOf, moveToOrder } from '@/components/ui/OrderMenu';
 import { useBoardSkin } from '@/lib/boardSkin';
+import { hasLogPw, logPwOnServer, setLogPassword } from '@/lib/logLock';
 
 function TrpgPageInner() {
   const router = useRouter();
@@ -179,6 +180,13 @@ function TrpgPageInner() {
   const add = async () => {
     if (!nTitle.trim()) { toast('시나리오 타이틀을 입력해 주세요'); return; }
     const id = newId();
+    // 열람 비밀번호 — 서버가 대조하는 곳(Firebase)이면 정답 해시를 먼저 서버에 두고, 글에는 표시만 남긴다
+    const pw = nPw.trim();
+    const pwServer = !!pw && logPwOnServer();
+    if (pwServer) {
+      const r = await setLogPassword(id, pw);
+      if (!r.ok) { toast(r.error ?? '비밀번호를 저장하지 못했습니다'); return; }
+    }
     const rich = nMode === 'editor' && !nFile;
     const bodyText = nFile ? await decodeText(nFile) : rich ? (nRich.replace(/<[^>]*>/g, '').trim() || /<img/i.test(nRich) ? nRich : '') : nBody;
     const log: TrpgLog = {
@@ -190,7 +198,8 @@ function TrpgPageInner() {
       relId: nRel === 'none' ? undefined : nRel,
       date: nDate || undefined, ph: 'cool',
       visibility: nVis,
-      password: nPw.trim() || undefined,
+      password: pw && !pwServer ? pw : undefined,
+      pwLock: pwServer || undefined,
       listHidden: nListHidden,
       thumbId: nThumb ? await putBlob(nThumb) : undefined,
       thumbCrop: nThumb ? nThumbCrop : undefined,
@@ -203,6 +212,7 @@ function TrpgPageInner() {
       originalFileId: nFile ? await putBlob(nFile) : undefined,
       originalName: nFile?.name,
       visibility: bodyVisibility(log),
+      ...(bodyPwLock(log) ? { pwLock: true } : {}),
       ...secStamp(sec.id),
     };
     setLogs([log, ...logs]);
@@ -239,7 +249,7 @@ function TrpgPageInner() {
         {editOn && l.listHidden && <span className="pill" style={{ marginTop: 4 }}>숨김</span>}
         {l.catchphrase && <div className="sc-catch">{l.catchphrase}</div>}
         {!canOpen(l) && (
-          <div className="row"><b>열람</b> {l.password ? '비밀번호 필요' : '권한 없음'}</div>
+          <div className="row"><b>열람</b> {hasLogPw(l) ? '비밀번호 필요' : '권한 없음'}</div>
         )}
         {l.writer && <div className="row"><b>라이터</b> {l.writer}</div>}
         {l.withText && <div className="row"><b>동행</b> {l.withText}</div>}
@@ -260,7 +270,7 @@ function TrpgPageInner() {
       <span className="fr-tt">
         {l.title}
         {editOn && l.listHidden && <em className="fr-st">[HIDDEN]</em>}
-        {!canOpen(l) && <em className="fr-st lock">{l.password ? '[PASSWORD]' : '[RESTRICTED]'}</em>}
+        {!canOpen(l) && <em className="fr-st lock">{hasLogPw(l) ? '[PASSWORD]' : '[RESTRICTED]'}</em>}
         {l.catchphrase && <small>{l.catchphrase}</small>}
       </span>
       <span className="fr-who">{[l.writer, l.withText].filter(Boolean).join(' / ')}</span>
@@ -314,7 +324,7 @@ function TrpgPageInner() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <b>{l.title}</b>
                       {editOn && l.listHidden && <span className="pill" style={{ marginLeft: 6 }}>숨김</span>}
-                      {!canOpen(l) && <span className="pill" style={{ marginLeft: 6 }}>{l.password ? '비밀번호 필요' : '비공개'}</span>}
+                      {!canOpen(l) && <span className="pill" style={{ marginLeft: 6 }}>{hasLogPw(l) ? '비밀번호 필요' : '비공개'}</span>}
                       <small>{[l.writer, l.withText].filter(Boolean).join(' · ')}{l.date ? ` · ${l.date.replace(/-/g, '.')}` : ''}</small>
                     </div>
                   </div>

@@ -72,7 +72,11 @@ export interface TrpgLog {
   thumbColor?: { c1: string; c2?: string }; // 이미지 없을 때 단색/그라데이션
   serifTitle?: boolean;      // 타이틀 폰트 개별 지정 예시 (폰트 라이브러리는 후속)
   visibility: Visibility;
-  password?: string;         // 열람 비밀번호 (선택) — 권한이 없어도 비밀번호로 열람 가능
+  /** 열람 비밀번호 (선택) — 권한이 없어도 비밀번호로 열람 가능.
+   *  **Firebase에서는 더 이상 여기 적지 않는다** (누구나 받는 목록 문서라 F12로 보였다) — 서버가 대조하고
+   *  여기엔 pwLock만 남는다(lib/logLock.ts). 옛 글에 남은 값은 관리자가 접속하면 서버 쪽으로 옮겨진다 */
+  password?: string;
+  pwLock?: boolean;          // 서버가 대조하는 열람 비밀번호가 걸려 있다 (v2.0 보안 점검)
   // 목록 표시 여부 (v2.0 사용자 요청) — 접근권한(누가 열 수 있는지)과는 별개로, 목록에 줄이 뜰지만 정하는
   // 스위치. 나만보기(private)여도 이걸 켜지 않으면 관리자 목록에서 사라지지 않는다 — 반대로 이걸 켜면
   // 전체공개여도 목록에서만 빠지고 직접 링크로는 그대로 열린다. 관리자는 편집모드에서 숨김 표시로 계속 본다
@@ -109,12 +113,20 @@ export interface TrpgLogBody {
   /** 어느 로그 백업 소속인지 (v2.0) — 목록 문서와 따로 저장되므로 소속도 따로 들고 있어야
    *  「메뉴가 비공개면 글도 비공개로」 판정이 본문 문서에도 걸린다. 없으면 기본 섹션. */
   secId?: string;
+  /** 글 비밀번호가 걸려 있다 — 저장할 때 이 문서를 `locked`(잠금키 trpglog.{id})로 둔다 (lib/visFloor.ts) */
+  pwLock?: boolean;
 }
 
-/** 본문 문서에 적을 열람 권한 — 비밀번호가 걸려 있으면 목록 필터가 예전부터 그래 왔듯 공개로 둔다
- *  (비밀번호는애초에 Firestore 규칙 단계에서 검증할 수 없어 클라이언트 확인용일 뿐이었다) */
-export const bodyVisibility = (l: { visibility: Visibility; password?: string }): Visibility =>
-  l.password ? 'public' : l.visibility;
+/** 본문 문서에 적을 열람 권한 — 비밀번호가 걸려 있으면 바닥값(public)으로 두고, 실제 잠금은
+ *  저장 단계(visFloorOf → locked)가 건다. 비밀번호를 아는 방문자는 등급과 무관하게 열 수 있어야 하므로.
+ *  (옛 방식 password는 서버 대조가 안 되는 저장소에서만 쓰인다 — 그때는 예전처럼 공개) */
+export const bodyVisibility = (l: { visibility: Visibility; password?: string; pwLock?: boolean }): Visibility =>
+  l.password || l.pwLock ? 'public' : l.visibility;
+
+/** 본문 문서를 글 비밀번호로 잠글지 — 전체공개 글은 예전부터 비밀번호 없이 열렸다(비밀번호는 멤버공개·나만보기
+ *  글을 권한 없는 사람에게 열어 주는 열쇠). 그래서 전체공개면 잠그지 않는다 */
+export const bodyPwLock = (l: { visibility: Visibility; pwLock?: boolean }): boolean =>
+  !!l.pwLock && l.visibility !== 'public';
 
 export const TRPG_BODY_SEED: TrpgLogBody[] = [];
 

@@ -5,6 +5,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { backend, isServerMode } from './backend';
 import { setCurrentUserId } from './currentUser';
 import { getSetting, setSetting } from './settingStore';
+import { memberProofOn } from './menuLock';
 
 export type Role = 'admin' | 'member' | 'guest';
 
@@ -155,9 +156,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signup = useCallback(async (id: string, password: string, nickname: string, code: string): Promise<Result> => {
     if (!id || !password || !nickname) return { ok: false, error: '아이디·비밀번호·닉네임을 모두 입력해 주세요.' };
     if (!signupOpen()) return { ok: false, error: '지금은 회원가입을 받지 않습니다.' };
-    if (code !== inviteCode()) return { ok: false, error: '가입코드가 올바르지 않습니다.' };
+    // Firebase는 가입코드를 서버(보안 규칙)가 대조한다 — 정답이 화면에 내려오지 않는다 (v2.0 보안 점검)
+    const inviteOnServer = server && be?.kind === 'firebase' && memberProofOn();
+    if (!inviteOnServer && code !== inviteCode()) return { ok: false, error: '가입코드가 올바르지 않습니다.' };
     if (server && be) {
-      const r = await be.signUp(id.trim(), password, nickname.trim());
+      const r = await be.signUp(id.trim(), password, nickname.trim(), inviteOnServer ? code : undefined);
       if (!r.ok) return { ok: false, error: r.error ?? '가입에 실패했습니다.' };
       // 계정이 만들어지는 순간 로그인 상태가 되며 사용자 정보가 먼저 계산되는데,
       // 그때는 닉네임(프로필)이 아직 저장되기 전이라 이메일이 이름 자리에 들어간다.

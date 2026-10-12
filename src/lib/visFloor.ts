@@ -16,7 +16,7 @@ import { MAIN_SEC, sectionHref, type SectionKind } from './sectionStore';
 import { MAIN_BOARD_ID } from './boardStore';
 import type { Visibility } from './charStore';
 import type { ListItem } from './backend/types';
-import { governingLock, lockKeyOf } from './menuLock';
+import { governingLock, lockKeyOf, logLockKey, menuLockSupported } from './menuLock';
 
 /** 컬렉션 → 그 목록이 걸린 메뉴. 섹션형은 종류만 주고 소속은 항목의 `secId`에서 읽는다 */
 const AREA: Record<string, { kind?: SectionKind; href?: string; board?: boolean }> = {
@@ -70,6 +70,8 @@ export function areaHrefOf(coll: string, item: ListItem): string | null {
 
 /** 이 항목이 비밀번호 걸린 메뉴 소속이면 그 잠금키 (lib/menuLock.ts) */
 export function lockKeyOfItem(coll: string, item: ListItem): string | null {
+  // 글 비밀번호가 걸린 FIELD REPORT 본문 — 메뉴 잠금보다 이 글의 비밀번호가 먼저다 (lib/logLock.ts)
+  if (coll === 'trpg_log_bodies' && item.pwLock === true && menuLockSupported()) return logLockKey(item.id);
   const href = areaHrefOf(coll, item);
   const lock = href ? governingLock(href) : null;
   return lock ? lockKeyOf(lock) : null;

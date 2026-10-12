@@ -7,18 +7,22 @@ import { useHrefBlock } from '@/components/shell/MenuGuard';
 import { sectionHref, MAIN_SEC, secStamp, useSectionTitle } from '@/lib/sectionStore';
 import { useAuth } from '@/lib/auth';
 import { useLocalList } from '@/lib/postStore';
-import { TrpgLog, TRPG_SEED, TrpgLogBody, TRPG_BODY_SEED, bodyVisibility, showAsHtml, decodeLogText, logNo, saveLogBody , textToEditorHtml } from '@/lib/galleryStore';
+import { TrpgLog, TRPG_SEED, TrpgLogBody, TRPG_BODY_SEED, bodyVisibility, bodyPwLock, showAsHtml, decodeLogText, logNo, saveLogBody , textToEditorHtml } from '@/lib/galleryStore';
 import { Relation, REL_SEED, Character, CHAR_SEED, charGrant } from '@/lib/charStore';
 import { Modal, ConfirmModal } from '@/components/ui/Modal';
 import { getBlob, putBlob, useBlobUrl } from '@/lib/blobStore';
 import { PageTitle, EditableDesc } from '@/components/ui/PageText';
-import { KInput, KSelect, KDate, KTextarea } from '@/components/ui/Kit';
+import { KInput, KSelect, KDate, KTextarea, KCheck } from '@/components/ui/Kit';
+import { useLockKeyOpen } from '@/components/ui/MenuLock';
+import { hasLogPw, logPwOnServer, setLogPassword, unlockLog } from '@/lib/logLock';
+import { logLockKey } from '@/lib/menuLock';
 import { RichEditor } from '@/components/ui/RichEditor';
 import { HtmlBody } from '@/components/ui/HtmlBody';
 import { useBoardSkin } from '@/lib/boardSkin';
 import { ColorField } from '@/components/ui/ColorField';
 import { CropEditor, CropImg, CropValue } from '@/components/ui/CropEditor';
 import { useToast } from '@/components/ui/Toast';
+import { GUARD_SNIPPET } from '@/components/shell/ContentGuard';
 
 /** 로그 렌더 프레임 — 대형 문서도 안정적으로 로드되도록 srcdoc 대신 Blob URL 사용 */
 function LogFrame({ frameRef, html, title, onFrameLoad }: {
@@ -75,14 +79,18 @@ export default function TrpgDetailPage() {
     const ch = allChars.find(c => c.id === m.charId);
     return ch ? !!charGrant(ch, user.id) : false;
   });
+  // 서버가 대조하는 글 비밀번호(pwLock)는 회원이면 입력 없이 열린다 — 메뉴 비밀번호와 같은 기준 (lib/logLock.ts)
   const baseAllowed = !!l && (isAdmin || isRelPartner
-    || l.visibility === 'public' || (l.visibility === 'member' && !!user));
+    || l.visibility === 'public' || (l.visibility === 'member' && !!user) || (!!l.pwLock && !!user));
 
-  // 비밀번호 열람 (4.3) — 세션 동안 유지
-  const [unlocked, setUnlocked] = useState(false);
+  // 비밀번호 열람 (4.3) — 서버 대조(pwLock): 통과 기록이 서버에 있으면 열림 / 옛 방식: 세션 동안 유지
+  const [unlockedLocal, setUnlockedLocal] = useState(false);
+  const logLockState = useLockKeyOpen(l?.pwLock && logPwOnServer() ? logLockKey(id) : null);
+  const unlocked = unlockedLocal || (!!l?.pwLock && logLockState === 'open');
   const [pwTry, setPwTry] = useState('');
+  const [pwBusy, setPwBusy] = useState(false);
   useEffect(() => {
-    try { if (sessionStorage.getItem(`trpg-unlock:${id}`) === '1') setUnlocked(true); } catch { /* 무시 */ }
+    try { if (sessionStorage.getItem(`trpg-unlock:${id}`) === '1') setUnlockedLocal(true); } catch { /* 무시 */ }
   }, [id]);
 
   // 이 로그를 볼 수 없으면(없거나, 권한도 비밀번호도 없으면) 홈으로 — 예전엔 이 자리에 "열람 권한이
@@ -91,11 +99,21 @@ export default function TrpgDetailPage() {
   useEffect(() => {
     if (!loaded) return;
     if (!l) { router.replace('/'); return; }
-    if (!baseAllowed && !unlocked && !l.password) router.replace('/');
+    if (!baseAllowed && !unlocked && !hasLogPw(l)) router.replace('/');
   }, [loaded, l, baseAllowed, unlocked, router]);
-  const tryUnlock = () => {
-    if (l?.password && pwTry === l.password) {
-      setUnlocked(true);
+  const tryUnlock = async () => {
+    if (!l || !pwTry || pwBusy) return;
+    // 서버 대조 — 맞으면 통과 기록이 생기고, 새로 고쳐 받으면 본문이 내려온다 (F12로는 정답도 본문도 안 보인다)
+    if (l.pwLock && logPwOnServer()) {
+      setPwBusy(true);
+      const r = await unlockLog(id, pwTry);
+      if (r.ok) { window.location.reload(); return; }
+      setPwBusy(false);
+      toast(r.error ?? '비밀번호가 올바르지 않습니다');
+      return;
+    }
+    if (l.password && pwTry === l.password) {
+      setUnlockedLocal(true);
       try { sessionStorage.setItem(`trpg-unlock:${id}`, '1'); } catch { /* 무시 */ }
     } else {
       toast('비밀번호가 올바르지 않습니다');
@@ -107,6 +125,7 @@ export default function TrpgDetailPage() {
   const [e, setE] = useState({
     noText: '', title: '', catchphrase: '', writer: '', withText: '',
     relId: 'none', date: '', visibility: 'public' as TrpgLog['visibility'], password: '',
+    pwClear: false,      // 걸려 있던 열람 비밀번호 풀기 (서버 대조 방식은 지금 비밀번호를 보여 줄 수 없어 따로 둔다)
     listHidden: false,   // 목록 표시 여부 (v2.0 — 접근권한과 별개)
   });
   // 본문 교체
@@ -155,6 +174,23 @@ export default function TrpgDetailPage() {
     } else if (thumbMode === 'color') {
       thumbPatch = { thumbId: undefined, thumbCrop: undefined, thumbColor: { c1: eC1, c2: eColorMode === 'grad' ? eC2 : undefined } };
     }
+    // 열람 비밀번호 — 서버 대조(Firebase): 새로 입력했으면 서버 정답을 먼저 바꾸고, 글에는 표시(pwLock)만.
+    // 옛 글에 평문으로 남아 있던 비밀번호도 이 저장에서 서버로 옮긴다
+    const newPw = e.password.trim();
+    const pwServer = logPwOnServer();
+    const keepPw = !e.pwClear && !!l && hasLogPw(l);
+    let pwLock: boolean | undefined;
+    let password: string | undefined;
+    if (pwServer) {
+      const setTo = newPw || (keepPw && l?.password ? l.password : '');
+      if (setTo) {
+        const r = await setLogPassword(id, setTo);
+        if (!r.ok) { toast(r.error ?? '비밀번호를 저장하지 못했습니다'); return; }
+      }
+      pwLock = !!newPw || keepPw || undefined;
+    } else {
+      password = newPw || (keepPw ? l?.password : undefined);
+    }
     const nextLog: TrpgLog = {
       ...(l as TrpgLog),
       noText: e.noText.trim() || undefined,
@@ -162,7 +198,7 @@ export default function TrpgDetailPage() {
       writer: e.writer.trim(), withText: e.withText.trim(),
       relId: e.relId === 'none' ? undefined : e.relId,
       date: e.date || undefined,
-      visibility: e.visibility, password: e.password.trim() || undefined,
+      visibility: e.visibility, password, pwLock,
       listHidden: e.listHidden,
       ...thumbPatch,
       // 예전엔 본문이 이 문서에 있었다 — 저장할 때마다 확실히 비워서(구버전 잔재 정리),
@@ -183,12 +219,15 @@ export default function TrpgDetailPage() {
       bodyRich: bd?.bodyRich,
       ...bodyPatch,
       visibility: bodyVisibility(nextLog),
+      pwLock: bodyPwLock(nextLog) || undefined,
       ...secStamp(nextLog.secId ?? MAIN_SEC),   // 소속 (v2.0) — 본문 문서도 비공개 판정을 받게
     };
     // 새 본문 문서는 뒤에 붙인다 (v2.0 포크 제보) — 앞에 끼우면 기존 본문 전체의 자리가 밀려
     // 재저장 대상이 되고, 큰 본문이 쌓인 홈에서는 그 합이 쓰기 한도를 넘어 저장이 실패했다
     setBodies(bd ? bodies.map(x => x.id === id ? nextBody : x) : [...bodies, nextBody]);
     if (bodyMode !== 'keep') setBodyText(null); // 본문 다시 로드
+    // 비밀번호를 풀었으면 글을 먼저 저장한 뒤 서버 정답도 지운다
+    if (pwServer && !pwLock && l && hasLogPw(l)) void setLogPassword(id, null);
     setEOpen(false);
     setBodyMode('keep'); setEFile(null); setEText(''); setERich('');
     setThumbMode('keep'); setEThumb(null); setEThumbUrl(''); setEThumbCrop(undefined);
@@ -247,7 +286,8 @@ export default function TrpgDetailPage() {
   if (blocked) return blocked;
   if (!loaded || !l) return <section className="page page-arch page-trpg-detail" />;
   if (!baseAllowed && !unlocked) {
-    if (!l.password) return <section className="page page-arch page-trpg-detail" />;
+    // 서버 통과 기록을 확인하는 중엔 비밀번호 창을 띄우지 않는다 (통과한 방문자에게 깜빡이지 않게)
+    if (!hasLogPw(l) || (l.pwLock && logLockState === 'loading')) return <section className="page page-arch page-trpg-detail" />;
     // 비밀번호 게이트 — 맞으면 이 세션 동안 열람 유지
     return (
       <section className="page page-arch page-trpg-detail">
@@ -256,8 +296,8 @@ export default function TrpgDetailPage() {
           <EditableDesc k="trpg-lock-desc" def="비밀번호를 입력하면 열람할 수 있습니다" always /></div>
         <div className="panel" style={{ maxWidth: 420, margin: '0 auto', padding: 26, display: 'grid', gap: 10 }}>
           <KInput type="password" placeholder="비밀번호" value={pwTry} onChange={e => setPwTry(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') tryUnlock(); }} />
-          <button className="btn btn-dark" style={{ justifyContent: 'center', padding: 9 }} onClick={tryUnlock}>확인</button>
+            onKeyDown={e => { if (e.key === 'Enter') void tryUnlock(); }} />
+          <button className="btn btn-dark" style={{ justifyContent: 'center', padding: 9 }} disabled={pwBusy} onClick={() => void tryUnlock()}>확인</button>
         </div>
       </section>
     );
@@ -319,7 +359,7 @@ r(1);})();
 </scr${''}ipt><style>
 /* height:auto — 로그 문서가 html/body에 100%를 걸어 두면 내용과 무관하게 뷰포트만큼 커진다 */
 html,body{margin:0!important;padding:0!important;height:auto!important;min-height:0!important}
-</style>`;
+</style>${isAdmin ? '' : GUARD_SNIPPET}`;
   /** 주입 위치 — <!DOCTYPE ...> 가 있으면 그 **바로 뒤**에, 없으면 doctype을 만들어 앞에.
    *  표준 모드를 지켜야 body 높이가 진짜 내용 높이가 된다 (위 주석 참조) */
   const dt = /^\s*<!doctype[^>]*>/i.exec(body);
@@ -338,7 +378,8 @@ html,body{margin:0!important;padding:0!important;height:auto!important;min-heigh
             setE({
               noText: l.noText ?? '', title: l.title, catchphrase: l.catchphrase ?? '', writer: l.writer,
               withText: l.withText, relId: l.relId ?? 'none', date: l.date ?? '',
-              visibility: l.visibility, password: l.password ?? '', listHidden: !!l.listHidden,
+              // 서버 대조 방식은 비밀번호를 내려받지 않으므로 칸을 비워 두고 「바꿀 때만 입력」
+              visibility: l.visibility, password: logPwOnServer() ? '' : l.password ?? '', pwClear: false, listHidden: !!l.listHidden,
             });
             // 본문·썸네일 교체 상태 초기화 (기본: 현재 것 유지)
             setBodyMode('keep'); setEFile(null); setEText(bodyText ?? '');
@@ -462,8 +503,16 @@ html,body{margin:0!important;padding:0!important;height:auto!important;min-heigh
                 { value: 'member', label: '멤버공개' },
                 { value: 'private', label: '나만보기' },
               ]} />
-            <KInput placeholder="열람 비밀번호 (선택)" value={e.password} onChange={ev => setE(s => ({ ...s, password: ev.target.value }))} style={{ flex: 1 }} />
+            <KInput placeholder={logPwOnServer() && hasLogPw(l) ? '비밀번호 설정됨 — 바꿀 때만 입력' : '열람 비밀번호 (선택)'}
+              value={e.password} disabled={e.pwClear}
+              onChange={ev => setE(s => ({ ...s, password: ev.target.value }))} style={{ flex: 1 }} />
           </div>
+          {logPwOnServer() && hasLogPw(l) && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <KCheck label={<span style={{ fontSize: 12 }}>열람 비밀번호 해제</span>} checked={e.pwClear}
+                onChange={v => setE(s => ({ ...s, pwClear: v, password: v ? '' : s.password }))} />
+            </div>
+          )}
           {/* 목록 표시 — 접근권한과 별개 (v2.0 사용자 요청) */}
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'flex-end' }}>
             <span className="cp-lb">목록</span>

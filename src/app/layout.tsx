@@ -13,6 +13,8 @@ import { BgmPlayer } from '@/components/shell/BgmPlayer';
 import { TipLayer } from '@/components/ui/TipLayer';
 import { CursorLayer } from '@/components/shell/CursorLayer';
 import { ImgProtect } from '@/components/shell/ImgProtect';
+import { ContentGuard } from '@/components/shell/ContentGuard';
+import { SecurityMigrate } from '@/components/shell/SecurityMigrate';
 import { LetterSpacingFix } from '@/components/shell/LetterSpacingFix';
 import { BoardSkinSync } from '@/components/shell/BoardSkinSync';
 import { SetupGate } from '@/components/shell/SetupGate';
@@ -79,6 +81,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         <TipLayer />
                         <CursorLayer />
                         <ImgProtect />
+                        <ContentGuard />
+                        <SecurityMigrate />
                         <LetterSpacingFix />
                         <BoardSkinSync />
                         <DocTitle />

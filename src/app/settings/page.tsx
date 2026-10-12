@@ -28,7 +28,7 @@ import {
   MenuGroupNode, MenuLeaf, defaultTree, newGroupId, menuLabelFor, extraBoardHref, boardEntries,
   IMG_PROTECT_AREAS, hrefAccess,
 } from '@/lib/menuStore';
-import { menuLockSupported, isLockableHref, governingLock, lockKeyOf, useLockedHrefs, MENU_LOCKS_KEY } from '@/lib/menuLock';
+import { menuLockSupported, isLockableHref, governingLock, lockKeyOf, useLockedHrefs, MENU_LOCKS_KEY, INVITE_LOCK_KEY, memberProofOn } from '@/lib/menuLock';
 import { FEATURES } from '@/lib/menu';
 import { SectionsBlock } from '@/components/settings/SectionList';
 import { useSections, sectionMenuEntries, MAIN_SEC, inSection } from '@/lib/sectionStore';
@@ -1235,7 +1235,23 @@ function MemberPane() {
   const [removedIds, setRemovedIds] = useState<string[]>([]);   // 서버 모드에서 방금 지운 회원
   const [signupOn, setSignupOn] = useState(true);
   const [lskin, setLskin] = useState<LoginSkin>('default');
-  useEffect(() => { setCode(inviteCode()); setSignupOn(signupOpen()); setLskin(loginSkin()); setCodeLoaded(true); }, []);
+  // Firebase는 가입코드를 서버에 해시로만 둔다 — 지금 코드를 보여 줄 수 없으니 칸은 비워 두고 「바꿀 때만 입력」 (v2.0 보안 점검)
+  const inviteServer = memberProofOn();
+  useEffect(() => { setCode(inviteServer ? '' : inviteCode()); setSignupOn(signupOpen()); setLskin(loginSkin()); setCodeLoaded(true); }, [inviteServer]);
+  const saveInvite = async () => {
+    if (!code.trim()) { toast('가입코드를 입력해 주세요'); return; }
+    if (inviteServer) {
+      const be = backend();
+      if (!be) { toast('서버에 연결돼 있지 않습니다'); return; }
+      const r = await be.setLockPassword(INVITE_LOCK_KEY, code.trim());
+      if (!r.ok) { toast(r.error ?? '저장하지 못했습니다'); return; }
+      setInviteCode('');   // 예전에 공개 설정에 평문으로 남아 있던 값도 지운다
+      setCode('');
+    } else {
+      setInviteCode(code);
+    }
+    toast('가입코드가 변경되었습니다.');
+  };
   void regVer;
 
   const members = useMembers();
@@ -1310,15 +1326,12 @@ function MemberPane() {
 
       {/* 가입코드 설정 */}
       <div className="set-row" style={{ marginTop: 8, flexWrap: 'wrap' }}>
-        <div className="l"><b>가입코드</b><small>회원가입 시 입력해야 하는 초대코드 — 아는 사람에게만 공유</small></div>
+        <div className="l"><b>가입코드</b><small>{inviteServer
+          ? '회원가입 시 입력해야 하는 초대코드 — 서버에 암호화해 보관하므로 지금 코드는 다시 볼 수 없습니다. 바꿀 때만 새로 입력'
+          : '회원가입 시 입력해야 하는 초대코드 — 아는 사람에게만 공유'}</small></div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <KInput value={code} onChange={e => setCode(e.target.value)} style={{ width: 220 }} />
-          <button className="btn btn-dark" disabled={!codeLoaded}
-            onClick={() => {
-              if (!code.trim()) { toast('가입코드를 입력해 주세요'); return; }
-              setInviteCode(code);
-              toast('가입코드가 변경되었습니다.');
-            }}>SAVE</button>
+          <KInput value={code} placeholder={inviteServer ? '새 가입코드' : undefined} onChange={e => setCode(e.target.value)} style={{ width: 220 }} />
+          <button className="btn btn-dark" disabled={!codeLoaded} onClick={() => void saveInvite()}>SAVE</button>
         </div>
       </div>
 

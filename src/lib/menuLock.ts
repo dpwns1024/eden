@@ -56,8 +56,31 @@ export function useLockedHrefs(): string[] {
 export const lockKeyOf = (href: string) =>
   href.replace(/^\//, '').replace(/[^A-Za-z0-9-]/g, c => `_${c.charCodeAt(0).toString(16).padStart(4, '0')}`);
 
-/** 서버가 아는 잠금키 전체 */
-export const lockedKeys = (): Set<string> => new Set(lockedHrefs().map(lockKeyOf));
+/** 비밀번호가 걸린 FIELD REPORT 글 id 목록 (v2.0 보안 점검 — 사이트 설정. 비밀번호 자체는 여기 없다).
+ *  글마다 비밀번호도 메뉴 비밀번호와 똑같이 서버가 대조한다 — 정답 해시는 board_secrets/trpglog.{id} */
+export const LOG_LOCKS_KEY = 'ohome.loglocks.v1';
+/** 글 비밀번호의 잠금키 — 메뉴 잠금키(lockKeyOf)는 영문·숫자·하이픈·밑줄뿐이라 점(.)이 든 이 키와 겹칠 수 없다 */
+export const logLockKey = (id: string) => `trpglog.${id}`;
+export function lockedLogIds(): string[] {
+  if (!menuLockSupported()) return [];
+  const v = getSetting<string[]>(LOG_LOCKS_KEY, []);
+  return Array.isArray(v) ? v.filter(h => typeof h === 'string') : [];
+}
+
+/** 가입코드의 잠금키 — board_secrets/__invite (밑줄은 lockKeyOf가 _005f로 바꾸므로 메뉴 키와 겹치지 않는다) */
+export const INVITE_LOCK_KEY = '__invite';
+
+/** 보안 점검 후속 정리 기록 (components/shell/SecurityMigrate.tsx) */
+export const SEC_MIG_KEY = 'ohome.secmig.v1';
+/** 정식 회원 증명(members)을 서버가 확인하는가 — 새 보안 규칙을 붙여넣은 뒤 관리자가 접속해
+ *  기존 회원을 옮겨 담는 데 성공하면 켜진다. 그 전엔 가입코드를 예전처럼 화면에서 비교한다
+ *  (옛 규칙에서는 회원 증명을 쓸 수 없어 가입이 막히므로) */
+export const memberProofOn = (): boolean =>
+  menuLockSupported() && !!getSetting<{ members?: number }>(SEC_MIG_KEY, {})?.members;
+
+/** 서버가 아는 잠금키 전체 — 메뉴 비밀번호 + 글 비밀번호 */
+export const lockedKeys = (): Set<string> =>
+  new Set([...lockedHrefs().map(lockKeyOf), ...lockedLogIds().map(logLockKey)]);
 
 /**
  * 이 주소를 다스리는 잠긴 메뉴 주소 — 없으면 null.
