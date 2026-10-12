@@ -15,6 +15,7 @@ import { PageTitle, EditableDesc } from '@/components/ui/PageText';
 import { KInput, KSelect, KDate, KTextarea } from '@/components/ui/Kit';
 import { RichEditor } from '@/components/ui/RichEditor';
 import { HtmlBody } from '@/components/ui/HtmlBody';
+import { useBoardSkin } from '@/lib/boardSkin';
 import { ColorField } from '@/components/ui/ColorField';
 import { CropEditor, CropImg, CropValue } from '@/components/ui/CropEditor';
 import { useToast } from '@/components/ui/Toast';
@@ -44,6 +45,7 @@ export default function TrpgDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { user, isAdmin } = useAuth();
+  const arch = useBoardSkin() === 'arch';   // ARCH면 제목을 강철 그라데이션으로 (v2.0 사용자 요청)
   const toast = useToast();
   const [logs, setLogs, loaded] = useLocalList<TrpgLog>('ohome.trpg.v1', TRPG_SEED);
   // 본문은 목록과 분리 저장 (v2.0 — 나만보기 로그도 목록엔 뜨게 하려고 목록 문서의 질의 조건이
@@ -354,14 +356,24 @@ html,body{margin:0!important;padding:0!important;height:auto!important;min-heigh
 
       {/* 본문만 폭 제한 — 헤더는 풀폭 위치 유지 */}
       <div className="panel" style={{ padding: 24, maxWidth: 1000, margin: '0 auto' }}>
-        <h2 style={{
-          fontFamily: l.serifTitle ? 'var(--serif)' : "'Noto Serif KR',serif",
-          fontSize: 24, fontWeight: 700,
-          marginBottom: l.catchphrase ? 2 : 18, // 캐치프레이즈가 없으면 본문과 붙지 않게 여백
-          letterSpacing: l.serifTitle ? '.12em' : '.04em',
-        }}>{l.title}</h2>
-        {l.catchphrase && (
-          <p style={{ fontSize: 11.5, color: 'var(--faint)', letterSpacing: '.14em', marginBottom: 16 }}>{l.catchphrase}</p>
+        {arch ? (
+          /* ARCH — 캐릭터·페어 이름과 같은 강철 그라데이션. 한글은 얇은 명조 대신 고딕(Noto Sans KR)이 그라데이션을 또렷하게 받는다 */
+          <>
+            <h2 className="fr-title" style={{ marginBottom: l.catchphrase ? 6 : 18 }}>{l.title}</h2>
+            {l.catchphrase && <p className="fr-catch">{l.catchphrase}</p>}
+          </>
+        ) : (
+          <>
+            <h2 style={{
+              fontFamily: l.serifTitle ? 'var(--serif)' : "'Noto Serif KR',serif",
+              fontSize: 24, fontWeight: 700,
+              marginBottom: l.catchphrase ? 2 : 18, // 캐치프레이즈가 없으면 본문과 붙지 않게 여백
+              letterSpacing: l.serifTitle ? '.12em' : '.04em',
+            }}>{l.title}</h2>
+            {l.catchphrase && (
+              <p style={{ fontSize: 11.5, color: 'var(--faint)', letterSpacing: '.14em', marginBottom: 16 }}>{l.catchphrase}</p>
+            )}
+          </>
         )}
         {bd?.bodyRich && body ? (
           /* 사이트 에디터로 쓴 본문 — 다른 게시판 글처럼 페이지 안에 (v2.0 사용자 요청) */

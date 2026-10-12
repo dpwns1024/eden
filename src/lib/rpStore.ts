@@ -27,6 +27,7 @@ export interface RpRoom {
   created: string;
   lastRead: Record<string, string>; // 회원별 마지막 확인 시각 — N 뱃지
   messages: RpMessage[];
+  lv?: number;                      // 저장 규칙 판수 (v2.0 — TrpgLog.lv 참조)
 }
 
 /**
