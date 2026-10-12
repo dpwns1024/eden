@@ -2728,9 +2728,9 @@ body.sp-reveal > *:not(.splash-overlay){animation:spReveal 1.1s cubic-bezier(.2,
 html.ui-arch .to-top{border-radius:0;background:rgba(10,13,18,.78);border-color:rgba(150,170,195,.38);color:#c9d4e2;box-shadow:0 0 14px rgba(96,124,160,.18)}
 @media (hover:hover){html.ui-arch .to-top.on:hover{border-color:#8aa3c2;color:#fff;box-shadow:0 0 18px rgba(96,124,160,.4)}}
 @media (max-width:760px){
-  /* 앱 안 브라우저(네이버·카카오 등)는 아래 도구 막대가 화면 위를 덮어 바닥에 붙이면 가려진다 — 조금 띄운다 */
-  .to-top{right:12px;bottom:calc(76px + env(safe-area-inset-bottom,0px));width:36px;height:36px}
-  .to-top.on{opacity:.8}
+  /* 바닥 가까이 작게 (v2.0 사용자 요청 — 76px는 너무 높았다. 처음 안 보였던 건 배포 전이었음) */
+  .to-top{right:10px;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:32px;height:32px}
+  .to-top.on{opacity:.75}
   .to-top svg{width:16px;height:16px}
 }
 @media print{.to-top{display:none}}
