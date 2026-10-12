@@ -5,7 +5,7 @@ import React, { Suspense, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useSectionParam, filterSection, sectionSetter, secQuery } from '@/lib/sectionStore';
-import { useLocalList, fmtDate } from '@/lib/postStore';
+import { useLocalList } from '@/lib/postStore';
 import { BackupPost, BACKUP_SEED } from '@/lib/galleryStore';
 import { Pager } from '@/components/ui/Kit';
 import { useBoardSkin } from '@/lib/boardSkin';
@@ -88,9 +88,6 @@ function BackupPageInner() {
   const paged = visible.slice(start, start + PER);
   useEffect(() => { setPage(1); }, [view]);
 
-  const count = (p: BackupPost) => Math.max(p.images.length, p.phList.length);
-  const meta = (p: BackupPost) =>
-    `${count(p)}장 · ${fmtDate(p.madeDate ? p.madeDate + 'T00:00:00' : p.date)}`;
 
   return (
     <section className="page page-arch page-gallery">
@@ -119,11 +116,6 @@ function BackupPageInner() {
                   <div style={{ position: 'absolute', inset: 0 }}>
                     <CroppedBlobImg fileRef={p.images[0]} crop={p.thumbCrop} ph={p.phList[0] ?? 'cool'} />
                   </div>
-                  {!folded && p.category && (
-                    <span className="typ" style={getPrefixStyle(p.category)}>
-                      {p.category}
-                    </span>
-                  )}
                   {folded && (
                     <div className="cover" onClick={e => { e.stopPropagation(); setUnveiled(u => ({ ...u, [p.id]: true })); }}>
                       <div>
@@ -133,11 +125,15 @@ function BackupPageInner() {
                     </div>
                   )}
                 </div>
+                {/* 제목 칸 — 말머리는 제목 옆, 아래엔 태그만 (장수·날짜·작성자는 표시하지 않음, v2.0 사용자 요청) */}
                 <div className="info">
-                  <b>{p.title}</b>
-                  <small><span className="g-meta">{meta(p)}</span>
-                    {(p.tags ?? []).map(t => <i key={t} className="tag-in">#{t}</i>)}
-                  </small>
+                  <div className="g-head">
+                    <b>{p.title}</b>
+                    {p.category && <span className="typ" style={getPrefixStyle(p.category)}>{p.category}</span>}
+                  </div>
+                  {(p.tags ?? []).length > 0 && (
+                    <small>{(p.tags ?? []).map(t => <i key={t} className="tag-in">#{t}</i>)}</small>
+                  )}
                 </div>
               </div>
             );
@@ -155,12 +151,10 @@ function BackupPageInner() {
                     ? <span className="pill red" style={{ marginLeft: 6 }}>접힘</span>
                     : p.category && <span className="typ" style={{ ...getPrefixStyle(p.category), marginLeft: 6 }}>{p.category}</span>}
                 </b>
-                <small>
-                  {meta(p)}
-                  {(p.tags ?? []).map(t => <i key={t} className="tag-in">#{t}</i>)}
-                </small>
+                {(p.tags ?? []).length > 0 && (
+                  <small>{(p.tags ?? []).map(t => <i key={t} className="tag-in">#{t}</i>)}</small>
+                )}
               </div>
-              <small>{p.author}</small>
             </div>
           ))}
         </div>
