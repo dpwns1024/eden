@@ -29,6 +29,16 @@ export interface ArchCard {
 export interface ArchMoreRow { k: string; v: string }
 /** 분류 카드 오른쪽 위 「상세」 버튼 — 누르면 작은 창에 항목별 설명 */
 export interface ArchMore { label: string; title: string; rows: ArchMoreRow[] }
+export interface ArchRank {
+  id: string;
+  key: string;                         // 버튼 글자 (SS · S · A-B · C · H)
+  en: string; name: string; alias: string;   // 영문 이름 · 한글 이름 · 별칭('원소의 군주')
+  grade: string;                       // 오른쪽 위 작은 글씨 (예: SS급 · 6명)
+  body: string;
+  /** 버튼 앞에 구분선 — 직급이 아닌 부서(하모니)처럼 따로 묶을 때 */
+  apart?: boolean;
+}
+export interface ArchRanks { caption: string; items: ArchRank[] }
 export interface ArchClass {
   id: string;
   icon: string;                        // 미리 만든 아이콘 키(ICONS) · 'none' · 또는 'svg:<svg…>'
@@ -39,7 +49,9 @@ export interface ArchClass {
 export type ArchBlock =
   | { id: string; type: 'head'; num: string; title: string; sub: string; doc: string }
   | { id: string; type: 'cards'; cards: ArchCard[] }
-  | { id: string; type: 'classes'; items: ArchClass[]; grade?: { letters: string[]; on: number; caption: string } | null }
+  | { id: string; type: 'classes'; items: ArchClass[]; grade?: { letters: string[]; on: number; caption: string } | null;
+      /** 직급 체계 — 등급 띠와 같은 모양의 버튼 줄, 누르면 아래 설명. undefined = 손댄 적 없음(기본값), null = 뺐음 */
+      ranks?: ArchRanks | null }
   | { id: string; type: 'text'; html: string }
   | { id: string; type: 'image'; src: string; caption: string }
   | { id: string; type: 'html'; html: string };
@@ -98,6 +110,30 @@ export const GUIDE_MORE: ArchMore = {
 export const moreOf = (it: ArchClass): ArchMore | null =>
   // 처음 탭 문서를 저장할 때 아이콘이 그림 그대로(svg:…) 저장된 문서가 있다(v2.0 사용자 제보 — 버튼이 안 보였다)
   it.more !== undefined ? it.more : (iconKeyOf(it.icon) === 'guide' ? GUIDE_MORE : null);
+
+/** 직급 체계 기본값 (v2.0 사용자 요청) — ARCH 분류 블록(센티넬·가이드 카드 + 등급 띠)에 손대지 않았으면 이걸 보여 준다 */
+export const DEFAULT_RANKS: ArchRanks = {
+  caption: 'RANK SYSTEM · ARCH STANDARD',
+  items: [
+    { id: 'rk-ss', key: 'SS', en: 'ARCH PRIMA', name: '아크 프리마', alias: '원소의 군주', grade: 'SS급 · 총 6명',
+      body: '기관을 이끄는 간부들. 각 속성의 정점에 선 단 한 명의 존재 (총 6명).' },
+    { id: 'rk-s', key: 'S', en: 'VANGUARD', name: '뱅가드', alias: '선봉대', grade: 'S급',
+      body: '최정예 베테랑 현장 리더.' },
+    { id: 'rk-ab', key: 'A-B', en: 'AGENT', name: '에이전트', alias: '요원', grade: 'A–B급',
+      body: 'ARCH의 주력이 되는 실전 멤버.' },
+    { id: 'rk-c', key: 'C', en: 'ACOLYTE', name: '애콜라이트', alias: '신입', grade: 'C급 이하',
+      body: '훈련과 성장이 필요한 신입 요원.' },
+    { id: 'rk-h', key: 'H', en: 'HARMONY', name: '하모니 부서', alias: '가이드 지원 · 관리', grade: 'DEPT. · C–S급', apart: true,
+      body: "모든 가이드가 소속된 지원 및 관리 부서. 하모니 부서 안에서도 따로 C~S급이 나뉘며, 아크의 가이드는 '무속성'과 '속성 가이드'들로 나뉘어 있습니다. 속성 가이드는 가장 희귀한 포지션이기에 무조건 S급으로 배정받습니다." },
+  ],
+};
+/** 이 분류 블록의 직급 체계 — 손대지 않은 ARCH 분류 블록(센티넬·가이드 카드가 있는)은 기본값 */
+export function ranksOf(b: Extract<ArchBlock, { type: 'classes' }>): ArchRanks | null {
+  if (b.ranks !== undefined) return b.ranks;
+  const keys = b.items.map(it => iconKeyOf(it.icon));
+  return b.grade && keys.includes('sentinel') && keys.includes('guide') ? DEFAULT_RANKS : null;
+}
+export const blankRank = (): ArchRank => ({ id: newId(), key: 'X', en: 'RANK', name: '', alias: '', grade: '', body: '' });
 
 /* ── 저장 ── */
 export function useArchDocs(): [Record<string, ArchDoc>, (id: string, doc: ArchDoc | null) => void, boolean] {

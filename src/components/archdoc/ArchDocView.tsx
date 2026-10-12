@@ -9,7 +9,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
-  ArchDoc, ArchBlock, ArchCard, ArchClass, ArchFact, ArchMore, ICONS, iconSvg, iconKeyOf, blankBlock, blankCard, blankClass, BLOCK_LABEL, moreOf,
+  ArchDoc, ArchBlock, ArchCard, ArchClass, ArchFact, ArchMore, ArchRank, ArchRanks, ICONS, iconSvg, iconKeyOf, blankBlock, blankCard, blankClass,
+  BLOCK_LABEL, moreOf, ranksOf, blankRank,
 } from '@/lib/archDocStore';
 import { newId } from '@/lib/postStore';
 import { sanitizeHtml } from '@/lib/sanitize';
@@ -100,6 +101,31 @@ function MoreButton({ more }: { more: ArchMore }) {
   );
 }
 
+/** 직급 체계 — 등급 띠와 같은 버튼 줄, 누른 직급의 설명이 아래 카드로 */
+function RanksView({ ranks }: { ranks: ArchRanks }) {
+  const [on, setOn] = useState(0);
+  const cur = ranks.items[Math.min(on, ranks.items.length - 1)];
+  if (!cur) return null;
+  return (
+    <div className="ar-ranks">
+      <div className="ar-pn ar-grade ar-rank-bar" role="tablist" aria-label="직급 체계">
+        {ranks.items.map((r, i) => (
+          <React.Fragment key={r.id}>
+            {r.apart && <b className="ar-rank-sep" aria-hidden="true" />}
+            <button type="button" role="tab" aria-selected={i === on} className={i === on ? 's' : undefined} onClick={() => setOn(i)}>{r.key}</button>
+          </React.Fragment>
+        ))}
+        <i />{ranks.caption}
+      </div>
+      <article className="ar-pn ar-card ar-rank-card" key={cur.id}>
+        <div className="ar-c-k"><span>RANK · {cur.key}</span><span>{cur.grade}</span></div>
+        <h3><span className="ar-silver">{cur.en}</span><small>{[cur.name, cur.alias && `‘${cur.alias}’`].filter(Boolean).join(' · ')}</small></h3>
+        {cur.body && <p>{cur.body}</p>}
+      </article>
+    </div>
+  );
+}
+
 function BlockView({ b }: { b: ArchBlock }) {
   switch (b.type) {
     case 'head':
@@ -139,6 +165,7 @@ function BlockView({ b }: { b: ArchBlock }) {
               <i />{b.grade.caption}
             </div>
           )}
+          {ranksOf(b) && <RanksView ranks={ranksOf(b)!} />}
         </>
       );
     case 'text':
@@ -274,6 +301,33 @@ function MoreEditor({ more, onChange }: { more: ArchMore | null; onChange: (m: A
   );
 }
 
+function RanksEditor({ ranks, onChange }: { ranks: ArchRanks | null; onChange: (r: ArchRanks | null) => void }) {
+  return (
+    <div className="ad-field wide" style={{ marginTop: 14 }}>
+      <KCheck label="직급 체계 넣기 (버튼을 누르면 아래 설명)" checked={!!ranks}
+        onChange={v => onChange(v ? (ranks ?? { caption: 'RANK SYSTEM', items: [blankRank()] }) : null)} />
+      {ranks && (
+        <div className="ad-list" style={{ marginTop: 8 }}>
+          <div className="ad-row"><KInput placeholder="버튼 줄 오른쪽 글씨" value={ranks.caption} onChange={e => onChange({ ...ranks, caption: e.target.value })} /></div>
+          <ItemList items={ranks.items} onChange={items => onChange({ ...ranks, items })} make={blankRank} addLabel="직급 추가"
+            title={(r: ArchRank) => `${r.key} — ${r.name || r.en || '(이름 없음)'}`}
+            render={(r: ArchRank, sr: (v: ArchRank) => void) => (
+              <div className="ad-grid">
+                <Field label="버튼 글자 (영어 · 예: SS)"><KInput maxLength={4} value={r.key} onChange={e => sr({ ...r, key: e.target.value })} /></Field>
+                <Field label="오른쪽 위 작은 글씨 (예: SS급 · 총 6명)"><KInput value={r.grade} onChange={e => sr({ ...r, grade: e.target.value })} /></Field>
+                <Field label="영문 이름 (은빛 큰 글씨)"><KInput value={r.en} onChange={e => sr({ ...r, en: e.target.value })} /></Field>
+                <Field label="한글 이름"><KInput value={r.name} onChange={e => sr({ ...r, name: e.target.value })} /></Field>
+                <Field label="별칭 (예: 원소의 군주)"><KInput value={r.alias} onChange={e => sr({ ...r, alias: e.target.value })} /></Field>
+                <div className="ad-field"><span>&nbsp;</span><KCheck label="앞에 구분선 (부서 등 따로 묶기)" checked={!!r.apart} onChange={v => sr({ ...r, apart: v || undefined })} /></div>
+                <Field label="설명" wide><KTextarea rows={3} value={r.body} onChange={e => sr({ ...r, body: e.target.value })} /></Field>
+              </div>
+            )} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** 카드·분류처럼 「여러 개를 순서대로」 고치는 목록 */
 function ItemList<T extends { id: string }>({ items, onChange, render, title, make, addLabel }: {
   items: T[]; onChange: (v: T[]) => void; render: (it: T, set: (v: T) => void) => React.ReactNode;
@@ -366,6 +420,7 @@ function BlockEditor({ b, set }: { b: ArchBlock; set: (b: ArchBlock) => void }) 
               </div>
             )}
           </div>
+          <RanksEditor ranks={ranksOf(b)} onChange={ranks => set({ ...b, ranks })} />
         </>
       );
     }
