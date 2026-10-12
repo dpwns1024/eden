@@ -211,7 +211,7 @@ a{color:inherit;text-decoration:none}
    <html class="ui-arch">일 때, ARCH로 옮긴 게시판(<section class="page page-arch">)에만 적용 — 지금: 캐릭터 목록·프로필, 자관(PAIRING) 목록·상세, 메뉴 비밀번호 화면.
    레이아웃은 그대로 두고 모양만 ARCH HTML 페이지(어두운 반투명 박스·꺾쇠·은빛 제목·모노 라벨)처럼.
    다른 게시판을 옮길 때는 그 페이지 <section>에 page-arch를 붙이고, 그 게시판만의 부품 모양을 아래에 더한다 */
-html.ui-arch .page-arch{--a-pn:rgba(13,18,25,.64);--a-ln:rgba(190,208,228,.10);--a-ln2:rgba(190,208,228,.22);--a-tx:#e4e9ef;--a-mu:#8592a0;--a-dim:#4a5461;
+html.ui-arch .page-arch,.mng-box.arch-modal{--a-pn:rgba(13,18,25,.64);--a-ln:rgba(190,208,228,.10);--a-ln2:rgba(190,208,228,.22);--a-tx:#e4e9ef;--a-mu:#8592a0;--a-dim:#4a5461;
   --a-ac:#b8d8ff;--a-acr:184,216,255;--a-sil:linear-gradient(180deg,#fff 0%,#d3dbe4 34%,#7f8a97 52%,#e6ebf1 68%,#98a3b0 100%);
 }
 /* 제목 줄 — 은빛 큰 제목 + 아래 가는 선(앞 120px만 빛나는 포인트) */
@@ -549,18 +549,18 @@ html.ui-arch .page-arch .k-step input:focus{background:rgba(var(--a-acr),.06)}
 html.ui-arch .page-arch .k-check .box,html.ui-arch .page-arch .k-radio .dot{background:rgba(5,8,12,.6);border-color:var(--a-ln2)}
 html.ui-arch .page-arch .k-check input:checked + .box{background:rgba(var(--a-acr),.7);border-color:rgba(var(--a-acr),.9)}
 /* 글 편집기 */
-html.ui-arch .page-arch .re-wrap{border:1px solid var(--a-ln2);border-radius:0;background:rgba(5,8,12,.55)}
-html.ui-arch .page-arch .re-wrap:focus-within{border-color:rgba(var(--a-acr),.55);box-shadow:0 0 0 3px rgba(var(--a-acr),.07)}
-html.ui-arch .page-arch .re-toolbar{background:rgba(13,18,25,.85);border-bottom:1px solid var(--a-ln)}
-html.ui-arch .page-arch .re-btn{color:var(--a-mu);border-radius:0}
-html.ui-arch .page-arch .re-btn:hover{background:rgba(var(--a-acr),.08);color:#fff}
-html.ui-arch .page-arch .re-btn.on{background:rgba(var(--a-acr),.18);color:#fff}
-html.ui-arch .page-arch .re-sep{background:var(--a-ln2)}
-html.ui-arch .page-arch .re-content{color:var(--a-tx)}
-html.ui-arch .page-arch .re-content a{color:var(--a-ac)}
-html.ui-arch .page-arch .re-content blockquote{border-left-color:var(--a-ln2);color:#b3bec9}
-html.ui-arch .page-arch .re-content hr{border-top-color:var(--a-ln2)}
-html.ui-arch .page-arch .re-ph{color:var(--a-dim)}
+html.ui-arch .page-arch .re-wrap,.mng-box.arch-modal .re-wrap{border:1px solid var(--a-ln2);border-radius:0;background:rgba(5,8,12,.55)}
+html.ui-arch .page-arch .re-wrap:focus-within,.mng-box.arch-modal .re-wrap:focus-within{border-color:rgba(var(--a-acr),.55);box-shadow:0 0 0 3px rgba(var(--a-acr),.07)}
+html.ui-arch .page-arch .re-toolbar,.mng-box.arch-modal .re-toolbar{background:rgba(13,18,25,.85);border-bottom:1px solid var(--a-ln)}
+html.ui-arch .page-arch .re-btn,.mng-box.arch-modal .re-btn{color:var(--a-mu);border-radius:0}
+html.ui-arch .page-arch .re-btn:hover,.mng-box.arch-modal .re-btn:hover{background:rgba(var(--a-acr),.08);color:#fff}
+html.ui-arch .page-arch .re-btn.on,.mng-box.arch-modal .re-btn.on{background:rgba(var(--a-acr),.18);color:#fff}
+html.ui-arch .page-arch .re-sep,.mng-box.arch-modal .re-sep{background:var(--a-ln2)}
+html.ui-arch .page-arch .re-content,.mng-box.arch-modal .re-content{color:var(--a-tx)}
+html.ui-arch .page-arch .re-content a,.mng-box.arch-modal .re-content a{color:var(--a-ac)}
+html.ui-arch .page-arch .re-content blockquote,.mng-box.arch-modal .re-content blockquote{border-left-color:var(--a-ln2);color:#b3bec9}
+html.ui-arch .page-arch .re-content hr,.mng-box.arch-modal .re-content hr{border-top-color:var(--a-ln2)}
+html.ui-arch .page-arch .re-ph,.mng-box.arch-modal .re-ph{color:var(--a-dim)}
 /* 추가 탭 목록 줄 (인라인 모양을 덮어써야 해서 !important) */
 html.ui-arch .page-arch .ce-tab{border:1px solid var(--a-ln2) !important;border-radius:0 !important;background:rgba(5,8,12,.35)}
 html.ui-arch .page-arch .ce-tab b{color:#fff}

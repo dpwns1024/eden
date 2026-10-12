@@ -53,7 +53,8 @@ export default function RelsPage() {
             const sp = sort(i) as { style?: React.CSSProperties };
             // 상세 배너와 같은 그림·위치(첫 일러 + 상세에서 잡은 위치), 없으면 리스트 썸네일
             const art = r.arts?.[0] ?? r.thumbId;
-            const crop = (art && r.artCrops?.[art]) || (art === r.thumbId ? r.thumbCrop : undefined);
+            // 목록 배너 위치(수정 화면의 「목록 배너 위치」)가 있으면 그것 → 상세 배너 위치 → 썸네일 위치
+            const crop = r.listCrop || (art && r.artCrops?.[art]) || (art === r.thumbId ? r.thumbCrop : undefined);
             const cp = cpLabelFor(r);
             const no = String(i + 1).padStart(3, '0');
             return (
