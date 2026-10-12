@@ -630,7 +630,8 @@ export function DecoWidget({ conf }: { conf: WidgetConf }) {
 export function MemoBoardWidget() {
   const router = useRouter();
   const { user, isAdmin } = useAuth();
-  const [memos] = useLocalList<StickyMemo>('ohome.memo.v1', MEMO_SEED);
+  const [allMemos] = useLocalList<StickyMemo>('ohome.memo.v1', MEMO_SEED);
+  const memos = allMemos.filter(m => m.kind !== 'note');   // 메모 게시판(/memo2)의 메모는 제외
   const [settings] = useMemoSettings();
   const [menuSet] = useMenuSettings();
   if (!canViewHref(menuSet, '/memo', { loggedIn: !!user, isAdmin })) return null;

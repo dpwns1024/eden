@@ -18,7 +18,10 @@ export default function MemoPage() {
   const { user, isAdmin } = useAuth();
   const toast = useToast();
   const del = useConfirmDelete();
-  const [memos, setMemos, loaded] = useLocalList<StickyMemo>('ohome.memo.v1', MEMO_SEED);
+  const [allMemos, setAllMemos, loaded] = useLocalList<StickyMemo>('ohome.memo.v1', MEMO_SEED);
+  // 메모 게시판(/memo2)의 메모(kind: 'note')도 같은 목록에 있다 — 보드에는 스티커만, 저장할 땐 note를 그대로 둔다
+  const memos = allMemos.filter(m => m.kind !== 'note');
+  const setMemos = (next: StickyMemo[]) => setAllMemos([...next, ...allMemos.filter(m => m.kind === 'note')]);
   const [settings] = useMemoSettings();
   const boardRef = useRef<HTMLDivElement>(null);
   const [focusId, setFocusId] = useState<string | null>(null);

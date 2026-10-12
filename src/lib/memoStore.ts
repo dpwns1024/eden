@@ -14,6 +14,7 @@ export interface StickyMemo {
   z: number;                 // 겹침 순서
   size: 's' | 'm' | 'l';     // 크기
   date: string;              // ISO
+  kind?: string;             // 'note' = 메모 게시판(/memo2)의 메모 — 같은 목록에 함께 저장, 스티커 보드에선 걸러 낸다
 }
 
 export const MEMO_COLORS = ['#f4ecd7', '#dfe7dd', '#e7dfe4', '#dde4ea', '#efe3da'];
