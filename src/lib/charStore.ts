@@ -376,6 +376,8 @@ export interface Relation {
   thumbCrop?: import("@/components/ui/CropEditor").CropValue;
   /** PAIRING 목록 배너(약 6:1)에서 보일 첫 아트 위치 (v2.0 사용자 요청) — 없으면 상세 배너 위치 → 썸네일 위치 */
   listCrop?: import("@/components/ui/CropEditor").CropValue;
+  /** 모바일 목록 배너 위치 (v2.0) — 없으면 listCrop */
+  listCropM?: import("@/components/ui/CropEditor").CropValue;
   members: RelMember[];          // 2인 = 좌/우, 3인+ = 다인 리스트
   visibility: Visibility;
   thumbClass: string;

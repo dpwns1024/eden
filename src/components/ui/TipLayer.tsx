@@ -37,7 +37,10 @@ export function TipLayer() {
       pop.style.top = `${Math.round(y)}px`;
     };
 
-    const onOver = (e: Event) => {
+    const onOver = (e: PointerEvent) => {
+      // 손가락 터치에는 띄우지 않는다 (v2.0 사용자 제보 — 아이폰에서 버튼을 두 번 눌러야 동작).
+      // iOS는 첫 탭에 화면 내용이 바뀌면(툴팁이 뜨면) 그 탭을 「호버」로만 치고 클릭을 버린다
+      if (e.pointerType === 'touch' || e.pointerType === 'pen') { if (cur) hide(); return; }
       const t = e.target as Element | null;
       const hit = t?.closest?.('[data-tip]') ?? null;
       if (!hit) { if (cur) hide(); return; }

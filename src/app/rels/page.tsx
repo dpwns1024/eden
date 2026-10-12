@@ -1,7 +1,7 @@
 'use client';
 // EditableDesc 주입
 // 자관 리스트 (4.5) — 4:3 가로 썸네일 · 공개범위 3단계 · 멤버 색 점
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useLocalList } from '@/lib/postStore';
@@ -21,6 +21,14 @@ export default function RelsPage() {
   const { editOn } = useMainStore();
   const [rels, setRels] = useLocalList<Relation>('ohome.rels.v1', REL_SEED);
   const [chars] = useLocalList<Character>('ohome.chars.v1', CHAR_SEED);
+  // 모바일 배너(칸이 훨씬 높다)는 따로 잡은 그림 위치를 쓴다 — globals.css의 .rel-bn 모바일 구간과 같은 기준
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width:620px)');
+    const on = () => setNarrow(mq.matches);
+    on(); mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
 
   const colorOf = (id: string) => chars.find(c => c.id === id)?.color ?? '#666';
   const nameOf = (id: string) => chars.find(c => c.id === id)?.name ?? '';
@@ -55,6 +63,8 @@ export default function RelsPage() {
             const art = r.arts?.[0] ?? r.thumbId;
             // 목록 배너 위치(수정 화면의 「목록 배너 위치」)가 있으면 그것 → 상세 배너 위치 → 썸네일 위치
             const crop = r.listCrop || (art && r.artCrops?.[art]) || (art === r.thumbId ? r.thumbCrop : undefined);
+            // 모바일은 배너가 훨씬 높아 따로 잡은 위치(모바일 배너 위치)가 있으면 그것
+            const cropM = r.listCropM || crop;
             const cp = cpLabelFor(r);
             const no = String(i + 1).padStart(3, '0');
             return (
@@ -66,10 +76,9 @@ export default function RelsPage() {
                   router.push(relPath(r));
                 }}>
                 <div className="bn-art">
-                  <CroppedBlobImg fileRef={art} crop={crop} ph={r.thumbClass} label="" />
+                  <CroppedBlobImg fileRef={art} crop={narrow ? cropM : crop} ph={r.thumbClass} label="" />
                 </div>
                 <div className="bn-tx">
-                  <span className="bn-k">PAIRING · № {no}</span>
                   <b>
                     {r.name}
                     {r.visibility === 'member' && <span className="pill">멤버</span>}
