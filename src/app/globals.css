@@ -420,7 +420,7 @@ html.ui-arch .page-arch .mp-quote{position:relative;margin:14px 16px 0;padding:8
 html.ui-arch .page-arch .mp-quote::before,html.ui-arch .page-arch .mp-quote::after{content:'';position:absolute;width:9px;height:9px;border:solid var(--c);pointer-events:none}
 html.ui-arch .page-arch .mp-quote::before{left:0;top:0;border-width:1px 0 0 1px}
 html.ui-arch .page-arch .mp-quote::after{right:0;bottom:0;border-width:0 1px 1px 0}
-html.ui-arch .page-arch .mp-quote span{display:block;font:300 calc(13px*var(--fs,1))/1.75 'Noto Sans KR',sans-serif;letter-spacing:.02em;color:#c9d2dc;word-break:keep-all}
+html.ui-arch .page-arch .mp-quote span{display:block;font:300 calc(12px*var(--fs,1))/1.75 'Noto Sans KR',sans-serif;letter-spacing:.02em;color:#c9d2dc;word-break:keep-all}
 @media (max-width:960px){
   html.ui-arch .page-arch .rel-body.rel-banner{grid-template-columns:1fr;grid-template-areas:"art" "l" "r"}
   html.ui-arch .page-arch .rel-body.rel-banner > .rel-center{height:clamp(280px,70vw,420px)}
