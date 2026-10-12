@@ -2887,3 +2887,23 @@ html.ui-arch .page-memo2 .mn-act button:hover{border-color:rgba(var(--a-acr),.6)
   .page-memo2 .mn-act button,html.ui-arch .page-memo2 .mn-act button{font-size:calc(8px*var(--fs,1));padding:3px 5px;letter-spacing:.14em}
   html.ui-arch .page-memo2 .mn-foot{font-size:calc(8.5px*var(--fs,1));letter-spacing:.08em}
 }
+
+/* ===== 발췌 이미지 (components/shell/ExcerptMaker.tsx — 관리자 전용) ===== */
+.excerpt-btn{position:fixed;z-index:900;transform:translateX(-50%);padding:8px 14px;border:1px solid rgba(150,170,195,.5);background:rgba(10,13,18,.92);
+  color:#e6ebf1;font:400 12px/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.14em;white-space:nowrap;box-shadow:0 6px 20px rgba(0,0,0,.35);cursor:var(--cur-pointer,pointer)}
+.excerpt-btn:hover{border-color:#8aa3c2;color:#fff}
+.excerpt-preview{display:block;max-width:100%;max-height:70vh;margin:0 auto;box-shadow:0 0 0 1px rgba(190,208,228,.14)}
+/* 화면 밖에서 찍는 카드 */
+.excerpt-card{position:fixed;left:-30000px;top:0;width:640px;box-sizing:border-box;padding:40px 40px 26px;background-size:cover;background-position:center;
+  color:#c3ccd6;font-family:'Noto Sans KR',sans-serif}
+.excerpt-card .ex-frame{position:relative;padding:30px 32px;border:1px solid rgba(190,208,228,.14);background:rgba(13,18,25,.66)}
+.excerpt-card .ex-frame::before,.excerpt-card .ex-frame::after{content:'';position:absolute;width:10px;height:10px;border:solid rgba(220,230,240,.6)}
+.excerpt-card .ex-frame::before{left:-1px;top:-1px;border-width:1px 0 0 1px}
+.excerpt-card .ex-frame::after{right:-1px;bottom:-1px;border-width:0 1px 1px 0}
+.excerpt-card .ex-body{font-size:15px;line-height:1.95;color:#c3ccd6;font-weight:300;word-break:normal;overflow-wrap:anywhere}
+.excerpt-card .ex-body p{margin:0 0 .9em}
+.excerpt-card .ex-body p:last-child{margin-bottom:0}
+.excerpt-card .ex-body p:empty::before{content:'\00a0'}
+.excerpt-card .ex-body :is(strong,b,h1,h2,h3){color:#fff}
+.excerpt-card .ex-body img{display:block;max-width:100%;height:auto;margin:12px auto}
+.excerpt-card .ex-foot{margin-top:16px;text-align:right;font:400 10px/1 'JetBrains Mono',monospace;letter-spacing:.3em;color:#6f7b89;text-transform:uppercase}
