@@ -466,8 +466,8 @@ ${rows}
           )}
         </div>
 
-        {/* 우측 상태 필터 */}
-        <div className="panel tagside" style={{ padding: 16, alignSelf: 'start' }}>
+        {/* 우측 상태 필터 — 모바일에선 비회원에게 숨김 (v2.0 사용자 요청 — 비회원은 완결 채널만 보여 고를 게 없다) */}
+        <div className={`panel tagside${user ? '' : ' m-guest-hide'}`} style={{ padding: 16, alignSelf: 'start' }}>
           <h4>{cw('STATUS', '상태')}</h4>
           {isAdmin && (
             <div className={`tag ${fStatus === 'ongoing' ? 'on' : ''}`} onClick={() => setFStatus('ongoing')}>

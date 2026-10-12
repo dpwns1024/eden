@@ -760,10 +760,14 @@ html.ui-arch .page-arch .rel-bn .bn-no{position:absolute;right:24px;bottom:12px;
   html.ui-arch .page-arch .rel-bn{height:150px}
   html.ui-arch .page-arch .rel-bn .bn-tx{left:16px;right:16px;max-width:none;gap:5px}
   html.ui-arch .page-arch .rel-bn .bn-art::after{background:linear-gradient(90deg,rgba(5,7,10,.92) 0%,rgba(5,7,10,.6) 55%,rgba(5,7,10,.2) 100%)}
-  html.ui-arch .page-arch .rel-bn b{font-size:calc(21px*var(--fs,1));letter-spacing:.08em}
-  html.ui-arch .page-arch .rel-bn small{font-size:10.5px;letter-spacing:.12em}
-  html.ui-arch .page-arch .rel-bn .bn-m{gap:5px 12px;margin-top:5px;font-size:11px}
-  html.ui-arch .page-arch .rel-bn .bn-no{font-size:40px;right:14px;bottom:8px}
+  /* 글씨 한 단계씩 작게 (v2.0 사용자 요청 — 그림이 더 보이게) */
+  html.ui-arch .page-arch .rel-bn b{font-size:calc(18px*var(--fs,1));letter-spacing:.08em}
+  html.ui-arch .page-arch .rel-bn small{font-size:9.5px;letter-spacing:.1em}
+  html.ui-arch .page-arch .rel-bn .bn-m{gap:5px 10px;margin-top:4px;font-size:10px}
+  html.ui-arch .page-arch .rel-bn .bn-m em{font-size:7.5px;padding:3px 6px 3px 8px}
+  html.ui-arch .page-arch .rel-bn .bn-m .au{font-size:8px}
+  html.ui-arch .page-arch .rel-bn .bn-m i{width:5px;height:5px}
+  html.ui-arch .page-arch .rel-bn .bn-no{font-size:34px;right:14px;bottom:8px}
 }
 
 /* COMMS ARCHIVE — 방 목록 · 대화 */
@@ -1165,6 +1169,7 @@ html.ui-arch .tip-pop,html.ui-arch .tip-pop.dd{background:rgba(8,11,15,.96);colo
   .rp-layout > .tagside{display:none;order:2}
   .rp-layout.mopen .rp-rooms{display:flex}
   .rp-layout.mopen > .tagside{display:block}
+  .rp-layout.mopen > .tagside.m-guest-hide{display:none}
   .rp-chat{order:3;height:64vh}
   /* 입력창 포커스 — 페이지 제목·접힘 바 없이 역극 영역만 (v1.9) */
   .page.rp-focus .page-head{display:none}
@@ -1867,6 +1872,12 @@ html.ui-arch body:has(.page-arch) .ctx-menu .sep{background:rgba(190,208,228,.14
   .rel-tabs{gap:16px}
   .rel-tabs > button{padding:6px 2px 10px;letter-spacing:0}
   .rel-tabs .btn{padding:0 11px !important;min-width:40px;font-size:calc(14px*var(--fs,1)) !important}
+  /* ARCH — 탭 두 개를 반반 칸으로 나눠 이름을 다 쓴다 (v2.0 사용자 요청 — 「C · I」 한 글자는 알아보기 어려움) */
+  html.ui-arch .page-arch .rel-tabs{gap:0}
+  html.ui-arch .page-arch .rel-tabs .lb-pc{display:inline}
+  html.ui-arch .page-arch .rel-tabs .lb-m{display:none}
+  html.ui-arch .page-arch .rel-tabs > button:not(.btn):not([data-tip]){flex:1 1 0;max-width:50%;min-width:0;padding:15px 4px;text-align:center;
+    font-size:calc(12px*var(--fs,1));letter-spacing:.22em;white-space:nowrap}
 }
 /* 페어 문답 (QUESTIONS, v1.8) — PC 기준 세로 700px */
 .qa-wrap{display:grid;grid-template-columns:1fr 290px;gap:18px;height:700px}
@@ -2700,8 +2711,9 @@ body.sp-reveal > *:not(.splash-overlay){animation:spReveal 1.1s cubic-bezier(.2,
 html.ui-arch .to-top{border-radius:0;background:rgba(10,13,18,.78);border-color:rgba(150,170,195,.38);color:#c9d4e2;box-shadow:0 0 14px rgba(96,124,160,.18)}
 @media (hover:hover){html.ui-arch .to-top.on:hover{border-color:#8aa3c2;color:#fff;box-shadow:0 0 18px rgba(96,124,160,.4)}}
 @media (max-width:760px){
-  .to-top{right:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));width:34px;height:34px}
-  .to-top.on{opacity:.6}
+  /* 앱 안 브라우저(네이버·카카오 등)는 아래 도구 막대가 화면 위를 덮어 바닥에 붙이면 가려진다 — 조금 띄운다 */
+  .to-top{right:12px;bottom:calc(76px + env(safe-area-inset-bottom,0px));width:36px;height:36px}
+  .to-top.on{opacity:.8}
   .to-top svg{width:16px;height:16px}
 }
 @media print{.to-top{display:none}}
