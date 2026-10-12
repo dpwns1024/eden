@@ -75,7 +75,7 @@ export default function BackupDetailPage() {
   if (!loaded) return <section className="page" />;
   if (!p || (p.visibility === 'private' && !isAdmin) || (p.visibility === 'member' && !user)) {
     return (
-      <section className="page">
+      <section className="page page-arch page-gallery-detail">
         <div className="page-head"><PageTitle href={tt.href}>{tt.title}</PageTitle><p>게시물을 찾을 수 없거나 열람 권한이 없습니다</p></div>
       </section>
     );
@@ -99,7 +99,7 @@ export default function BackupDetailPage() {
   };
 
   return (
-    <section className="page">
+    <section className="page page-arch page-gallery-detail">
       <div className="page-head">
         <PageTitle href={tt.href}>{tt.title}</PageTitle>
         <p>
@@ -114,10 +114,10 @@ export default function BackupDetailPage() {
 
       <div className="panel" style={{ padding: 20, maxWidth: 960, margin: '0 auto' }}>
         {/* 제목 옆에 갤러리 유형(단일) 대신 말머리(p.category) 뱃지와 설정한 색상 노출 */}
-        <h2 style={{ fontSize: 18, marginBottom: p.desc ? 8 : 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <h2 className="g-title" style={{ fontSize: 18, marginBottom: p.desc ? 8 : 16, display: 'flex', alignItems: 'center', gap: 8 }}>
           {p.title}
           {p.category && (
-            <span style={getPrefixStyle(p.category)}>
+            <span className="g-badge" style={getPrefixStyle(p.category)}>
               {p.category}
             </span>
           )}

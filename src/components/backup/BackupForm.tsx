@@ -90,7 +90,7 @@ export function BackupForm({ initial }: { initial: BackupPost | null }) {
 
   if (!user) {
     return (
-      <section className="page">
+      <section className="page page-arch page-rel-edit page-gallery-edit">
         <div className="page-head"><PageTitle href={tt.href}>{tt.title}</PageTitle><p>글쓰기는 로그인 후 이용할 수 있습니다</p></div>
       </section>
     );
@@ -137,7 +137,7 @@ export function BackupForm({ initial }: { initial: BackupPost | null }) {
   };
 
   return (
-    <section className="page">
+    <section className="page page-arch page-rel-edit page-gallery-edit">
       <div className="page-head"><PageTitle href={tt.href}>{tt.title}</PageTitle><EditableDesc k={isNew ? 'backup-write-desc' : 'backup-edit-desc'} def={isNew ? '그림백업 글 작성' : '그림백업 글 수정'} /></div>
       <div className="write-grid">
         {/* 좌: 본문 */}
