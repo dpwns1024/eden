@@ -31,6 +31,20 @@ function CharDetailInner() {
   const tt = useSectionTitle('chars', findByKey(chars, id)?.secId, 'CHARACTERS');
   const params = useSearchParams();
   const [tab, setTab] = useState('basic');
+  /* 모바일에서 아이콘 탭을 누르면 정보 박스 맨 위로 (v2.0 사용자 제보 — 아이폰에서 안 올라감).
+     누르는 순간 바로 스크롤하면 새 탭 내용이 그려지며 높이가 바뀌어 iOS가 스크롤을 취소해 버린다 —
+     내용이 다 그려진 다음 프레임에 박스 위치를 다시 재서 올린다 */
+  const [tabJump, setTabJump] = useState(0);
+  useEffect(() => {
+    if (!tabJump) return;
+    const id = requestAnimationFrame(() => {
+      const el = infoRef.current;
+      if (!el) return;
+      const top = el.getBoundingClientRect().top + window.scrollY - 12;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [tabJump]);
   const [artIdx, setArtIdx] = useState(0);
   const [delAsk, setDelAsk] = useState(false);   // 캐릭터 삭제 확인
   const infoRef = useRef<HTMLDivElement>(null);
@@ -135,12 +149,10 @@ function CharDetailInner() {
     );
   }
 
-  // 탭 전환 시 정보 상단이 화면 맨 위로 오도록 스크롤 (모바일형, v1.9)
+  // 탭 전환 시 정보 상단이 화면 맨 위로 오도록 스크롤 (모바일형, v1.9) — 실제 이동은 아래 효과에서
   const pickTab = (t: string) => {
     setTab(t);
-    if (window.matchMedia('(max-width:960px)').matches) {
-      infoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    if (window.matchMedia('(max-width:960px)').matches) setTabJump(n => n + 1);
   };
 
   const editHref = auKey ? `/chars/${ch.id}/edit?au=${encodeURIComponent(auKey)}` : `/chars/${ch.id}/edit`;
