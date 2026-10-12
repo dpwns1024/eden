@@ -6,8 +6,12 @@
  * 페이지 큰 제목·패널 같은 틀을 두지 않는다 — 디자인 전부를 HTML이 정하게 하려는 것이다.
  * 여러 개 만들 수 있다(섹션 `/page?s=…`). 본문은 lib/htmlPageStore.ts.
  * 관리자에게만 오른쪽 위 작은 EDIT 버튼이 보이고, 누르면 이 자리에서 HTML을 고친다.
+ *
+ * 탭 문서 (v2.0 사용자 요청): 이 섹션에 탭 문서가 있으면 HTML 대신 그것을 그린다(lib/archDocStore.ts).
+ * 아직 없더라도 HTML이 ARCH 소개 모양이면 읽어서 탭 문서로 보여 준다 — 처음 SAVE하는 순간 따로 저장되고,
+ * 원래 HTML은 그대로 남아 「HTML로 되돌리기」로 돌아갈 수 있다.
  */
-import React, { Suspense, useRef, useState } from 'react';
+import React, { Suspense, useMemo, useRef, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useSectionParam } from '@/lib/sectionStore';
 import { useHtmlPages } from '@/lib/htmlPageStore';
@@ -15,6 +19,8 @@ import { useHtmlSlots, stripScripts } from '@/components/main/HtmlSlots';
 import { Modal } from '@/components/ui/Modal';
 import { KTextarea } from '@/components/ui/Kit';
 import { useToast } from '@/components/ui/Toast';
+import { useArchDocs, htmlToArchDoc, blankDoc, type ArchDoc } from '@/lib/archDocStore';
+import { ArchDocView } from '@/components/archdoc/ArchDocView';
 
 function HtmlPageInner() {
   const { isAdmin } = useAuth();
@@ -27,12 +33,35 @@ function HtmlPageInner() {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState('');
 
+  // 탭 문서 — 저장된 것, 없으면 HTML을 읽어 만든 것
+  const [docs, saveDoc, docsLoaded] = useArchDocs();
+  const saved = docs[id];
+  // 렌더 중에 바로 계산 — 효과로 미루면 원래 HTML이 한 번 번쩍 보인 뒤 탭으로 바뀐다
+  const rawHtml = pages[id] ?? '';
+  const auto = useMemo<ArchDoc | null>(() => (saved || !loaded ? null : htmlToArchDoc(rawHtml)), [saved, loaded, rawHtml]);
+  const doc = saved ? (saved.useHtml ? null : saved) : auto;
+
+  if (loaded && docsLoaded && doc) {
+    return (
+      <section className="htmlpage htmlpage-doc">
+        <ArchDocView doc={doc} canEdit={isAdmin} fromHtml={!saved}
+          onSave={d => saveDoc(id, { ...d, useHtml: false })}
+          onUseHtml={() => { saveDoc(id, { ...doc, useHtml: true }); toast('원래 HTML 페이지로 돌아갔습니다 — 탭 문서는 남겨 둡니다'); }} />
+      </section>
+    );
+  }
+
   return (
     <section className="htmlpage">
       {isAdmin && (
-        <button className="htmlpage-edit btn btn-ghost" onClick={() => { setDraft(pages[id] ?? ''); setOpen(true); }}>
-          ✎ EDIT
-        </button>
+        <div className="htmlpage-edit">
+          <button className="btn btn-ghost" onClick={() => {
+            saveDoc(id, saved ? { ...saved, useHtml: false } : (htmlToArchDoc(pages[id] ?? '') ?? blankDoc(name)));
+          }}>탭 페이지로</button>
+          <button className="btn btn-ghost" onClick={() => { setDraft(pages[id] ?? ''); setOpen(true); }}>
+            ✎ EDIT
+          </button>
+        </div>
       )}
       {loaded && !html.trim() ? (
         <p className="hint htmlpage-empty">
