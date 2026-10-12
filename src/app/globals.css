@@ -277,6 +277,11 @@ html.ui-arch .page-arch .spec dt{font:400 calc(8.5px*var(--fs,1))/1.9 'JetBrains
 html.ui-arch .page-arch .spec dd{font:400 calc(12px*var(--fs,1))/1.5 'Jost','Noto Sans KR',sans-serif;letter-spacing:.12em;color:var(--a-tx)}
 html.ui-arch .page-arch .prose{color:#b3bec9;font-weight:300;line-height:1.95;word-break:normal;overflow-wrap:anywhere;padding-top:16px;border-top:1px solid var(--a-ln)} /* 한 글자 단위 줄바꿈 — 단어째 넘겨 오른쪽이 비던 것 (v2.0 사용자 요청) */
 html.ui-arch .page-arch .re-content.prose{padding-top:14px;border-top:0;line-height:1.85} /* 에디터 본문(TipTap이 .prose를 붙임)에는 본문 구분선·위 여백을 넣지 않는다 — 안내 문구·커서 위치가 어긋났다 */
+/* 문단 — 엔터로 나눈 문단 사이를 띄워 구별되게, 빈 문단(엔터 두 번)도 한 줄 높이를 지킨다 (v2.0 사용자 제보 —
+   「엔터가 안 먹힘」: 빈 문단 <p></p>가 출력에서 높이 0으로 접혀 사라졌다). 에디터도 같은 간격 */
+html.ui-arch .page-arch :is(.prose,.re-content) p,.mng-box.arch-modal .re-content p{margin:0 0 .9em}
+html.ui-arch .page-arch :is(.prose,.re-content) p:last-child,.mng-box.arch-modal .re-content p:last-child{margin-bottom:0}
+html.ui-arch .page-arch .prose p:empty::before{content:'\00a0'}
 html.ui-arch .page-arch .prose b,html.ui-arch .page-arch .prose strong{color:#fff;font-weight:500}
 html.ui-arch .page-arch .prose a{color:var(--a-ac)}
 html.ui-arch .page-arch .prose hr{border-top-color:var(--a-ln2)}
@@ -571,7 +576,7 @@ html.ui-arch .page-arch .re-content,.mng-box.arch-modal .re-content{color:var(--
 html.ui-arch .page-arch .re-content a,.mng-box.arch-modal .re-content a{color:var(--a-ac)}
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote,.mng-box.arch-modal .re-content blockquote{
   --qx:var(--qc,#8fb0d8);position:relative;margin:18px 0;padding:12px 18px;border:0;
-  background:color-mix(in srgb,var(--qx) 10%,transparent);color:color-mix(in srgb,var(--qx) 18%,#f4f6f8);font-weight:400}
+  background:color-mix(in srgb,var(--qx) 10%,transparent);color:#f4f6f8;font-weight:400} /* 글자는 흰색으로 통일 — 색은 바탕·꺾쇠에만 (v2.0 사용자 요청) */
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote::before,html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote::after,
 .mng-box.arch-modal .re-content blockquote::before,.mng-box.arch-modal .re-content blockquote::after{content:'';position:absolute;width:8px;height:8px;border:solid var(--qx);pointer-events:none}
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote::before,.mng-box.arch-modal .re-content blockquote::before{left:0;top:0;border-width:1px 0 0 1px}
