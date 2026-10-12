@@ -2907,3 +2907,30 @@ html.ui-arch .page-memo2 .mn-act button:hover{border-color:rgba(var(--a-acr),.6)
 .excerpt-card .ex-body :is(strong,b,h1,h2,h3){color:#fff}
 .excerpt-card .ex-body img{display:block;max-width:100%;height:auto;margin:12px auto}
 .excerpt-card .ex-foot{margin-top:16px;text-align:right;font:400 10px/1 'JetBrains Mono',monospace;letter-spacing:.3em;color:#6f7b89;text-transform:uppercase}
+/* 발췌 — 붙여 넣은 글에 남은 글자 크기 지정(span style)을 무시하고 한 크기로 (인용구 글씨가 들쭉날쭉하던 것) */
+.excerpt-card .ex-body :is(p,span,li,blockquote,div,em,i,strong,b,a,font){font-size:15px !important;line-height:1.95 !important}
+/* 발췌 모드 — 왼쪽 아래 ✂ 켜기/끄기, 아래 안내 막대, 고른 칸 표시 */
+.excerpt-toggle{position:fixed;left:12px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:66;width:36px;height:36px;display:grid;place-items:center;
+  border:1px solid rgba(150,170,195,.38);background:rgba(10,13,18,.82);color:#c9d4e2;font-size:15px;opacity:.8;cursor:var(--cur-pointer,pointer)}
+.excerpt-toggle.on{opacity:1;border-color:#8fb0d8;color:#fff;box-shadow:0 0 14px rgba(96,124,160,.45)}
+.excerpt-bar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:66;display:flex;align-items:center;gap:8px;
+  max-width:calc(100% - 120px);padding:8px 10px 8px 14px;background:rgba(10,13,18,.94);border:1px solid rgba(150,170,195,.4);color:#c9d2dc;
+  font:400 12px/1.3 'Noto Sans KR',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.excerpt-bar span{flex:1;min-width:0}
+.excerpt-bar button{flex-shrink:0;padding:6px 10px;border:1px solid rgba(150,170,195,.35);color:#c9d2dc;font:400 11px/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.1em;white-space:nowrap}
+.excerpt-bar button.go{border-color:#8fb0d8;color:#fff;background:rgba(96,124,160,.25)}
+html.ex-mode :is(.page .prose:not(.re-content),.page .post-body) > *{cursor:var(--cur-pointer,pointer);transition:outline-color .15s}
+html.ex-mode :is(.page .prose:not(.re-content),.page .post-body) > *:hover{outline:1px dashed rgba(143,176,216,.45);outline-offset:4px}
+html.ex-mode .ex-picked{outline:1px solid rgba(143,176,216,.85) !important;outline-offset:4px;background-color:rgba(143,176,216,.07)}
+@media (max-width:620px){
+  .excerpt-bar{left:56px;right:12px;transform:none;max-width:none;flex-wrap:wrap;row-gap:6px}
+  .excerpt-bar span{flex-basis:100%}
+}
+/* 발췌 카드 바탕 — ARCH 홈페이지와 같은 결: 촘촘한 가로줄 + 빛 번짐 + 128px 격자 + 가장자리 어둠(안쪽 그림자) */
+html.ui-arch .excerpt-card{background:
+  repeating-linear-gradient(0deg,rgba(255,255,255,.022) 0 1px,transparent 1px 3px),
+  radial-gradient(900px 520px at 50% -6%,rgba(130,160,200,.16),transparent 66%),
+  radial-gradient(700px 480px at 50% 112%,rgba(90,120,160,.10),transparent 70%),
+  repeating-linear-gradient(90deg,rgba(190,208,228,.035) 0 1px,transparent 1px 128px),
+  repeating-linear-gradient(0deg,rgba(190,208,228,.025) 0 1px,transparent 1px 128px),#05070a;
+  box-shadow:inset 0 0 140px 24px rgba(0,0,0,.6)}
