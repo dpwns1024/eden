@@ -6,6 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { newId } from './postStore';
 import { backend, isServerMode } from './backend';
+import { cleanImage, CLEAN_MARK } from './imageClean';
 
 const DB_NAME = 'ohome-blobs';
 const STORE = 'files';
@@ -76,7 +77,7 @@ export async function putBlob(blob: Blob): Promise<string> {
   const key = await hashOf(blob);
   const hit = key ? sent.get(key) : undefined;
   if (hit) return hit;
-  const job = putBlobNew(blob);
+  const job = putBlobClean(blob);
   if (key) {
     sent.set(key, job);
     // 실패한 업로드는 캐시에 남기지 않는다 — 다시 시도할 수 있어야 한다
@@ -85,18 +86,22 @@ export async function putBlob(blob: Blob): Promise<string> {
   return job;
 }
 
-async function putBlobNew(blob: Blob): Promise<string> {
+/* 이미지는 올리기 전에 메타데이터·숨긴 정보를 지우고 JPG로 다시 저장한다 (lib/imageClean.ts —
+   AI 그림의 프롬프트, 사진의 위치 정보 등이 원본 파일에 그대로 따라 올라가던 것) */
+async function putBlobClean(blob: Blob): Promise<string> {
   bump(1);
   try {
-    return await putBlobRaw(blob);
+    const clean = await cleanImage(blob);
+    return await putBlobRaw(clean ?? blob, !!clean);
   } finally {
     bump(-1);
   }
 }
 
-async function putBlobRaw(blob: Blob): Promise<string> {
+async function putBlobRaw(blob: Blob, cleaned = false): Promise<string> {
   const be = isServerMode() ? backend() : null;
-  if (be) return be.uploadFile(blob, extOf(blob));   // 서버 모드 — 공개 URL 반환
+  // 정리된 파일은 이름에 표시(….c.jpg) — 기존 이미지 일괄 정리가 다시 압축하지 않게
+  if (be) return be.uploadFile(blob, cleaned ? `${CLEAN_MARK}.${extOf(blob)}` : extOf(blob));   // 서버 모드 — 공개 URL 반환
   const id = newId();
   const db = await openDb();
   await new Promise<void>((resolve, reject) => {
