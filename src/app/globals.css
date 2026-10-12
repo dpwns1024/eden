@@ -700,6 +700,14 @@ html.ui-arch .page-arch .pager button:hover{color:#fff;border-color:rgba(190,208
 html.ui-arch .page-arch .pager button.on{background:rgba(var(--a-acr),.16);border-color:rgba(var(--a-acr),.55);color:#fff}
 html.ui-arch .page-arch .upzone{border:1px dashed var(--a-ln2);border-radius:0;background:rgba(5,8,12,.5);color:var(--a-mu)}
 html.ui-arch .page-arch .upzone:hover{border-color:rgba(var(--a-acr),.5);color:#fff}
+/* 올린 이미지 줄 — 흰 카드였던 것을 어두운 칸으로 (v2.0 사용자 제보) */
+html.ui-arch .page-arch .upfile-row{background:rgba(5,8,12,.5);border:1px solid var(--a-ln2);border-radius:0}
+html.ui-arch .page-arch .upfile-row .pv{border-radius:0;background:rgba(184,216,255,.05);box-shadow:0 0 0 1px var(--a-ln)}
+html.ui-arch .page-arch .upfile-row .nm b{color:var(--a-tx);font-weight:400}
+html.ui-arch .page-arch .upfile-row .nm small{color:var(--a-mu)}
+html.ui-arch .page-arch .upfile-row .mw-no{border-radius:0;background:transparent;box-shadow:inset 0 0 0 1px var(--a-ln2);color:var(--a-mu);font-family:'JetBrains Mono',monospace}
+html.ui-arch .page-arch .upfile-row .fx{border-radius:0}
+html.ui-arch .page-arch .upfile-row .fx:hover{background:rgba(var(--a-acr),.08);color:#fff}
 html.ui-arch .page-arch .list-item{border-bottom-color:var(--a-ln);color:var(--a-tx)}
 html.ui-arch .page-arch .list-item:hover{background:rgba(var(--a-acr),.05)}
 html.ui-arch .page-arch .list-item .th{border-radius:0;box-shadow:0 0 0 1px var(--a-ln2)}
@@ -2245,6 +2253,20 @@ html.ui-arch body:has(.page-arch) .ctx-menu .sep{background:rgba(190,208,228,.14
 .upfile-row .nm small{color:var(--faint);font-size:calc(10.5px*var(--fs,1))}
 .upfile-row .fx{cursor:var(--cur-pointer,pointer);color:var(--faint);width:24px;height:24px;display:grid;place-items:center;border-radius:6px;transition:.13s;flex-shrink:0}
 .upfile-row .fx:hover{background:#f2e6e7;color:var(--accent)}
+.upfile-row .up-act{display:contents}
+/* 폰 — 「⠿ 번호 [그림] 이름 ✕」 한 줄, 원본/최적화·썸네일은 이름 아래 줄로 (v2.0 사용자 제보 — 좁은 칸에
+   다 끼워 넣어 「저장된 이미지」가 세로로 한 글자씩 쪼개졌다) */
+@media (max-width:620px){
+  .upfile-row{display:grid;grid-template-columns:auto auto 64px minmax(0,1fr) auto;grid-template-areas:"h no pv nm fx" "h no pv act act";gap:8px 10px;padding:9px 8px}
+  .upfile-row .drag-h{grid-area:h}
+  .upfile-row .mw-no{grid-area:no}
+  .upfile-row .pv{grid-area:pv;width:64px;height:52px}
+  .upfile-row .nm{grid-area:nm;align-self:end}
+  .upfile-row .nm small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .upfile-row .fx{grid-area:fx;align-self:start}
+  .upfile-row .up-act{grid-area:act;display:flex;gap:8px;align-items:center;flex-wrap:wrap;align-self:start}
+  .upfile-row .up-act .mini-seg button{white-space:nowrap}
+}
 /* 단일형 뷰어 */
 /* 배경 하드코딩(남색) 제거 — 투명 이미지가 패널(테마) 색 위에 그대로 놓이게.
    뷰어는 16:10 고정 프레임 — 이미지 크기가 바뀌어도 창 크기는 불변, 작은 이미지는 가운데 */

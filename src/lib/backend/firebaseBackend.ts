@@ -398,6 +398,16 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
       return n;
     },
 
+    async fetchVisMeta(coll) {
+      const snap = await getDocsFromServer(query(collection(db, coll)));
+      const out: Record<string, { visibility: string; lockBoard?: string | null }> = {};
+      snap.docs.forEach(d => {
+        const raw = d.data() as { visibility?: string; lockBoard?: string | null };
+        out[d.id] = { visibility: raw.visibility ?? 'public', lockBoard: raw.lockBoard ?? null };
+      });
+      return out;
+    },
+
     subscribe(coll, onChange) {
       // 조건이 두 갈래면 구독도 두 개 — fetchList와 같은 이유(질의 전체 거부 방지)
       let offs: Array<() => void> = [];

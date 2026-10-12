@@ -66,6 +66,9 @@ export interface Backend {
   /** 이미 저장된 행의 공개범위만 다시 계산해 덮어쓴다 (v2.0) — 메뉴를 비공개로 바꾼 뒤
    *  「글에도 적용」을 누르면 돈다. 내용(data)·순서(sort)는 건드리지 않는다. */
   refreshVis<T extends ListItem>(coll: string, items: T[], uid: string | null, withData?: boolean): Promise<number>;
+  /** 관리자: 행마다 **지금 서버에 저장된** 공개범위·잠금키 (v2.0) — 다시 계산한 값과 다른 행만
+   *  골라 고치는 데 쓴다 (lib/visSync.ts). 메뉴를 다시 열었을 때 예전 기준으로 좁게 남은 글을 찾는다 */
+  fetchVisMeta?(coll: string): Promise<Record<string, { visibility: string; lockBoard?: string | null }>>;
   subscribe(coll: string, onChange: () => void): () => void;
 
   /* ---- 설정(key/value) ---- */

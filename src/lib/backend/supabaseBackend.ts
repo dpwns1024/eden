@@ -134,6 +134,17 @@ export async function createSupabaseBackend(
       });
     },
 
+    async fetchVisMeta(coll: string) {
+      const { data, error } = await sb.from(coll).select('id, visibility');
+      if (error) throw error;
+      const out: Record<string, { visibility: string; lockBoard?: string | null }> = {};
+      (data ?? []).forEach(r => {
+        const row = r as { id: string; visibility?: string };
+        out[row.id] = { visibility: row.visibility ?? 'public' };
+      });
+      return out;
+    },
+
     async syncList<T extends ListItem>(coll: string, prev: T[], next: T[], uid: string | null) {
       const { inserts, updates, moves, deletes } = diffList(prev, next);
       const toRow = ({ item, sort }: { item: T; sort: number }) => {

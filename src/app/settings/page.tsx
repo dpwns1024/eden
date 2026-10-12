@@ -61,6 +61,7 @@ import { CONTENT_COLLECTIONS } from '@/lib/backend/types';
 import { visFloorOf, areaHrefOf } from '@/lib/visFloor';
 import { validateConfig, configFileText, saveLocalConfig, parseFirebaseSnippet, serverConfig } from '@/lib/serverConfig';
 import { migrateTo, findOrphanFiles, cleanStoredImages } from '@/lib/transfer';
+import { syncStoredVis } from '@/lib/visSync';
 import { FIRESTORE_RULES, STORAGE_RULES } from '@/lib/firebaseRules';
 
 const CATEGORIES = [
@@ -2281,7 +2282,22 @@ function MenuPane() {
   }, [savedKey, msLoaded, bLoaded]);
 
   const setTree = (t: MenuGroupNode[]) => setDraft(t);
-  const saveAll = () => { patch({ tree, removedBoards: removed }); toast('메뉴가 저장되었습니다'); };
+  const saveAll = () => {
+    patch({ tree, removedBoards: removed });
+    toast('메뉴가 저장되었습니다');
+    // 이미 올라간 글의 서버 공개범위도 새 설정에 맞춘다 — 좁히는 쪽뿐 아니라 넓히는 쪽도 (v2.0 사용자 제보:
+    // 「관리자만」일 때 올린 글이 메뉴를 공개+비밀번호로 바꾼 뒤에도 비공개로 남아 방문자에게 하나도 안 보였다).
+    // 설정 저장이 반영된 다음 틱에 계산한다
+    window.setTimeout(() => { void resyncVis(); }, 60);
+  };
+  const resyncVis = async () => {
+    const be = backend();
+    if (!be) return;
+    try {
+      const n = await syncStoredVis(be, user?.id ?? null);
+      if (n) toast(`글 ${n}건의 서버 공개범위를 새 메뉴 설정에 맞췄습니다`);
+    } catch { /* 다음 저장 때 다시 — [글에도 적용]으로 직접 돌릴 수도 있다 */ }
+  };
 
   /* 이미 올라간 글의 공개범위를 서버에 적용 (v2.0 사용자 요청).
      화면에서 가리는 것만으로는 API를 직접 부르는 사람에게 그대로 보인다 — 서버(RLS)가
@@ -2293,13 +2309,17 @@ function MenuPane() {
     if (!be) { toast('서버에 연결돼 있지 않습니다 — 브라우저 저장 모드에는 서버 권한 자체가 없습니다'); return; }
     setVisBusy(true);
     try {
-      let n = 0;
-      for (const coll of CONTENT_COLLECTIONS) {
-        const rows = await be.fetchList(coll);
-        const targets = rows.filter(r => visFloorOf(coll, r) !== 'public');
-        if (targets.length) n += await be.refreshVis(coll, targets, user?.id ?? null);
+      // 저장된 값과 다른 글만 고친다 — 메뉴를 다시 연 곳의 글은 넓어지고, 닫은 곳은 좁아진다
+      const synced = await syncStoredVis(be, user?.id ?? null);
+      let n = synced ?? 0;
+      if (synced === null) {
+        for (const coll of CONTENT_COLLECTIONS) {
+          const rows = await be.fetchList(coll);
+          const targets = rows.filter(r => visFloorOf(coll, r) !== 'public');
+          if (targets.length) n += await be.refreshVis(coll, targets, user?.id ?? null);
+        }
       }
-      toast(n ? `글 ${n}건을 서버에서도 가렸습니다` : '비공개로 둔 메뉴에 글이 없습니다');
+      toast(n ? `글 ${n}건의 서버 공개범위를 메뉴 설정에 맞췄습니다` : '이미 메뉴 설정과 맞습니다');
     } catch (e) {
       toast(e instanceof Error && e.message ? e.message : '적용하지 못했습니다');
     }
@@ -2574,9 +2594,9 @@ function MenuPane() {
               이 버튼을 누르면 <b>이미 올라간 글의 공개범위를 서버에 적용</b>해 서버가 아예 내주지 않게 합니다
               — 「비로그인 숨김」은 회원공개로, 「관리자만」은 비공개로.
               <br />
-              <b>지금부터 쓰는 글은 누르지 않아도 그렇게 저장됩니다.</b>{' '}
-              <span style={{ color: 'var(--accent)' }}>좁히기만 하고 넓히지는 않습니다</span> —
-              나중에 다시 공개로 바꾸려면 각 글의 공개범위를 직접 되돌려야 합니다.
+              <b>지금부터 쓰는 글과 메뉴 SAVE 때는 누르지 않아도 자동으로 맞춰집니다.</b>{' '}
+              메뉴를 다시 열면 그 메뉴 때문에 가려졌던 글도 다시 열립니다 —
+              <span style={{ color: 'var(--accent)' }}>글마다 직접 비공개·비밀글로 둔 것은 그대로</span>입니다.
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
               <button className="btn btn-dark" disabled={visBusy || dirty}
@@ -2595,7 +2615,7 @@ function MenuPane() {
             ]} />
 
           <ConfirmModal open={visAsk} title="글 공개범위를 서버에 적용할까요?"
-            body={'비공개로 둔 메뉴의 글이 서버에서도 가려집니다. 각 글의 공개범위가 바뀌므로, 되돌리려면 글마다 직접 고쳐야 합니다.'}
+            body={'이미 올라간 글의 서버 공개범위를 지금 메뉴 설정에 맞춥니다 — 비공개로 둔 메뉴의 글은 가려지고, 다시 연 메뉴의 글은 열립니다. 글마다 직접 비공개·비밀글로 둔 것은 그대로입니다.'}
             onClose={() => setVisAsk(false)}
             buttons={[
               { label: 'CANCEL', kind: 'ghost', onClick: () => setVisAsk(false) },
