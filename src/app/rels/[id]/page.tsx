@@ -843,7 +843,9 @@ export default function RelDetailPage() {
         );
       })()}
 
-      {(rel.aus.length > 1 || isAdmin) && (
+      {/* ARCH 배너형에선 AU 전환·관리자 버튼을 배너 안 위쪽 모서리로 옮긴다 (아래 rb-au · rb-admin) —
+          배너 위에 따로 한 줄을 차지하던 것 (v2.0 사용자 요청) */}
+      {!(arch && isDuo) && (rel.aus.length > 1 || isAdmin) && (
         <div className="au-list">
           {/* AU 네모에 대표 이미지를 넣는다 (v2.0 사용자 요청 — 색만 들어가 있어 밋밋했다).
               원본은 자관 썸네일(잡아 둔 크롭 그대로), 그 외 AU는 그 AU의 첫 아트 = 대표 이미지.
@@ -867,7 +869,7 @@ export default function RelDetailPage() {
       )}
 
       {/* 관리자 액션 (좌상단) */}
-      {isAdmin && (
+      {isAdmin && !(arch && isDuo) && (
         <div className="rel-admin-actions">
           {/* AU 선택 중이면 그 AU의 일러·캐치프레이즈를 편집 (v1.9) */}
           <button className="btn btn-dark" style={{ height: 30, padding: '0 13px', fontSize: 11 }}
@@ -984,7 +986,7 @@ export default function RelDetailPage() {
       {isDuo ? (
         /* ARCH — 배너형 (v2.0 사용자 선택 「C · BANNER」): 가운데 일러가 맨 위 가로 배너가 되고(넘기기·전신/일러 전환·
            위치 조정 그대로) 그 위에 자관명·CP·캐치프레이즈, 아래에 두 사람 카드를 나란히(한마디는 카드 안) */
-        <div className={`rel-body ${arch ? 'rel-banner' : ''}${arch && !(rel.aus.length > 1 || isAdmin) ? ' rb-bare' : ''}`} style={{ fontFamily: familyOf(rel.bodyFontId) }}>
+        <div className={`rel-body ${arch ? 'rel-banner' : ''}`} style={{ fontFamily: familyOf(rel.bodyFontId) }}>
           {pairSlots[0]
             ? <MiniProf member={pairSlots[0]} char={charOf(pairSlots[0].charId)} isAdmin={isAdmin}
                 auUnregistered={auUnregOf(pairSlots[0].charId)}
@@ -1057,6 +1059,27 @@ export default function RelDetailPage() {
                     <div className="rb-catch" style={{ color: auSt.cpColor }}>{au?.catchphrase || rel.catchphrase}</div>
                   )}
                 </div>
+                {/* AU 전환 — 배너 오른쪽 위 작은 글자 칩 (v2.0 사용자 요청: 썸네일 줄이 위 공간을 많이 차지했다) */}
+                {(rel.aus.length > 1 || isAdmin) && (
+                  <div className="rb-au" onClick={e => e.stopPropagation()}>
+                    {rel.aus.map(a => (
+                      <button key={a.id} type="button" className={auId === a.id ? 'on' : ''}
+                        onClick={() => { setAuId(a.id); setArtIdx(0); setQaNo(null); }}>{a.label}</button>
+                    ))}
+                    {isAdmin && <button type="button" className="add" data-tip="AU 추가/관리" onClick={() => setAuOpen(true)}>＋</button>}
+                  </div>
+                )}
+                {/* 관리자 버튼 — 배너 왼쪽 위 */}
+                {isAdmin && (
+                  <div className="rb-admin" onClick={e => e.stopPropagation()}>
+                    <button type="button" onClick={() => router.push(`/rels/${rel.id}/edit${isBaseAu ? '' : `?au=${au!.id}`}`)}>
+                      {isBaseAu ? 'EDIT' : `EDIT ${au!.label}`}
+                    </button>
+                    <button type="button" onClick={() => (isBaseAu ? setDelAsk(true) : setAuDelAsk(au!.id))}>
+                      {isBaseAu ? 'DELETE' : `DELETE ${au!.label}`}
+                    </button>
+                  </div>
+                )}
               </>
             )}
             {/* 스위치 색 — 자관별 지정(EDIT) 없으면 테마·포인트색 (v1.9).
@@ -1226,34 +1249,12 @@ export default function RelDetailPage() {
           <div>
             {auTimeline.map((item, i) => (
               /* 수정·삭제는 우클릭 메뉴로 (v2.0 사용자 요청) — 늘 떠 있는 [삭제] 글자는 없앴다 */
-              <div className={`tl-item${arch ? ' tl-log' : ''}`} key={i}
+              <div className="tl-item" key={i}
                 onContextMenu={e => {
                   if (!isAdmin) return;
                   e.preventDefault();
                   setTlCtx({ x: e.clientX, y: e.clientY, idx: i });
                 }}>
-                {arch ? (
-                  /* ARCH 타임라인 B · LOG (v2.0 사용자 선택) — 왼쪽 기록 번호·연도 / 오른쪽 설명과 대사를
-                     대본처럼 한 줄씩(이름 · 대사). 넓은 화면에서 말풍선이 좌우 끝으로 흩어지던 것 */
-                  <>
-                    <div className="tl-dt">
-                      <span>RECORD {String(i + 1).padStart(2, '0')}</span>
-                      {item.era && <b>{item.era}</b>}
-                    </div>
-                    <div className="tl-ln">
-                      {item.desc && <div className="desc">{item.desc}</div>}
-                      {item.says.map((s, j) => {
-                        const c = charOf(s.charId);
-                        return (
-                          <div key={j} className="tl-row" style={{ ['--cc' as string]: rgbTriple(c?.color ?? '#5d636d') }}>
-                            <small className="who">{(c?.name ?? '').toUpperCase()}</small>
-                            <span>{s.text}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </>
-                ) : <>
                 {item.era && <div className="era">{item.era}</div>}
                 {item.desc && <div className="desc">{item.desc}</div>}
                 {item.says.map((s, j) => {
@@ -1266,7 +1267,6 @@ export default function RelDetailPage() {
                     </div>
                   );
                 })}
-                </>}
               </div>
             ))}
             {auTimeline.length === 0 && <p className="hint">타임라인이 비어 있습니다 — 우상단 [＋ ADD RECORD]로 추가</p>}
@@ -1394,7 +1394,7 @@ export default function RelDetailPage() {
         {!au?.hideRp && (
         <div className="panel widget" style={{ margin: 0, ...(au?.hideLog ? { gridColumn: '1/-1' } : null) }}>
           {/* ARCH에선 기관 홈페이지 말투 — 두 사람의 임무·일상 기록 (v2.0 사용자 요청) */}
-          <h4>{arch ? <span>TERMINAL REC <small className="kr">단말기 녹음본</small></span> : '역극'} <span className="more" onClick={() => router.push('/rp')}>더보기 ›</span></h4>
+          <h4>{arch ? <span>COMMS ARCHIVE <small className="kr">교신 기록</small></span> : '역극'} <span className="more" onClick={() => router.push('/rp')}>더보기 ›</span></h4>
           {relRooms.length > 0 ? relRooms.map(rm => (
             <div key={rm.id} className="dday-row" style={{ cursor: 'var(--cur-pointer,pointer)' }} onClick={() => router.push('/rp')}>
               <span>{rm.title}</span>
@@ -1403,7 +1403,7 @@ export default function RelDetailPage() {
               </b>
             </div>
           )) : (
-            <p className="hint" style={{ margin: 0 }}>{arch ? '재생할 녹음본이 없습니다 — NO SIGNAL' : '이 자관 기반으로 진행된 역극이 여기에 표시됩니다'}</p>
+            <p className="hint" style={{ margin: 0 }}>{arch ? '보관된 교신 기록이 없습니다 — NO SIGNAL' : '이 자관 기반으로 진행된 역극이 여기에 표시됩니다'}</p>
           )}
         </div>
         )}
