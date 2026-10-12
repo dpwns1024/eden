@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom';
 import { Character, Relation, Visibility, RelCpTag, RelMember, auMember, auStyle, fullShadow } from '@/lib/charStore';
 import { ColorField } from '@/components/ui/ColorField';
 import { isValidSlug, slugify } from '@/lib/link';
-import { CP_LABEL } from '@/lib/relqStore';
+import { cpLabelFor, cpTagOf } from '@/lib/relqStore';
 import { newId } from '@/lib/postStore';
 import { useFonts } from '@/lib/fontStore';
 import { putBlob, getBlob, useBlobUrl } from '@/lib/blobStore';
@@ -49,7 +49,8 @@ export interface RelFormValue {
   themeMode: 'site' | 'custom'; // 페이지 테마 — 홈페이지 그대로 / 별도 테마컬러 (4.18 방식)
   themeColor?: string;          // 별도 테마컬러 (custom일 때)
   themeTone?: 'dark' | 'light'; // 테마컬러의 다크/라이트 느낌
-  cp: RelCpTag;              // CP/NCP (v1.9) — AU별로는 AU 관리에서 따로 지정
+  cp: RelCpTag;              // CP/NCP (v1.9) — 질문 리스트 분류용. 이제 cpText에서 정한다
+  cpText: string;            // 뱃지 글자 직접 입력 (v2.0 사용자 요청) — ''이면 뱃지 없음. AU 편집이면 그 AU에만
   fulls?: Record<string, string | undefined>;  // 멤버별 전신 이미지 (v1.9 — charId → blob id)
   fullScales?: Record<string, number>;         // 전신 크기 % (휠 조절)
   fullOffsets?: Record<string, { x: number; y: number }>; // 전신 위치 오프셋 % (드래그, v1.9)
@@ -175,7 +176,8 @@ export function RelForm({ initial, auId, myChars, memberNames, existingIds, onSa
   const [slug, setSlug] = useState(initial?.slug ?? '');
   const [catchphrase, setCatchphrase] = useState(auObj ? auObj.catchphrase : (initial?.catchphrase ?? ''));
   const [visibility, setVisibility] = useState<Visibility>(initial?.visibility ?? 'public');
-  const [cp, setCp] = useState<RelCpTag>(initial?.cp ?? 'cp');   // CP/NCP (v1.9)
+  // 뱃지 글자 (v2.0 사용자 요청 — CP/NCP 고르기 대신 직접 쓴다). 새 자관은 예전 기본값대로 「CP」
+  const [cpText, setCpText] = useState(initial ? cpLabelFor(initial, auObj) : 'CP');
   const [fontId, setFontId] = useState(initial?.fontId ?? 'serif');
   const [bodyFontId, setBodyFontId] = useState(initial?.bodyFontId ?? 'default');
   const [picked, setPicked] = useState<string[]>([]);
@@ -331,7 +333,8 @@ export function RelForm({ initial, auId, myChars, memberNames, existingIds, onSa
       themeMode,
       themeColor: themeMode === 'custom' ? themeColor : undefined,
       themeTone: themeMode === 'custom' ? themeTone : undefined,
-      cp,
+      cp: cpTagOf(cpText),
+      cpText: cpText.trim(),
       auName: auObj ? auName.trim() : undefined,
       qaHide: qaHide || undefined,
       fulls: pairMembers.length
@@ -688,19 +691,17 @@ export function RelForm({ initial, auId, myChars, memberNames, existingIds, onSa
                 )}
               </div>
             )}
-            {/* CP/NCP (v1.9) — CP=커플 · NCP=커플 아님. AU마다 따로 지정은 상세의 AU 관리에서 */}
+            {/* 뱃지 글자 (v2.0 사용자 요청) — 예전엔 CP/NCP 중 고르기였다. 이제 아무 글자나 직접 쓴다.
+                질문 리스트 분류는 「NCP」라고 쓴 것만 NCP, 나머지는 CP로 본다 */}
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <label className="k-label" style={{ margin: 0 }}>구분</label>
-              <div className="mini-seg">
-                {(['cp', 'ncp'] as RelCpTag[]).map(t => (
-                  <button key={t} className={cp === t ? 'on' : ''} onClick={() => setCp(t)}>{CP_LABEL[t]}</button>
-                ))}
-              </div>
+              <label className="k-label" style={{ margin: 0, whiteSpace: 'nowrap' }}>뱃지</label>
+              <KInput value={cpText} onChange={e => setCpText(e.target.value)} placeholder="예) CP · NCP · BROTHERS — 비우면 뱃지 없음"
+                style={{ flex: 1, minWidth: 0 }} />
             </div>
             {/* 뱃지 색 (v2.0 사용자 요청) — 자관명 위에 뜨는 CP/NCP 표시. AU마다 따로 */}
             {(
               <div>
-                <KCheck label="CP 뱃지 색 직접 지정" checked={tagCustom} onChange={setTagCustom} />
+                <KCheck label="뱃지 색 직접 지정" checked={tagCustom} onChange={setTagCustom} />
                 {tagCustom && (
                   <div className="cf-stack" style={{ marginTop: 8 }}>
                     <div className="cf-row">
@@ -712,7 +713,7 @@ export function RelForm({ initial, auId, myChars, memberNames, existingIds, onSa
                     <div className="cf-row">
                       <span className="cp-lb">미리보기</span>
                       <span className="pill" style={{ background: cpTagBg, color: cpTagFg, borderColor: cpTagBg }}>
-                        {CP_LABEL[cp]}
+                        {cpText.trim() || 'CP'}
                       </span>
                     </div>
                   </div>

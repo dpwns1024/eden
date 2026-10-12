@@ -15,7 +15,7 @@ import {
   QaAnswerRow, QA_KEY, QA_SEED, MergedAnswer, answersFor,
   findByKey, charPath,
 } from '@/lib/charStore';
-import { RelQuestionSet, RELQ_SEED, RELQ_KEY, CP_LABEL } from '@/lib/relqStore';
+import { RelQuestionSet, RELQ_SEED, RELQ_KEY, CP_LABEL, cpLabelFor, cpTagOf } from '@/lib/relqStore';
 import { useBoardSkin } from '@/lib/boardSkin';
 import { putBlob } from '@/lib/blobStore';
 import { GrantsEditor } from '@/components/chars/GrantsEditor';
@@ -49,12 +49,13 @@ function FullImg({ refId, scale, offX = 0, offY = 0, shadow }: { refId: string; 
 }
 
 /** 얼굴칸(1:1) 크롭 편집기 — 파일 참조를 주소로 바꿔 CropEditor에 넘긴다 (v2.0) */
-function FaceCropModal({ fileRef, crop, onClose, onApply }: {
-  fileRef: string; crop?: CropValue; onClose: () => void; onApply: (c: CropValue) => void;
+function FaceCropModal({ fileRef, crop, port, onClose, onApply }: {
+  fileRef: string; crop?: CropValue; port?: boolean; onClose: () => void; onApply: (c: CropValue) => void;
 }) {
   const url = useBlobUrl(fileRef);
   if (!url) return null;
-  return <CropEditor open src={url} aspect="1:1" initial={crop} onClose={onClose} onApply={onApply} />;
+  // port — ARCH 배너형 카드의 세로 초상(3:4). 기본 카드의 얼굴칸은 1:1
+  return <CropEditor open src={url} aspect={port ? '3:4' : '1:1'} initial={crop} onClose={onClose} onApply={onApply} />;
 }
 
 /** 캐릭터 대표 이미지 — 등록돼 있으면 실제 이미지, 없을 때만 기존 플레이스홀더 */
@@ -133,30 +134,18 @@ function MiniProf({ member, char, isAdmin, onGo, onRemove, auUnregistered, side,
       </div>
     );
   }
-  return (
-    <div className="panel mini-prof" onClick={onGo} style={{ cursor: 'var(--cur-pointer,pointer)' }}
-      onContextMenu={e => { if (!isAdmin) return; e.preventDefault(); setCtx({ x: e.clientX, y: e.clientY }); }}>
-      <div className="hd">
-        {rep ? (
-          <div className="face" data-tip="클릭하면 원본 보기"
-            style={{ position: 'relative', overflow: 'hidden', cursor: 'zoom-in' }}
-            onClick={e => { e.stopPropagation(); setLb(0); }}>
-            {/* 얼굴칸은 1:1 — 캐릭터의 3:4 썸네일 크롭을 그대로 쓰면 어긋나므로
-                자관에서 따로 잡아 둔 값이 있으면 그것을 쓴다 (우클릭 > 썸네일 위치) */}
-            <CroppedBlobImg fileRef={rep} crop={member.faceCrop ?? char.thumbCrop} />
-          </div>
-        ) : (
-          <div className={`face ph ${char.thumbClass}`} />
-        )}
-        <div>
-          {/* 이름 폰트는 캐릭터 프로필에서 지정한 것을 그대로 쓰고,
-              크기는 이 자관에서 정한 값 (자관 수정의 「이름 크기」 — 기본 17px, v2.0) */}
-          <b style={{ fontFamily: familyOf(char.fontId), fontSize: member.nameSize ?? undefined }}>
-            {char.name}
-          </b>
-          <small>{[char.sub, noteOf(member)].filter(Boolean).join(' · ')}</small>
-        </div>
-      </div>
+  /* 이름 줄 — 이름 폰트는 캐릭터 프로필에서 지정한 것을 그대로 쓰고,
+     크기는 이 자관에서 정한 값 (자관 수정의 「이름 크기」 — 기본 17px, v2.0) */
+  const nameBox = (
+    <div>
+      <b style={{ fontFamily: familyOf(char.fontId), fontSize: member.nameSize ?? undefined }}>
+        {char.name}
+      </b>
+      <small>{[char.sub, noteOf(member)].filter(Boolean).join(' · ')}</small>
+    </div>
+  );
+  const details = (
+    <>
       {showQuote && member.quote && (
         <div className="mp-quote" style={{ ['--c' as string]: member.quoteMarkColor || char.color || '#8592a0' } as React.CSSProperties}>
           <small>{char.name.toUpperCase()}</small>
@@ -194,6 +183,48 @@ function MiniProf({ member, char, isAdmin, onGo, onRemove, auUnregistered, side,
             </div>
           ))}
         </div>
+      )}
+    </>
+  );
+  return (
+    <div className={`panel mini-prof${showQuote ? ' mp-b' : ''}`} onClick={onGo} style={{ cursor: 'var(--cur-pointer,pointer)' }}
+      onContextMenu={e => { if (!isAdmin) return; e.preventDefault(); setCtx({ x: e.clientX, y: e.clientY }); }}>
+      {showQuote ? (
+        /* ARCH 배너형 카드 B (v2.0 사용자 선택) — 왼쪽은 카드 높이만큼 큰 3:4 초상, 오른쪽에 이름·한마디·정보.
+           초상은 캐릭터 리스트 썸네일(3:4) 크롭을 그대로 쓰고, 자관에서 따로 잡은 값(portCrop)이 있으면 그것을 */
+        <>
+          {rep ? (
+            <div className="mp-pt" style={{ cursor: 'zoom-in' }}
+              onClick={e => { e.stopPropagation(); setLb(0); }}>
+              <CroppedBlobImg fileRef={rep} crop={member.portCrop ?? char.thumbCrop} />
+            </div>
+          ) : (
+            <div className={`mp-pt ph ${char.thumbClass}`} />
+          )}
+          <div className="mp-r">
+            <div className="hd">{nameBox}</div>
+            {details}
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="hd">
+            {rep ? (
+              /* 마우스를 올려도 말풍선은 띄우지 않는다 (v2.0 사용자 요청) — 누르면 원본은 그대로 열린다 */
+              <div className="face"
+                style={{ position: 'relative', overflow: 'hidden', cursor: 'zoom-in' }}
+                onClick={e => { e.stopPropagation(); setLb(0); }}>
+                {/* 얼굴칸은 1:1 — 캐릭터의 3:4 썸네일 크롭을 그대로 쓰면 어긋나므로
+                    자관에서 따로 잡아 둔 값이 있으면 그것을 쓴다 (우클릭 > 썸네일 위치) */}
+                <CroppedBlobImg fileRef={rep} crop={member.faceCrop ?? char.thumbCrop} />
+              </div>
+            ) : (
+              <div className={`face ph ${char.thumbClass}`} />
+            )}
+            {nameBox}
+          </div>
+          {details}
+        </>
       )}
       {lb !== null && <Lightbox srcs={gallery} index={lb} onClose={() => setLb(null)} />}
 
@@ -254,7 +285,7 @@ export default function RelDetailPage() {
   // 질문 문구 수정 (v2.0 사용자 요청 — 질문 리스트·질문 우클릭 「질문 수정」)
   const [qEdit, setQEdit] = useState<{ no: number; text: string } | null>(null);
   // 멤버 얼굴칸(1:1) 크롭 편집 (v2.0)
-  const [faceEdit, setFaceEdit] = useState<{ charId: string; ref: string; crop?: CropValue } | null>(null);
+  const [faceEdit, setFaceEdit] = useState<{ charId: string; ref: string; crop?: CropValue; port?: boolean } | null>(null);
   // 타임라인 항목 우클릭 메뉴 (v2.0 사용자 요청) — 수정·삭제. 늘 떠 있는 [삭제] 글자는 없앴다
   const [tlCtx, setTlCtx] = useState<{ x: number; y: number; idx: number } | null>(null);
   const [tlEditIdx, setTlEditIdx] = useState<number | null>(null);   // null이면 새로 추가
@@ -344,7 +375,7 @@ export default function RelDetailPage() {
   const [auOpen, setAuOpen] = useState(false);
   const [auLabel, setAuLabel] = useState('');
   const [auCatch, setAuCatch] = useState('');
-  const [auCp, setAuCp] = useState<RelCpTag>('cp');       // 새 AU의 CP/NCP (v1.9)
+  const [auCpText, setAuCpText] = useState('');          // 새 AU의 뱃지 글자 (v2.0 — 비우면 자관 것)
   const [qsets] = useLocalList<RelQuestionSet>(RELQ_KEY, RELQ_SEED); // 자관 질문 세트 (환경설정)
   // 문답 답변은 자관과 따로 저장한다 (v2.0) — 자관 안에 두면 답할 때 자관을 UPDATE 해야 해서
   // 관리자가 만든 자관에 일반 회원이 답을 달 수 없었다 (댓글과 같은 뿌리)
@@ -413,7 +444,9 @@ export default function RelDetailPage() {
     })(),
   });
   const auQaPool = (isBaseAu ? rel?.qaPool : au?.qaPool) ?? [];   // 대기 질문 풀 (v1.9)
-  const auCpTag: RelCpTag | undefined = au?.cp ?? rel?.cp;
+  /* 뱃지 글자 — 직접 쓴 값 (v2.0 사용자 요청). 질문 리스트 분류는 그 글자에서 CP/NCP로 가른다 */
+  const auCpLabel = cpLabelFor(rel, au);
+  const auCpTag: RelCpTag = cpTagOf(auCpLabel);
   const qaOn = (isBaseAu ? rel?.qaEnabled : au?.qaEnabled) ?? auQuestions.length > 0;
   const curQa: QaEntry | undefined = auQuestions.find(q => q.no === (qaNo ?? auQuestions[0]?.no));
   /** 질문 하나의 답변 — 옛 자관 안의 것 + 따로 저장된 것 (v2.0). 화면·수정·삭제는 이 목록의 순번을 쓴다 */
@@ -771,8 +804,9 @@ export default function RelDetailPage() {
   };
 
   /** 얼굴칸(1:1) 크롭 다시 잡기 — 캐릭터의 3:4 썸네일과 별개로 이 자관에만 저장 (v2.0) */
-  const saveFaceCrop = (cid: string, c: CropValue) => {
-    updateRel({ members: rel.members.map(m => (m.charId === cid ? { ...m, faceCrop: c } : m)) });
+  const saveFaceCrop = (cid: string, c: CropValue, port?: boolean) => {
+    // ARCH 배너형 카드는 세로 초상(3:4)이라 얼굴칸(1:1)과 따로 저장한다 (v2.0 카드 B)
+    updateRel({ members: rel.members.map(m => (m.charId === cid ? { ...m, ...(port ? { portCrop: c } : { faceCrop: c }) } : m)) });
     setFaceEdit(null);
   };
 
@@ -885,10 +919,10 @@ export default function RelDetailPage() {
           }}>{(!isBaseAu && au?.name?.trim()) || rel.name}</h1>
           <div className="ah-div">
             <i />
-            {auCpTag && (
+            {auCpLabel && (
               <em style={auSt.cpTagBg || auSt.cpTagFg
                 ? { background: auSt.cpTagBg, color: auSt.cpTagFg, borderColor: auSt.cpTagBg }
-                : undefined}>{CP_LABEL[auCpTag]}</em>
+                : undefined}>{auCpLabel}</em>
             )}
             <i />
           </div>
@@ -916,11 +950,11 @@ export default function RelDetailPage() {
           } as React.CSSProperties}>{pairSlots[0].quote}</div>
         )}
         {/* CP/NCP 뱃지 — 자관명 위 가운데 (v2.0 사용자 요청) · 색은 자관 수정에서 */}
-        {auCpTag && (
+        {auCpLabel && (
           <div className="cp-top">
             <span className="pill" style={auSt.cpTagBg || auSt.cpTagFg
               ? { background: auSt.cpTagBg, color: auSt.cpTagFg, borderColor: auSt.cpTagBg }
-              : undefined}>{CP_LABEL[auCpTag]}</span>
+              : undefined}>{auCpLabel}</span>
           </div>
         )}
         {/* 자관명·캐치프레이즈 글씨색 — 직접 지정 시 (v1.9 사용자 요청, 미지정: 테마) */}
@@ -950,7 +984,9 @@ export default function RelDetailPage() {
             ? <MiniProf member={pairSlots[0]} char={charOf(pairSlots[0].charId)} isAdmin={isAdmin}
                 auUnregistered={auUnregOf(pairSlots[0].charId)}
                 side="l" onMoveSide={() => moveSide(pairSlots[0]!.charId)} showQuote={arch}
-                onFaceCrop={ref => setFaceEdit({ charId: pairSlots[0]!.charId, ref, crop: pairSlots[0]!.faceCrop })}
+                onFaceCrop={ref => setFaceEdit(arch
+                  ? { charId: pairSlots[0]!.charId, ref, crop: pairSlots[0]!.portCrop ?? charOf(pairSlots[0]!.charId)?.thumbCrop, port: true }
+                  : { charId: pairSlots[0]!.charId, ref, crop: pairSlots[0]!.faceCrop })}
                 onGo={() => router.push(charHref(pairSlots[0]!.charId))}
                 onRemove={() => removeMember(pairSlots[0]!.charId)} />
             : <EmptyCard isAdmin={isAdmin} onAdd={() => setMemberOpen(true)} />}
@@ -1005,10 +1041,10 @@ export default function RelDetailPage() {
                     textShadow: `0 4px 30px ${withAlpha(auSt.nameShadowColor ?? '#000000', 0.6 * ((auSt.nameShadow ?? 100) / 100))}`,
                   }}>{(!isBaseAu && au?.name?.trim()) || rel.name}</h1>
                   <div className="rb-seal">
-                    {auCpTag && (
+                    {auCpLabel && (
                       <em style={auSt.cpTagBg || auSt.cpTagFg
                         ? { background: auSt.cpTagBg, color: auSt.cpTagFg, borderColor: auSt.cpTagBg }
-                        : undefined}>{CP_LABEL[auCpTag]}</em>
+                        : undefined}>{auCpLabel}</em>
                     )}
                     <i />
                   </div>
@@ -1034,7 +1070,9 @@ export default function RelDetailPage() {
             ? <MiniProf member={pairSlots[1]} char={charOf(pairSlots[1].charId)} isAdmin={isAdmin}
                 auUnregistered={auUnregOf(pairSlots[1].charId)}
                 side="r" onMoveSide={() => moveSide(pairSlots[1]!.charId)} showQuote={arch}
-                onFaceCrop={ref => setFaceEdit({ charId: pairSlots[1]!.charId, ref, crop: pairSlots[1]!.faceCrop })}
+                onFaceCrop={ref => setFaceEdit(arch
+                  ? { charId: pairSlots[1]!.charId, ref, crop: pairSlots[1]!.portCrop ?? charOf(pairSlots[1]!.charId)?.thumbCrop, port: true }
+                  : { charId: pairSlots[1]!.charId, ref, crop: pairSlots[1]!.faceCrop })}
                 onGo={() => router.push(charHref(pairSlots[1]!.charId))}
                 onRemove={() => removeMember(pairSlots[1]!.charId)} />
             : <EmptyCard isAdmin={isAdmin} onAdd={() => setMemberOpen(true)} />}
@@ -1456,7 +1494,7 @@ export default function RelDetailPage() {
       {/* ---------- AU 추가/관리 모달 (v1.8 — AU별 이미지·카드 분리는 후속) ---------- */}
       <Modal open={auOpen} onClose={() => setAuOpen(false)} small title="AU 관리"
         dirty={!!(auLabel || auCatch)}
-        desc="AU를 클릭하면 프로필 전체(일러·타임라인·문답·CP/NCP)가 그 AU의 것으로 전환됩니다 — 일러·캐치프레이즈는 그 AU를 선택한 상태에서 EDIT"
+        desc="AU를 클릭하면 프로필 전체(일러·타임라인·문답·뱃지)가 그 AU의 것으로 전환됩니다 — 일러·캐치프레이즈는 그 AU를 선택한 상태에서 EDIT"
         actions={<button className="btn btn-dark" onClick={() => setAuOpen(false)}>닫기</button>}>
         <div style={{ display: 'grid', gap: 8 }}>
           {rel.aus.map(a => (
@@ -1477,13 +1515,18 @@ export default function RelDetailPage() {
                     });
                   }}
                   style={{ fontSize: 11.5, padding: '5px 9px', minWidth: 0, flex: 1 }} />
-                {/* AU별 CP/NCP — 이름 줄 오른쪽 정렬 (v1.9 사용자 요청) */}
-                <div className="mini-seg" style={{ marginLeft: 'auto', flexShrink: 0 }}>
-                  {(['cp', 'ncp'] as RelCpTag[]).map(t => (
-                    <button key={t} className={(a.cp ?? rel.cp) === t ? 'on' : ''}
-                      onClick={() => updateRel({ aus: rel.aus.map(x => (x.id === a.id ? { ...x, cp: t } : x)) })}>{CP_LABEL[t]}</button>
-                  ))}
-                </div>
+                {/* AU별 뱃지 글자 — 이름 줄 오른쪽 (v1.9) · CP/NCP 고르기 대신 직접 쓴다 (v2.0 사용자 요청).
+                    원본(base)의 글자는 자관 본체에 둔다 — 자관 수정 화면과 같은 값을 보게 */}
+                <KInput value={cpLabelFor(rel, a.id === 'base' ? null : a)} placeholder="뱃지"
+                  data-tip="이름 위 뱃지 글자 — 비우면 뱃지 없음"
+                  onChange={e => {
+                    const v = e.target.value;
+                    const tag = cpTagOf(v);
+                    updateRel(a.id === 'base'
+                      ? { cpText: v, cp: tag, aus: rel.aus.map(x => (x.id === 'base' ? { ...x, cp: undefined, cpText: undefined } : x)) }
+                      : { aus: rel.aus.map(x => (x.id === a.id ? { ...x, cpText: v, cp: tag } : x)) });
+                  }}
+                  style={{ fontSize: 11.5, padding: '5px 9px', width: 76, flex: '0 0 76px', marginLeft: 'auto' }} />
                 {a.id !== 'base' && (
                   <>
                     {/* 순서 변경 (v2.0 사용자 요청) — 원본(base)은 항상 맨 앞 고정 */}
@@ -1528,16 +1571,12 @@ export default function RelDetailPage() {
               <KInput placeholder="캐치프레이즈" value={auCatch} onChange={e => setAuCatch(e.target.value)} />
             </div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <div className="mini-seg">
-                {(['cp', 'ncp'] as RelCpTag[]).map(t => (
-                  <button key={t} className={auCp === t ? 'on' : ''} onClick={() => setAuCp(t)}>{CP_LABEL[t]}</button>
-                ))}
-              </div>
+              <KInput placeholder={`뱃지 (비우면 ${cpLabelFor(rel) || '없음'})`} value={auCpText} onChange={e => setAuCpText(e.target.value)} style={{ maxWidth: 180 }} />
               <button className="btn btn-dark" style={{ whiteSpace: 'nowrap', marginLeft: 'auto' }} onClick={() => {
                 if (!auLabel.trim()) { toast('AU 이름을 입력해 주세요'); return; }
-                const na: RelAu = { id: newId(), label: auLabel.trim(), catchphrase: auCatch.trim(), cp: auCp, timeline: [], questions: [] };
+                const na: RelAu = { id: newId(), label: auLabel.trim(), catchphrase: auCatch.trim(), ...(auCpText.trim() ? { cpText: auCpText.trim(), cp: cpTagOf(auCpText) } : {}), timeline: [], questions: [] };
                 updateRel({ aus: [...rel.aus, na] });
-                setAuLabel(''); setAuCatch('');
+                setAuLabel(''); setAuCatch(''); setAuCpText('');
               }}>＋ ADD AU</button>
             </div>
           </div>
@@ -1718,9 +1757,9 @@ export default function RelDetailPage() {
 
       {/* 멤버 얼굴칸(1:1) 크롭 — 캐릭터의 3:4 썸네일과 별개로 이 자관에만 저장 (v2.0) */}
       {faceEdit && (
-        <FaceCropModal fileRef={faceEdit.ref} crop={faceEdit.crop}
+        <FaceCropModal fileRef={faceEdit.ref} crop={faceEdit.crop} port={faceEdit.port}
           onClose={() => setFaceEdit(null)}
-          onApply={c => saveFaceCrop(faceEdit.charId, c)} />
+          onApply={c => saveFaceCrop(faceEdit.charId, c, faceEdit.port)} />
       )}
 
       {/* 삭제 확인 — DOM 마지막에 렌더해 다른 모달(AU 관리 등) 위에 뜨게 */}
