@@ -658,6 +658,91 @@ html.ui-arch .page-arch .board-lock-err{color:#ff8a92}
 .mng-box.arch-modal .crop-frame{border-radius:0;box-shadow:0 0 0 1px rgba(190,208,228,.18)}
 .mng-box.arch-modal .crop-foot [style*="215, 218, 224"]{background:rgba(190,208,228,.2) !important}
 html.ui-arch body:has(.page-arch) .modal-ov{background:rgba(3,5,8,.72)}
+/* ===== RECORDS 게시판 — FIELD REPORT(/trpg) · COMMS ARCHIVE(/rp) · JOURNAL(/diary) ARCH (v2.0 사용자 요청) =====
+   레이아웃·기능은 그대로, 색·선·글꼴만. 글은 밝게(가독성), 칸은 각지게 */
+/* 공통 — 오른쪽 필터 상자 · 태그 줄 · 쪽 번호 */
+html.ui-arch .page-arch .tagside h4{font-family:'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em;color:#6f7b89}
+html.ui-arch .page-arch .tagside .tag{border-radius:0;color:#c9d2dc;border-left:1px solid transparent}
+html.ui-arch .page-arch .tagside .tag:hover{background:rgba(var(--a-acr),.05);color:#fff}
+html.ui-arch .page-arch .tagside .tag.on{background:rgba(var(--a-acr),.1);color:#fff;border-left-color:var(--a-ac)}
+html.ui-arch .page-arch .tagside .tag small,html.ui-arch .page-arch .tagside .tag.on small{font-family:'JetBrains Mono',monospace;color:var(--a-mu);opacity:1}
+html.ui-arch .page-arch .tag-row .tag{border-radius:0;background:rgba(5,8,12,.6);border:1px solid var(--a-ln2);color:#b3bec9;box-shadow:none}
+html.ui-arch .page-arch .tag-row .tag:hover{color:#fff;border-color:rgba(190,208,228,.4)}
+html.ui-arch .page-arch .tag-row .tag.on{background:rgba(var(--a-acr),.14);border-color:rgba(var(--a-acr),.55);color:#fff}
+html.ui-arch .page-arch .tag-row .tag small,html.ui-arch .page-arch .tag-row .tag.on small{font-family:'JetBrains Mono',monospace;color:var(--a-mu);opacity:1}
+html.ui-arch .page-arch .pager button{border-radius:0;background:rgba(5,8,12,.6);border:1px solid var(--a-ln2);color:#8592a0;font-family:'JetBrains Mono',monospace}
+html.ui-arch .page-arch .pager button:hover{color:#fff;border-color:rgba(190,208,228,.4)}
+html.ui-arch .page-arch .pager button.on{background:rgba(var(--a-acr),.16);border-color:rgba(var(--a-acr),.55);color:#fff}
+html.ui-arch .page-arch .upzone{border:1px dashed var(--a-ln2);border-radius:0;background:rgba(5,8,12,.5);color:var(--a-mu)}
+html.ui-arch .page-arch .upzone:hover{border-color:rgba(var(--a-acr),.5);color:#fff}
+html.ui-arch .page-arch .list-item{border-bottom-color:var(--a-ln);color:var(--a-tx)}
+html.ui-arch .page-arch .list-item:hover{background:rgba(var(--a-acr),.05)}
+html.ui-arch .page-arch .list-item .th{border-radius:0;box-shadow:0 0 0 1px var(--a-ln2)}
+html.ui-arch .page-arch .list-item b{color:#fff;font-weight:400}
+html.ui-arch .page-arch .list-item small{color:var(--a-mu)}
+
+/* FIELD REPORT — 티켓: 흰 표 → 어두운 강철 패널 (노치·절취선 모양 그대로) */
+html.ui-arch .page-arch .ticket{border-radius:0;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent 50%),rgba(13,18,25,.82);box-shadow:inset 0 0 0 1px var(--a-ln),0 24px 50px -28px rgba(0,0,0,.9);color:var(--a-tx)}
+html.ui-arch .page-arch .ticket:hover{box-shadow:inset 0 0 0 1px rgba(var(--a-acr),.35),0 24px 50px -24px rgba(0,0,0,.9),0 0 26px -14px rgba(var(--a-acr),.6)}
+html.ui-arch .page-arch .ticket .stub-line{border-right:1px dashed rgba(190,208,228,.28)}
+html.ui-arch .page-arch .ticket .stub .sc-title{color:#fff;font-weight:500}
+html.ui-arch .page-arch .ticket .stub .sc-catch{color:var(--a-mu)}
+html.ui-arch .page-arch .ticket .stub .sc-catch::after{height:1px;width:40px;background:var(--a-ac);box-shadow:0 0 10px rgba(var(--a-acr),.8)}
+html.ui-arch .page-arch .ticket .stub .row{color:#c9d2dc}
+html.ui-arch .page-arch .ticket .stub .row b{font:400 calc(9px*var(--fs,1))/1 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em;color:#6f7b89;min-width:60px;vertical-align:1px}
+html.ui-arch .page-arch .ticket .stub .adm{border-top:1px dashed var(--a-ln);color:#6f7b89;font-family:'JetBrains Mono',monospace}
+html.ui-arch .page-arch .log-plain{color:#c9d2dc}
+
+/* COMMS ARCHIVE — 방 목록 · 대화 */
+html.ui-arch .page-arch .rp-room{border-radius:0;border-left:1px solid transparent;color:var(--a-tx)}
+html.ui-arch .page-arch .rp-room:hover{background:rgba(var(--a-acr),.05)}
+html.ui-arch .page-arch .rp-room.on{background:rgba(var(--a-acr),.1);border-left-color:var(--a-ac);color:#fff}
+html.ui-arch .page-arch .rp-room b{font-weight:500}
+html.ui-arch .page-arch .rp-room small,html.ui-arch .page-arch .rp-room.on small{color:var(--a-mu);opacity:1}
+html.ui-arch .page-arch .rp-room .new{border-radius:0;background:var(--a-ac);color:#05070a;font-family:'JetBrains Mono',monospace}
+html.ui-arch .page-arch .rp-head{border-bottom-color:var(--a-ln)}
+html.ui-arch .page-arch .rp-head b{color:#fff;font-weight:500;letter-spacing:.04em}
+html.ui-arch .page-arch .rp-head small{color:var(--a-mu)}
+html.ui-arch .page-arch .msg .face{border-radius:0;box-shadow:0 0 0 1px var(--a-ln2)}
+html.ui-arch .page-arch .msg .who{font-family:'Jost','Noto Sans KR',sans-serif;font-weight:500;letter-spacing:.22em}
+html.ui-arch .page-arch .msg .bub{border-radius:0;background:linear-gradient(180deg,rgba(var(--cc),.18),rgba(var(--cc),.07));border:1px solid rgba(var(--cc),.55);color:var(--a-tx);font-weight:300}
+html.ui-arch .page-arch .msg-desc{color:#9aa6b3;font-weight:300}
+html.ui-arch .page-arch .rp-input{border-top-color:var(--a-ln)}
+html.ui-arch .page-arch .char-pick .f{border-radius:0;border:1px solid var(--a-ln2)}
+html.ui-arch .page-arch .char-pick small{color:#c9d2dc;font-family:'Jost','Noto Sans KR',sans-serif;letter-spacing:.12em}
+html.ui-arch .page-arch .rp-pick-pop{background:rgba(8,11,15,.97);border:1px solid var(--a-ln2);border-radius:0}
+html.ui-arch .page-arch .rp-pick-pop button{border-radius:0;color:#e4e9ef}
+html.ui-arch .page-arch .rp-pick-pop button:hover{background:rgba(var(--a-acr),.08)}
+html.ui-arch .page-arch .rp-pick-pop .f{border-radius:0}
+html.ui-arch .page-arch .m-act{background:rgba(8,11,15,.97);border-color:var(--a-ln2);border-radius:0}
+html.ui-arch .page-arch .m-act button{border-radius:0;color:#b3bec9}
+html.ui-arch .page-arch .m-act button:hover{color:#fff;background:rgba(var(--a-acr),.08)}
+html.ui-arch .page-arch .rp-input-guest{color:var(--a-mu)}
+@media (max-width:620px){
+  html.ui-arch .page-arch .rp-mfold{border-radius:0;background:rgba(13,18,25,.82);border:1px solid var(--a-ln);box-shadow:none;color:#fff}
+  html.ui-arch .page-arch .rp-mfold small{color:var(--a-mu);font-family:'JetBrains Mono',monospace}
+}
+
+/* JOURNAL — 일기 줄 · 무드 아이콘 · 달력 */
+html.ui-arch .page-arch .dy-row{border-bottom:1px solid var(--a-ln)}
+html.ui-arch .page-arch .dy-row:last-child{border-bottom:none}
+html.ui-arch .page-arch .dy-layout > *{min-width:0} /* 날짜를 고정폭 글꼴로 바꾸며 모바일에서 칸이 화면 밖으로 밀리던 것 */
+html.ui-arch .page-arch .dy-row .tt{color:#fff;font-weight:400}
+html.ui-arch .page-arch .dy-row .dt{font-family:'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.06em;color:var(--a-mu)}
+html.ui-arch .page-arch .dy-row .arr{border-color:var(--a-mu)}
+html.ui-arch .page-arch .dy-row .hd:hover .tt{color:var(--a-ac)}
+html.ui-arch .page-arch .dy-mood{border-radius:0 !important;box-shadow:inset 0 0 0 1px color-mix(in srgb,currentColor 50%,transparent)}
+html.ui-arch .page-arch .dy-row .dy-body .post-body{color:#c9d2dc;font-weight:300}
+html.ui-arch .page-arch .dy-row .dy-body .post-body strong,html.ui-arch .page-arch .dy-row .dy-body .post-body b{color:#fff;font-weight:500}
+html.ui-arch .page-arch .dy-thumb{border-radius:0;box-shadow:0 0 0 1px var(--a-ln2)}
+html.ui-arch .page-arch .dy-cal .hd b{font-family:'Jost','Noto Sans KR',sans-serif;font-weight:400;letter-spacing:.14em;color:#fff}
+html.ui-arch .page-arch .dy-cal .hd button{border-radius:0;color:var(--a-mu)}
+html.ui-arch .page-arch .dy-cal .hd button:hover{background:rgba(var(--a-acr),.08);color:#fff}
+html.ui-arch .page-arch .dy-cal .wk span{font-family:'JetBrains Mono',monospace;color:#6f7b89}
+html.ui-arch .page-arch .dy-cal .days button{border-radius:0;color:#4f5967;font-family:'JetBrains Mono',monospace}
+html.ui-arch .page-arch .dy-cal .days button.has{color:#fff;font-weight:400}
+html.ui-arch .page-arch .dy-cal .days button.has:hover{background:rgba(var(--a-acr),.1)}
+html.ui-arch .page-arch .dy-cal .dots i{border-radius:0;transform:rotate(45deg)}
 /* 페어링 수정·등록 화면 (v2.0 사용자 요청) — 공통 ARCH 입력칸 규칙 위에, 인라인으로 그린 테두리·자리표시만 맞춘다 */
 html.ui-arch .page-arch.page-rel-edit{--line:rgba(190,208,228,.16);--faint:#8592a0;--sub:#b3bec9}
 html.ui-arch .page-rel-edit [style*="border-radius"]:not(i):not(.gem){border-radius:0 !important}

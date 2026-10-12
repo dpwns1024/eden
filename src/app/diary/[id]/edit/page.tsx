@@ -21,17 +21,17 @@ export default function DiaryEditPage() {
   const [moods] = useLocalList<Mood>('ohome.moods.v1', MOOD_SEED);
   const p = posts.find(x => x.id === id);
 
-  if (!loaded) return <section className="page" />;
+  if (!loaded) return <section className="page page-arch page-diary" />;
   if (!isAdmin || !p) {
     return (
-      <section className="page">
+      <section className="page page-arch page-diary">
         <div className="page-head"><PageTitle href={tt.href}>{tt.title}</PageTitle><p>일기를 찾을 수 없거나 권한이 없습니다</p></div>
       </section>
     );
   }
 
   return (
-    <section className="page">
+    <section className="page page-arch page-diary">
       <div className="page-head"><PageTitle href={tt.href}>{tt.title}</PageTitle><p>{p.title}</p></div>
       <DiaryForm initial={p} moods={moods}
         onCancel={() => router.push('/diary')}

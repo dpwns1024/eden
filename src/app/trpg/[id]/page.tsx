@@ -236,12 +236,12 @@ export default function TrpgDetailPage() {
   // 없거나 볼 수 없으면 위 useEffect가 홈으로 보낸다 — 그 사이엔 빈 화면만 (v2.0)
   // 막힌 곳이면 여기서 되돌아간다 — 훅을 모두 부른 뒤여야 렌더마다 개수가 같다
   if (blocked) return blocked;
-  if (!loaded || !l) return <section className="page" />;
+  if (!loaded || !l) return <section className="page page-arch page-trpg-detail" />;
   if (!baseAllowed && !unlocked) {
-    if (!l.password) return <section className="page" />;
+    if (!l.password) return <section className="page page-arch page-trpg-detail" />;
     // 비밀번호 게이트 — 맞으면 이 세션 동안 열람 유지
     return (
-      <section className="page">
+      <section className="page page-arch page-trpg-detail">
         {/* 안내 문구는 환경설정 > TRPG에서 수정 — 관리자는 이 화면을 볼 수 없다 */}
         <div className="page-head"><PageTitle href={tt.href}>{tt.title}</PageTitle>
           <EditableDesc k="trpg-lock-desc" def="비밀번호를 입력하면 열람할 수 있습니다" always /></div>
@@ -319,7 +319,7 @@ html,body{margin:0!important;padding:0!important;height:auto!important;min-heigh
     : `<!DOCTYPE html>${inject}${body}`;
 
   return (
-    <section className="page">
+    <section className="page page-arch page-trpg-detail">
       <div className="page-head">
         <PageTitle href={tt.href}>{tt.title}</PageTitle>
         <p>{logNo(l)}{[l.writer, l.withText].filter(Boolean).map(x => ` · ${x}`).join('')}{l.date ? ` · ${l.date.replace(/-/g, '.')}` : ''}</p>

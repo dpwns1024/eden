@@ -18,7 +18,7 @@ const PAGE_SIZE = 10;
 
 function MoodIcon({ mood, size = 30 }: { mood?: Mood; size?: number }) {
   return (
-    <span style={{
+    <span className="dy-mood" style={{
       width: size, height: size, borderRadius: '50%', flexShrink: 0,
       // 줄높이를 1로 눌러야 글자 상자가 아니라 글자 자체가 가운데로 온다 (v2.0 사용자 발견)
       display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
@@ -74,7 +74,7 @@ function DiaryPageInner() {
     if (h) setOpen(h);
   }, [loaded]);
 
-  if (!loaded) return <section className="page" />;
+  if (!loaded) return <section className="page page-arch page-diary" />;
 
   const query = q.trim().toLowerCase();
   const monthKey = `${view.y}-${String(view.m + 1).padStart(2, '0')}`;
@@ -106,7 +106,7 @@ function DiaryPageInner() {
     .filter(p => mid === 'all' || p.moodId === mid).length;
 
   return (
-    <section className="page">
+    <section className="page page-arch page-diary">
       <div className="page-head">
         <PageTitle>{sec.id === 'main' ? 'DIARY' : sec.name}</PageTitle>
         <EditableDesc k="diary-desc" def="무드 일기 — 클릭하면 그 자리에서 펼쳐집니다" />
@@ -229,5 +229,5 @@ function DiaryPageInner() {
 
 /** ?s= 를 읽으므로 Suspense 경계가 필요하다 (Next App Router) */
 export default function DiaryPage() {
-  return <Suspense fallback={<section className="page" />}><DiaryPageInner /></Suspense>;
+  return <Suspense fallback={<section className="page page-arch page-diary" />}><DiaryPageInner /></Suspense>;
 }
