@@ -147,8 +147,8 @@ function MiniProf({ member, char, isAdmin, onGo, onRemove, auUnregistered, side,
   const details = (
     <>
       {showQuote && member.quote && (
+        /* 이름은 카드 위에 이미 있으니 다시 쓰지 않는다 (v2.0 사용자 요청) — 캐릭터 색 따옴표로 대사임을 표시 */
         <div className="mp-quote" style={{ ['--c' as string]: member.quoteMarkColor || char.color || '#8592a0' } as React.CSSProperties}>
-          <small>{char.name.toUpperCase()}</small>
           <span style={{ color: member.quoteColor }}>{member.quote}</span>
         </div>
       )}
@@ -431,6 +431,11 @@ export default function RelDetailPage() {
   const isBaseAu = (au?.id ?? 'base') === 'base';
   // 게시판 디자인 ARCH — 히어로 배치(가운데 인장형)와 아래 상자 이름이 달라진다 (v2.0 사용자 선택)
   const arch = useBoardSkin() === 'arch';
+  /* ARCH에선 QUESTIONS 칸을 「면담 기록」 말투로 (v2.0 사용자 요청) — 질문→문항, 질문 리스트→문항지,
+     문답→면담 기록, 답변→진술. 환경설정 메뉴 이름(자관 질문)을 가리키는 문구에는 쓰지 않는다 */
+  const qw = (t: string) => (arch
+    ? t.replace(/질문 리스트/g, '문항지').replace(/질문/g, '문항').replace(/문답/g, '면담 기록').replace(/답변/g, '진술')
+    : t);
   const auArts = (isBaseAu ? rel?.arts : au?.arts) ?? [];
   const auTimeline = (isBaseAu ? rel?.timeline : au?.timeline) ?? [];
   const auQuestions = (isBaseAu ? rel?.questions : au?.questions) ?? [];
@@ -603,12 +608,12 @@ export default function RelDetailPage() {
 
   /* ---------- 질문 추가 (현재 AU에) ---------- */
   const addQuestion = () => {
-    if (!qText.trim()) { toast('질문을 입력해 주세요'); return; }
+    if (!qText.trim()) { toast(qw('질문을 입력해 주세요')); return; }
     const no = Math.max(0, ...auQuestions.map(q => q.no)) + 1;
     const entry: QaEntry = { no, q: qText.trim(), date: new Date().toISOString().slice(0, 10), answers: [] };
     patchAuData({ questions: [entry, ...auQuestions], qaEnabled: true });
     setQOpen(false); setQText(''); setQaNo(no); setTab('qa');
-    toast('질문이 등록되었습니다');
+    toast(qw('질문이 등록되었습니다'));
   };
 
   /* ---------- QUESTIONS 질문 리스트 (v1.9 사용자 확정 — 큐 방식) ----------
@@ -630,13 +635,13 @@ export default function RelDetailPage() {
     patchAuData({ qaPool: [...auQaPool, ...fresh], questions: auQuestions, qaEnabled: true });
     setQsetOpen(false); setTab('qa'); setQaNo(null);
     toast(fresh.length
-      ? `「${set.name}」에서 새 질문 ${fresh.length}개가 대기 리스트에 담겼습니다${skipped ? ` (중복 ${skipped}개 제외)` : ''} — [질문 받기]로 출제합니다`
-      : `「${set.name}」의 질문은 전부 이미 담겨 있습니다`);
+      ? qw(`「${set.name}」에서 새 질문 ${fresh.length}개가 대기 리스트에 담겼습니다${skipped ? ` (중복 ${skipped}개 제외)` : ''} — `) + (arch ? '[면담 시작]으로 출제합니다' : '[질문 받기]로 출제합니다')
+      : qw(`「${set.name}」의 질문은 전부 이미 담겨 있습니다`));
   };
 
   /* 현재 질문 완료 → 대기 풀에서 랜덤으로 다음 질문 출제 (v1.9) */
   const drawNextQuestion = () => {
-    if (auQaPool.length === 0) { toast('대기 중인 질문이 없습니다 — 질문 리스트를 추가해 주세요'); return; }
+    if (auQaPool.length === 0) { toast(qw('대기 중인 질문이 없습니다 — 질문 리스트를 추가해 주세요')); return; }
     const i = Math.floor(Math.random() * auQaPool.length);
     const q = auQaPool[i];
     const no = Math.max(0, ...auQuestions.map(x => x.no)) + 1;
@@ -646,7 +651,7 @@ export default function RelDetailPage() {
       qaEnabled: true,
     });
     setQaNo(no);
-    toast('다음 질문이 출제되었습니다');
+    toast(qw('다음 질문이 출제되었습니다'));
   };
 
   /* 질문 지우기 — 이미 나온 질문을 **대기 리스트로 되돌린다** (v2.0 사용자 요청).
@@ -654,16 +659,16 @@ export default function RelDetailPage() {
      다음 질문을 자동으로 뽑지도 않는다 — 「지금은 이 질문 말고」라는 뜻이라 고르는 건 사용자 몫. */
   const returnQuestion = (cur: QaEntry) => {
     const n = answersOf(cur.no).length;
-    del.ask('이 질문을 리스트로 되돌리시겠습니까?', () => {
+    del.ask(qw('이 질문을 리스트로 되돌리시겠습니까?'), () => {
       const rest = auQuestions.filter(q => q.no !== cur.no);
       patchAuData({ questions: rest, qaPool: [...auQaPool, cur.q], qaEnabled: true });
       // 답변은 질문에 딸린 것이라 함께 정리한다 (주인 없는 답이 남지 않게)
       setQaRows(qaRows.filter(r => !(r.relId === rel.id && r.auId === (au?.id ?? 'base') && r.no === cur.no)));
       setQaNo(rest[0]?.no ?? null);
-      toast('질문을 리스트로 되돌렸습니다 — 다시 나올 수 있습니다');
+      toast(qw('질문을 리스트로 되돌렸습니다 — 다시 나올 수 있습니다'));
     }, n > 0
-      ? `이미 달린 답변 ${n}개는 함께 사라집니다. 질문은 대기 리스트로 돌아가 다시 나올 수 있습니다.`
-      : '질문이 대기 리스트로 돌아가 다시 나올 수 있습니다.',
+      ? qw(`이미 달린 답변 ${n}개는 함께 사라집니다. 질문은 대기 리스트로 돌아가 다시 나올 수 있습니다.`)
+      : qw('질문이 대기 리스트로 돌아가 다시 나올 수 있습니다.'),
     '되돌리기');
   };
 
@@ -672,7 +677,7 @@ export default function RelDetailPage() {
   const skipQuestion = () => {
     const cur = curQa;
     if (!cur) return;
-    del.ask('이 질문을 건너뛰시겠습니까?', () => {
+    del.ask(qw('이 질문을 건너뛰시겠습니까?'), () => {
       const rest = auQuestions.filter(q => q.no !== cur.no);
       let questions = rest;
       let qaPool = auQaPool;
@@ -685,10 +690,10 @@ export default function RelDetailPage() {
       patchAuData({ questions, qaPool, qaEnabled: true });
       setQaRows(qaRows.filter(r => !(r.relId === rel.id && r.auId === (au?.id ?? 'base') && r.no === cur.no)));
       setQaNo(questions[0]?.no ?? null);
-      toast(auQaPool.length > 0 ? '건너뛰고 다음 질문을 출제했습니다' : '건너뛰었습니다 — 대기 중인 질문이 없습니다');
+      toast(auQaPool.length > 0 ? qw('건너뛰고 다음 질문을 출제했습니다') : qw('건너뛰었습니다 — 대기 중인 질문이 없습니다'));
     }, answersOf(cur.no).length > 0
-      ? `이미 달린 답변 ${answersOf(cur.no).length}개도 함께 사라집니다. 건너뛴 질문은 다시 나오지 않습니다.`
-      : '건너뛴 질문은 다시 나오지 않습니다.',
+      ? qw(`이미 달린 답변 ${answersOf(cur.no).length}개도 함께 사라집니다. 건너뛴 질문은 다시 나오지 않습니다.`)
+      : qw('건너뛴 질문은 다시 나오지 않습니다.'),
     '건너뛰기');
   };
 
@@ -722,15 +727,15 @@ export default function RelDetailPage() {
       questions: auQuestions.map(q => (q.no === qNote.no ? { ...q, note: qNote.text.trim() || undefined } : q)),
     });
     setQNote(null);
-    toast('질문 설명을 저장했습니다');
+    toast(qw('질문 설명을 저장했습니다'));
   };
 
   const saveQEdit = () => {
     if (!qEdit) return;
-    if (!qEdit.text.trim()) { toast('질문을 입력해 주세요'); return; }
+    if (!qEdit.text.trim()) { toast(qw('질문을 입력해 주세요')); return; }
     patchAuData({ questions: auQuestions.map(q => (q.no === qEdit.no ? { ...q, q: qEdit.text.trim() } : q)) });
     setQEdit(null);
-    toast('질문을 수정했습니다');
+    toast(qw('질문을 수정했습니다'));
   };
 
   const canEditAns = (a: QaAnswer) => (a.authorId ? a.authorId === user?.id : isAdmin);
@@ -979,7 +984,7 @@ export default function RelDetailPage() {
       {isDuo ? (
         /* ARCH — 배너형 (v2.0 사용자 선택 「C · BANNER」): 가운데 일러가 맨 위 가로 배너가 되고(넘기기·전신/일러 전환·
            위치 조정 그대로) 그 위에 자관명·CP·캐치프레이즈, 아래에 두 사람 카드를 나란히(한마디는 카드 안) */
-        <div className={`rel-body ${arch ? 'rel-banner' : ''}`} style={{ fontFamily: familyOf(rel.bodyFontId) }}>
+        <div className={`rel-body ${arch ? 'rel-banner' : ''}${arch && !(rel.aus.length > 1 || isAdmin) ? ' rb-bare' : ''}`} style={{ fontFamily: familyOf(rel.bodyFontId) }}>
           {pairSlots[0]
             ? <MiniProf member={pairSlots[0]} char={charOf(pairSlots[0].charId)} isAdmin={isAdmin}
                 auUnregistered={auUnregOf(pairSlots[0].charId)}
@@ -1156,9 +1161,9 @@ export default function RelDetailPage() {
         <div className="rel-tabs">
           <button className={tab === 'tl' ? 'on' : ''} onClick={() => setTab('tl')}><span className="lb-pc">TIMELINE</span><span className="lb-m">T</span></button>
           {/* QUESTIONS 섹션은 ＋로 추가해야 생김 (v1.9) — 처음에는 타임라인만 */}
-          {qaOn && <button className={tab === 'qa' ? 'on' : ''} onClick={() => setTab('qa')}><span className="lb-pc">QUESTIONS</span><span className="lb-m">Q</span></button>}
+          {qaOn && <button className={tab === 'qa' ? 'on' : ''} onClick={() => setTab('qa')}><span className="lb-pc">{arch ? 'INTERVIEW' : 'QUESTIONS'}</span><span className="lb-m">{arch ? 'I' : 'Q'}</span></button>}
           {isAdmin && !qaOn && (
-            <button data-tip="QUESTIONS 섹션 추가" style={{ color: 'var(--faint)', fontSize: 14, padding: '0 6px' }}
+            <button data-tip={arch ? 'INTERVIEW 섹션 추가' : 'QUESTIONS 섹션 추가'} style={{ color: 'var(--faint)', fontSize: 14, padding: '0 6px' }}
               onClick={() => setQsetOpen(true)}>＋</button>
           )}
           {isAdmin && (
@@ -1176,24 +1181,24 @@ export default function RelDetailPage() {
               {tab === 'tl'
                 ? <button className="btn btn-dark" style={{ height: 35, padding: '0 14px', fontSize: 11.5 }} data-tip="기록 추가" onClick={() => setTlOpen(true)}><span className="lb-pc">＋ ADD RECORD</span><span className="lb-m">＋</span></button>
                 : <>
-                  <button className="btn btn-ghost" style={{ height: 35, padding: '0 14px', fontSize: 11.5 }} data-tip="질문 리스트 추가" onClick={() => setQsetOpen(true)}><span className="lb-pc">＋ 질문 리스트</span><span className="lb-m">≡</span></button>
+                  <button className="btn btn-ghost" style={{ height: 35, padding: '0 14px', fontSize: 11.5 }} data-tip={qw('질문 리스트 추가')} onClick={() => setQsetOpen(true)}><span className="lb-pc">{qw('＋ 질문 리스트')}</span><span className="lb-m">≡</span></button>
                   {/* 되돌리기는 오른쪽 질문 리스트에서 우클릭 (v2.0 사용자 요청) — 여기엔 건너뛰기만 */}
                   {curQa && (
                     <button className="btn btn-ghost" style={{ height: 35, padding: '0 14px', fontSize: 11.5 }}
-                      data-tip="이 질문을 아주 버리고 다음 질문으로 — 다시 나오지 않음 (되돌리려면 오른쪽 리스트에서 우클릭)"
-                      onClick={skipQuestion}><span className="lb-pc">질문 건너뛰기</span><span className="lb-m">⏭</span></button>
+                      data-tip={qw('이 질문을 아주 버리고 다음 질문으로 — 다시 나오지 않음 (되돌리려면 오른쪽 리스트에서 우클릭)')}
+                      onClick={skipQuestion}><span className="lb-pc">{qw('질문 건너뛰기')}</span><span className="lb-m">⏭</span></button>
                   )}
                   {/* 대기 풀에서 랜덤 출제 (v1.9) — 리스트를 넣어도 자동 출제되지 않으므로(v2.0)
                       아직 받은 질문이 없을 때는 「질문 받기」로 문구를 바꿔 이 버튼이 시작점임을 알린다 */}
                   {auQaPool.length > 0 && (
                     <button className={curQa ? 'btn btn-ghost' : 'btn btn-dark'} style={{ height: 35, padding: '0 14px', fontSize: 11.5 }}
-                      data-tip={`대기 질문 ${auQaPool.length}개`}
+                      data-tip={qw(`대기 질문 ${auQaPool.length}개`)}
                       onClick={drawNextQuestion}>
-                      <span className="lb-pc">{curQa ? '완료 — 다음 질문' : '질문 받기'}</span>
+                      <span className="lb-pc">{curQa ? qw('완료 — 다음 질문') : arch ? '면담 시작' : '질문 받기'}</span>
                       <span className="lb-m">↻</span>
                     </button>
                   )}
-                  <button className="btn btn-dark" style={{ height: 35, padding: '0 14px', fontSize: 11.5 }} data-tip="질문 추가" onClick={() => setQOpen(true)}><span className="lb-pc">＋ ADD QUESTION</span><span className="lb-m">＋</span></button>
+                  <button className="btn btn-dark" style={{ height: 35, padding: '0 14px', fontSize: 11.5 }} data-tip={qw('질문 추가')} onClick={() => setQOpen(true)}><span className="lb-pc">{arch ? '＋ ADD ITEM' : '＋ ADD QUESTION'}</span><span className="lb-m">＋</span></button>
                 </>}
             </span>
           )}
@@ -1221,12 +1226,34 @@ export default function RelDetailPage() {
           <div>
             {auTimeline.map((item, i) => (
               /* 수정·삭제는 우클릭 메뉴로 (v2.0 사용자 요청) — 늘 떠 있는 [삭제] 글자는 없앴다 */
-              <div className="tl-item" key={i}
+              <div className={`tl-item${arch ? ' tl-log' : ''}`} key={i}
                 onContextMenu={e => {
                   if (!isAdmin) return;
                   e.preventDefault();
                   setTlCtx({ x: e.clientX, y: e.clientY, idx: i });
                 }}>
+                {arch ? (
+                  /* ARCH 타임라인 B · LOG (v2.0 사용자 선택) — 왼쪽 기록 번호·연도 / 오른쪽 설명과 대사를
+                     대본처럼 한 줄씩(이름 · 대사). 넓은 화면에서 말풍선이 좌우 끝으로 흩어지던 것 */
+                  <>
+                    <div className="tl-dt">
+                      <span>RECORD {String(i + 1).padStart(2, '0')}</span>
+                      {item.era && <b>{item.era}</b>}
+                    </div>
+                    <div className="tl-ln">
+                      {item.desc && <div className="desc">{item.desc}</div>}
+                      {item.says.map((s, j) => {
+                        const c = charOf(s.charId);
+                        return (
+                          <div key={j} className="tl-row" style={{ ['--cc' as string]: rgbTriple(c?.color ?? '#5d636d') }}>
+                            <small className="who">{(c?.name ?? '').toUpperCase()}</small>
+                            <span>{s.text}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                ) : <>
                 {item.era && <div className="era">{item.era}</div>}
                 {item.desc && <div className="desc">{item.desc}</div>}
                 {item.says.map((s, j) => {
@@ -1239,6 +1266,7 @@ export default function RelDetailPage() {
                     </div>
                   );
                 })}
+                </>}
               </div>
             ))}
             {auTimeline.length === 0 && <p className="hint">타임라인이 비어 있습니다 — 우상단 [＋ ADD RECORD]로 추가</p>}
@@ -1251,12 +1279,12 @@ export default function RelDetailPage() {
                 <>
                   {/* 스크롤은 여기까지 — 입력란은 밖에 두어 답변이 길어져도 자리를 지킨다 (v2.0 사용자 발견) */}
                   <div className="qa-answers" ref={ansRef} onScroll={onAnsScroll}>
-                  <div className="qa-no">TODAY&apos;S QUESTION · Q.{String(curQa.no).padStart(3, '0')}
+                  <div className="qa-no">{arch ? 'INTERVIEW · ITEM ' : <>TODAY&apos;S QUESTION · Q.</>}{String(curQa.no).padStart(3, '0')}
                     {/* 질문에 대한 오너 설명 — 관리자만 작성 (v2.0 사용자 요청) */}
                     {isAdmin && (
                       <small style={{ cursor: 'var(--cur-pointer,pointer)', color: 'var(--accent)', marginLeft: 8, fontWeight: 400, letterSpacing: 0 }}
                         onClick={() => setQNote({ no: curQa.no, text: curQa.note ?? '' })}>
-                        {curQa.note ? '설명 수정' : '＋ 설명'}
+                        {arch ? (curQa.note ? '메모 수정' : '＋ 메모') : (curQa.note ? '설명 수정' : '＋ 설명')}
                       </small>
                     )}
                   </div>
@@ -1265,7 +1293,7 @@ export default function RelDetailPage() {
                   {curQa.note && <div className="qa-note">{curQa.note}</div>}
                   {/* 날짜만, 오른쪽 정렬 (v1.9 사용자 피드백) */}
                   <div className="qa-date" style={{ textAlign: 'right' }}>{curQa.date.replace(/-/g, '.')}</div>
-                  {qaHidden && <div className="qa-locked">비공개 답변</div>}
+                  {qaHidden && <div className="qa-locked">{qw('비공개 답변')}</div>}
                   {!qaHidden && curAnswers.map((a, i) => {
                     const c = charOf(a.charId);
                     return (
@@ -1333,13 +1361,13 @@ export default function RelDetailPage() {
                   )}
                 </>
               ) : (
-                <p className="hint">등록된 문답이 없습니다 — 우상단 [＋ 질문 추가]로 시작해 보세요</p>
+                <p className="hint">{arch ? '등록된 면담 기록이 없습니다 — 우상단 [＋ ADD ITEM]으로 첫 문항을 등록해 보세요' : '등록된 문답이 없습니다 — 우상단 [＋ 질문 추가]로 시작해 보세요'}</p>
               )}
             </div>
             <div className="qa-list">
               <div className="qa-search">
                 <span>⌕</span>
-                <input placeholder="질문 검색" value={qaQuery} onChange={e => setQaQuery(e.target.value)} />
+                <input placeholder={qw('질문 검색')} value={qaQuery} onChange={e => setQaQuery(e.target.value)} />
               </div>
               <div className="qa-scroll">
                 {qaFiltered.map(q => (
@@ -1347,10 +1375,10 @@ export default function RelDetailPage() {
                      바로 모달이 뜨는 것보다 한 단계 거치는 쪽이 실수로 우클릭했을 때 안전하다).
                      지금 보고 있는 질문이 아니어도 리스트에서 바로 고를 수 있다 */
                   <div key={q.no} className={`qa-item ${curQa?.no === q.no ? 'on' : ''}`} onClick={() => setQaNo(q.no)}
-                    data-tip={isAdmin ? '우클릭 — 질문 수정 · 리스트로 되돌리기' : undefined}
+                    data-tip={isAdmin ? (arch ? '우클릭 — 문항 수정 · 대기 목록으로 되돌리기' : '우클릭 — 질문 수정 · 리스트로 되돌리기') : undefined}
                     onContextMenu={e => { if (!isAdmin) return; e.preventDefault(); setQaCtx({ x: e.clientX, y: e.clientY, no: q.no }); }}>
-                    <b>Q.{String(q.no).padStart(3, '0')} {q.q}</b>
-                    <small>{q.date.slice(5).replace('-', '.')} · 답변 {answersOf(q.no).length}</small>
+                    <b>{arch ? 'No.' : 'Q.'}{String(q.no).padStart(3, '0')} {q.q}</b>
+                    <small>{q.date.slice(5).replace('-', '.')} · {qw('답변')} {answersOf(q.no).length}</small>
                   </div>
                 ))}
               </div>
@@ -1366,7 +1394,7 @@ export default function RelDetailPage() {
         {!au?.hideRp && (
         <div className="panel widget" style={{ margin: 0, ...(au?.hideLog ? { gridColumn: '1/-1' } : null) }}>
           {/* ARCH에선 기관 홈페이지 말투 — 두 사람의 임무·일상 기록 (v2.0 사용자 요청) */}
-          <h4>{arch ? <span>MISSION LOG <small className="kr">임무 기록</small></span> : '역극'} <span className="more" onClick={() => router.push('/rp')}>더보기 ›</span></h4>
+          <h4>{arch ? <span>TERMINAL REC <small className="kr">단말기 녹음본</small></span> : '역극'} <span className="more" onClick={() => router.push('/rp')}>더보기 ›</span></h4>
           {relRooms.length > 0 ? relRooms.map(rm => (
             <div key={rm.id} className="dday-row" style={{ cursor: 'var(--cur-pointer,pointer)' }} onClick={() => router.push('/rp')}>
               <span>{rm.title}</span>
@@ -1375,7 +1403,7 @@ export default function RelDetailPage() {
               </b>
             </div>
           )) : (
-            <p className="hint" style={{ margin: 0 }}>{arch ? '아직 등록된 임무 기록이 없습니다' : '이 자관 기반으로 진행된 역극이 여기에 표시됩니다'}</p>
+            <p className="hint" style={{ margin: 0 }}>{arch ? '재생할 녹음본이 없습니다 — NO SIGNAL' : '이 자관 기반으로 진행된 역극이 여기에 표시됩니다'}</p>
           )}
         </div>
         )}
@@ -1603,8 +1631,8 @@ export default function RelDetailPage() {
       )}
 
       {/* ---------- QUESTIONS 섹션 추가 — 질문 리스트 선택 (v1.9) ---------- */}
-      <Modal open={qsetOpen} onClose={() => setQsetOpen(false)} small title="질문 리스트 추가"
-        desc="환경설정 > 자관 질문의 세트에서 골라 현재 AU의 QUESTIONS에 넣습니다"
+      <Modal open={qsetOpen} onClose={() => setQsetOpen(false)} small title={qw('질문 리스트 추가')}
+        desc={`환경설정 > 자관 질문의 세트에서 골라 현재 AU의 ${arch ? 'INTERVIEW' : 'QUESTIONS'}에 넣습니다`}
         actions={<button className="btn btn-ghost" onClick={() => setQsetOpen(false)}>CANCEL</button>}>
         <div style={{ display: 'grid', gap: 8 }}>
           {[...qsets].sort((a, b) => (a.cat === (auCpTag ?? 'cp') ? -1 : 0) - (b.cat === (auCpTag ?? 'cp') ? -1 : 0)).map(s => (
@@ -1615,7 +1643,7 @@ export default function RelDetailPage() {
               }}>
               <span className="pill dark">{CP_LABEL[s.cat]}</span>
               <b style={{ fontSize: 12.5 }}>{s.name}</b>
-              <small style={{ marginLeft: 'auto', color: 'var(--faint)', fontSize: 10.5 }}>질문 {s.questions.length}개</small>
+              <small style={{ marginLeft: 'auto', color: 'var(--faint)', fontSize: 10.5 }}>{qw('질문')} {s.questions.length}개</small>
             </button>
           ))}
           {qsets.length === 0 && <p className="hint" style={{ margin: 0 }}>환경설정 &gt; 자관 질문에서 세트를 먼저 만들어 주세요</p>}
@@ -1629,19 +1657,19 @@ export default function RelDetailPage() {
         </div>
       </Modal>
 
-      <Modal open={qOpen} onClose={() => setQOpen(false)} small title="질문 추가"
+      <Modal open={qOpen} onClose={() => setQOpen(false)} small title={qw('질문 추가')}
         dirty={!!qText}
-        desc="이 자관의 문답 질문을 등록 — 문항 풀·랜덤 출제 관리는 환경설정에서 (후속)"
+        desc={arch ? '이 자관의 면담 문항을 등록합니다' : '이 자관의 문답 질문을 등록 — 문항 풀·랜덤 출제 관리는 환경설정에서 (후속)'}
         actions={<>
           <button className="btn btn-ghost" onClick={() => setQOpen(false)}>CANCEL</button>
           <button className="btn btn-dark" onClick={addQuestion}>ADD</button>
         </>}>
-        <KTextarea placeholder="질문" value={qText}
+        <KTextarea placeholder={qw('질문')} value={qText}
           onChange={e => setQText(e.target.value)} style={{ minHeight: 60 }} />
       </Modal>
       {/* 답변 수정·오너 부연 (v1.9) — 텍스트는 작성자 본인, 부연설명은 관리자 */}
       <Modal open={ansEdit !== null} onClose={() => setAnsEdit(null)} small
-        title={ansEdit && canEditAns(curAnswers[ansEdit.idx] ?? { charId: '', text: '' }) ? '답변 수정 · 부연설명' : '부연설명'}
+        title={ansEdit && canEditAns(curAnswers[ansEdit.idx] ?? { charId: '', text: '' }) ? qw('답변 수정 · 부연설명') : '부연설명'}
         dirty={!!ansEdit}
         actions={<>
           <button className="btn btn-ghost" onClick={() => setAnsEdit(null)}>CANCEL</button>
@@ -1668,7 +1696,7 @@ export default function RelDetailPage() {
       </Modal>
 
       {/* 질문 문구 수정 (v2.0) */}
-      <Modal open={qEdit !== null} onClose={() => setQEdit(null)} small title="질문 수정"
+      <Modal open={qEdit !== null} onClose={() => setQEdit(null)} small title={qw('질문 수정')}
         dirty={!!qEdit && qEdit.text !== (auQuestions.find(q => q.no === qEdit.no)?.q ?? '')}
         actions={<>
           <button className="btn btn-ghost" onClick={() => setQEdit(null)}>CANCEL</button>
@@ -1681,8 +1709,8 @@ export default function RelDetailPage() {
       </Modal>
 
       {/* 질문에 대한 오너 설명 (v2.0) — 답변의 부연과 달리 질문 아래에 그대로 보인다 */}
-      <Modal open={qNote !== null} onClose={() => setQNote(null)} small title="질문 설명"
-        desc="이 질문이 왜 나왔는지, 어떤 맥락인지 — 질문 아래에 그대로 표시됩니다"
+      <Modal open={qNote !== null} onClose={() => setQNote(null)} small title={arch ? '문항 메모' : '질문 설명'}
+        desc={qw('이 질문이 왜 나왔는지, 어떤 맥락인지 — 질문 아래에 그대로 표시됩니다')}
         dirty={!!qNote?.text}
         actions={<>
           <button className="btn btn-ghost" onClick={() => setQNote(null)}>CANCEL</button>
@@ -1719,17 +1747,17 @@ export default function RelDetailPage() {
       {/* 질문 우클릭 메뉴 (v2.0 사용자 요청) — 여기서 골라야 확인 모달이 뜬다 */}
       {qaCtx && createPortal(
         <div className="ctx-menu on" style={{ left: qaCtx.x, top: qaCtx.y }} onClick={e => e.stopPropagation()}>
-          <div className="ctx-ttl">Q.{String(qaCtx.no).padStart(3, '0')}</div>
+          <div className="ctx-ttl">{arch ? 'No.' : 'Q.'}{String(qaCtx.no).padStart(3, '0')}</div>
           <button onClick={() => {
             const q = auQuestions.find(x => x.no === qaCtx.no);
             setQaCtx(null);
             if (q) setQEdit({ no: q.no, text: q.q });
-          }}>질문 수정</button>
+          }}>{qw('질문 수정')}</button>
           <button className="danger" onClick={() => {
             const q = auQuestions.find(x => x.no === qaCtx.no);
             setQaCtx(null);
             if (q) returnQuestion(q);
-          }}>리스트로 되돌리기</button>
+          }}>{arch ? '대기 목록으로 되돌리기' : '리스트로 되돌리기'}</button>
         </div>,
         document.body,
       )}

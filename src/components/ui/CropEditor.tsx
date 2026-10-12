@@ -33,11 +33,11 @@ export function coverImgStyle(crop: CropValue | undefined, wide: boolean): React
 export function CropImg({ src, crop, alt }: { src: string; crop?: CropValue; alt?: string }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const natRef = useRef<{ w: number; h: number } | null>(null);
-  const [wide, setWide] = useState<boolean | null>(null);
+  const [box, setBox] = useState<{ w: number; h: number; natR: number } | null>(null);
   const compute = () => {
     const r = wrapRef.current?.getBoundingClientRect();
     const n = natRef.current;
-    if (r && n && r.width > 1 && r.height > 1) setWide(n.w / n.h >= r.width / r.height);
+    if (r && n && r.width > 1 && r.height > 1) setBox({ w: r.width, h: r.height, natR: n.w / n.h });
   };
   useEffect(() => {
     compute();
@@ -53,12 +53,26 @@ export function CropImg({ src, crop, alt }: { src: string; crop?: CropValue; alt
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={src} alt={alt ?? ''} draggable={false}
         onLoad={e => { const im = e.currentTarget; natRef.current = { w: im.naturalWidth, h: im.naturalHeight }; compute(); }}
-        style={wide == null ? { opacity: 0 } : coverImgStyle(crop, wide)} />
+        style={box == null ? { opacity: 0 } : coverClamped(crop, box)} />
     </div>
   );
 }
 
-/** 파일 참조 + 크롭을 적용해 표시하는 썸네일 (없으면 플레이스홀더) */
+/** 표시 칸이 크롭할 때와 다른 비율일 때(예: 카드 높이만큼 늘어나는 초상) 저장된 위치를 그대로 쓰면
+ *  이미지 끝이 칸 안으로 들어와 빈 띠가 생긴다 (v2.0 사용자 발견 — 초상 위쪽 검은 줄).
+ *  칸을 늘 덮도록 중심만 안쪽으로 당긴다 — 덮고 있을 때는 저장값 그대로라 기존 표시는 바뀌지 않는다 */
+function coverClamped(crop: CropValue | undefined, b: { w: number; h: number; natR: number }): React.CSSProperties {
+  const c = crop ?? { x: 0, y: 0, scale: 1 };
+  const wide = b.natR >= b.w / b.h;
+  const iw = wide ? c.scale * b.h * b.natR : c.scale * b.w;
+  const ih = wide ? c.scale * b.h : (c.scale * b.w) / b.natR;
+  const fit = (pos: number, frame: number, img: number) =>
+    (img <= frame ? frame / 2 : Math.min(img / 2, Math.max(frame - img / 2, pos)));
+  const cx = fit((0.5 + c.x) * b.w, b.w, iw);
+  const cy = fit((0.5 + c.y) * b.h, b.h, ih);
+  return { ...coverImgStyle({ x: cx / b.w - 0.5, y: cy / b.h - 0.5, scale: c.scale }, wide) };
+}
+
 export function CroppedBlobImg({ fileRef, crop, ph, label, alt }: {
   fileRef?: string; crop?: CropValue; ph?: string; label?: string; alt?: string;
 }) {
