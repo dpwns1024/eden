@@ -665,7 +665,7 @@ function MainPagePane() {
           (버튼 높이가 제목줄을 늘려 설명문이 떨어져 보이던 문제 — v1.9 사용자 피드백) */}
       <div style={{ position: 'relative' }}>
         <h3>메인 페이지</h3>
-        <button className="btn btn-ghost" style={{ position: 'absolute', right: 0, top: -3, padding: '6px 14px', fontSize: 11 }}
+        <button className="btn btn-ghost set-h-btn" style={{ position: 'absolute', right: 0, top: -3, padding: '6px 14px', fontSize: 11 }}
           onClick={() => setResetAsk(true)}>기본 구성</button>
       </div>
       <ConfirmModal open={resetAsk} title="메인 페이지를 기본 구성으로 되돌릴까요?"
@@ -2022,7 +2022,7 @@ function DataPane() {
       )}
       {serverOn && (
         <div className="set-row" style={{ flexWrap: 'wrap' }}>
-          <div className="l"><b>이미지 메타데이터 정리</b>
+          <div className="l" style={{ flex: '1 1 320px', minWidth: 0 }}><b>이미지 메타데이터 정리</b>
             <small>이미 올린 이미지에서 촬영·위치 정보, AI 그림 프롬프트(숨긴 정보 포함)를 지우고 JPG로 다시 저장합니다 — 새로 올리는 이미지는 자동으로 정리됩니다.
               서버의 원본 파일은 정리된 파일로 바뀌니 원본은 따로 보관해 두세요 (GIF·회원 프로필 사진 제외)</small></div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -3368,15 +3368,7 @@ function SettingsInner() {
     router.push(`/settings?tab=${encodeURIComponent(t)}`);
   };
 
-  // 모바일에서는 환경설정 미제공 (v1.9 사용자 확정 — 수정할 정보량이 모바일에 맞지 않음)
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width:620px)');
-    const f = () => setIsMobile(mq.matches);
-    f();
-    mq.addEventListener('change', f);
-    return () => mq.removeEventListener('change', f);
-  }, []);
+  // 모바일에서도 연다 (v2.0 사용자 요청 — 예전엔 PC 전용). 좁은 화면 배치는 globals.css의 .page-settings 모바일 구간
 
   /* 미리보기는 이 페이지 안에서만 — SAVE 없이 벗어나면 저장본으로 원복 (v1.9).
      **색만 지키고 있었다** (v2.0 사용자 발견 — 「폰트 바꾸고 SAVE 안 했는데 화면 전환이 되고
@@ -3429,19 +3421,9 @@ function SettingsInner() {
       </section>
     );
   }
-  if (isMobile) {
-    return (
-      <section className="page">
-        <div className="page-head"><PageTitle>SETTINGS</PageTitle><p>PC 전용 페이지</p></div>
-        <div className="panel" style={{ textAlign: 'center', padding: 56 }}>
-          <p style={{ fontSize: 13, color: 'var(--faint)' }}>환경설정은 PC 화면에서 이용할 수 있습니다.</p>
-        </div>
-      </section>
-    );
-  }
 
   return (
-    <section className="page">
+    <section className="page page-arch page-settings">
       <div className="page-head">
         <PageTitle>SETTINGS</PageTitle>
         {/* 관리자 클릭 수정 가능 (v1.9 — 다른 페이지 설명과 동일) */}
@@ -3463,7 +3445,7 @@ function SettingsInner() {
             <button key={c} className={tab === c ? 'on' : ''} onClick={() => setTab(c)}>{c}</button>
           ))}
         </div>
-        <div className="panel" style={{ padding: 26 }}>
+        <div className="panel set-body" style={{ padding: 26 }}>
           {tab === '디자인' ? (
             <DesignPane />
           ) : tab === '메인 페이지' ? (
