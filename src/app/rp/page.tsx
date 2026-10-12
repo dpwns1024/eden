@@ -33,7 +33,7 @@ const fmtHM = (iso: string) => {
 };
 
 export default function RpPage() {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, ready } = useAuth();
   const toast = useToast();
   const del = useConfirmDelete();
   /* ARCH 디자인이면 교신(COMMS) 말투로 (v2.0 사용자 요청) — 방→채널, 진행중→LIVE, 완결→CLOSED,
@@ -48,6 +48,9 @@ export default function RpPage() {
   const [rels] = useLocalList<Relation>('ohome.rels.v1', REL_SEED);
   const [selId, setSelId] = useState<string | null>(null);
   const [fStatus, setFStatus] = useState<'all' | 'ongoing' | 'done'>('ongoing');
+  /* 진행중(LIVE) 탭은 관리자에게만 (v2.0 사용자 요청) — 손님은 비밀번호를 넣어도 진행중 방엔 못 들어가니
+     탭을 둘 이유가 없다. 관리자가 아니면 처음 보는 탭을 전체로 */
+  useEffect(() => { if (ready && !isAdmin && fStatus === 'ongoing') setFStatus('all'); }, [ready, isAdmin, fStatus]);
   const [mListOpen, setMListOpen] = useState(false);
   const [mFocus, setMFocus] = useState(false);
 
@@ -466,9 +469,11 @@ ${rows}
         {/* 우측 상태 필터 */}
         <div className="panel tagside" style={{ padding: 16, alignSelf: 'start' }}>
           <h4>{cw('STATUS', '상태')}</h4>
-          <div className={`tag ${fStatus === 'ongoing' ? 'on' : ''}`} onClick={() => setFStatus('ongoing')}>
-            {cw('LIVE', '진행중')} <small>{cntS('ongoing')}</small>
-          </div>
+          {isAdmin && (
+            <div className={`tag ${fStatus === 'ongoing' ? 'on' : ''}`} onClick={() => setFStatus('ongoing')}>
+              {cw('LIVE', '진행중')} <small>{cntS('ongoing')}</small>
+            </div>
+          )}
           <div className={`tag ${fStatus === 'all' ? 'on' : ''}`} onClick={() => setFStatus('all')}>
             {cw('ALL', '전체')} <small>{cntS('all')}</small>
           </div>
