@@ -2791,3 +2791,15 @@ html.ui-arch .page-gallery-detail .post-body{color:#b3bec9}
 .page-gallery .list-item small{display:flex;flex-wrap:wrap;gap:2px 8px;margin-top:5px}
 .page-gallery .list-item b{display:flex;align-items:center;gap:8px;overflow:visible}
 .page-gallery .list-item b .typ{margin-left:0 !important;flex-shrink:0}
+/* 갤러리 — 태그를 말머리 옆으로 (그리드·상세), 리스트는 윗줄 말머리·태그 / 아랫줄 제목, 상세 이전·다음 글 */
+.page-gallery .g-item .g-head{flex-wrap:wrap;row-gap:4px}
+.page-gallery .g-item .g-head .tag-in{margin-left:0;white-space:nowrap}
+html.ui-arch .page-gallery .g-item .g-head .tag-in{font:400 calc(10px*var(--fs,1))/1.4 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.06em}
+.page-gallery .list-item small.g-line{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;margin:0 0 6px}
+.page-gallery .list-item b{display:block}
+.page-gallery-detail .g-tag{margin-left:0;font-size:calc(12px*var(--fs,1));white-space:nowrap}
+html.ui-arch .page-gallery-detail .g-tag{font:400 calc(11.5px*var(--fs,1))/1.4 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.06em}
+.g-nav{display:flex;justify-content:space-between;align-items:center;gap:10px;max-width:960px;margin:14px auto 0}
+@media (max-width:620px){
+  html.ui-arch .page-gallery .g-item .g-head .tag-in{font-size:calc(8.5px*var(--fs,1))}
+}
