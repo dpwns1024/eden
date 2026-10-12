@@ -278,6 +278,15 @@ export default function RelDetailPage() {
   const [qaNo, setQaNo] = useState<number | null>(null);
   const [qaQuery, setQaQuery] = useState('');
   const [qaPage, setQaPage] = useState(0);   // 문항 리스트 쪽 번호 — 한 쪽에 10개 (v2.0 사용자 요청)
+  // 모바일(620px 이하)은 한 쪽에 5개 (v2.0 사용자 요청) — 화면 폭이 바뀌면 따라간다
+  const [qaNarrow, setQaNarrow] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width:620px)');
+    const on = () => setQaNarrow(mq.matches);
+    on();
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
   const [qaText, setQaText] = useState('');
   // 답변 수정·오너 부연 모달 (v1.9) — 훅은 early return 앞에
   const [ansEdit, setAnsEdit] = useState<{ qNo: number; idx: number; text: string; note: string } | null>(null);
@@ -521,8 +530,8 @@ export default function RelDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [rel, auId, qaQuery],
   );
-  /* 문항 리스트는 한 쪽에 10개까지 — 넘으면 리스트만 다음 쪽으로 넘긴다 (v2.0 사용자 요청) */
-  const QA_PER = 10;
+  /* 문항 리스트는 한 쪽에 10개(모바일 5개)까지 — 넘으면 리스트만 다음 쪽으로 넘긴다 (v2.0 사용자 요청) */
+  const QA_PER = qaNarrow ? 5 : 10;
   const qaPages = Math.max(1, Math.ceil(qaFiltered.length / QA_PER));
   const qaPageCur = Math.min(qaPage, qaPages - 1);
   const qaPageItems = qaFiltered.slice(qaPageCur * QA_PER, qaPageCur * QA_PER + QA_PER);
@@ -532,7 +541,7 @@ export default function RelDetailPage() {
     const i = qaFiltered.findIndex(q => q.no === curQa?.no);
     if (i >= 0) setQaPage(Math.floor(i / QA_PER));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [curQa?.no]);
+  }, [curQa?.no, QA_PER]);
   const relLogs = useMemo(() => logs.filter(l => l.relId === rel?.id), [logs, rel]);
   // 역극 연동 (4.9) — 내가 참여한 방 + 공개 전환된 완결 방만 (비참여 방은 존재 자체 비노출)
   const relRooms = useMemo(() => rooms.filter(rm => rm.relId === rel?.id
