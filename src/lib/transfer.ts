@@ -116,6 +116,62 @@ export async function findOrphanFiles(be: Backend): Promise<{ ref: string; size:
   return all.filter(f => !used.has(f.ref));
 }
 
+/**
+ * 이미 올린 이미지 정리 (v2.0 사용자 요청 — 메타데이터·숨긴 프롬프트 지우기, lib/imageClean.ts).
+ * 쓰이는 이미지마다: 받아서 → 다시 그려 JPG(투명 배경은 PNG)로 → 새로 올리고 → 글·설정 속 주소를 바꾼 뒤 →
+ * 옛 파일을 지운다. 이미 정리된 파일(….c.jpg)·GIF·회원 프로필 사진은 건너뛴다.
+ * 주소 바꾸기가 하나라도 실패하면 옛 파일은 지우지 않는다(깨진 이미지가 생기지 않게).
+ * Firebase는 저장소 CORS가 열려 있어야 브라우저가 파일을 받아 다시 그릴 수 있다 (설치 가이드 5번).
+ */
+export async function cleanStoredImages(
+  be: Backend, uid: string | null, onProgress?: Progress,
+): Promise<{ cleaned: number; failed: number; total: number }> {
+  const { cleanImage, isCleanedRef, isImageRef } = await import('./imageClean');
+  onProgress?.('글·설정 읽는 중');
+  const snap = await dumpAll(be);
+  if (snap.failed?.length) {
+    throw new Error(`${snap.failed.join(', ')}을(를) 읽지 못해 멈췄습니다 — 잠시 뒤 다시 시도해 주세요`);
+  }
+  const used = new Set<string>();
+  collectRefs(snap.collections, new Set(), used);
+  collectRefs(snap.settings, new Set(), used);
+  const avatars = collectRefs(snap.members ?? [], new Set());
+  const files = await be.listFiles();
+  const targets = files.filter(f => used.has(f.ref) && !avatars.has(f.ref) && isImageRef(f.ref) && !isCleanedRef(f.ref));
+
+  const map = new Map<string, string>();
+  let failed = 0;
+  for (let i = 0; i < targets.length; i += 1) {
+    onProgress?.('이미지 정리 중', i + 1, targets.length);
+    try {
+      const blob = await readFileByRef(targets[i].ref);
+      const clean = blob ? await cleanImage(blob) : null;
+      if (!clean) { failed += 1; continue; }
+      map.set(targets[i].ref, await be.uploadFile(clean, `c.${clean.type.includes('png') ? 'png' : 'jpg'}`));
+    } catch { failed += 1; }
+  }
+  if (!map.size) return { cleaned: 0, failed, total: targets.length };
+
+  // 글·설정 속 주소를 새 파일로 — 바뀐 항목만 다시 쓴다
+  onProgress?.('주소 바꾸는 중');
+  let writeFailed = false;
+  for (const [coll, rows] of Object.entries(snap.collections)) {
+    const changed = (rows ?? []).map(r => replaceRefs(r, map)).filter((r, k) => JSON.stringify(r) !== JSON.stringify(rows[k]));
+    if (!changed.length) continue;
+    try { await be.refreshVis(coll, changed, uid, true); } catch { writeFailed = true; }
+  }
+  for (const [k, v] of Object.entries(snap.settings)) {
+    const nv = replaceRefs(v, map);
+    if (JSON.stringify(nv) === JSON.stringify(v)) continue;
+    try { await be.saveSetting(k, nv); setSetting(k, nv); } catch { writeFailed = true; }
+  }
+  // 옛 파일 삭제 — 주소가 전부 바뀐 경우에만
+  if (!writeFailed) {
+    for (const from of map.keys()) { try { await be.deleteFile(from); } catch { /* 남아도 무해 */ } }
+  }
+  return { cleaned: map.size, failed, total: targets.length };
+}
+
 /* ---------- 덤프 ---------- */
 
 /** 지금 저장소(서버 또는 브라우저)에서 전부 읽어 스냅샷 만들기 */

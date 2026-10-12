@@ -60,7 +60,7 @@ import type { BackendConfig, BackendKind, ListItem } from '@/lib/backend/types';
 import { CONTENT_COLLECTIONS } from '@/lib/backend/types';
 import { visFloorOf, areaHrefOf } from '@/lib/visFloor';
 import { validateConfig, configFileText, saveLocalConfig, parseFirebaseSnippet, serverConfig } from '@/lib/serverConfig';
-import { migrateTo, findOrphanFiles } from '@/lib/transfer';
+import { migrateTo, findOrphanFiles, cleanStoredImages } from '@/lib/transfer';
 import { FIRESTORE_RULES, STORAGE_RULES } from '@/lib/firebaseRules';
 
 const CATEGORIES = [
@@ -1826,6 +1826,26 @@ function DataPane() {
     setScanning(false);
   };
 
+  /* 이미 올린 이미지의 메타데이터·숨긴 프롬프트 지우기 (v2.0 사용자 요청 — lib/imageClean.ts).
+     새로 올리는 이미지는 업로드 때 자동으로 정리되고, 이건 그 전에 올린 것들용이다 */
+  const { user: me } = useAuth();
+  const [imgAsk, setImgAsk] = useState(false);
+  const [imgBusy, setImgBusy] = useState('');
+  const runImgClean = async () => {
+    const be = backend();
+    if (!be) { toast('서버에 연결돼 있지 않습니다'); return; }
+    setImgAsk(false); setImgBusy('준비 중…');
+    try {
+      const r = await cleanStoredImages(be, me?.id ?? null, (m, d, t) => setImgBusy(t ? `${m} ${d}/${t}` : m));
+      if (!r.total) toast('정리할 이미지가 없습니다 — 모두 정리돼 있습니다');
+      else if (!r.cleaned) toast('이미지를 받지 못했습니다 — 저장소 CORS를 열어야 정리할 수 있습니다 (설치 가이드의 「백업」 항목)');
+      else toast(`이미지 ${r.cleaned}개를 정리했습니다${r.failed ? ` · ${r.failed}개는 받지 못해 건너뜀` : ''}`);
+    } catch (e) {
+      toast(e instanceof Error && e.message ? e.message : '정리하지 못했습니다');
+    }
+    setImgBusy('');
+  };
+
   const cleanOrphans = async () => {
     const be = backend();
     if (!be || !orphans) return;
@@ -1996,6 +2016,24 @@ function DataPane() {
             {orphans && orphans.length > 0 && (
               <button className="btn btn-accent" style={{ padding: '9px 18px', opacity: scanning ? 0.5 : 1 }}
                 disabled={scanning} onClick={() => setCleanAsk(true)}>{orphans.length}개 지우기</button>
+            )}
+          </div>
+        </div>
+      )}
+      {serverOn && (
+        <div className="set-row" style={{ flexWrap: 'wrap' }}>
+          <div className="l"><b>이미지 메타데이터 정리</b>
+            <small>이미 올린 이미지에서 촬영·위치 정보, AI 그림 프롬프트(숨긴 정보 포함)를 지우고 JPG로 다시 저장합니다 — 새로 올리는 이미지는 자동으로 정리됩니다.
+              서버의 원본 파일은 정리된 파일로 바뀌니 원본은 따로 보관해 두세요 (GIF·회원 프로필 사진 제외)</small></div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            {imgBusy ? <span className="hint">{imgBusy}</span> : imgAsk ? (
+              <>
+                <span className="hint">원본이 정리된 파일로 바뀝니다 — 진행할까요?</span>
+                <button className="btn btn-accent" style={{ padding: '9px 18px' }} onClick={() => void runImgClean()}>정리하기</button>
+                <button className="btn btn-ghost" style={{ padding: '9px 18px' }} onClick={() => setImgAsk(false)}>취소</button>
+              </>
+            ) : (
+              <button className="btn btn-ghost" style={{ padding: '9px 18px' }} onClick={() => setImgAsk(true)}>정리하기</button>
             )}
           </div>
         </div>
