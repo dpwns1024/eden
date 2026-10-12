@@ -490,6 +490,7 @@ html.ui-arch .page-arch .qa-wrap{height:auto;min-height:300px}
 html.ui-arch .page-arch .qa-answers{flex:1 1 auto;max-height:560px}
 html.ui-arch .page-arch .qa-scroll{flex:none;overflow:visible}
 html.ui-arch .page-arch .qa-list{max-height:none} /* 모바일 300px 제한 때문에 6번 아래 문항이 잘려 안 보였다 — 이제 한 쪽 10개라 제한이 필요 없다 */
+html.ui-arch .page-arch .qa-pager{border-top:1px solid var(--a-ln)} /* 다른 구분선과 같은 옅은 선 (v2.0 사용자 요청 — 흰 줄이 튀었다) */
 html.ui-arch .page-arch .qa-pager button{font-family:'JetBrains Mono',monospace;letter-spacing:.2em;color:#b3bec9;border:1px solid var(--a-ln2);background:rgba(5,8,12,.5);border-radius:0}
 html.ui-arch .page-arch .qa-pager button:hover:not(:disabled){color:#fff;border-color:rgba(var(--a-acr),.6)}
 html.ui-arch .page-arch .qa-pager span{font-family:'JetBrains Mono',monospace;color:var(--a-mu)}
