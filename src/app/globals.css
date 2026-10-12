@@ -743,7 +743,7 @@ html.ui-arch .page-arch .rel-bn:hover{border-color:rgba(var(--a-acr),.4);box-sha
 html.ui-arch .page-arch .rel-bn .bn-art{position:absolute;inset:0;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
 html.ui-arch .page-arch .rel-bn:hover .bn-art{transform:scale(1.03)}
 html.ui-arch .page-arch .rel-bn .bn-art::after{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,rgba(5,7,10,.95) 0%,rgba(5,7,10,.72) 38%,transparent 76%)}
-html.ui-arch .page-arch .rel-bn .bn-tx{position:absolute;left:28px;top:0;bottom:0;z-index:2;display:flex;flex-direction:column;justify-content:center;gap:6px;max-width:60%;min-width:0}
+html.ui-arch .page-arch .rel-bn .bn-tx{position:absolute;left:28px;top:0;bottom:0;z-index:2;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:22px;gap:6px;max-width:60%;min-width:0} /* 글씨는 아래쪽에 (v2.0 사용자 요청) */
 html.ui-arch .page-arch .rel-bn .bn-k{font:400 9px/1 'JetBrains Mono',monospace;letter-spacing:.26em;color:var(--a-ac)}
 html.ui-arch .page-arch .rel-bn b{font:300 calc(28px*var(--fs,1))/1.2 'Jost','Noto Sans KR',sans-serif;letter-spacing:.12em;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html.ui-arch .page-arch .rel-bn b .pill{margin-left:10px;vertical-align:5px;font-size:9px;letter-spacing:.14em}
@@ -758,7 +758,7 @@ html.ui-arch .page-arch .rel-bn .bn-no{position:absolute;right:24px;bottom:12px;
 @media (max-width:620px){
   html.ui-arch .page-arch .rel-bns{gap:10px}
   html.ui-arch .page-arch .rel-bn{height:150px}
-  html.ui-arch .page-arch .rel-bn .bn-tx{left:16px;right:16px;max-width:none;gap:5px}
+  html.ui-arch .page-arch .rel-bn .bn-tx{left:16px;right:62px;max-width:none;gap:5px;padding-bottom:14px} /* 오른쪽 아래 번호를 가리지 않게 */
   html.ui-arch .page-arch .rel-bn .bn-art::after{background:linear-gradient(90deg,rgba(5,7,10,.92) 0%,rgba(5,7,10,.6) 55%,rgba(5,7,10,.2) 100%)}
   /* 글씨 한 단계씩 작게 (v2.0 사용자 요청 — 그림이 더 보이게) */
   html.ui-arch .page-arch .rel-bn b{font-size:calc(18px*var(--fs,1));letter-spacing:.08em}
@@ -767,7 +767,7 @@ html.ui-arch .page-arch .rel-bn .bn-no{position:absolute;right:24px;bottom:12px;
   html.ui-arch .page-arch .rel-bn .bn-m em{font-size:7.5px;padding:3px 6px 3px 8px}
   html.ui-arch .page-arch .rel-bn .bn-m .au{font-size:8px}
   html.ui-arch .page-arch .rel-bn .bn-m i{width:5px;height:5px}
-  html.ui-arch .page-arch .rel-bn .bn-no{font-size:34px;right:14px;bottom:8px}
+  html.ui-arch .page-arch .rel-bn .bn-no{font-size:28px;right:12px;bottom:10px}
 }
 
 /* COMMS ARCHIVE — 방 목록 · 대화 */
