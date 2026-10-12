@@ -346,6 +346,8 @@ html.ui-arch .page-arch .rel-banner ~ .timeline{margin-top:20px}
 html.ui-arch .page-arch .rel-banner ~ .g2{margin-top:20px !important;gap:20px}
 /* AU 전환·관리자 버튼은 배너 안으로 옮겼다 — 배너 위에 비워 두던 줄은 없앤다 (v2.0 사용자 요청) */
 html.ui-arch .page-arch .rel-body.rel-banner{margin-top:0}
+/* 상세 폭을 PAIRING 목록(다른 게시판과 같은 1180px)과 같게 (v2.0 사용자 요청 — 상세만 1280px이라 더 넓었다) */
+html.ui-arch .page-arch.page-rel-detail{max-width:1180px}
 html.ui-arch .page-arch .rel-banner .rb-admin{position:absolute;top:16px;left:16px;z-index:7;display:flex;gap:6px}
 html.ui-arch .page-arch .rel-banner .rb-admin button{height:26px;padding:0 10px 0 12px;font:400 9px/1 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.24em;color:#b3bec9;background:rgba(5,7,10,.55);border:1px solid rgba(190,208,228,.22);backdrop-filter:blur(6px);transition:.15s;white-space:nowrap}
 html.ui-arch .page-arch .rel-banner .rb-admin button:hover,html.ui-arch .page-arch .rel-banner .rb-next:hover{color:#fff;border-color:rgba(190,208,228,.55)}
