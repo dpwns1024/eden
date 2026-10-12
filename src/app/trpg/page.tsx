@@ -109,7 +109,8 @@ function TrpgPageInner() {
 
   /* ---------- 페이지 나누기 ---------- */
   // 모바일은 티켓이 좁아 기본형으로 보였다 — ARCH 단말기형은 한 줄짜리라 모바일에서도 그대로 (v2.0)
-  const ticketView = skin === 'ticket' && (!isMobile || arch);
+  // ARCH는 단말기형으로 고정 (v2.0 사용자 요청 — 보기 선택 칸도 뺐다). 기본 디자인은 예전처럼 티켓/기본형 선택
+  const ticketView = arch || (skin === 'ticket' && !isMobile);
   const PER_LOG = ticketView && !arch ? 6 : 20;   // 단말기형은 한 줄짜리라 기본형처럼 20개
   const [logPage, setLogPage] = useState(1);
   const logPages = Math.max(1, Math.ceil(visible.length / PER_LOG));
@@ -353,7 +354,7 @@ function TrpgPageInner() {
               {arch ? 'ONE-SHOT' : '단발'} <small>{counts['none']}</small>
             </div>
           )}
-          {!isMobile && (
+          {!isMobile && !arch && (
             <>
               <h4 style={{ marginTop: 18 }}>{arch ? 'VIEW' : '보기'}</h4>
               <KRadio name="tsk" value="ticket" current={skin} onChange={v => setSkin(v as 'ticket')} label={arch ? 'TERMINAL' : '티켓형'} />
