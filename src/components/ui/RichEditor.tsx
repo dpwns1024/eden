@@ -4,8 +4,26 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useEditor, EditorContent, Mark, mergeAttributes } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
+import Blockquote from '@tiptap/extension-blockquote';
+import { useLocalList } from '@/lib/postStore';
+import { CHAR_SEED, type Character } from '@/lib/charStore';
 import { putBlob } from '@/lib/blobStore';
 import { useToast } from '@/components/ui/Toast';
+
+/* 인용구 색 (v2.0 사용자 요청) — 인용구마다 색을 고른다. 저장은 data-tone + CSS 변수(--qc)로,
+   보이는 모양(옅은 색 바탕·모서리 꺾쇠·밝은 글자)은 globals.css가 정한다. 색을 안 고르면 사이트 강조색 */
+const ToneQuote = Blockquote.extend({
+  addAttributes() {
+    return {
+      tone: {
+        default: null,
+        parseHTML: el => (el as HTMLElement).getAttribute('data-tone'),
+        renderHTML: a => (a.tone && /^#[0-9a-f]{3,8}$/i.test(String(a.tone))
+          ? { 'data-tone': a.tone, style: `--qc:${a.tone}` } : {}),
+      },
+    };
+  },
+});
 
 // 외부 패키지 설치 없이 작동하는 자체 글자 색상 마크
 const TextColor = Mark.create({
@@ -58,10 +76,16 @@ export function RichEditor({ value, onChange, placeholder }: {
   const [busy, setBusy] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [currentColor, setCurrentColor] = useState('#e03131');
+  const [quoteOpen, setQuoteOpen] = useState(false);
+  // 인용구 색 후보 — 내 캐릭터들의 대표색
+  const [chars] = useLocalList<Character>('ohome.chars.v1', CHAR_SEED);
+  const toneChips = chars.filter(c => c.own && /^#[0-9a-f]{3,8}$/i.test(c.color ?? ''))
+    .slice(0, 8).map(c => ({ name: c.name, color: c.color }));
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({ blockquote: false }),
+      ToneQuote,
       Image,
       TextColor,
     ],
@@ -93,6 +117,15 @@ export function RichEditor({ value, onChange, placeholder }: {
     }
     setBusy(false);
   };
+
+  /* 인용구 색 — 커서가 인용구 안이면 그 인용구 색만 바꾸고, 밖이면 인용구로 만들면서 색을 입힌다 */
+  const setQuoteTone = (tone: string | null) => {
+    const chain = editor.chain().focus();
+    if (!editor.isActive('blockquote')) chain.toggleBlockquote();
+    chain.updateAttributes('blockquote', { tone }).run();
+    setQuoteOpen(false);
+  };
+  const curTone = (editor.getAttributes('blockquote').tone as string | null) ?? null;
 
   const handleColorChange = (color: string) => {
     setCurrentColor(color);
@@ -131,6 +164,8 @@ export function RichEditor({ value, onChange, placeholder }: {
           onClick={() => editor.chain().focus().toggleOrderedList().run()} />
         <TBtn title="인용" label="❝" on={editor.isActive('blockquote')}
           onClick={() => editor.chain().focus().toggleBlockquote().run()} />
+        <TBtn title="인용구 색" label={<span className="re-qtone" style={{ background: curTone ?? undefined }} />}
+          on={quoteOpen} onClick={() => setQuoteOpen(o => !o)} />
         <TBtn title="구분선" label="—" onClick={() => editor.chain().focus().setHorizontalRule().run()} />
         <span className="re-sep" />
         <TBtn title={busy ? '올리는 중…' : '이미지 올리기'} label={busy ? '⏳' : '🖼'}
@@ -144,6 +179,23 @@ export function RichEditor({ value, onChange, placeholder }: {
           <TBtn title="다시 실행" label="↷" onClick={() => editor.chain().focus().redo().run()} />
         </span>
       </div>
+
+      {/* 인용구 색 고르기 — 기본(사이트 강조색) · 내 캐릭터 대표색 · 직접 */}
+      {quoteOpen && (
+        <div className="re-qpop">
+          <button type="button" className={`re-qchip${!curTone ? ' on' : ''}`} onClick={() => setQuoteTone(null)}>
+            <i className="re-qtone" />기본
+          </button>
+          {toneChips.map(c => (
+            <button key={c.name + c.color} type="button" className={`re-qchip${curTone === c.color ? ' on' : ''}`} onClick={() => setQuoteTone(c.color)}>
+              <i className="re-qtone" style={{ background: c.color }} />{c.name}
+            </button>
+          ))}
+          <label className="re-qchip">
+            <input type="color" value={curTone ?? '#8fb0d8'} onChange={e => setQuoteTone(e.target.value)} />직접
+          </label>
+        </div>
+      )}
 
       {/* 팔레트 레이어 */}
       {showColorPicker && (
