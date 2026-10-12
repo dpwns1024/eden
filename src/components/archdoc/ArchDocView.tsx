@@ -121,6 +121,8 @@ function RanksView({ ranks }: { ranks: ArchRanks }) {
         <div className="ar-c-k"><span>RANK · {cur.tag || cur.key}</span>{cur.grade && <span>{cur.grade}</span>}</div>
         <h3><span className="ar-silver">{cur.en}</span><small>{[cur.name, cur.alias && `‘${cur.alias}’`].filter(Boolean).join(' · ')}</small></h3>
         {cur.body && <p>{cur.body}</p>}
+        {/* 뒤 큰 글자 — 분류 카드의 이니셜 워터마크와 같은 모양, 버튼 글자 그대로 */}
+        {cur.key && <span className="bg" aria-hidden="true">{cur.key}</span>}
       </article>
     </div>
   );

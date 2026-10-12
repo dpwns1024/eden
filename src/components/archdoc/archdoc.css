@@ -240,3 +240,7 @@ body:has(.arx)::before{display:none !important}
   .arx .ar-rank-bar{gap:10px;padding:12px 14px}
   .arx .ar-rank-card h3{font-size:24px}
 }
+/* 직급 카드 뒤 큰 이니셜 — 분류 카드(.ar-cl .bg)와 같은 워터마크 */
+.arx .ar-rank-card{overflow:hidden}
+.arx .ar-rank-card > :not(.bg){position:relative;z-index:1}
+.arx .ar-rank-card .bg{position:absolute;right:-8px;bottom:-22px;font:600 92px/1 'Saira Semi Condensed',sans-serif;color:transparent;-webkit-text-stroke:1px rgba(190,208,228,.07);pointer-events:none;white-space:nowrap}
