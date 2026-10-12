@@ -16,17 +16,17 @@ export default function RelNewPage() {
   const [rels, setRels, loaded] = useLocalList<Relation>('ohome.rels.v1', REL_SEED);
   const [chars] = useLocalList<Character>('ohome.chars.v1', CHAR_SEED);
 
-  if (!loaded) return <section className="page" />;
+  if (!loaded) return <section className="page page-arch page-rel-edit" />;
   if (!isAdmin) {
     return (
-      <section className="page">
+      <section className="page page-arch page-rel-edit">
         <div className="page-head"><PageTitle>ADD RELATION</PageTitle><p>관리자 전용</p></div>
       </section>
     );
   }
 
   return (
-    <section className="page">
+    <section className="page page-arch page-rel-edit">
       <div className="page-head">
         <PageTitle>ADD RELATION</PageTitle>
         <EditableDesc k="rels-new-desc" def="자관 등록 — 상대 캐릭터는 페이지를 만든 뒤 상세에서 추가할 수 있습니다" />
