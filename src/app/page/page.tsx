@@ -11,7 +11,7 @@
  * 아직 없더라도 HTML이 ARCH 소개 모양이면 읽어서 탭 문서로 보여 준다 — 처음 SAVE하는 순간 따로 저장되고,
  * 원래 HTML은 그대로 남아 「HTML로 되돌리기」로 돌아갈 수 있다.
  */
-import React, { Suspense, useMemo, useRef, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useSectionParam } from '@/lib/sectionStore';
 import { useHtmlPages } from '@/lib/htmlPageStore';
@@ -19,7 +19,7 @@ import { useHtmlSlots, stripScripts } from '@/components/main/HtmlSlots';
 import { Modal } from '@/components/ui/Modal';
 import { KTextarea } from '@/components/ui/Kit';
 import { useToast } from '@/components/ui/Toast';
-import { useArchDocs, htmlToArchDoc, blankDoc, type ArchDoc } from '@/lib/archDocStore';
+import { useArchDocs, htmlToArchDoc, blankDoc, migrateDoc, DOC_REV, type ArchDoc } from '@/lib/archDocStore';
 import { ArchDocView } from '@/components/archdoc/ArchDocView';
 
 function HtmlPageInner() {
@@ -39,7 +39,12 @@ function HtmlPageInner() {
   // 렌더 중에 바로 계산 — 효과로 미루면 원래 HTML이 한 번 번쩍 보인 뒤 탭으로 바뀐다
   const rawHtml = pages[id] ?? '';
   const auto = useMemo<ArchDoc | null>(() => (saved || !loaded ? null : htmlToArchDoc(rawHtml)), [saved, loaded, rawHtml]);
-  const doc = saved ? (saved.useHtml ? null : saved) : auto;
+  const doc0 = saved ? (saved.useHtml ? null : saved) : auto;
+  // 예전 판으로 저장된 문서는 지금 판으로 고쳐 보여 주고, 관리자가 열면 그대로 저장해 둔다 (lib/archDocStore.ts migrateDoc)
+  const doc = useMemo(() => (doc0 ? migrateDoc(doc0) : null), [doc0]);
+  useEffect(() => {
+    if (isAdmin && saved && (saved.rev ?? 1) < DOC_REV) saveDoc(id, migrateDoc(saved));
+  }, [isAdmin, saved, id, saveDoc]);
 
   if (loaded && docsLoaded && doc) {
     return (

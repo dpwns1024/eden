@@ -64,6 +64,8 @@ export interface ArchDoc {
   tabs: ArchTab[];
   /** true면 탭 문서를 쓰지 않고 원래 HTML 페이지로 (관리자가 되돌린 경우) */
   useHtml?: boolean;
+  /** 문서 형식 판 — 이보다 낮으면 migrateDoc이 고친다 */
+  rev?: number;
 }
 
 /** 분류 카드 아이콘 — ARCH 소개 HTML에 있던 것과 같은 그림 */
@@ -146,6 +148,29 @@ export function gradeOf(b: ClassesBlock): ClassesBlock['grade'] {
   return b.ranks === undefined && isArchClasses(b) ? null : (b.grade ?? null);
 }
 export const blankRank = (): ArchRank => ({ id: newId(), key: 'X', en: 'RANK', name: '', alias: '', grade: '', body: '' });
+
+/* ── 저장된 문서 고치기 ── */
+export const DOC_REV = 2;
+/**
+ * 예전 판으로 저장된 문서를 지금 판으로 (한 번만 — 관리자가 열면 저장된다).
+ *  rev 2 (v2.0 사용자 요청): ARCH 분류 블록의 S~D 등급 띠를 빼고, 직급 카드 오른쪽 위 글씨를 지우고,
+ *  하모니(H)는 카드 위를 RANK · S-C로. 관리자가 고친 이름·설명 등 나머지는 그대로 둔다.
+ */
+export function migrateDoc(d: ArchDoc): ArchDoc {
+  if ((d.rev ?? 1) >= DOC_REV) return d;
+  const tabs = d.tabs.map(t => ({
+    ...t,
+    blocks: t.blocks.map(b => {
+      if (b.type !== 'classes' || !isArchClasses(b)) return b;
+      const ranks = b.ranks ? {
+        ...b.ranks,
+        items: b.ranks.items.map(r => ({ ...r, grade: '', tag: r.tag || (r.key === 'H' ? 'S-C' : undefined) })),
+      } : b.ranks;
+      return { ...b, grade: null, ranks };
+    }),
+  }));
+  return { ...d, tabs, rev: DOC_REV };
+}
 
 /* ── 저장 ── */
 export function useArchDocs(): [Record<string, ArchDoc>, (id: string, doc: ArchDoc | null) => void, boolean] {
