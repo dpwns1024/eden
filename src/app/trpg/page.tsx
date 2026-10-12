@@ -21,10 +21,12 @@ import { useMainStore } from '@/lib/mainStore';
 import { mergeOrder } from '@/lib/cardSort';
 import { DragList } from '@/components/ui/DragList';
 import { OrderMenu, orderNoOf, moveToOrder } from '@/components/ui/OrderMenu';
+import { useBoardSkin } from '@/lib/boardSkin';
 
 function TrpgPageInner() {
   const router = useRouter();
   const { user, isAdmin } = useAuth();
+  const arch = useBoardSkin() === 'arch';   // ARCH 디자인이면 티켓 대신 단말기(TERMINAL)형 (v2.0 사용자 선택 D)
   const toast = useToast();
   const [site] = useSiteSettings(); // 티켓 하단 문구 = 로고 서브타이틀 (5.2 연동)
   const [logsAll, setLogsAll] = useLocalList<TrpgLog>('ohome.trpg.v1', TRPG_SEED);
@@ -103,8 +105,9 @@ function TrpgPageInner() {
   const basicShown = gridPreview ?? visible;
 
   /* ---------- 페이지 나누기 ---------- */
-  const ticketView = skin === 'ticket' && !isMobile;
-  const PER_LOG = ticketView ? 6 : 20;
+  // 모바일은 티켓이 좁아 기본형으로 보였다 — ARCH 단말기형은 한 줄짜리라 모바일에서도 그대로 (v2.0)
+  const ticketView = skin === 'ticket' && (!isMobile || arch);
+  const PER_LOG = ticketView && !arch ? 6 : 20;   // 단말기형은 한 줄짜리라 기본형처럼 20개
   const [logPage, setLogPage] = useState(1);
   const logPages = Math.max(1, Math.ceil(visible.length / PER_LOG));
   const logCur = Math.min(logPage, logPages);        // 필터로 줄어 페이지가 사라지면 마지막으로 당긴다
@@ -240,6 +243,25 @@ function TrpgPageInner() {
     </div>
   );
 
+  /* FIELD REPORT 단말기형 (v2.0 사용자 선택 D) — 고정폭 글씨로 한 줄씩. 티켓과 같은 동작:
+     클릭 열람 · 우클릭 순서 · 편집모드 드래그 · 숨김/열람 제한 표시 */
+  const termId = (l: TrpgLog) => l.noText || `REPORT_${String(l.no).padStart(3, '0')}`;
+  const TermRow = ({ l }: { l: TrpgLog }) => (
+    <div className="fr-ln"
+      onContextMenu={e => openOrder(e, l.id)}
+      onClick={() => { if (!editOn) router.push(`/trpg/${l.id}`); }}>
+      <span className="fr-id">{editOn && <span className="drag-h" style={{ marginRight: 6 }}>⠿</span>}{termId(l)}</span>
+      <span className="fr-tt">
+        {l.title}
+        {editOn && l.listHidden && <em className="fr-st">[HIDDEN]</em>}
+        {!canOpen(l) && <em className="fr-st lock">{l.password ? '[PASSWORD]' : '[RESTRICTED]'}</em>}
+        {l.catchphrase && <small>{l.catchphrase}</small>}
+      </span>
+      <span className="fr-who">{[l.writer, l.withText].filter(Boolean).join(' / ')}</span>
+      <span className="fr-dt">{l.date ? l.date.replace(/-/g, '.') : '—'}</span>
+    </div>
+  );
+
   return (
     <section className="page page-arch page-trpg">
       <div className="page-head">
@@ -252,7 +274,21 @@ function TrpgPageInner() {
       </div>
       <div className="trpg-layout">
         <div>
-          {ticketView
+          {ticketView && arch && visible.length > 0
+            ? (
+              <div className="panel fr-term">
+                <div className="fr-top">
+                  <span>ARCH://FIELD_REPORT — {visible.length} RECORD{visible.length === 1 ? '' : 'S'} FOUND</span>
+                  <span>ACCESS LEVEL: {isAdmin ? 'COMMAND' : user ? 'AGENT' : 'GUEST'}</span>
+                </div>
+                <DragList items={pageLogs} keyOf={l => l.id}
+                  onReorder={reorderPage}
+                  disabled={!(editOn && isAdmin)}
+                  render={l => <TermRow l={l} />} />
+                <div className="fr-cur">&gt; <i /></div>
+              </div>
+            )
+            : ticketView
             ? (
               <DragList items={pageLogs} keyOf={l => l.id}
                 onReorder={reorderPage}
@@ -314,7 +350,7 @@ function TrpgPageInner() {
           {!isMobile && (
             <>
               <h4 style={{ marginTop: 18 }}>보기</h4>
-              <KRadio name="tsk" value="ticket" current={skin} onChange={v => setSkin(v as 'ticket')} label="티켓형" />
+              <KRadio name="tsk" value="ticket" current={skin} onChange={v => setSkin(v as 'ticket')} label={arch ? '단말기형' : '티켓형'} />
               <div style={{ height: 7 }} />
               <KRadio name="tsk" value="basic" current={skin} onChange={v => setSkin(v as 'basic')} label="기본형" />
             </>

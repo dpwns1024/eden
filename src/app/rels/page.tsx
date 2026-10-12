@@ -11,6 +11,8 @@ import { CroppedBlobImg } from '@/components/ui/CropEditor';
 import { EditableDesc, PageTitle } from '@/components/ui/PageText';
 import { useMainStore } from '@/lib/mainStore';
 import { useCardSort, mergeOrder } from '@/lib/cardSort';
+import { useBoardSkin } from '@/lib/boardSkin';
+import { cpLabelFor } from '@/lib/relqStore';
 
 export default function RelsPage() {
   const router = useRouter();
@@ -21,6 +23,8 @@ export default function RelsPage() {
   const [chars] = useLocalList<Character>('ohome.chars.v1', CHAR_SEED);
 
   const colorOf = (id: string) => chars.find(c => c.id === id)?.color ?? '#666';
+  const nameOf = (id: string) => chars.find(c => c.id === id)?.name ?? '';
+  const arch = useBoardSkin() === 'arch';   // ARCH 디자인이면 가로 배너 목록 (v2.0 사용자 선택 E)
   const visible = rels
     .filter(r => isAdmin || r.visibility !== 'private');
 
@@ -39,6 +43,52 @@ export default function RelsPage() {
           </div>
         )}
       </div>
+      {arch ? (
+        /* MISSION BANNER (v2.0 사용자 선택 E) — 그림을 가로로 크게 깔고 왼쪽에 이름·정보, 오른쪽 아래 큰 번호.
+           카드형과 같은 동작: 클릭 열람 · 멤버공개 안내 · 나만보기 흐리게 · 편집모드 드래그 정렬 */
+        <div className="rel-bns">
+          {visible.map((r, i) => {
+            const memberLocked = r.visibility === 'member' && !user;
+            const priv = r.visibility === 'private';
+            const sp = sort(i) as { style?: React.CSSProperties };
+            // 상세 배너와 같은 그림·위치(첫 일러 + 상세에서 잡은 위치), 없으면 리스트 썸네일
+            const art = r.arts?.[0] ?? r.thumbId;
+            const crop = (art && r.artCrops?.[art]) || (art === r.thumbId ? r.thumbCrop : undefined);
+            const cp = cpLabelFor(r);
+            const no = String(i + 1).padStart(3, '0');
+            return (
+              <div key={r.id} className="rel-bn" {...sort(i)}
+                style={{ ...(priv ? { opacity: .45 } : undefined), ...sp.style }}
+                onClick={() => {
+                  if (editOn) return;
+                  if (memberLocked) { toast('멤버공개 — 로그인 후 열람할 수 있습니다'); return; }
+                  router.push(relPath(r));
+                }}>
+                <div className="bn-art">
+                  <CroppedBlobImg fileRef={art} crop={crop} ph={r.thumbClass} label="" />
+                </div>
+                <div className="bn-tx">
+                  <span className="bn-k">PAIRING · № {no}</span>
+                  <b>
+                    {r.name}
+                    {r.visibility === 'member' && <span className="pill">멤버</span>}
+                  </b>
+                  {r.catchphrase && <small>{r.catchphrase}</small>}
+                  <div className="bn-m">
+                    {cp && <em>{cp}</em>}
+                    {r.members.map(m => (
+                      <span key={m.charId}><i style={{ background: colorOf(m.charId) }} />{nameOf(m.charId)}</span>
+                    ))}
+                    {r.aus.length > 1 && <span className="au">AU {r.aus.length - 1}</span>}
+                  </div>
+                  {(priv || memberLocked) && <span className="bn-lock">{priv ? '관리자에게만 표시됨' : '로그인 시 열람 가능'}</span>}
+                </div>
+                <span className="bn-no">{no}</span>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
       <div className="g3 rels-grid">
         {visible.map((r, i) => {
           const memberLocked = r.visibility === 'member' && !user;
@@ -78,6 +128,7 @@ export default function RelsPage() {
           );
         })}
       </div>
+      )}
     </section>
   );
 }

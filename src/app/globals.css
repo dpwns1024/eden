@@ -693,6 +693,63 @@ html.ui-arch .page-arch .ticket .stub .row b{font:400 calc(9px*var(--fs,1))/1 'J
 html.ui-arch .page-arch .ticket .stub .adm{border-top:1px dashed var(--a-ln);color:#6f7b89;font-family:'JetBrains Mono',monospace}
 html.ui-arch .page-arch .log-plain{color:#c9d2dc}
 
+/* FIELD REPORT 단말기형 (v2.0 사용자 선택 D) — 고정폭 글씨 한 줄씩, 맨 아래 깜빡이는 커서 */
+html.ui-arch .page-arch .fr-term{padding:18px 24px 16px;font-family:'JetBrains Mono','Noto Sans KR',monospace}
+html.ui-arch .page-arch .fr-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px dashed var(--a-ln2);font-size:9.5px;letter-spacing:.2em;color:#6f7b89}
+html.ui-arch .page-arch .fr-ln{display:grid;grid-template-columns:120px minmax(0,1fr) minmax(0,220px) 100px;gap:16px;align-items:baseline;padding:13px 6px;border-bottom:1px dashed rgba(190,208,228,.08);font-size:calc(11.5px*var(--fs,1));color:#8592a0;cursor:var(--cur-pointer,pointer);transition:background .15s}
+html.ui-arch .page-arch .fr-ln:hover{background:rgba(var(--a-acr),.05)}
+html.ui-arch .page-arch .fr-ln:hover .fr-tt{color:var(--a-ac)}
+html.ui-arch .page-arch .fr-id{color:var(--a-ac);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.ui-arch .page-arch .fr-id::before{content:'> ';color:#4a5461}
+html.ui-arch .page-arch .fr-tt{font-family:'Noto Sans KR',sans-serif;font-size:calc(14.5px*var(--fs,1));color:#fff;min-width:0;word-break:keep-all;transition:color .15s}
+html.ui-arch .page-arch .fr-tt small{display:block;margin-top:3px;font-size:calc(11px*var(--fs,1));letter-spacing:.1em;color:#6f7b89}
+html.ui-arch .page-arch .fr-st{font-style:normal;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.16em;color:#8592a0;margin-left:8px}
+html.ui-arch .page-arch .fr-st.lock{color:#ff8a92}
+html.ui-arch .page-arch .fr-who{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.ui-arch .page-arch .fr-dt{text-align:right;white-space:nowrap}
+html.ui-arch .page-arch .fr-cur{padding:12px 6px 0;font-size:11px;color:#6f7b89}
+html.ui-arch .page-arch .fr-cur i{display:inline-block;width:8px;height:14px;margin-left:2px;background:var(--a-ac);vertical-align:-2px;animation:frBlink 1s steps(1) infinite}
+@keyframes frBlink{50%{opacity:0}}
+@media (max-width:960px){
+  html.ui-arch .page-arch .fr-ln{grid-template-columns:minmax(0,1fr) auto;gap:4px 12px}
+  html.ui-arch .page-arch .fr-id{grid-column:1}
+  html.ui-arch .page-arch .fr-dt{grid-column:2;grid-row:1}
+  html.ui-arch .page-arch .fr-tt,html.ui-arch .page-arch .fr-who{grid-column:1 / -1}
+}
+
+/* PAIRING 목록 · MISSION BANNER (v2.0 사용자 선택 E) — 가로로 긴 배너, 그림 위 왼쪽에 이름·정보 */
+html.ui-arch .page-arch .rel-bns{display:grid;gap:14px}
+html.ui-arch .page-arch .rel-bn{position:relative;height:180px;overflow:hidden;border:1px solid var(--a-ln);cursor:var(--cur-pointer,pointer);background:#0a0d11;transition:border-color .25s,box-shadow .25s}
+html.ui-arch .page-arch .rel-bn::before,html.ui-arch .page-arch .rel-bn::after{content:'';position:absolute;z-index:3;width:9px;height:9px;border:solid rgba(220,230,240,.55);pointer-events:none}
+html.ui-arch .page-arch .rel-bn::before{left:0;top:0;border-width:1px 0 0 1px}
+html.ui-arch .page-arch .rel-bn::after{right:0;bottom:0;border-width:0 1px 1px 0}
+html.ui-arch .page-arch .rel-bn:hover{border-color:rgba(var(--a-acr),.4);box-shadow:0 0 30px -14px rgba(var(--a-acr),.7)}
+html.ui-arch .page-arch .rel-bn .bn-art{position:absolute;inset:0;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+html.ui-arch .page-arch .rel-bn:hover .bn-art{transform:scale(1.03)}
+html.ui-arch .page-arch .rel-bn .bn-art::after{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,rgba(5,7,10,.95) 0%,rgba(5,7,10,.72) 38%,transparent 76%)}
+html.ui-arch .page-arch .rel-bn .bn-tx{position:absolute;left:28px;top:0;bottom:0;z-index:2;display:flex;flex-direction:column;justify-content:center;gap:6px;max-width:60%;min-width:0}
+html.ui-arch .page-arch .rel-bn .bn-k{font:400 9px/1 'JetBrains Mono',monospace;letter-spacing:.26em;color:var(--a-ac)}
+html.ui-arch .page-arch .rel-bn b{font:300 calc(28px*var(--fs,1))/1.2 'Jost','Noto Sans KR',sans-serif;letter-spacing:.12em;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.ui-arch .page-arch .rel-bn b .pill{margin-left:10px;vertical-align:5px;font-size:9px;letter-spacing:.14em}
+html.ui-arch .page-arch .rel-bn small{font:300 calc(11px*var(--fs,1))/1.5 'Noto Sans KR',sans-serif;letter-spacing:.2em;color:#b3bec9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.ui-arch .page-arch .rel-bn .bn-m{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin-top:8px;font:400 calc(11.5px*var(--fs,1))/1 'Noto Sans KR',sans-serif;color:#c9d2dc}
+html.ui-arch .page-arch .rel-bn .bn-m em{font-style:normal;font:400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.26em;padding:4px 7px 4px 9px;border:1px solid rgba(var(--a-acr),.5);color:var(--a-ac)}
+html.ui-arch .page-arch .rel-bn .bn-m span{display:inline-flex;align-items:center;gap:6px;letter-spacing:.06em}
+html.ui-arch .page-arch .rel-bn .bn-m i{width:6px;height:6px;transform:rotate(45deg);box-shadow:0 0 0 1px rgba(255,255,255,.2)}
+html.ui-arch .page-arch .rel-bn .bn-m .au{font:400 9px/1 'JetBrains Mono',monospace;letter-spacing:.2em;color:#6f7b89}
+html.ui-arch .page-arch .rel-bn .bn-lock{font:400 9px/1.4 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.16em;color:#ff8a92}
+html.ui-arch .page-arch .rel-bn .bn-no{position:absolute;right:24px;bottom:12px;z-index:2;font:300 56px/1 'Jost',sans-serif;letter-spacing:.04em;color:rgba(255,255,255,.12);pointer-events:none}
+@media (max-width:620px){
+  html.ui-arch .page-arch .rel-bns{gap:10px}
+  html.ui-arch .page-arch .rel-bn{height:150px}
+  html.ui-arch .page-arch .rel-bn .bn-tx{left:16px;right:16px;max-width:none;gap:5px}
+  html.ui-arch .page-arch .rel-bn .bn-art::after{background:linear-gradient(90deg,rgba(5,7,10,.92) 0%,rgba(5,7,10,.6) 55%,rgba(5,7,10,.2) 100%)}
+  html.ui-arch .page-arch .rel-bn b{font-size:calc(21px*var(--fs,1));letter-spacing:.08em}
+  html.ui-arch .page-arch .rel-bn small{font-size:10.5px;letter-spacing:.12em}
+  html.ui-arch .page-arch .rel-bn .bn-m{gap:5px 12px;margin-top:5px;font-size:11px}
+  html.ui-arch .page-arch .rel-bn .bn-no{font-size:40px;right:14px;bottom:8px}
+}
+
 /* COMMS ARCHIVE — 방 목록 · 대화 */
 html.ui-arch .page-arch .rp-room{border-radius:0;border-left:1px solid transparent;color:var(--a-tx)}
 html.ui-arch .page-arch .rp-room:hover{background:rgba(var(--a-acr),.05)}
