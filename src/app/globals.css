@@ -2981,8 +2981,12 @@ html.ui-arch .page-settings [style*="border-radius"]:not(i):not(.gem):not(.pill)
   .page-settings .cp-group:has(> .cp-lb) > :not(.cp-lb):not(.cp-lb + *){grid-column:1/-1}
   /* 체크 여러 개(표시 열 고르기 등) — 한 줄로 밀려 나가지 않게 */
   .page-settings .set-body :has(> .k-check + .k-check){display:flex !important;flex-wrap:wrap;gap:8px 14px !important}
-  /* 제목 줄 옆 버튼(기본 구성·SAVE 등) — 좁으면 아랫줄로 */
-  .page-settings .set-body :has(> h3 + :is(div,button)){flex-wrap:wrap;gap:8px}
+  /* 제목 줄 옆 버튼(기본 구성·SAVE 등) — 좁으면 아랫줄로. 「저장 안 된 변경」 표시가 끼어도 같게 */
+  .page-settings .set-body div:has(> h3){flex-wrap:wrap;gap:8px}
+  .page-settings .set-body div:has(> h3) > span{white-space:nowrap}
+  .page-settings .set-body div:has(> h3) > div{margin-left:0 !important;flex-wrap:wrap}
+  /* 버튼은 폰에선 한 단계 작게 (v2.0 사용자 요청) */
+  html.ui-arch .page-settings .set-body :is(.btn-dark,.btn-ghost){height:28px;padding:0 11px !important;font-size:9.5px !important;letter-spacing:.18em}
   .page-settings .set-sec h3{white-space:nowrap}
   .page-settings .set-h-btn{position:static !important;margin:10px 0 2px}
   .page-settings .set-body :is(.btn-dark,.btn-ghost){white-space:nowrap}
