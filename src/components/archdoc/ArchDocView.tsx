@@ -9,7 +9,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
-  ArchDoc, ArchBlock, ArchCard, ArchClass, ArchFact, ICONS, iconSvg, blankBlock, blankCard, blankClass, BLOCK_LABEL,
+  ArchDoc, ArchBlock, ArchCard, ArchClass, ArchFact, ArchMore, ICONS, iconSvg, blankBlock, blankCard, blankClass, BLOCK_LABEL, moreOf,
 } from '@/lib/archDocStore';
 import { newId } from '@/lib/postStore';
 import { sanitizeHtml } from '@/lib/sanitize';
@@ -82,6 +82,24 @@ function ImageView({ src, caption }: { src: string; caption: string }) {
   );
 }
 
+/** 분류 카드 오른쪽 위 상세 버튼 + 작은 창 */
+function MoreButton({ more }: { more: ArchMore }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button type="button" className="ar-more-btn" onClick={() => setOpen(true)}>{more.label || '상세'}<i>›</i></button>
+      <Modal open={open} onClose={() => setOpen(false)} small className="ar-more-modal" title={more.title || more.label}>
+        <dl className="ar-more-list">
+          {more.rows.filter(r => r.k || r.v).map((r, i) => (
+            <div key={i}><dt>{r.k}</dt><dd>{r.v}</dd></div>
+          ))}
+        </dl>
+        <div className="ar-more-foot"><button type="button" className="ar-more-close" onClick={() => setOpen(false)}>CLOSE</button></div>
+      </Modal>
+    </>
+  );
+}
+
 function BlockView({ b }: { b: ArchBlock }) {
   switch (b.type) {
     case 'head':
@@ -105,7 +123,8 @@ function BlockView({ b }: { b: ArchBlock }) {
           {b.items.length > 0 && (
             <div className="ar-cls">
               {b.items.map(it => (
-                <div key={it.id} className="ar-pn ar-cl">
+                <div key={it.id} className={`ar-pn ar-cl${moreOf(it) ? ' has-more' : ''}`}>
+                  {moreOf(it) && <MoreButton more={moreOf(it)!} />}
                   {it.icon !== 'none' && <span className="ar-ic" dangerouslySetInnerHTML={{ __html: iconSvg(it.icon) }} />}
                   <b>{it.title}</b>{it.sub && <small>{it.sub}</small>}
                   {it.body && <p>{it.body}</p>}
@@ -219,6 +238,38 @@ function ClassEditor({ it, onChange }: { it: ArchClass; onChange: (c: ArchClass)
       <Field label="이름"><KInput value={it.title} onChange={e => set({ title: e.target.value })} /></Field>
       <Field label="이름 아래 글씨"><KInput value={it.sub} onChange={e => set({ sub: e.target.value })} /></Field>
       <Field label="설명" wide><KTextarea rows={3} value={it.body} onChange={e => set({ body: e.target.value })} /></Field>
+      <MoreEditor more={moreOf(it)} onChange={more => set({ more })} />
+    </div>
+  );
+}
+
+function MoreEditor({ more, onChange }: { more: ArchMore | null; onChange: (m: ArchMore | null) => void }) {
+  const setRow = (i: number, p: Partial<{ k: string; v: string }>) =>
+    more && onChange({ ...more, rows: more.rows.map((r, j) => (j === i ? { ...r, ...p } : r)) });
+  return (
+    <div className="ad-field wide">
+      <KCheck label="오른쪽 위 상세 버튼 넣기 (누르면 작은 창)" checked={!!more}
+        onChange={v => onChange(v ? (more ?? { label: '상세 규약', title: '', rows: [{ k: '', v: '' }] }) : null)} />
+      {more && (
+        <div className="ad-list" style={{ marginTop: 8 }}>
+          <div className="ad-row">
+            <KInput placeholder="버튼 글씨" value={more.label} onChange={e => onChange({ ...more, label: e.target.value })} />
+            <KInput placeholder="창 제목 (비우면 버튼 글씨)" value={more.title} onChange={e => onChange({ ...more, title: e.target.value })} />
+          </div>
+          {more.rows.map((r, i) => (
+            <div key={i} className="ad-row" style={{ alignItems: 'flex-start' }}>
+              <KInput placeholder="항목 (예: 방식)" value={r.k} onChange={e => setRow(i, { k: e.target.value })} style={{ flex: '0 1 110px' }} />
+              <KTextarea rows={2} placeholder="설명" value={r.v} onChange={e => setRow(i, { v: e.target.value })} style={{ flex: '1 1 240px' }} />
+              <span className="ad-mini">
+                <button type="button" onClick={() => onChange({ ...more, rows: move(more.rows, i, -1) })}>↑</button>
+                <button type="button" onClick={() => onChange({ ...more, rows: move(more.rows, i, 1) })}>↓</button>
+                <button type="button" onClick={() => onChange({ ...more, rows: more.rows.filter((_, j) => j !== i) })}>✕</button>
+              </span>
+            </div>
+          ))}
+          <button type="button" className="btn btn-ghost ad-add" onClick={() => onChange({ ...more, rows: [...more.rows, { k: '', v: '' }] })}>＋ 항목 추가</button>
+        </div>
+      )}
     </div>
   );
 }
