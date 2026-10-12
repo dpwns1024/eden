@@ -33,9 +33,14 @@ export function Modal({ open, title, desc, onClose, children, small, actions, di
 
   // body 포털 — 조상의 transform/animation이 fixed 기준을 바꿔 모달이 밀리는 문제 방지
   if (typeof document === 'undefined') return null;
+  /* ARCH 디자인 게시판(page-arch) 위에서 뜨는 창은 모두 ARCH 창으로 (v2.0 사용자 요청 —
+     페어링 버튼들이 여는 창이 흰 창으로 떠서 따로 놀았다). 로그인 창이 쓰던 arch-modal을 그대로 쓴다 */
+  const archCls = document.documentElement.classList.contains('ui-arch') && document.querySelector('.page-arch')
+    ? ' arch-modal' : '';
+  const cls = `${className ?? ''}${className?.includes('arch-modal') ? '' : archCls}`;
   return createPortal(
     <div className="modal-ov" onMouseDown={e => { if (e.target === e.currentTarget) tryClose(); }}>
-      <div className={`mng-box ${small ? 'sm' : ''} ${className ?? ''}`}>
+      <div className={`mng-box ${small ? 'sm' : ''} ${cls}`}>
         {title && <h3>{title}</h3>}
         {desc && <p className="d">{desc}</p>}
         {children}
@@ -47,7 +52,7 @@ export function Modal({ open, title, desc, onClose, children, small, actions, di
         <div className="modal-ov" style={{ zIndex: 96 }}
           onMouseDown={e => { if (e.target === e.currentTarget) setAskClose(false); }}>
           {/* 같은 디자인으로 — 바깥 창에 준 className을 확인 창에도 */}
-          <div className={`mng-box sm ${className ?? ''}`}>
+          <div className={`mng-box sm ${cls}`}>
             <h3>변경사항이 저장되지 않았습니다</h3>
             <p className="d">이대로 닫으면 입력한 내용이 사라집니다.</p>
             <div className="modal-actions">

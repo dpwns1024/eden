@@ -23,17 +23,17 @@ function RelEditInner() {
   // 별명 주소로도 열린다 (v2.0 사용자 요청)
   const rel = findByKey(rels, id);
   const auObj = auId ? rel?.aus.find(a => a.id === auId && a.id !== 'base') : undefined;
-  if (!loaded) return <section className="page" />;
+  if (!loaded) return <section className="page page-arch page-rel-edit" />;
   if (!isAdmin || !rel) {
     return (
-      <section className="page">
+      <section className="page page-arch page-rel-edit">
         <div className="page-head"><PageTitle>EDIT</PageTitle><p>{!rel ? '자관을 찾을 수 없습니다' : '관리자 전용'}</p></div>
       </section>
     );
   }
 
   return (
-    <section className="page">
+    <section className="page page-arch page-rel-edit">
       <div className="page-head">
         <PageTitle>EDIT — {rel.name}{auObj ? ` · ${auObj.label}` : ''}</PageTitle>
         <EditableDesc k="rels-edit-desc" def="자관 정보 수정 — 멤버·타임라인·문답·AU는 상세 페이지에서 관리합니다" />
@@ -144,5 +144,5 @@ function RelEditInner() {
 
 export default function RelEditPage() {
   // useSearchParams는 Suspense 경계 필요 (Next App Router)
-  return <Suspense fallback={<section className="page" />}><RelEditInner /></Suspense>;
+  return <Suspense fallback={<section className="page page-arch page-rel-edit" />}><RelEditInner /></Suspense>;
 }

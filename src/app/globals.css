@@ -382,7 +382,7 @@ html.ui-arch .page-arch .mp-b .mp-pt::before{content:'';display:block;padding-to
 html.ui-arch .page-arch .mp-b .mp-pt::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,transparent 62%,rgba(5,7,10,.45)),linear-gradient(0deg,rgba(5,7,10,.35),transparent 30%)}
 html.ui-arch .page-arch .mp-b .mp-r{min-width:0;display:flex;flex-direction:column;justify-content:center;padding:4px 0} /* 초상이 더 길 때 위아래 여백을 같게 (v2.0 사용자 요청) */
 html.ui-arch .page-arch .mp-b .hd{padding:16px 20px 12px}
-html.ui-arch .page-arch .mp-b .mp-quote{margin:14px 20px 0}
+html.ui-arch .page-arch .mp-b .mp-quote{margin:14px 20px 0;max-width:calc(100% - 40px)}
 html.ui-arch .page-arch .rel-body.rel-banner .mini-prof.mp-b .specs{grid-template-columns:1fr;margin:4px 20px 0;padding:10px 0 8px}
 html.ui-arch .page-arch .mp-b .kw-row{padding:2px 20px 12px}
 html.ui-arch .page-arch .mp-b .rel-desc{padding:12px 20px}
@@ -400,11 +400,12 @@ html.ui-arch .page-arch .mp-b .card-thumbs{padding:11px 20px}
   html.ui-arch .page-arch .mp-b .rel-desc{padding:10px 14px}
   html.ui-arch .page-arch .mp-b .card-thumbs{padding:10px 14px;grid-template-columns:repeat(3,1fr)}
 }
-/* 한마디 (v2.0 사용자 요청 — 이름 반복 없이, 글씨는 본문 크기) — 캐릭터 대표색 따옴표로 감싼다 */
-html.ui-arch .page-arch .mp-quote{position:relative;margin:14px 16px 0;padding:0 0 0 22px}
-html.ui-arch .page-arch .mp-quote::before{content:'\201C';position:absolute;left:0;top:-4px;font:400 30px/1 Georgia,'Times New Roman',serif;color:var(--c)}
+/* 한마디 Q1 · BRACKET (v2.0 사용자 선택) — 캐릭터 대표색 모서리 괄호로 감싼다 (ARCH 패널 모서리와 같은 모양) */
+html.ui-arch .page-arch .mp-quote{position:relative;margin:14px 16px 0;padding:8px 16px;width:fit-content;max-width:calc(100% - 32px);box-sizing:border-box} /* 괄호가 글자 길이에 붙게 */
+html.ui-arch .page-arch .mp-quote::before,html.ui-arch .page-arch .mp-quote::after{content:'';position:absolute;width:9px;height:9px;border:solid var(--c);pointer-events:none}
+html.ui-arch .page-arch .mp-quote::before{left:0;top:0;border-width:1px 0 0 1px}
+html.ui-arch .page-arch .mp-quote::after{right:0;bottom:0;border-width:0 1px 1px 0}
 html.ui-arch .page-arch .mp-quote span{display:block;font:300 calc(13px*var(--fs,1))/1.75 'Noto Sans KR',sans-serif;letter-spacing:.02em;color:#c9d2dc;word-break:keep-all}
-html.ui-arch .page-arch .mp-quote span::after{content:'\201D';margin-left:3px;font-family:Georgia,'Times New Roman',serif;color:var(--c)}
 @media (max-width:960px){
   html.ui-arch .page-arch .rel-body.rel-banner{grid-template-columns:1fr;grid-template-areas:"art" "l" "r"}
   html.ui-arch .page-arch .rel-body.rel-banner > .rel-center{height:clamp(280px,70vw,420px)}
@@ -477,6 +478,9 @@ html.ui-arch .page-arch .qa-item small,html.ui-arch .page-arch .qa-item.on small
 html.ui-arch .page-arch .qa-input{border-top:1px solid var(--a-ln)}
 html.ui-arch .page-arch .qa-input .char-pick .f{border-radius:0;box-shadow:0 0 0 1px var(--a-ln2)}
 html.ui-arch .page-arch .qa-input .char-pick small{color:var(--a-tx);font-family:'Jost','Noto Sans KR',sans-serif;letter-spacing:.16em}
+/* 답변 부연설명(속마음) 말풍선 — ARCH (v2.0 사용자 요청). 점은 캐릭터색 마름모, 말풍선은 각진 패널 + 캐릭터색 왼쪽 줄 */
+html.ui-arch .page-arch .qa-ans .bub[data-note]::before{border-radius:0;width:7px;height:7px;top:-4px;right:-4px;transform:rotate(45deg);box-shadow:0 0 0 2px #05070a,0 0 8px rgba(var(--cc),.8)}
+html.ui-arch .page-arch .qa-ans .bub[data-note]:hover::after{background:rgba(8,11,15,.97);color:#e4e9ef;border:1px solid rgba(190,208,228,.22);border-left:2px solid rgb(var(--cc));border-radius:0;padding:9px 14px;font:300 calc(12.5px*var(--fs,1))/1.7 'Noto Sans KR',sans-serif;letter-spacing:.01em;max-width:280px;box-shadow:0 18px 40px -16px #000}
 html.ui-arch .page-arch .qa-locked{color:var(--a-mu);font-family:'JetBrains Mono','Noto Sans KR',monospace}
 html.ui-arch .page-arch .qa-input .k-textarea,html.ui-arch .page-arch .k-textarea{border:1px solid var(--a-ln2);border-radius:0;background:rgba(5,8,12,.6);color:var(--a-tx)}
 /* 아래 작은 상자(역극·로그 등 위젯) */
@@ -595,6 +599,45 @@ html.ui-arch .page-arch .board-lock-err{color:#ff8a92}
 .mng-box.arch-modal .btn-ghost{border:1px solid rgba(190,208,228,.14) !important;border-radius:0 !important;background:transparent !important;color:#8592a0 !important;letter-spacing:.16em}
 .mng-box.arch-modal .login-err{color:#ff8a92 !important}   /* 로그인 창 오류와 같은 색 */
 .mng-box.arch-modal .login-info{color:#e4e9ef !important}
+/* ARCH 창 공통 (v2.0 사용자 요청 — ARCH 게시판에서 뜨는 모든 창). 창 안 색 변수를 ARCH 값으로 바꿔
+   인라인 스타일(var(--line)·var(--faint) 등)로 그린 목록·테두리까지 한 번에 따라오게 한다. 글씨는 밝게, 칸은 또렷하게 */
+.mng-box.arch-modal{--line:rgba(190,208,228,.16);--line-dark:rgba(190,208,228,.16);--ink:#e4e9ef;--sub:#b3bec9;--faint:#8592a0;--accent:#b8d8ff;--accent-soft:#b8d8ff;--panel-solid:#0b0f14;--panel:rgba(13,18,25,.9);--btn-dark:#b8d8ff;--btn-dark-fg:#e4e9ef;--seg-bg:rgba(5,7,10,.75);--seg-fg:#8592a0;--focus-bd:rgba(184,216,255,.6);--focus-ring:0 0 0 1px rgba(184,216,255,.25);--sb-thumb:rgba(190,208,228,.25);--crop-bg:#05070a;padding:28px 28px 24px}
+.mng-box.arch-modal h3{margin-bottom:8px;letter-spacing:.14em;word-break:keep-all} /* 한글 제목은 자간을 줄여 읽기 쉽게 */
+.mng-box.arch-modal .d{font-size:calc(12px*var(--fs,1));line-height:1.75;margin-bottom:18px}
+.mng-box.arch-modal .k-textarea{border:1px solid rgba(190,208,228,.18);border-radius:0;background:rgba(5,7,10,.75);color:#e4e9ef;line-height:1.75}
+.mng-box.arch-modal .k-textarea::placeholder{color:#4a5461}
+.mng-box.arch-modal .k-select .cur{background:rgba(5,7,10,.75);border:1px solid rgba(190,208,228,.18);border-radius:0;color:#e4e9ef}
+.mng-box.arch-modal .k-select .opts{background:rgba(8,11,15,.97);border:1px solid rgba(190,208,228,.22);border-radius:0}
+.mng-box.arch-modal .k-select .opts div{color:#c9d2dc;border-radius:0}
+.mng-box.arch-modal .k-select .opts div:hover{background:rgba(184,216,255,.08)}
+.mng-box.arch-modal .k-select .opts div.sel{background:rgba(184,216,255,.16);color:#fff}
+.mng-box.arch-modal .k-label{color:#c9d2dc;font-weight:500;letter-spacing:.04em}
+.mng-box.arch-modal .hint,.mng-box.arch-modal .cp-lb{color:#8592a0}
+.mng-box.arch-modal .k-check .box{border-radius:0;background:rgba(5,7,10,.75);border-color:rgba(190,208,228,.3)}
+.mng-box.arch-modal .k-check input:checked + .box{background:rgba(184,216,255,.7);border-color:rgba(184,216,255,.9)}
+.mng-box.arch-modal .k-radio .dot{background:rgba(5,7,10,.75);border-color:rgba(190,208,228,.3)}
+.mng-box.arch-modal .mini-seg{border-radius:0;border:1px solid rgba(190,208,228,.18);background:rgba(5,7,10,.75)}
+.mng-box.arch-modal .mini-seg button{border-radius:0}
+.mng-box.arch-modal .mini-seg button.on{background:rgba(184,216,255,.16);color:#fff;box-shadow:inset 0 0 0 1px rgba(184,216,255,.5)}
+.mng-box.arch-modal .pill{border-radius:0;background:rgba(5,7,10,.6);color:#c9d2dc;border-color:rgba(190,208,228,.22);font-family:'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.16em}
+.mng-box.arch-modal .pill.dark{background:rgba(184,216,255,.14);color:#fff;border-color:rgba(184,216,255,.45)}
+.mng-box.arch-modal .fx{color:#8592a0}
+.mng-box.arch-modal .fx:hover{color:#fff}
+.mng-box.arch-modal .btn-dark:hover{border-color:rgba(184,216,255,.8) !important;box-shadow:0 0 22px -6px rgba(184,216,255,.6)}
+.mng-box.arch-modal .btn-ghost:hover{color:#fff !important;border-color:rgba(190,208,228,.4) !important}
+.mng-box.arch-modal .btn-accent{border:1px solid rgba(255,120,128,.5) !important;border-radius:0 !important;background:linear-gradient(180deg,rgba(209,28,32,.3),rgba(209,28,32,.08)) !important;color:#fff !important;letter-spacing:.24em}
+.mng-box.arch-modal .btn-accent:hover{border-color:rgba(255,120,128,.85) !important;box-shadow:0 0 22px -6px rgba(209,28,32,.7)}
+.mng-box.arch-modal .modal-actions{margin-top:24px;padding-top:16px;border-top:1px solid rgba(190,208,228,.1)}
+/* 인라인으로 둥글게 그린 목록 칸·선택 버튼도 각지게 */
+.mng-box.arch-modal [style*="border-radius"]:not(i):not(.gem){border-radius:0 !important}
+.mng-box.arch-modal .crop-frame{border-radius:0;box-shadow:0 0 0 1px rgba(190,208,228,.18)}
+.mng-box.arch-modal .crop-foot [style*="215, 218, 224"]{background:rgba(190,208,228,.2) !important}
+html.ui-arch body:has(.page-arch) .modal-ov{background:rgba(3,5,8,.72)}
+/* 페어링 수정·등록 화면 (v2.0 사용자 요청) — 공통 ARCH 입력칸 규칙 위에, 인라인으로 그린 테두리·자리표시만 맞춘다 */
+html.ui-arch .page-arch.page-rel-edit{--line:rgba(190,208,228,.16);--faint:#8592a0;--sub:#b3bec9}
+html.ui-arch .page-rel-edit [style*="border-radius"]:not(i):not(.gem){border-radius:0 !important}
+html.ui-arch .page-rel-edit .ph{background:linear-gradient(135deg,rgba(184,216,255,.06),rgba(5,7,10,.7));color:#6f7b89}
+html.ui-arch .page-rel-edit .ph span{font-family:'JetBrains Mono',monospace;letter-spacing:.3em}
 /* BGM 플레이어 — ARCH 디자인 (환경설정 → BGM → 플레이어 디자인) */
 .bgm.skin-arch{--bgm-bg:rgba(8,11,15,.88);--bgm-fg:#e4e9ef;--bgm-ic:#8592a0;--bgm-vol:#b8d8ff;--line-dark:rgba(190,208,228,.18);border-radius:0;border:1px solid rgba(190,208,228,.18);box-shadow:0 22px 50px -18px #000;padding:9px 16px 9px 10px}
 .bgm.skin-arch::before,.bgm.skin-arch::after{content:'';position:absolute;width:8px;height:8px;border-color:rgba(184,216,255,.7);border-style:solid;pointer-events:none}
