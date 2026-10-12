@@ -3,6 +3,9 @@ export const ROUTE_ALIASES: ReadonlyArray<readonly [canon: string, pub: string]>
   ['/page', '/arch'],
   ['/chars', '/profile'],
   ['/rels', '/pairing'],
+  ['/trpg', '/report'],    // FIELD REPORT (v2.0 사용자 요청)
+  ['/rp', '/comms'],       // COMMS ARCHIVE
+  ['/diary', '/journal'],  // JOURNAL
 ];
 
 const swap = (path: string, from: 0 | 1) => {
