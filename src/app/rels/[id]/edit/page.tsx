@@ -117,7 +117,7 @@ function RelEditInner() {
                 } : a)),
               }
               : {
-                catchphrase: v.catchphrase, arts: v.arts, thumbId: v.arts[0], thumbCrop: v.thumbCrop,
+                catchphrase: v.catchphrase, arts: v.arts, thumbId: v.arts[0], thumbCrop: v.thumbCrop, listCrop: v.listCrop,
                 ...(v.fulls
                   ? {
                     members: r.members.map(m => ({

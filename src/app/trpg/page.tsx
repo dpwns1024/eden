@@ -14,6 +14,7 @@ import { EditableDesc, PageTitle } from '@/components/ui/PageText';
 import { putBlob } from '@/lib/blobStore';
 import { ColorField } from '@/components/ui/ColorField';
 import { CropEditor, CroppedBlobImg, CropValue, CropImg } from '@/components/ui/CropEditor';
+import { RichEditor } from '@/components/ui/RichEditor';
 import { useToast } from '@/components/ui/Toast';
 
 import { useSiteSettings } from '@/lib/siteStore';
@@ -64,7 +65,9 @@ function TrpgPageInner() {
   const [nWith, setNWith] = useState('');
   const [nRel, setNRel] = useState('none');
   const [nDate, setNDate] = useState('');
-  const [nMode, setNMode] = useState<'file' | 'paste'>('paste');
+  // 본문 입력 — 기본은 사이트 에디터 (v2.0 사용자 요청: 코드 칸에 쓰기 불편했다). 붙여넣기·파일은 로그 툴 내보내기용
+  const [nMode, setNMode] = useState<'editor' | 'file' | 'paste'>('editor');
+  const [nRich, setNRich] = useState('');
   const [nBody, setNBody] = useState('');
   const [nFileName, setNFileName] = useState('');
   const [nFile, setNFile] = useState<File | null>(null);
@@ -175,7 +178,8 @@ function TrpgPageInner() {
   const add = async () => {
     if (!nTitle.trim()) { toast('시나리오 타이틀을 입력해 주세요'); return; }
     const id = newId();
-    const bodyText = nFile ? await decodeText(nFile) : nBody;
+    const rich = nMode === 'editor' && !nFile;
+    const bodyText = nFile ? await decodeText(nFile) : rich ? (nRich.replace(/<[^>]*>/g, '').trim() || /<img/i.test(nRich) ? nRich : '') : nBody;
     const log: TrpgLog = {
       id,
       no: Math.max(0, ...logs.map(l => l.no)) + 1,
@@ -194,6 +198,7 @@ function TrpgPageInner() {
     const body: TrpgLogBody = {
       id,
       ...(await saveLogBody(bodyText)),
+      ...(rich && bodyText ? { bodyRich: true } : {}),
       originalFileId: nFile ? await putBlob(nFile) : undefined,
       originalName: nFile?.name,
       visibility: bodyVisibility(log),
@@ -202,7 +207,7 @@ function TrpgPageInner() {
     setLogs([log, ...logs]);
     setBodies([...bodies, body]);
     setAddOpen(false);
-    setNNo(''); setNVis('public'); setNPw(''); setNListHidden(false); setNTitle(''); setNCatch(''); setNWriter(''); setNWith(''); setNBody(''); setNFileName(''); setNDate(''); setNFile(null);
+    setNNo(''); setNVis('public'); setNPw(''); setNListHidden(false); setNTitle(''); setNCatch(''); setNWriter(''); setNWith(''); setNBody(''); setNRich(''); setNFileName(''); setNDate(''); setNFile(null);
     setNThumb(null); setNThumbUrl(''); setNThumbCrop(undefined);
     toast(nFile ? '로그가 등록되었습니다 — 원본 파일도 보관됩니다' : '로그가 등록되었습니다');
   };
@@ -333,9 +338,10 @@ function TrpgPageInner() {
           )}
         </div>
         <div className="panel tagside">
-          <h4>자관 필터</h4>
+          {/* ARCH에선 영어로 (v2.0 사용자 요청) */}
+          <h4>{arch ? 'PAIRING FILTER' : '자관 필터'}</h4>
           <div className={`tag ${filter === 'all' ? 'on' : ''}`} onClick={() => setFilter('all')}>
-            전체 <small>{logs.length}</small>
+            {arch ? 'ALL' : '전체'} <small>{logs.length}</small>
           </div>
           {rels.filter(r => counts[r.id]).map(r => (
             <div key={r.id} className={`tag ${filter === r.id ? 'on' : ''}`} onClick={() => setFilter(r.id)}>
@@ -344,22 +350,22 @@ function TrpgPageInner() {
           ))}
           {counts['none'] > 0 && (
             <div className={`tag ${filter === 'none' ? 'on' : ''}`} onClick={() => setFilter('none')}>
-              단발 <small>{counts['none']}</small>
+              {arch ? 'ONE-SHOT' : '단발'} <small>{counts['none']}</small>
             </div>
           )}
           {!isMobile && (
             <>
-              <h4 style={{ marginTop: 18 }}>보기</h4>
-              <KRadio name="tsk" value="ticket" current={skin} onChange={v => setSkin(v as 'ticket')} label={arch ? '단말기형' : '티켓형'} />
+              <h4 style={{ marginTop: 18 }}>{arch ? 'VIEW' : '보기'}</h4>
+              <KRadio name="tsk" value="ticket" current={skin} onChange={v => setSkin(v as 'ticket')} label={arch ? 'TERMINAL' : '티켓형'} />
               <div style={{ height: 7 }} />
-              <KRadio name="tsk" value="basic" current={skin} onChange={v => setSkin(v as 'basic')} label="기본형" />
+              <KRadio name="tsk" value="basic" current={skin} onChange={v => setSkin(v as 'basic')} label={arch ? 'LIST' : '기본형'} />
             </>
           )}
         </div>
       </div>
 
       <Modal open={addOpen} onClose={() => setAddOpen(false)} title="로그 등록"
-        desc="본문: 파일 업로드(.txt/.html — 내용 자동 판별) 또는 붙여넣기/직접 작성"
+        desc="본문: 에디터로 작성 · HTML 붙여넣기 · 파일 업로드(.txt/.html — 로그 툴 내보내기, 내용 자동 판별)"
         actions={<>
           <button className="btn btn-ghost" onClick={() => setAddOpen(false)}>CANCEL</button>
           <button className="btn btn-dark" onClick={add}>ADD</button>
@@ -441,10 +447,13 @@ function TrpgPageInner() {
             )}
           </div>
           <div className="mini-seg" style={{ justifySelf: 'start' }}>
-            <button className={nMode === 'paste' ? 'on' : ''} onClick={() => setNMode('paste')}>붙여넣기/직접 작성</button>
+            <button className={nMode === 'editor' ? 'on' : ''} onClick={() => { setNMode('editor'); setNFile(null); setNFileName(''); }}>에디터로 작성</button>
+            <button className={nMode === 'paste' ? 'on' : ''} onClick={() => { setNMode('paste'); setNFile(null); setNFileName(''); }}>HTML 붙여넣기</button>
             <button className={nMode === 'file' ? 'on' : ''} onClick={() => setNMode('file')}>파일 업로드</button>
           </div>
-          {nMode === 'file' ? (
+          {nMode === 'editor' ? (
+            <RichEditor value={nRich} onChange={setNRich} placeholder="본문을 작성하세요 — 글자 색·굵기·이미지 삽입 가능" />
+          ) : nMode === 'file' ? (
             <>
               <input ref={fileRef} type="file" accept=".txt,.html,.htm,text/*" style={{ display: 'none' }}
                 onChange={e => { readFile(e.target.files?.[0]); e.target.value = ''; }} />

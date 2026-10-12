@@ -98,6 +98,9 @@ export interface TrpgLogBody {
   body: string;
   bodyId?: string;
   bodyHtml?: boolean;
+  /** 사이트 에디터(RichEditor)로 쓴 본문 (v2.0 사용자 요청) — 로그 파일처럼 틀 안(iframe)에 띄우지 않고
+   *  다른 게시판 글처럼 페이지 안에 바로 그린다(사이트 글꼴·색을 따라가 어두운 디자인에서도 읽힌다) */
+  bodyRich?: boolean;
   originalFileId?: string;
   originalName?: string;
   visibility: Visibility;
@@ -125,6 +128,10 @@ export const isHtmlBody = (s: string) => /<\s*(html|body|div|p|span|table|br|sty
 export const showAsHtml = (l: { bodyHtml?: boolean }, body: string) => l.bodyHtml ?? isHtmlBody(body);
 
 /** 로그 파일 인코딩 자동 판별 — UTF-8 우선, 깨짐 문자가 많으면 EUC-KR 재시도 (구형 로그 툴 대응) */
+/** 글자만 있는 본문을 에디터로 옮길 때 — 줄바꿈을 문단으로 (꺾쇠는 글자로 남게 이스케이프) */
+export const textToEditorHtml = (t: string) => t.split(/\n{2,}/)
+  .map(par => `<p>${par.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')}</p>`).join('');
+
 export async function decodeLogText(f: File): Promise<string> {
   const buf = await f.arrayBuffer();
   const utf8 = new TextDecoder('utf-8').decode(buf);

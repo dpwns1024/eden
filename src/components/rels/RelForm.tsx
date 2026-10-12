@@ -9,7 +9,7 @@ import { isValidSlug, slugify } from '@/lib/link';
 import { cpLabelFor, cpTagOf } from '@/lib/relqStore';
 import { newId } from '@/lib/postStore';
 import { useFonts } from '@/lib/fontStore';
-import { putBlob, getBlob, useBlobUrl } from '@/lib/blobStore';
+import { putBlob, useBlobUrl } from '@/lib/blobStore';
 import { KInput, KSelect, KCheck, KStep } from '@/components/ui/Kit';
 import { CropEditor, CropValue, CropImg } from '@/components/ui/CropEditor';
 import { DragList } from '@/components/ui/DragList';
@@ -28,6 +28,7 @@ export interface RelFormValue {
   bodyFontId: string;
   arts: string[];            // 첫 장 = 대표 = 리스트 썸네일 원본
   thumbCrop?: CropValue;
+  listCrop?: CropValue;      // PAIRING 목록 배너(가로로 긴 칸)에서 보일 위치 (v2.0 사용자 요청) — 첫 아트 기준
   headerImgId?: string;      // 헤더 이미지 (v1.5 — 풀폭 블러 + 페이드아웃)
   headerCrop?: CropValue;    // 헤더 위치 크롭 (원본 무손실)
   headerRemoved?: boolean;   // 헤더 제거 상태 (v1.9 — AU 편집에서 "없음 명시" 저장용)
@@ -187,6 +188,8 @@ export function RelForm({ initial, auId, myChars, memberNames, existingIds, onSa
   });
   const [thumbCrop, setThumbCrop] = useState<CropValue | undefined>(initial?.thumbCrop);
   const [cropOpen, setCropOpen] = useState(false);
+  const [listCrop, setListCrop] = useState<CropValue | undefined>(initial?.listCrop);
+  const [listCropOpen, setListCropOpen] = useState(false);
   const [lb, setLb] = useState<number | null>(null);   // 아트 썸네일 클릭 → 원본 보기
   const [headerFile, setHeaderFile] = useState<File | null>(null);
   const [headerUrl, setHeaderUrl] = useState('');
@@ -312,6 +315,7 @@ export function RelForm({ initial, auId, myChars, memberNames, existingIds, onSa
       kind, visibility, fontId, bodyFontId,
       arts: artIds,
       thumbCrop,
+      listCrop,
       headerImgId: headerFile ? await putBlob(headerFile) : (headerRemoved ? undefined : initHeaderId),
       headerCrop: headerRemoved ? undefined : headerCrop,
       headerRemoved,
@@ -430,6 +434,12 @@ export function RelForm({ initial, auId, myChars, memberNames, existingIds, onSa
                     {/* 옆의 「대표 · 썸네일」 뱃지와 세로 크기 통일 (23px) */}
                     <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 10.5, lineHeight: '13px' }}
                       onClick={() => setCropOpen(true)}>✂ 썸네일 크롭</button>
+                    {/* 목록 배너 위치 (v2.0 사용자 요청) — ARCH 목록은 가로로 긴 배너라 4:3 썸네일 크롭과 따로 잡는다.
+                        AU 편집 중엔 숨김: 목록에는 원본(자관 본체) 그림만 나온다 */}
+                    {!auObj && (
+                      <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 10.5, lineHeight: '13px' }}
+                        onClick={() => setListCropOpen(true)}>✂ 목록 배너 위치</button>
+                    )}
                   </>
                 ) : (
                   <span className="pill">추가 아트</span>
@@ -834,6 +844,12 @@ export function RelForm({ initial, auId, myChars, memberNames, existingIds, onSa
           onClose={() => setCropOpen(false)}
           onApply={c => { setThumbCrop(c); setCropOpen(false); }} />
       )}
+      {/* 목록 배너 비율 ≈ 6:1 (PC 기준 — 모바일은 칸이 더 높아 위아래가 조금 더 보인다) */}
+      {arts[0] && listCropOpen && (
+        <FirstArtCrop open={listCropOpen} item={arts[0]} crop={listCrop} aspect={6} aspectLabel="목록 배너 비율"
+          onClose={() => setListCropOpen(false)}
+          onApply={c => { setListCrop(c); setListCropOpen(false); }} />
+      )}
       {/* 아트 원본 보기 — 아직 저장 전 파일은 url, 저장된 것은 ref (Lightbox가 둘 다 처리) */}
       {lb !== null && (
         <Lightbox srcs={arts.map(a => a.url ?? a.ref ?? '')} index={lb} onClose={() => setLb(null)} />
@@ -865,16 +881,14 @@ function HeaderCrop({ src, refId, crop, onClose, onApply }: {
 }
 
 /** 첫 아트(새 파일 또는 저장된 blob)를 소스로 4:3 크롭 편집기 */
-function FirstArtCrop({ open, item, crop, onClose, onApply }: {
+function FirstArtCrop({ open, item, crop, aspect, aspectLabel, onClose, onApply }: {
   open: boolean; item: ArtItem; crop?: CropValue;
+  aspect?: number; aspectLabel?: string;   // 기본 4:3 (썸네일) — 목록 배너는 6:1
   onClose: () => void; onApply: (c: CropValue) => void;
 }) {
-  const [loadedUrl, setLoadedUrl] = useState('');
-  useEffect(() => {
-    if (item.url || !item.ref || !open) return;
-    getBlob(item.ref).then(b => { if (b) setLoadedUrl(URL.createObjectURL(b)); });
-  }, [item, open]);
+  // 저장된 그림은 공용 훅으로 — 서버 주소(https)·심긴 그림(data:)·내 기기 저장분 모두 열린다
+  const loadedUrl = useBlobUrl(item.url ? undefined : item.ref);
   const src = item.url || loadedUrl;
   if (!src) return null;
-  return <CropEditor open={open} src={src} aspect="4:3" initial={crop} onClose={onClose} onApply={onApply} />;
+  return <CropEditor open={open} src={src} aspect={aspect ?? '4:3'} aspectLabel={aspectLabel} initial={crop} onClose={onClose} onApply={onApply} />;
 }

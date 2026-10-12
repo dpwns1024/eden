@@ -7,12 +7,14 @@ import { useHrefBlock } from '@/components/shell/MenuGuard';
 import { sectionHref, MAIN_SEC, secStamp, useSectionTitle } from '@/lib/sectionStore';
 import { useAuth } from '@/lib/auth';
 import { useLocalList } from '@/lib/postStore';
-import { TrpgLog, TRPG_SEED, TrpgLogBody, TRPG_BODY_SEED, bodyVisibility, showAsHtml, decodeLogText, logNo, saveLogBody } from '@/lib/galleryStore';
+import { TrpgLog, TRPG_SEED, TrpgLogBody, TRPG_BODY_SEED, bodyVisibility, showAsHtml, decodeLogText, logNo, saveLogBody , textToEditorHtml } from '@/lib/galleryStore';
 import { Relation, REL_SEED, Character, CHAR_SEED, charGrant } from '@/lib/charStore';
 import { Modal, ConfirmModal } from '@/components/ui/Modal';
 import { getBlob, putBlob, useBlobUrl } from '@/lib/blobStore';
 import { PageTitle, EditableDesc } from '@/components/ui/PageText';
 import { KInput, KSelect, KDate, KTextarea } from '@/components/ui/Kit';
+import { RichEditor } from '@/components/ui/RichEditor';
+import { HtmlBody } from '@/components/ui/HtmlBody';
 import { ColorField } from '@/components/ui/ColorField';
 import { CropEditor, CropImg, CropValue } from '@/components/ui/CropEditor';
 import { useToast } from '@/components/ui/Toast';
@@ -106,7 +108,8 @@ export default function TrpgDetailPage() {
     listHidden: false,   // 목록 표시 여부 (v2.0 — 접근권한과 별개)
   });
   // 본문 교체
-  const [bodyMode, setBodyMode] = useState<'keep' | 'file' | 'text'>('keep');
+  const [bodyMode, setBodyMode] = useState<'keep' | 'file' | 'text' | 'editor'>('keep');
+  const [eRich, setERich] = useState('');   // 에디터로 수정 (v2.0 사용자 요청)
   // 본문 표시 방식 (v2.0) — 자동 판별이 직접 쓴 글을 HTML로 오판하는 경우가 있어 직접 고를 수 있게
   const [bodyDisp, setBodyDisp] = useState<'auto' | 'text' | 'html'>('auto');
   const [eFile, setEFile] = useState<File | null>(null);
@@ -135,8 +138,11 @@ export default function TrpgDetailPage() {
         originalFileId: await putBlob(eFile), originalName: eFile.name,
       };
     } else if (bodyMode === 'text' && eText.trim()) {
-      bodyPatch = await saveLogBody(eText);
+      bodyPatch = { ...(await saveLogBody(eText)), bodyRich: undefined };
+    } else if (bodyMode === 'editor' && (eRich.replace(/<[^>]*>/g, '').trim() || /<img/i.test(eRich))) {
+      bodyPatch = { ...(await saveLogBody(eRich)), bodyRich: true };
     }
+    if (bodyMode === 'file' && eFile) bodyPatch.bodyRich = undefined;
     // 썸네일 교체 준비
     let thumbPatch: Partial<TrpgLog> = {};
     if (thumbMode === 'image' && eThumb) {
@@ -172,6 +178,7 @@ export default function TrpgDetailPage() {
       originalFileId: bd?.originalFileId ?? l?.originalFileId,
       originalName: bd?.originalName ?? l?.originalName,
       bodyHtml: bodyDisp === 'auto' ? undefined : bodyDisp === 'html',
+      bodyRich: bd?.bodyRich,
       ...bodyPatch,
       visibility: bodyVisibility(nextLog),
       ...secStamp(nextLog.secId ?? MAIN_SEC),   // 소속 (v2.0) — 본문 문서도 비공개 판정을 받게
@@ -181,7 +188,7 @@ export default function TrpgDetailPage() {
     setBodies(bd ? bodies.map(x => x.id === id ? nextBody : x) : [...bodies, nextBody]);
     if (bodyMode !== 'keep') setBodyText(null); // 본문 다시 로드
     setEOpen(false);
-    setBodyMode('keep'); setEFile(null); setEText('');
+    setBodyMode('keep'); setEFile(null); setEText(''); setERich('');
     setThumbMode('keep'); setEThumb(null); setEThumbUrl(''); setEThumbCrop(undefined);
     toast('저장되었습니다');
   };
@@ -356,7 +363,10 @@ html,body{margin:0!important;padding:0!important;height:auto!important;min-heigh
         {l.catchphrase && (
           <p style={{ fontSize: 11.5, color: 'var(--faint)', letterSpacing: '.14em', marginBottom: 16 }}>{l.catchphrase}</p>
         )}
-        {html ? (
+        {bd?.bodyRich && body ? (
+          /* 사이트 에디터로 쓴 본문 — 다른 게시판 글처럼 페이지 안에 (v2.0 사용자 요청) */
+          <HtmlBody className="prose log-rich" html={body} />
+        ) : html ? (
           /* 원본 스타일·스크립트 유지 — 널 오리진 샌드박스라 사이트 데이터에는 접근 불가 (6.3 격리) */
           <LogFrame frameRef={frameRef} html={srcDoc} title={l.title} onFrameLoad={onFrameLoad} />
         ) : (
@@ -522,8 +532,20 @@ html,body{margin:0!important;padding:0!important;height:auto!important;min-heigh
             <button className={bodyMode === 'keep' ? 'on' : ''} onClick={() => setBodyMode('keep')}>현재 유지</button>
             {/* 아래 표시 방식 세그는 본문 교체와 별개 — 저장하면 항상 반영된다 */}
             <button className={bodyMode === 'text' ? 'on' : ''} onClick={() => { setBodyMode('text'); if (!eText) setEText(bodyText ?? ''); }}>직접 수정</button>
+            <button className={bodyMode === 'editor' ? 'on' : ''} onClick={() => {
+              setBodyMode('editor');
+              // 에디터로 쓴 본문이면 그대로, 글자만 있는 본문이면 문단으로 옮겨 온다.
+              // 로그 툴 HTML은 에디터에 넣으면 꾸밈이 다 빠지므로 비워 두고 안내한다
+              if (!eRich) setERich(bd?.bodyRich ? (bodyText ?? '') : html ? '' : textToEditorHtml(bodyText ?? ''));
+            }}>에디터로 수정</button>
             <button className={bodyMode === 'file' ? 'on' : ''} onClick={() => setBodyMode('file')}>파일 업로드</button>
           </div>
+          {bodyMode === 'editor' && (
+            <>
+              {html && !bd?.bodyRich && <p className="hint" style={{ margin: 0 }}>지금 본문은 로그 툴 HTML이라 에디터로 옮기면 꾸밈이 사라집니다 — 새로 쓰면 저장할 때 교체되고, 코드로 고치려면 「직접 수정」을 쓰세요</p>}
+              <RichEditor value={eRich} onChange={setERich} placeholder="본문을 작성하세요 — 글자 색·굵기·이미지 삽입 가능" />
+            </>
+          )}
           {bodyMode === 'file' && (
             <>
               <input ref={eFileRef} type="file" accept=".txt,.html,.htm,text/*" style={{ display: 'none' }}
