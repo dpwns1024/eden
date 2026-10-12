@@ -130,10 +130,9 @@ function BackupPageInner() {
                   <div className="g-head">
                     <b>{p.title}</b>
                     {p.category && <span className="typ" style={getPrefixStyle(p.category)}>{p.category}</span>}
+                    {/* 태그는 말머리 옆 (v2.0 사용자 요청) */}
+                    {(p.tags ?? []).map(t => <i key={t} className="tag-in">#{t}</i>)}
                   </div>
-                  {(p.tags ?? []).length > 0 && (
-                    <small>{(p.tags ?? []).map(t => <i key={t} className="tag-in">#{t}</i>)}</small>
-                  )}
                 </div>
               </div>
             );
@@ -145,15 +144,16 @@ function BackupPageInner() {
             <div key={p.id} className="list-item" onClick={() => router.push(`/gallery/${p.id}`)}>
               <div className="th" style={{ position: 'relative' }}><CroppedBlobImg fileRef={p.images[0]} crop={p.thumbCrop} ph={p.phList[0] ?? 'cool'} /></div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <b>
-                  {p.title}
-                  {p.fold
-                    ? <span className="pill red" style={{ marginLeft: 6 }}>접힘</span>
-                    : p.category && <span className="typ" style={{ ...getPrefixStyle(p.category), marginLeft: 6 }}>{p.category}</span>}
-                </b>
-                {(p.tags ?? []).length > 0 && (
-                  <small>{(p.tags ?? []).map(t => <i key={t} className="tag-in">#{t}</i>)}</small>
+                {/* 윗줄 말머리·태그, 아랫줄 제목 (v2.0 사용자 요청) */}
+                {(p.fold || p.category || (p.tags ?? []).length > 0) && (
+                  <small className="g-line">
+                    {p.fold
+                      ? <span className="pill red">접힘</span>
+                      : p.category && <span className="typ" style={getPrefixStyle(p.category)}>{p.category}</span>}
+                    {(p.tags ?? []).map(t => <i key={t} className="tag-in">#{t}</i>)}
+                  </small>
                 )}
+                <b>{p.title}</b>
               </div>
             </div>
           ))}

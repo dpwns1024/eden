@@ -1,6 +1,6 @@
 'use client';
 // 그림백업 상세 (4.11) — 로그형: 세로 스크롤 뷰어 / 단일형: 큰 이미지 + 썸네일 스트립 + 좌우 넘김
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useHrefBlock } from '@/components/shell/MenuGuard';
 import { sectionHref, MAIN_SEC, useSectionTitle } from '@/lib/sectionStore';
@@ -25,6 +25,14 @@ export default function BackupDetailPage() {
   const { st: boardSet } = useBoardSettings(); // 환경설정 > 게시판 관리 설정
 
   const p = posts.find(x => x.id === id);
+  /* 이전·다음 글 (v2.0 사용자 요청) — 목록과 같은 순서·같은 소속(섹션)·볼 수 있는 글만 */
+  const sibs = p ? posts.filter(x => (x.secId ?? MAIN_SEC) === (p.secId ?? MAIN_SEC)
+    && (isAdmin || x.visibility === 'public' || (x.visibility === 'member' && !!user))) : [];
+  const sIdx = p ? sibs.findIndex(x => x.id === p.id) : -1;
+  const prevPost = sIdx > 0 ? sibs[sIdx - 1] : undefined;
+  const nextPost = sIdx >= 0 && sIdx < sibs.length - 1 ? sibs[sIdx + 1] : undefined;
+  // 다른 글로 넘어가면 그림 순서는 처음부터
+  useEffect(() => { setCur(0); setLbOpen(false); }, [id]);
 
   // 말머리 설정 탐색 및 알약 모양 배경/테두리 스타일 적용
   const findPrefixBadge = (cat?: string) => {
@@ -102,10 +110,6 @@ export default function BackupDetailPage() {
     <section className="page page-arch page-gallery-detail">
       <div className="page-head">
         <PageTitle href={tt.href}>{tt.title}</PageTitle>
-        {/* 태그만 — 말머리는 제목 옆 뱃지, 작성자·날짜는 표시하지 않음 (v2.0 사용자 요청) */}
-        {(p.tags ?? []).length > 0 && (
-          <p>{(p.tags ?? []).map(t => <i key={t} className="tag-in">#{t}</i>)}</p>
-        )}
         <div className="head-actions">
           {canManage && <button className="btn btn-dark" onClick={() => router.push(`/gallery/${p.id}/edit`)}>EDIT</button>}
           {canManage && <button className="btn btn-dark" onClick={() => setDelAsk(true)}>DELETE</button>}
@@ -121,6 +125,8 @@ export default function BackupDetailPage() {
               {p.category}
             </span>
           )}
+          {/* 태그는 말머리 옆 (v2.0 사용자 요청) */}
+          {(p.tags ?? []).map(t => <i key={t} className="tag-in g-tag">#{t}</i>)}
         </h2>
         {p.desc && (
           <div className="post-body" style={{ fontSize: 12.5, margin: '0 0 16px' }}
@@ -171,6 +177,13 @@ export default function BackupDetailPage() {
           </>
         )}
       </div>
+
+      {(prevPost || nextPost) && (
+        <div className="g-nav">
+          {prevPost ? <button className="btn btn-ghost" onClick={() => router.push(`/gallery/${prevPost.id}`)}>‹ PREV</button> : <span />}
+          {nextPost && <button className="btn btn-dark" onClick={() => router.push(`/gallery/${nextPost.id}`)}>NEXT ›</button>}
+        </div>
+      )}
 
       {lbOpen && (p.type === 'single' || p.type === 'vlist') && p.images.length > 0 && (
         <Lightbox srcs={p.images} index={cur} onClose={() => setLbOpen(false)} />
