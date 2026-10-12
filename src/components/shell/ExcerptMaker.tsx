@@ -156,6 +156,16 @@ export function ExcerptMaker() {
     body.appendChild(frag);
     // 복제된 이미지가 늦게 뜨는 칸(지연 로딩)이면 바로 그리게
     body.querySelectorAll('img').forEach(im => { im.loading = 'eager'; im.removeAttribute('srcset'); });
+    /* 글씨 크기 들쭉날쭉 방지 (v2.0 사용자 제보 — 짧은 인용구만 작게 찍힘).
+       ① 붙여 넣을 때 따라온 글자 크기·글꼴 지정을 지우고
+       ② 아이폰 사파리의 「글자 자동 확대」를 끈다 — 넓은 칸의 글씨만 키워서 폭이 좁은(짧은) 인용구만 작아 보였다 */
+    body.querySelectorAll<HTMLElement>('*').forEach(el => {
+      el.style.removeProperty('font-size');
+      el.style.removeProperty('font-family');
+      el.style.removeProperty('line-height');
+      if (el.tagName === 'FONT') { el.removeAttribute('size'); el.removeAttribute('face'); }
+    });
+    [card, body].forEach(el => { el.style.setProperty('-webkit-text-size-adjust', '100%'); el.style.setProperty('text-size-adjust', '100%'); });
     const foot = document.createElement('div');
     foot.className = 'ex-foot';
     foot.textContent = document.title || '';

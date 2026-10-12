@@ -2934,3 +2934,5 @@ html.ui-arch .excerpt-card{background:
   repeating-linear-gradient(90deg,rgba(190,208,228,.035) 0 1px,transparent 1px 128px),
   repeating-linear-gradient(0deg,rgba(190,208,228,.025) 0 1px,transparent 1px 128px),#05070a;
   box-shadow:inset 0 0 140px 24px rgba(0,0,0,.6)}
+/* 발췌 카드 — 아이폰 글자 자동 확대 끄기(칸 폭에 따라 글씨가 달라지던 것) */
+.excerpt-card,.excerpt-card *{-webkit-text-size-adjust:100% !important;text-size-adjust:100% !important}
