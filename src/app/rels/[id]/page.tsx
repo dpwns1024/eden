@@ -13,7 +13,7 @@ import {
   auMember, auStyle, fullShadow, hasRelGrant,
   RelAu, RelCpTag, charWithAu, charGrant,
   QaAnswerRow, QA_KEY, QA_SEED, MergedAnswer, answersFor,
-  findByKey, charPath,
+  findByKey, charPath, relPath,
 } from '@/lib/charStore';
 import { RelQuestionSet, RELQ_SEED, RELQ_KEY, CP_LABEL, cpLabelFor, cpTagOf } from '@/lib/relqStore';
 import { useBoardSkin } from '@/lib/boardSkin';
@@ -387,6 +387,10 @@ export default function RelDetailPage() {
 
   // 별명 주소로도 열린다 (v2.0 사용자 요청 — 주소를 나중에 바꿔도 옛 주소가 살아 있게)
   const rel = findByKey(rels, id);
+  /* 다음 페어 (v2.0 사용자 요청 — 캐릭터 페이지의 NEXT처럼). 목록과 같은 순서·같은 공개 범위에서 고른다 */
+  const relSibs = rels.filter(r => isAdmin || r.visibility !== 'private');
+  const relIdx = rel ? relSibs.findIndex(r => r.id === rel.id) : -1;
+  const nextRel = relIdx >= 0 && relSibs.length > 1 ? relSibs[(relIdx + 1) % relSibs.length] : null;
 
   // 자관별 페이지 테마 (4.18 방식) — 별도 테마컬러면 홈 전체 팔레트를 임시 전환, 벗어나면 원복.
   // AU별 (v1.9): AU에 테마를 지정했으면 그것, 미지정이면 base(원본) 테마 따라가기
@@ -1058,16 +1062,20 @@ export default function RelDetailPage() {
                   {(au?.catchphrase || rel.catchphrase) && (
                     <div className="rb-catch" style={{ color: auSt.cpColor }}>{au?.catchphrase || rel.catchphrase}</div>
                   )}
+                  {/* AU 전환 — 캐치프레이즈 아래 작은 글자 탭 (오른쪽 위 자리는 NEXT 버튼에 내줬다, v2.0) */}
+                  {rel.aus.length > 1 && (
+                    <div className="rb-aus" onClick={e => e.stopPropagation()}>
+                      {rel.aus.map(a => (
+                        <button key={a.id} type="button" className={auId === a.id ? 'on' : ''}
+                          onClick={() => { setAuId(a.id); setArtIdx(0); setQaNo(null); }}>{a.label}</button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                {/* AU 전환 — 배너 오른쪽 위 작은 글자 칩 (v2.0 사용자 요청: 썸네일 줄이 위 공간을 많이 차지했다) */}
-                {(rel.aus.length > 1 || isAdmin) && (
-                  <div className="rb-au" onClick={e => e.stopPropagation()}>
-                    {rel.aus.map(a => (
-                      <button key={a.id} type="button" className={auId === a.id ? 'on' : ''}
-                        onClick={() => { setAuId(a.id); setArtIdx(0); setQaNo(null); }}>{a.label}</button>
-                    ))}
-                    {isAdmin && <button type="button" className="add" data-tip="AU 추가/관리" onClick={() => setAuOpen(true)}>＋</button>}
-                  </div>
+                {/* 다음 페어로 — 배너 오른쪽 위 버튼 하나 (v2.0 사용자 요청) */}
+                {nextRel && (
+                  <button type="button" className="rb-next" data-tip={nextRel.name}
+                    onClick={e => { e.stopPropagation(); router.push(relPath(nextRel)); }}>NEXT ›</button>
                 )}
                 {/* 관리자 버튼 — 배너 왼쪽 위 */}
                 {isAdmin && (
@@ -1078,6 +1086,7 @@ export default function RelDetailPage() {
                     <button type="button" onClick={() => (isBaseAu ? setDelAsk(true) : setAuDelAsk(au!.id))}>
                       {isBaseAu ? 'DELETE' : `DELETE ${au!.label}`}
                     </button>
+                    <button type="button" data-tip="AU 추가/관리" onClick={() => setAuOpen(true)}>AU ＋</button>
                   </div>
                 )}
               </>
@@ -1182,7 +1191,7 @@ export default function RelDetailPage() {
       {/* 타임라인 / 페어 문답 탭 (v1.8) */}
       <div className={`panel timeline ${!isDuo ? 'multi' : ''}`} style={{ fontFamily: familyOf(rel.bodyFontId) }}>
         <div className="rel-tabs">
-          <button className={tab === 'tl' ? 'on' : ''} onClick={() => setTab('tl')}><span className="lb-pc">TIMELINE</span><span className="lb-m">T</span></button>
+          <button className={tab === 'tl' ? 'on' : ''} onClick={() => setTab('tl')}><span className="lb-pc">{arch ? 'CASE HISTORY' : 'TIMELINE'}</span><span className="lb-m">{arch ? 'C' : 'T'}</span></button>
           {/* QUESTIONS 섹션은 ＋로 추가해야 생김 (v1.9) — 처음에는 타임라인만 */}
           {qaOn && <button className={tab === 'qa' ? 'on' : ''} onClick={() => setTab('qa')}><span className="lb-pc">{arch ? 'INTERVIEW' : 'QUESTIONS'}</span><span className="lb-m">{arch ? 'I' : 'Q'}</span></button>}
           {isAdmin && !qaOn && (
@@ -1249,7 +1258,7 @@ export default function RelDetailPage() {
           <div>
             {auTimeline.map((item, i) => (
               /* 수정·삭제는 우클릭 메뉴로 (v2.0 사용자 요청) — 늘 떠 있는 [삭제] 글자는 없앴다 */
-              <div className={`tl-item${arch && isDuo ? ' tl-a' : ''}`} key={i}
+              <div className={`tl-item${arch && isDuo ? ' tl-log' : ''}`} key={i}
                 onContextMenu={e => {
                   if (!isAdmin) return;
                   e.preventDefault();
@@ -1273,24 +1282,30 @@ export default function RelDetailPage() {
                       {says}
                     </>;
                   }
-                  /* ARCH 타임라인 A · LANE (v2.0 사용자 선택) — 왼쪽 칸에 연도·사건, 같은 줄 오른쪽에
-                     가운데 640px 레인 안에서 좌우로 대사. 사건 설명이 짧으면(한 줄 제목) 연도 아래에,
-                     길면(문단) 왼쪽 좁은 칸에 세로로 길게 늘어지지 않게 오른쪽 레인 위에 둔다 */
-                  const short = !!item.desc && !item.desc.includes('\n') && item.desc.length <= 24;
+                  /* ARCH 타임라인 B · LOG (v2.0 사용자 선택) — 왼쪽 기록 번호·연도 / 오른쪽 설명과 대사를
+                     대본처럼 한 줄씩(이름 · 대사). 넓은 화면에서 말풍선이 좌우 끝으로 흩어지던 것 */
                   return <>
                     <div className="tl-dt">
-                      {item.era && <div className="era">{item.era}</div>}
-                      {short && <div className="desc">{item.desc}</div>}
+                      <span>RECORD {String(i + 1).padStart(2, '0')}</span>
+                      {item.era && <b>{item.era}</b>}
                     </div>
-                    <div className="tl-rt">
-                      {item.desc && !short && <div className="desc">{item.desc}</div>}
-                      {says.length > 0 && <div className="tl-lane">{says}</div>}
+                    <div className="tl-ln">
+                      {item.desc && <div className="desc">{item.desc}</div>}
+                      {item.says.map((sy, j) => {
+                        const c = charOf(sy.charId);
+                        return (
+                          <div key={j} className="tl-row" style={{ ['--cc' as string]: rgbTriple(c?.color ?? '#5d636d') }}>
+                            <small className="who">{(c?.name ?? '').toUpperCase()}</small>
+                            <span>{sy.text}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </>;
                 })()}
               </div>
             ))}
-            {auTimeline.length === 0 && <p className="hint">타임라인이 비어 있습니다 — 우상단 [＋ ADD RECORD]로 추가</p>}
+            {auTimeline.length === 0 && <p className="hint">{arch ? '기록된 사건 이력이 없습니다 — 우상단 [＋ ADD RECORD]로 추가' : '타임라인이 비어 있습니다 — 우상단 [＋ ADD RECORD]로 추가'}</p>}
           </div>
           )
         ) : (

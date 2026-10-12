@@ -340,30 +340,40 @@ html.ui-arch .page-arch .rel-banner ~ .timeline{margin-top:20px}
 html.ui-arch .page-arch .rel-banner ~ .g2{margin-top:20px !important;gap:20px}
 /* AU 전환·관리자 버튼은 배너 안으로 옮겼다 — 배너 위에 비워 두던 줄은 없앤다 (v2.0 사용자 요청) */
 html.ui-arch .page-arch .rel-body.rel-banner{margin-top:0}
-html.ui-arch .page-arch .rel-banner .rb-au{position:absolute;top:16px;right:16px;z-index:7;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px;max-width:60%}
-html.ui-arch .page-arch .rel-banner .rb-au button,html.ui-arch .page-arch .rel-banner .rb-admin button{height:26px;padding:0 10px 0 12px;font:400 9px/1 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.24em;color:#b3bec9;background:rgba(5,7,10,.55);border:1px solid rgba(190,208,228,.22);backdrop-filter:blur(6px);transition:.15s;white-space:nowrap}
-html.ui-arch .page-arch .rel-banner .rb-au button:hover,html.ui-arch .page-arch .rel-banner .rb-admin button:hover{color:#fff;border-color:rgba(190,208,228,.5)}
-html.ui-arch .page-arch .rel-banner .rb-au button.on{color:#fff;background:rgba(var(--a-acr),.16);border-color:rgba(var(--a-acr),.8);box-shadow:0 0 12px -3px rgba(var(--a-acr),.6)}
-html.ui-arch .page-arch .rel-banner .rb-au button.add{padding:0 9px;letter-spacing:0;font-size:12px}
 html.ui-arch .page-arch .rel-banner .rb-admin{position:absolute;top:16px;left:16px;z-index:7;display:flex;gap:6px}
+html.ui-arch .page-arch .rel-banner .rb-admin button{height:26px;padding:0 10px 0 12px;font:400 9px/1 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.24em;color:#b3bec9;background:rgba(5,7,10,.55);border:1px solid rgba(190,208,228,.22);backdrop-filter:blur(6px);transition:.15s;white-space:nowrap}
+html.ui-arch .page-arch .rel-banner .rb-admin button:hover,html.ui-arch .page-arch .rel-banner .rb-next:hover{color:#fff;border-color:rgba(190,208,228,.55)}
+/* 다음 페어 — 배너 오른쪽 위 (v2.0 사용자 요청) */
+html.ui-arch .page-arch .rel-banner .rb-next{position:absolute;top:16px;right:16px;z-index:7;height:30px;padding:0 14px 0 17px;font:400 10px/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;color:#e4e9ef;background:rgba(5,7,10,.55);border:1px solid rgba(190,208,228,.3);backdrop-filter:blur(6px);transition:.15s}
+/* AU 전환 — 캐치프레이즈 아래 작은 글자 탭 */
+html.ui-arch .page-arch .rel-banner .rb-aus{display:flex;flex-wrap:wrap;gap:4px 18px;margin-top:16px;pointer-events:auto}
+html.ui-arch .page-arch .rel-banner .rb-aus button{padding:4px 0;font:400 9px/1.4 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.24em;color:rgba(214,224,234,.55);border-bottom:1px solid transparent;transition:.15s}
+html.ui-arch .page-arch .rel-banner .rb-aus button:hover{color:#fff}
+html.ui-arch .page-arch .rel-banner .rb-aus button.on{color:#fff;border-bottom-color:var(--a-ac);box-shadow:0 6px 10px -8px rgba(var(--a-acr),.9)}
 @media (max-width:620px){
-  html.ui-arch .page-arch .rel-banner .rb-au{top:10px;right:10px;max-width:58%}
   html.ui-arch .page-arch .rel-banner .rb-admin{top:10px;left:10px;flex-direction:column;align-items:flex-start}
+  html.ui-arch .page-arch .rel-banner .rb-next{top:10px;right:10px}
 }
-/* 타임라인 A · LANE (v2.0 사용자 선택) — 왼쪽 200px 칸에 연도·사건, 같은 줄 오른쪽 가운데 640px 레인에서 좌우로 대사 */
-html.ui-arch .page-arch .tl-item.tl-a{display:grid;grid-template-columns:200px minmax(0,1fr);column-gap:24px;padding-bottom:34px}
-html.ui-arch .page-arch .tl-item.tl-a:last-child{padding-bottom:4px}
-html.ui-arch .page-arch .tl-a .tl-dt{min-width:0}
-html.ui-arch .page-arch .tl-a .tl-dt .desc{margin:6px 0 0;font-size:calc(15px*var(--fs,1));word-break:keep-all}
-html.ui-arch .page-arch .tl-a .tl-rt{min-width:0;display:grid;gap:14px;align-content:start}
-html.ui-arch .page-arch .tl-a .tl-rt > .desc{margin:0;font-size:calc(13.5px*var(--fs,1));line-height:1.85}
-html.ui-arch .page-arch .tl-a .tl-lane{width:100%;max-width:640px;margin:0 auto;display:grid;gap:14px}
-html.ui-arch .page-arch .tl-a .tl-say{max-width:70%;margin:0}
-html.ui-arch .page-arch .tl-a .tl-say.r{justify-self:end}
-html.ui-arch .page-arch .tl-a .tl-say.l{justify-self:start}
+/* 타임라인 B · LOG (v2.0 사용자 선택 · 탭 이름 CASE HISTORY) — 왼쪽 기록 번호·연도 / 오른쪽 설명·대사 한 줄씩 */
+html.ui-arch .page-arch .tl-item.tl-log{display:grid;grid-template-columns:200px minmax(0,1fr);padding:0;border-left:0;border-top:1px solid var(--a-ln)}
+html.ui-arch .page-arch .tl-item.tl-log:first-child{border-top:0}
+html.ui-arch .page-arch .tl-item.tl-log::before{display:none}
+html.ui-arch .page-arch .tl-log .tl-dt{padding:22px 20px 22px 0;min-width:0}
+html.ui-arch .page-arch .tl-log .tl-dt span{display:block;margin-bottom:12px;font:400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.26em;color:#6f7b89}
+html.ui-arch .page-arch .tl-log .tl-dt b{display:block;font:300 calc(30px*var(--fs,1))/1.15 'Jost','Noto Sans KR',sans-serif;letter-spacing:.1em;color:#fff;word-break:keep-all;overflow-wrap:anywhere}
+html.ui-arch .page-arch .tl-log .tl-ln{padding:18px 0 18px 28px;border-left:1px solid var(--a-ln);display:grid;align-content:center;min-width:0}
+html.ui-arch .page-arch .tl-log .desc{margin:4px 0 8px;font-size:calc(13.5px*var(--fs,1));line-height:1.85;color:#c9d2dc;font-weight:300;white-space:pre-line}
+html.ui-arch .page-arch .tl-log .tl-row{display:grid;grid-template-columns:96px minmax(0,1fr);align-items:baseline;padding:9px 0;border-bottom:1px dashed rgba(190,208,228,.08)}
+html.ui-arch .page-arch .tl-log .tl-row:last-child{border-bottom:0}
+html.ui-arch .page-arch .tl-log .tl-row .who{font:400 9.5px/1.6 'JetBrains Mono',monospace;letter-spacing:.26em;color:rgb(var(--cc))}
+html.ui-arch .page-arch .tl-log .tl-row span{font-size:calc(14.5px*var(--fs,1));line-height:1.7;font-weight:300;color:var(--a-tx);white-space:pre-line;word-break:keep-all;overflow-wrap:anywhere}
 @media (max-width:620px){
-  html.ui-arch .page-arch .tl-item.tl-a{grid-template-columns:minmax(0,1fr);row-gap:12px;padding-bottom:26px}
-  html.ui-arch .page-arch .tl-a .tl-say{max-width:82%}
+  html.ui-arch .page-arch .tl-item.tl-log{grid-template-columns:minmax(0,1fr)}
+  html.ui-arch .page-arch .tl-log .tl-dt{display:flex;align-items:baseline;gap:12px;padding:18px 0 4px}
+  html.ui-arch .page-arch .tl-log .tl-dt span{margin:0;flex-shrink:0}
+  html.ui-arch .page-arch .tl-log .tl-dt b{font-size:calc(22px*var(--fs,1))}
+  html.ui-arch .page-arch .tl-log .tl-ln{padding:6px 0 16px;border-left:0}
+  html.ui-arch .page-arch .tl-log .tl-row{grid-template-columns:64px minmax(0,1fr)}
 }
 /* 멤버 카드 B (v2.0 사용자 선택) — 왼쪽 큰 3:4 초상(카드 높이만큼 늘어남, 최소 3:4) · 오른쪽 이름·한마디·정보 */
 html.ui-arch .page-arch .mini-prof.mp-b{display:grid;grid-template-columns:clamp(140px,32%,186px) minmax(0,1fr)}
