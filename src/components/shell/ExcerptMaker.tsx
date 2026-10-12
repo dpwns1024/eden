@@ -2,8 +2,11 @@
 /**
  * 발췌 이미지 만들기 (v2.0 사용자 요청 — 관리자 전용, 시험판).
  *
- * 글을 드래그해 고르면 고른 곳 아래에 「발췌 이미지」 버튼이 뜬다. 누르면 고른 부분(글·인용구·이미지)을
- * 홈페이지 배경 위 카드에 다시 그려 PNG로 만든다 → 미리보기 창에서 저장·공유.
+ * 두 가지 방법으로 고른다.
+ *   1. 드래그 — 글을 드래그해 고르면 고른 곳 아래에 「발췌 이미지」 버튼이 뜬다 (PC에 편함)
+ *   2. 발췌 모드 — 왼쪽 아래 ✂ 버튼으로 켜고, 시작 문단 → 끝 문단을 차례로 누르면 그 사이가 통째로 골라진다
+ *      (모바일에 편함). 문단·이미지·인용구·구분선이 각각 한 칸이다.
+ * 고른 부분은 홈페이지 배경 위 카드에 다시 그려 PNG로 만든다 → 미리보기 창에서 저장·공유.
  *
  * - 고른 부분을 그대로 복제해(range.cloneContents) 화면 밖 카드에 넣고 html-to-image로 찍는다.
  * - 이미지가 섞이면 브라우저가 그 파일을 받아 와야 한다 — Firebase는 저장소 CORS가 열려 있어야
@@ -17,6 +20,8 @@ import { useToast } from '@/components/ui/Toast';
 
 /** 고를 수 없는 곳 — 입력칸·에디터·창(모달)·메뉴 */
 const BLOCKED = 'input, textarea, select, [contenteditable="true"], [contenteditable=""], .re-content, .mng-box, .topbar, .oh-menu, .excerpt-btn';
+/** 발췌 모드에서 문단을 고를 수 있는 본문 — 이 안의 바로 아래 칸(문단·이미지·인용구…)이 한 칸 */
+const ROOTS = '.page .prose:not(.re-content), .page .post-body';
 const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 
 const stamp = () => {
@@ -33,6 +38,57 @@ export function ExcerptMaker() {
   const rangeRef = useRef<Range | null>(null);
   const [busy, setBusy] = useState(false);
   const [img, setImg] = useState<string | null>(null);
+  // 발췌 모드 (탭으로 시작·끝 문단 고르기)
+  const [mode, setMode] = useState(false);
+  const [hasRoots, setHasRoots] = useState(false);
+  // done — 끝 문단까지 골랐는가 (아니면 다음 누름이 끝 문단)
+  const [pick, setPick] = useState<{ root: Element; a: Element; b: Element; done: boolean } | null>(null);
+  const pickRef = useRef(pick);
+  pickRef.current = pick;
+
+  // 이 페이지에 고를 수 있는 본문이 있는가 — 있을 때만 ✂ 버튼을 보인다
+  useEffect(() => {
+    if (!on) return;
+    const check = () => setHasRoots(!!document.querySelector(ROOTS));
+    check();
+    const t = window.setInterval(check, 1200);
+    return () => window.clearInterval(t);
+  }, [on]);
+
+  /** 본문(root) 바로 아래 칸들 중 a~b 사이 (순서 무관) */
+  const pickedBlocks = (p: { root: Element; a: Element; b: Element; done?: boolean } | null): Element[] => {
+    if (!p) return [];
+    const kids = Array.from(p.root.children);
+    const i = kids.indexOf(p.a), j = kids.indexOf(p.b);
+    if (i < 0 || j < 0) return [];
+    return kids.slice(Math.min(i, j), Math.max(i, j) + 1);
+  };
+  // 고른 칸 표시
+  useEffect(() => {
+    const els = pickedBlocks(pick);
+    els.forEach(e => e.classList.add('ex-picked'));
+    return () => els.forEach(e => e.classList.remove('ex-picked'));
+  }, [pick]);
+  // 모드 중 본문 누르기 → 첫 번째는 시작, 두 번째는 끝, 그다음은 새 시작
+  useEffect(() => {
+    if (!mode) { setPick(null); return; }
+    document.documentElement.classList.add('ex-mode');
+    const onClick = (e: MouseEvent) => {
+      const t = e.target as Element | null;
+      if (!t || t.closest('.excerpt-bar, .excerpt-toggle, .mng-box')) return;
+      const root = t.closest(ROOTS);
+      if (!root) return;
+      let blk: Element | null = t;
+      while (blk && blk.parentElement !== root) blk = blk.parentElement;
+      if (!blk) return;
+      e.preventDefault(); e.stopPropagation();   // 링크·그림 확대 대신 고르기
+      // 상태 갱신 함수 안에서 다른 값을 바꾸면 개발 모드의 두 번 실행에 꼬인다 — 지금 값을 보고 한 번에 정한다
+      const prev = pickRef.current;
+      setPick(prev && !prev.done && prev.root === root ? { ...prev, b: blk, done: true } : { root, a: blk, b: blk, done: false });
+    };
+    document.addEventListener('click', onClick, true);
+    return () => { document.removeEventListener('click', onClick, true); document.documentElement.classList.remove('ex-mode'); };
+  }, [mode]);
 
   // 고른 범위를 지켜보다가 버튼 자리를 잡는다
   useEffect(() => {
@@ -67,23 +123,37 @@ export function ExcerptMaker() {
     };
   }, [on]);
 
-  const make = async () => {
-    const r = rangeRef.current;
-    if (!r || busy) return;
+  const make = async (fromPick = false) => {
+    if (busy) return;
+    let frag: DocumentFragment;
+    if (fromPick) {
+      const els = pickedBlocks(pick);
+      if (!els.length) return;
+      frag = document.createDocumentFragment();
+      els.forEach(e => { const c = e.cloneNode(true) as Element; c.classList.remove('ex-picked'); frag.appendChild(c); });
+    } else {
+      const r = rangeRef.current;
+      if (!r) return;
+      frag = r.cloneContents();
+    }
     setBusy(true);
     // 화면 밖 카드 — ARCH 글 모양(.page-arch .post-body)을 그대로 빌려 쓴다
     const card = document.createElement('div');
     card.className = 'excerpt-card page-arch';
-    const bs = getComputedStyle(document.body);
-    const bgImg = getComputedStyle(document.body, '::before').backgroundImage;
-    card.style.backgroundColor = bs.backgroundColor && bs.backgroundColor !== 'rgba(0, 0, 0, 0)' ? bs.backgroundColor : '#07090d';
-    card.style.backgroundImage = [bgImg && bgImg !== 'none' ? bgImg : '', bs.backgroundImage !== 'none' ? bs.backgroundImage : '']
-      .filter(Boolean).join(',') || 'none';
+    // ARCH면 홈페이지 바탕(격자·촘촘한 가로줄·빛·가장자리 어둠)을 CSS가 그린다 — 몸통 배경은 단색이라 그대로 쓰면 밋밋하다.
+    // 그 밖의 디자인은 지금 페이지 배경을 빌려 온다
+    if (!document.documentElement.classList.contains('ui-arch')) {
+      const bs = getComputedStyle(document.body);
+      const bgImg = getComputedStyle(document.body, '::before').backgroundImage;
+      card.style.backgroundColor = bs.backgroundColor && bs.backgroundColor !== 'rgba(0, 0, 0, 0)' ? bs.backgroundColor : '#07090d';
+      card.style.backgroundImage = [bgImg && bgImg !== 'none' ? bgImg : '', bs.backgroundImage !== 'none' ? bs.backgroundImage : '']
+        .filter(Boolean).join(',') || 'none';
+    }
     const frame = document.createElement('div');
     frame.className = 'ex-frame';
     const body = document.createElement('div');
     body.className = 'post-body ex-body';
-    body.appendChild(r.cloneContents());
+    body.appendChild(frag);
     // 복제된 이미지가 늦게 뜨는 칸(지연 로딩)이면 바로 그리게
     body.querySelectorAll('img').forEach(im => { im.loading = 'eager'; im.removeAttribute('srcset'); });
     const foot = document.createElement('div');
@@ -138,9 +208,22 @@ export function ExcerptMaker() {
         <button type="button" className="excerpt-btn" style={{ left: pos.x, top: pos.y }}
           // 누르는 순간 고른 범위가 풀리지 않게
           onPointerDown={e => e.preventDefault()} onMouseDown={e => e.preventDefault()}
-          onClick={() => void make()}>
+          onClick={() => void make(false)}>
           {busy ? '만드는 중…' : '✂ 발췌 이미지'}
         </button>
+      )}
+      {/* 발췌 모드 — ✂ 켜기/끄기, 켜면 아래 안내 막대 */}
+      {hasRoots && (
+        <button type="button" className={`excerpt-toggle${mode ? ' on' : ''}`} aria-label="발췌 모드"
+          onClick={() => setMode(m => !m)}>✂</button>
+      )}
+      {mode && (
+        <div className="excerpt-bar">
+          <span>{!pick ? '시작 문단을 누르세요' : !pick.done ? '끝 문단을 누르세요 (한 칸이면 바로 만들기)' : `${pickedBlocks(pick).length}칸 선택됨`}</span>
+          {pick && <button type="button" onClick={() => setPick(null)}>다시</button>}
+          {pick && <button type="button" className="go" disabled={busy} onClick={() => void make(true)}>{busy ? '만드는 중…' : '이미지 만들기'}</button>}
+          <button type="button" onClick={() => setMode(false)}>끄기</button>
+        </div>
       )}
       <Modal open={!!img} onClose={() => setImg(null)} title="발췌 이미지"
         actions={<>
