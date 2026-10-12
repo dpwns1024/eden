@@ -185,7 +185,9 @@ export function BackupForm({ initial }: { initial: BackupPost | null }) {
                   <b>{f.name}</b>
                   <small>{f.ref && !f.file ? '저장된 이미지' : fmtSize(f.size)}{f.crop ? ' · 썸네일 지정됨' : ''}</small>
                 </div>
-                {/* 원본/최적화 — 원본은 항상 서버 보존, 열람 제공본 선택 (6.1) */}
+                {/* 원본/최적화 — 원본은 항상 서버 보존, 열람 제공본 선택 (6.1).
+                    up-act는 PC에선 없는 셈(display:contents), 폰에선 이 둘을 이름 아래 한 줄로 내린다 */}
+                <div className="up-act">
                 <div className="mini-seg">
                   <button className={f.original ? 'on' : ''}
                     onClick={() => setFiles(l => l.map(x => x.id === f.id ? { ...x, original: true } : x))}>원본</button>
@@ -194,6 +196,7 @@ export function BackupForm({ initial }: { initial: BackupPost | null }) {
                 </div>
                 <button className="btn btn-ghost" style={{ padding: '5px 10px', fontSize: 10, whiteSpace: 'nowrap' }}
                   onClick={() => setCropFor(f)}>✂ 썸네일</button>
+                </div>
                 <span className="fx" data-tip="제거"
                   onClick={() => del.ask('이 이미지를 목록에서 빼시겠습니까?',
                     () => setFiles(l => l.filter(x => x.id !== f.id)), f.name)}>✕</span>
