@@ -9,7 +9,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
-  ArchDoc, ArchBlock, ArchCard, ArchClass, ArchFact, ArchMore, ICONS, iconSvg, blankBlock, blankCard, blankClass, BLOCK_LABEL, moreOf,
+  ArchDoc, ArchBlock, ArchCard, ArchClass, ArchFact, ArchMore, ICONS, iconSvg, iconKeyOf, blankBlock, blankCard, blankClass, BLOCK_LABEL, moreOf,
 } from '@/lib/archDocStore';
 import { newId } from '@/lib/postStore';
 import { sanitizeHtml } from '@/lib/sanitize';
@@ -223,14 +223,14 @@ function ClassEditor({ it, onChange }: { it: ArchClass; onChange: (c: ArchClass)
   const set = (p: Partial<ArchClass>) => onChange({ ...it, ...p });
   const opts = [
     ...Object.entries(ICONS).map(([k, v]) => ({ value: k, label: v.label })),
-    ...(it.icon.startsWith('svg:') ? [{ value: it.icon, label: '원래 그림 (HTML에서 옮김)' }] : []),
+    ...(iconKeyOf(it.icon).startsWith('svg:') ? [{ value: it.icon, label: '원래 그림 (HTML에서 옮김)' }] : []),
     { value: 'none', label: '없음' },
   ];
   return (
     <div className="ad-grid">
       <Field label="아이콘">
         <div className="ad-row">
-          <KSelect options={opts} value={it.icon} onChange={v => set({ icon: v })} minWidth={180} />
+          <KSelect options={opts} value={iconKeyOf(it.icon)} onChange={v => set({ icon: v })} minWidth={180} />
           {it.icon !== 'none' && <span className="ad-icprev" dangerouslySetInnerHTML={{ __html: iconSvg(it.icon) }} />}
         </div>
       </Field>
