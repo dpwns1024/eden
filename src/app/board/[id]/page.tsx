@@ -112,7 +112,7 @@ export default function BoardDetailPage() {
   if (!loaded) return <section className="page" />;
   if (!post) {
     return (
-      <section className="page">
+      <section className="page page-arch page-board-detail">
         <div className="page-head"><PageTitle>BOARD</PageTitle><p>{!user && lockedHrefs().some(h => h.startsWith('/board'))
           ? '글을 찾을 수 없습니다 — 비밀번호가 걸린 게시판의 글이라면 게시판 목록에서 비밀번호를 먼저 입력해 주세요'
           : '글을 찾을 수 없습니다'}</p></div>
@@ -123,7 +123,7 @@ export default function BoardDetailPage() {
   const isAuthor = !!post.authorId && post.authorId === user?.id;
   if (post.secret && !isAdmin && !isAuthor) {
     return (
-      <section className="page">
+      <section className="page page-arch page-board-detail">
         <div className="page-head"><PageTitle>BOARD</PageTitle><p>비밀글 — 작성자와 관리자만 열람할 수 있습니다</p></div>
       </section>
     );
@@ -181,7 +181,7 @@ export default function BoardDetailPage() {
   );
 
   return (
-    <section className="page">
+    <section className="page page-arch page-board-detail">
       <div className="page-head">
         <PageTitle href={boardHref(board.id)}>{boardTitle}</PageTitle>
         <p>{post.notice ? '공지 · ' : `${post.category} · `}{post.author} · {fmtDate(post.date)}</p>
@@ -196,10 +196,10 @@ export default function BoardDetailPage() {
       </div>
 
       <div className="panel" style={{ padding: '26px 28px' }}>
-        <h2 style={{ fontSize: 19, marginBottom: 4 }}>
+        <h2 className="b-title" style={{ fontSize: 19, marginBottom: 4 }}>
           {post.secret && '🔒 '}{post.title}
         </h2>
-        <p style={{ fontSize: 11, color: 'var(--faint)', marginBottom: 18 }}>
+        <p className="b-meta" style={{ fontSize: 11, color: 'var(--faint)', marginBottom: 18 }}>
           {post.author} · {fmtDate(post.date)} · {post.mode.toUpperCase()}
           {(post.tags ?? []).map(t => (
             <span key={t} style={{ marginLeft: 7, color: 'color-mix(in srgb,var(--accent) 65%,var(--faint))' }}>#{t}</span>
@@ -224,7 +224,7 @@ export default function BoardDetailPage() {
       {/* 댓글 + 대댓글 */}
       <div className="panel" style={{ padding: 0, marginTop: 16 }}>
         <div style={{ padding: '16px 18px' }}>
-          <h4 style={{ fontSize: 11.5, letterSpacing: '.12em', color: 'var(--faint)', marginBottom: 13 }}>
+          <h4 className="b-cmt-h" style={{ fontSize: 11.5, letterSpacing: '.12em', color: 'var(--faint)', marginBottom: 13 }}>
             COMMENTS {comments.length > 0 && <span style={{ color: 'var(--accent)' }}>{comments.length}</span>}
           </h4>
           {roots.map(c => (

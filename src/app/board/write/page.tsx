@@ -78,7 +78,7 @@ function WriteInner() {
 
   if (!user) {
     return (
-      <section className="page">
+      <section className="page page-arch page-rel-edit page-board-write">
         <div className="page-head"><PageTitle>WRITE</PageTitle><p>글쓰기는 로그인 후 이용할 수 있습니다</p></div>
       </section>
     );
@@ -121,7 +121,7 @@ function WriteInner() {
   };
 
   return (
-    <section className="page">
+    <section className="page page-arch page-rel-edit page-board-write">
       {/* 큰 글씨 — 추가 게시판이면 그 이름(메뉴 관리 타이틀·이름이 우선), 누르면 그 게시판으로 복귀
           (v2.0 사용자 제보 — 「글쓰기에서 큰제목을 눌러도 안 돌아가고, 제목도 원래 것이 뜬다」) */}
       <div className="page-head"><PageTitle href={boardHref(board.id)}>{board.id === MAIN_BOARD_ID ? (editing ? 'EDIT' : 'WRITE') : board.name}</PageTitle><EditableDesc k="board-write-desc" def="에디터 / Markdown / HTML — 스크립트는 저장 시 자동 제거" /></div>

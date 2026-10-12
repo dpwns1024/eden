@@ -1,507 +1,205 @@
 'use client';
+/**
+ * 메모 게시판 (백업 > MEMO) — v2.0 재정비.
+ *
+ * 예전엔 메모를 브라우저(localStorage)에만 저장해서 PC와 모바일 내용이 따로 놀았다.
+ * 이제 서버의 메모 목록(memos 컬렉션)에 `kind: 'note'`로 함께 저장한다 — 스티커 메모(/memo)와 같은
+ * 목록이라 그쪽은 note를 걸러 보고, 공개범위는 이 메뉴(/memo2)의 설정을 따른다(lib/visFloor.ts).
+ * 이 기기에만 남아 있던 옛 메모는 처음 열 때 서버로 옮긴다.
+ *
+ * 접기/펴기: 글자 수로 짐작하지 않고 실제로 칸을 넘치는지 재서, 넘칠 때만 MORE 버튼을 단다.
+ * 카드는 줄마다 높이를 맞추지 않으므로(align-items:start) 하나를 펴도 옆 카드는 그대로다.
+ */
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useAuth } from '@/lib/auth';
+import { useLocalList, newId } from '@/lib/postStore';
+import { MEMO_SEED } from '@/lib/memoStore';
+import { Modal, useConfirmDelete } from '@/components/ui/Modal';
+import { KTextarea } from '@/components/ui/Kit';
+import { PageTitle, EditableDesc } from '@/components/ui/PageText';
+import { useToast } from '@/components/ui/Toast';
+import { useBoardSkin } from '@/lib/boardSkin';
 
-import { useState, useEffect } from 'react';
-
-export interface MemoItem {
+export interface MemoNote {
   id: string;
+  kind: 'note';
   category: string;
   content: string;
-  date: string;
+  date: string;          // YYYY-MM-DD (옛 메모는 YYYY.MM.DD)
+  authorId?: string;
 }
+type AnyMemo = { id: string; kind?: string; [k: string]: unknown };
 
-const CATEGORIES = ['전체', 'OOC', '프롬', '기타'];
-const VALID_CATEGORIES = ['OOC', '프롬', '기타'];
-const STORAGE_KEY = 'ohome_memos_final';
+const CATS = ['OOC', '프롬', '기타'];
+const isNote = (m: AnyMemo): m is AnyMemo & MemoNote => m.kind === 'note';
 
-export default function MemoPage() {
-  const [memos, setMemos] = useState<MemoItem[]>([]);
-  const [mounted, setMounted] = useState(false);
+/** 이 기기(localStorage)에 남아 있던 옛 메모 저장소 이름들 — 서버로 옮긴 뒤 지운다 */
+const LEGACY_KEYS = ['ohome_memos_final', 'ohome_grid_memos_v6', 'ohome_grid_memos_v5', 'ohome_grid_memos_v4',
+  'ohome_grid_memos_v3', 'ohome_grid_memos_v2', 'ohome_grid_memos', 'ohome_memos'];
+const legacyCat = (c: unknown) => {
+  const s = typeof c === 'string' ? c : '';
+  if (CATS.includes(s)) return s;
+  if (s === '공지' || s === 'ORIGINAL') return 'OOC';
+  if (s === '설정') return '프롬';
+  return '기타';
+};
+const fmt = (d: string) => (d || '').slice(0, 10).replace(/-/g, '.');
+const today = () => {
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
+};
 
-  const [selectedCat, setSelectedCat] = useState('전체');
-
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [inputCategory, setInputCategory] = useState('OOC');
-  const [inputContent, setInputContent] = useState('');
-
-  const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    setMounted(true);
-    
-    const previousKeys = [
-      STORAGE_KEY,
-      'ohome_grid_memos_v6',
-      'ohome_grid_memos_v5',
-      'ohome_grid_memos_v4',
-      'ohome_grid_memos_v3',
-      'ohome_grid_memos_v2',
-      'ohome_grid_memos',
-      'ohome_memos'
-    ];
-
-    let recoveredData: MemoItem[] | null = null;
-
-    for (const key of previousKeys) {
-      try {
-        const saved = localStorage.getItem(key);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            recoveredData = parsed;
-            break;
-          }
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    if (recoveredData) {
-      const cleanedData = recoveredData.map((m) => {
-        let cat = m.category;
-        if (!VALID_CATEGORIES.includes(cat)) {
-          if (cat === '공지' || cat === 'ORIGINAL') cat = 'OOC';
-          else if (cat === '설정') cat = '프롬';
-          else cat = '기타';
-        }
-        return { ...m, category: cat };
-      });
-      setMemos(cleanedData);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanedData));
-    } else {
-      setMemos([]);
-    }
-  }, []);
-
-  const saveMemos = (newList: MemoItem[]) => {
-    setMemos(newList);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newList));
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const toggleExpand = (id: string) => {
-    setExpandedIds((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const handleSave = () => {
-    if (!inputContent.trim()) {
-      alert('메모 내용을 입력해 주세요.');
-      return;
-    }
-
-    const now = new Date();
-    const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
-
-    const targetCategory = VALID_CATEGORIES.includes(inputCategory) ? inputCategory : 'OOC';
-
-    if (editingId) {
-      const updated = memos.map((m) =>
-        m.id === editingId
-          ? { ...m, category: targetCategory, content: inputContent.trim() }
-          : m
-      );
-      saveMemos(updated);
-    } else {
-      const newMemo: MemoItem = {
-        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
-        category: targetCategory,
-        content: inputContent.trim(),
-        date: dateStr,
-      };
-      saveMemos([newMemo, ...memos]);
-    }
-
-    setInputContent('');
-    setEditingId(null);
-    setIsFormOpen(false);
-  };
-
-  const handleEditClick = (memo: MemoItem) => {
-    setEditingId(memo.id);
-    const cat = VALID_CATEGORIES.includes(memo.category) ? memo.category : 'OOC';
-    setInputCategory(cat);
-    setInputContent(memo.content);
-    setIsFormOpen(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleDeleteClick = (id: string) => {
-    if (confirm('이 메모를 삭제하시겠습니까?')) {
-      const updated = memos.filter((m) => m.id !== id);
-      saveMemos(updated);
-      if (editingId === id) {
-        setEditingId(null);
-        setInputContent('');
-        setIsFormOpen(false);
-      }
-    }
-  };
-
-  const handleCancelForm = () => {
-    setIsFormOpen(false);
-    setEditingId(null);
-    setInputContent('');
-  };
-
-  const filteredMemos = memos.filter(
-    (m) => selectedCat === '전체' || m.category === selectedCat
-  );
-
-  if (!mounted) return null;
+function NoteCard({ n, canEdit, onEdit, onDel }: {
+  n: MemoNote; canEdit: boolean; onEdit: () => void; onDel: () => void;
+}) {
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const [long, setLong] = useState(false);
+  // 접힌 상태에서 실제로 넘치는지 잰다 (폭이 바뀌면 다시)
+  useLayoutEffect(() => {
+    const el = bodyRef.current;
+    if (!el || open) return;
+    const check = () => setLong(el.scrollHeight > el.clientHeight + 2);
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [n.content, open]);
 
   return (
-    /* 좌우 padding을 76px로 조절하여 상단 배너 안쪽으로 정밀 안착시킵니다 */
-    <div style={{ width: '100%', padding: '0 76px', boxSizing: 'border-box', fontFamily: 'sans-serif' }}>
-      
-      {/* 1. 상단 컨트롤 바 */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 16,
-          width: '100%',
-          boxSizing: 'border-box',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div
-            style={{
-              backgroundColor: '#EBECEE',
-              padding: '5px 12px',
-              borderRadius: 20,
-              fontSize: 12,
-              fontWeight: 600,
-              color: '#55585D',
-            }}
-          >
-            총 {filteredMemos.length}개
-          </div>
-
-          <div
-            style={{
-              display: 'inline-flex',
-              gap: 2,
-              backgroundColor: '#EBECEE',
-              padding: 3,
-              borderRadius: 12,
-            }}
-          >
-            {CATEGORIES.map((cat) => {
-              const isSelected = selectedCat === cat;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCat(cat)}
-                  style={{
-                    padding: '4px 12px',
-                    borderRadius: 9,
-                    border: 'none',
-                    fontSize: 11.5,
-                    fontWeight: isSelected ? 700 : 500,
-                    cursor: 'pointer',
-                    backgroundColor: isSelected ? '#575E65' : 'transparent',
-                    color: isSelected ? '#FFFFFF' : '#78818B',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  {cat}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <button
-          onClick={() => {
-            if (isFormOpen) {
-              handleCancelForm();
-            } else {
-              setEditingId(null);
-              setInputCategory('OOC');
-              setInputContent('');
-              setIsFormOpen(true);
-            }
-          }}
-          style={{
-            padding: '6px 14px',
-            borderRadius: 20,
-            border: '1px solid #D8DCE0',
-            backgroundColor: '#FFFFFF',
-            fontSize: 12,
-            fontWeight: 600,
-            color: '#44484E',
-            cursor: 'pointer',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-          }}
-        >
-          {isFormOpen ? '✕ 닫기' : '+ 새 메모'}
-        </button>
-      </div>
-
-      {/* 2. 작성 / 수정 폼 */}
-      {isFormOpen && (
-        <div
-          style={{
-            backgroundColor: '#FFFFFF',
-            borderRadius: 14,
-            padding: 16,
-            marginBottom: 16,
-            border: '1px solid #E5E7EB',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
-            width: '100%',
-            boxSizing: 'border-box',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#333' }}>
-              {editingId ? '메모 수정' : '새 메모 작성'}
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 12, color: '#666' }}>카테고리:</span>
-              <select
-                value={inputCategory}
-                onChange={(e) => setInputCategory(e.target.value)}
-                style={{
-                  padding: '4px 8px',
-                  borderRadius: 6,
-                  border: '1px solid #D1D5DB',
-                  fontSize: 12,
-                  backgroundColor: '#FFF',
-                  outline: 'none',
-                }}
-              >
-                {VALID_CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <textarea
-            value={inputContent}
-            onChange={(e) => setInputContent(e.target.value)}
-            placeholder="메모를 입력하세요..."
-            rows={4}
-            style={{
-              width: '100%',
-              padding: '10px',
-              borderRadius: 8,
-              border: '1px solid #D1D5DB',
-              fontSize: 12.5,
-              lineHeight: 1.5,
-              boxSizing: 'border-box',
-              resize: 'vertical',
-              marginBottom: 10,
-              fontFamily: 'inherit',
-            }}
-          />
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
-            <button
-              onClick={handleCancelForm}
-              style={{
-                padding: '5px 12px',
-                borderRadius: 6,
-                border: 'none',
-                backgroundColor: '#F3F4F6',
-                color: '#4B5563',
-                fontSize: 12,
-                cursor: 'pointer',
-              }}
-            >
-              취소
-            </button>
-            <button
-              onClick={handleSave}
-              style={{
-                padding: '5px 14px',
-                borderRadius: 6,
-                border: 'none',
-                backgroundColor: '#374151',
-                color: '#FFFFFF',
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              {editingId ? '수정 완료' : '저장'}
-            </button>
-          </div>
-        </div>
+    <div className={`mn-card${open ? ' open' : ''}${long && !open ? ' clip' : ''}`}>
+      <span className="mn-cat">{n.category}</span>
+      <div className="mn-body" ref={bodyRef}>{n.content}</div>
+      {long && (
+        <button type="button" className="mn-more" onClick={() => setOpen(o => !o)}>{open ? 'LESS ▴' : 'MORE ▾'}</button>
       )}
-
-      {/* 3. 5열 정렬 메모 카드 그리드 */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
-          gap: 10,
-          alignItems: 'stretch',
-          width: '100%',
-          boxSizing: 'border-box',
-        }}
-      >
-        {filteredMemos.map((memo) => {
-          const isExpanded = !!expandedIds[memo.id];
-          const isLongContent = memo.content.length > 50 || memo.content.split('\n').length > 3;
-
-          return (
-            <div
-              key={memo.id}
-              style={{
-                backgroundColor: '#FFFFFF',
-                borderRadius: 14,
-                padding: '14px 12px 10px 12px',
-                border: '1px solid #ECEEEF',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                boxSizing: 'border-box',
-                minWidth: 0,
-                minHeight: '210px',
-              }}
-            >
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <div style={{ marginBottom: 8 }}>
-                  <span
-                    style={{
-                      border: '1px solid #B0B7C0',
-                      color: '#606770',
-                      fontSize: 10,
-                      fontWeight: 600,
-                      padding: '2px 7px',
-                      borderRadius: 8,
-                    }}
-                  >
-                    {memo.category}
-                  </span>
-                </div>
-
-                <div
-                  style={{
-                    position: 'relative',
-                    maxHeight: isExpanded ? 'none' : '110px',
-                    overflow: 'hidden',
-                    transition: 'max-height 0.2s ease',
-                    flex: 1,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 11.5,
-                      lineHeight: 1.5,
-                      color: '#333333',
-                      whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-word',
-                    }}
-                  >
-                    {memo.content}
-                  </div>
-
-                  {!isExpanded && isLongContent && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: 28,
-                        background: 'linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1))',
-                        pointerEvents: 'none',
-                      }}
-                    />
-                  )}
-                </div>
-
-                {isLongContent && (
-                  <button
-                    onClick={() => toggleExpand(memo.id)}
-                    style={{
-                      border: 'none',
-                      background: 'none',
-                      color: '#78818B',
-                      fontSize: 10,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      padding: '4px 0 0 0',
-                      alignSelf: 'flex-start',
-                    }}
-                  >
-                    {isExpanded ? '접기 ▲' : '더보기 ▼'}
-                  </button>
-                )}
-              </div>
-
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  paddingTop: 8,
-                  marginTop: 8,
-                  borderTop: '1px solid #F3F4F6',
-                }}
-              >
-                <span style={{ fontSize: 9.5, color: '#A0A5AA' }}>{memo.date}</span>
-
-                <div style={{ display: 'flex', gap: 3 }}>
-                  <button
-                    onClick={() => handleEditClick(memo)}
-                    style={{
-                      border: 'none',
-                      backgroundColor: '#F3F4F6',
-                      color: '#6B7280',
-                      fontSize: 9.5,
-                      padding: '2px 5px',
-                      borderRadius: 4,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    수정
-                  </button>
-                  <button
-                    onClick={() => handleDeleteClick(memo.id)}
-                    style={{
-                      border: 'none',
-                      backgroundColor: '#F3F4F6',
-                      color: '#6B7280',
-                      fontSize: 9.5,
-                      padding: '2px 5px',
-                      borderRadius: 4,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    삭제
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-
-        {filteredMemos.length === 0 && (
-          <div
-            style={{
-              gridColumn: '1 / -1',
-              textAlign: 'center',
-              padding: '50px 0',
-              color: '#9CA3AF',
-              fontSize: 13,
-            }}
-          >
-            등록된 메모가 없습니다.
-          </div>
+      <div className="mn-foot">
+        <span>{fmt(n.date)}</span>
+        {canEdit && (
+          <span className="mn-act">
+            <button type="button" onClick={onEdit}>EDIT</button>
+            <button type="button" onClick={onDel}>DEL</button>
+          </span>
         )}
       </div>
     </div>
+  );
+}
+
+export default function MemoBoardPage() {
+  const { user, isAdmin } = useAuth();
+  const toast = useToast();
+  const del = useConfirmDelete();
+  const arch = useBoardSkin() === 'arch';
+  const [all, setAll, loaded] = useLocalList<AnyMemo>('ohome.memo.v1', MEMO_SEED as unknown as AnyMemo[]);
+  const notes = all.filter(isNote) as MemoNote[];
+  // 스티커 메모(/memo)는 그대로 두고 note만 바꾼다
+  const setNotes = (next: MemoNote[]) => setAll([...(next as unknown as AnyMemo[]), ...all.filter(m => !isNote(m))]);
+
+  const [cat, setCat] = useState('ALL');
+  const [editId, setEditId] = useState<string | null>(null);   // 'new' = 새 메모
+  const [fCat, setFCat] = useState('OOC');
+  const [fText, setFText] = useState('');
+
+  /* 이 기기에만 있던 옛 메모 → 서버로 (한 번). 서버에 같은 id가 있으면 건너뛴다 */
+  const migrated = useRef(false);
+  useEffect(() => {
+    if (!loaded || !user || migrated.current) return;
+    migrated.current = true;
+    const have = new Set(notes.map(n => n.id));
+    const found: MemoNote[] = [];
+    const used: string[] = [];
+    let missing = 0;   // 아직 서버에 없는 메모 수 — 0이 되면(다음에 열 때 서버에 다 있으면) 이 기기 사본을 지운다
+    for (const k of LEGACY_KEYS) {
+      try {
+        const raw = localStorage.getItem(k);
+        if (!raw) continue;
+        used.push(k);
+        const arr = JSON.parse(raw);
+        if (!Array.isArray(arr)) continue;
+        for (const m of arr) {
+          if (!m || typeof m !== 'object' || typeof m.id !== 'string' || have.has(m.id)) continue;
+          have.add(m.id);
+          missing += 1;
+          const d = typeof m.date === 'string' ? m.date.replace(/\./g, '-') : today();
+          found.push({ id: m.id, kind: 'note', category: legacyCat(m.category), content: String(m.content ?? ''), date: d, authorId: user.id });
+        }
+      } catch { /* 무시 */ }
+    }
+    if (found.length) {
+      setNotes([...found, ...notes]);
+      toast(`이 기기에 있던 메모 ${found.length}개를 서버로 옮겼습니다 — 이제 PC·모바일 어디서나 보입니다`);
+    }
+    // 서버에 다 올라간 게 확인된 뒤에만 지운다 — 저장이 실패했는데 사본까지 지우면 메모가 사라진다
+    if (!missing) used.forEach(k => { try { localStorage.removeItem(k); } catch { /* 무시 */ } });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded, user]);
+
+  const canEdit = (n: MemoNote) => isAdmin || (!!user && n.authorId === user.id);
+  const shown = notes.filter(n => cat === 'ALL' || n.category === cat);
+
+  const openNew = () => { setEditId('new'); setFCat(cat !== 'ALL' ? cat : 'OOC'); setFText(''); };
+  const openEdit = (n: MemoNote) => { setEditId(n.id); setFCat(CATS.includes(n.category) ? n.category : '기타'); setFText(n.content); };
+  const close = () => { setEditId(null); setFText(''); };
+  const save = () => {
+    const text = fText.trim();
+    if (!text) { toast('메모 내용을 입력해 주세요'); return; }
+    if (editId === 'new') {
+      setNotes([{ id: newId(), kind: 'note', category: fCat, content: text, date: today(), authorId: user?.id }, ...notes]);
+    } else {
+      setNotes(notes.map(n => (n.id === editId ? { ...n, category: fCat, content: text } : n)));
+    }
+    close();
+  };
+
+  if (!loaded) return <section className="page page-arch page-memo2" />;
+
+  return (
+    <section className="page page-arch page-memo2">
+      <div className="page-head">
+        <PageTitle>MEMO</PageTitle>
+        <EditableDesc k="memo2-desc" def="OOC · 프롬 · 기타 메모 — PC·모바일 어디서나 같은 내용" />
+      </div>
+
+      <div className="toolrow">
+        <div className="mn-left">
+          <span className="mn-count">{arch ? 'TOTAL' : '총'} {shown.length}</span>
+          <div className="seg">
+            {['ALL', ...CATS].map(c => (
+              <button key={c} className={cat === c ? 'on' : ''} onClick={() => setCat(c)}>
+                {c === 'ALL' ? (arch ? 'ALL' : '전체') : c}
+              </button>
+            ))}
+          </div>
+        </div>
+        {user && <button className="btn btn-dark" onClick={openNew}>＋ {arch ? 'NEW MEMO' : '새 메모'}</button>}
+      </div>
+
+      {shown.length > 0 ? (
+        <div className="mn-grid">
+          {shown.map(n => (
+            <NoteCard key={n.id} n={n} canEdit={canEdit(n)} onEdit={() => openEdit(n)}
+              onDel={() => del.ask('이 메모를 삭제하시겠습니까?', () => setNotes(notes.filter(x => x.id !== n.id)))} />
+          ))}
+        </div>
+      ) : (
+        <div className="panel" style={{ textAlign: 'center', padding: 44, fontSize: 13, color: 'var(--faint)' }}>등록된 메모가 없습니다</div>
+      )}
+
+      <Modal open={editId !== null} onClose={close} small dirty={!!fText.trim()}
+        title={editId === 'new' ? (arch ? 'NEW MEMO' : '새 메모') : (arch ? 'EDIT MEMO' : '메모 수정')}
+        actions={<>
+          <button className="btn btn-ghost" onClick={close}>CANCEL</button>
+          <button className="btn btn-dark" onClick={save}>SAVE</button>
+        </>}>
+        <div style={{ display: 'grid', gap: 10 }}>
+          <div className="seg" style={{ justifySelf: 'start' }}>
+            {CATS.map(c => <button key={c} className={fCat === c ? 'on' : ''} onClick={() => setFCat(c)}>{c}</button>)}
+          </div>
+          <KTextarea rows={8} placeholder="메모를 입력하세요" value={fText} onChange={e => setFText(e.target.value)} />
+        </div>
+      </Modal>
+      {del.element}
+    </section>
   );
 }

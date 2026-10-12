@@ -71,16 +71,16 @@ function BoardInner() {
      둘 다 undefined라 `undefined === undefined`가 참이었기 때문 */
   const canRead = (p: Post) => !p.secret || isAdmin || (!!p.authorId && p.authorId === user?.id);
 
-  if (!boardsLoaded) return <section className="page" />;
+  if (!boardsLoaded) return <section className="page page-arch page-board" />;
 
   const postBadge = (p: Post) => (
-    <span style={boardBadgeStyle(badgeFor(boardSet, p, board.cats))}>
+    <span className="b-badge" style={boardBadgeStyle(badgeFor(boardSet, p, board.cats))}>
       {p.notice ? boardSet.system[0].label : p.secret ? boardSet.system[1].label : p.category}
     </span>
   );
 
   return (
-    <section className="page">
+    <section className="page page-arch page-board">
       <div className="page-head">
         <PageTitle href={boardHref(board.id)}>{board.id === MAIN_BOARD_ID ? 'BOARD' : board.name}</PageTitle>
         <EditableDesc k={board.id === MAIN_BOARD_ID ? 'board-desc' : `board-desc-${board.id}`} def={board.desc} />
@@ -115,7 +115,7 @@ function BoardInner() {
                 <div className="bt-body">
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     {postBadge(p)}
-                    {p.fold && <span style={boardBadgeStyle(boardSet.system[2])}>{boardSet.system[2].label}</span>}
+                    {p.fold && <span className="b-badge" style={boardBadgeStyle(boardSet.system[2])}>{boardSet.system[2].label}</span>}
                   </div>
                   <div className="bt-title">
                     {canRead(p) ? <>{p.secret && '🔒 '}{p.title}</> : '🔒 비밀글입니다'}
@@ -143,7 +143,7 @@ function BoardInner() {
                   <b>
                     {p.secret && '🔒 '}{p.title}
                     {cmtCount(p) > 0 && <span className="cmt">{cmtCount(p)}</span>}
-                    {p.fold && <span style={{ ...boardBadgeStyle(boardSet.system[2]), marginLeft: 6 }}>{boardSet.system[2].label}</span>}
+                    {p.fold && <span className="b-badge" style={{ ...boardBadgeStyle(boardSet.system[2]), marginLeft: 6 }}>{boardSet.system[2].label}</span>}
                   </b>
                 ) : (
                   <b style={{ color: 'var(--faint)' }}>🔒 비밀글입니다</b>
