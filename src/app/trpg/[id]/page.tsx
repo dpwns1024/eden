@@ -2,7 +2,8 @@
 // TRPG 로그 상세 (4.3) — HTML이면 원본 스타일 그대로 격리 렌더(iframe 샌드박스, 스크립트 실행 안 됨),
 // 일반 텍스트면 로그용 기본 서식으로 표시
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { findLogByRef } from '@/lib/logPath';
 import { useHrefBlock } from '@/components/shell/MenuGuard';
 import { sectionHref, MAIN_SEC, secStamp, useSectionTitle } from '@/lib/sectionStore';
 import { useAuth } from '@/lib/auth';
@@ -46,7 +47,9 @@ function LogFrame({ frameRef, html, title, onFrameLoad }: {
 }
 
 export default function TrpgDetailPage() {
-  const { id } = useParams<{ id: string }>();
+  // 주소의 글 표시 — 글 번호(/report/003) 또는 예전 주소의 글 id (lib/logPath.ts)
+  const { id: refId } = useParams<{ id: string }>();
+  const secParam = useSearchParams().get('s');
   const router = useRouter();
   const { user, isAdmin } = useAuth();
   const arch = useBoardSkin() === 'arch';   // ARCH면 제목을 강철 그라데이션으로 (v2.0 사용자 요청)
@@ -63,7 +66,8 @@ export default function TrpgDetailPage() {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const gotHeightRef = useRef(false);   // 안쪽에서 높이 보고가 왔는지 (안 오면 기본 높이로 되돌린다)
 
-  const l = logs.find(x => x.id === id);
+  const l = findLogByRef(logs, decodeURIComponent(refId), secParam);
+  const id = l?.id ?? refId;   // 이 아래는 진짜 글 id로 (본문·비밀번호·저장)
   /* 이 글이 속한 곳이 비공개면 주소로 들어와도 열리지 않게 (v2.0 사용자 요청).
      글 주소에는 섹션이 없어 MenuGuard가 못 막는다 — 글을 읽어 소속을 알아낸 여기서 판정한다.
      **다른 early return보다 먼저 불러야 한다**(훅이므로 렌더마다 개수가 같아야 한다) */
