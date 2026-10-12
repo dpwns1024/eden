@@ -10,12 +10,11 @@
  * 접기/펴기: 글자 수로 짐작하지 않고 실제로 칸을 넘치는지 재서, 넘칠 때만 MORE 버튼을 단다.
  * 카드는 줄마다 높이를 맞추지 않으므로(align-items:start) 하나를 펴도 옆 카드는 그대로다.
  */
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useLocalList, newId } from '@/lib/postStore';
 import { MEMO_SEED } from '@/lib/memoStore';
 import { Modal, useConfirmDelete } from '@/components/ui/Modal';
-import { KTextarea } from '@/components/ui/Kit';
 import { PageTitle, EditableDesc } from '@/components/ui/PageText';
 import { useToast } from '@/components/ui/Toast';
 import { useBoardSkin } from '@/lib/boardSkin';
@@ -49,41 +48,26 @@ const today = () => {
   return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
 };
 
-function NoteCard({ n, canEdit, onEdit, onDel }: {
-  n: MemoNote; canEdit: boolean; onEdit: () => void; onDel: () => void;
-}) {
-  const bodyRef = useRef<HTMLDivElement>(null);
-  const [open, setOpen] = useState(false);
-  const [long, setLong] = useState(false);
-  // 접힌 상태에서 실제로 넘치는지 잰다 (폭이 바뀌면 다시)
-  useLayoutEffect(() => {
-    const el = bodyRef.current;
-    if (!el || open) return;
-    const check = () => setLong(el.scrollHeight > el.clientHeight + 2);
-    check();
-    const ro = new ResizeObserver(check);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [n.content, open]);
+/** 찾는 말을 <mark>로 — 대소문자 무시 */
+function Hl({ text, q }: { text: string; q: string }) {
+  if (!q) return <>{text}</>;
+  const lo = text.toLowerCase();
+  const out: React.ReactNode[] = [];
+  let at = 0;
+  for (let k = lo.indexOf(q); k >= 0; k = lo.indexOf(q, at)) {
+    if (k > at) out.push(text.slice(at, k));
+    out.push(<mark key={k}>{text.slice(k, k + q.length)}</mark>);
+    at = k + q.length;
+  }
+  out.push(text.slice(at));
+  return <>{out}</>;
+}
 
-  return (
-    <div className={`mn-card${open ? ' open' : ''}${long && !open ? ' clip' : ''}`}>
-      <span className="mn-cat">{n.category}</span>
-      <div className="mn-body" ref={bodyRef}>{n.content}</div>
-      {long && (
-        <button type="button" className="mn-more" onClick={() => setOpen(o => !o)}>{open ? 'LESS ▴' : 'MORE ▾'}</button>
-      )}
-      <div className="mn-foot">
-        <span>{fmt(n.date)}</span>
-        {canEdit && (
-          <span className="mn-act">
-            <button type="button" onClick={onEdit}>EDIT</button>
-            <button type="button" onClick={onDel}>DEL</button>
-          </span>
-        )}
-      </div>
-    </div>
-  );
+/** 목록에 보일 두 줄 — 찾는 말이 뒤쪽에 있으면 그 근처부터 */
+function snippet(text: string, q: string): string {
+  const flat = text.replace(/\s+/g, ' ').trim();
+  const k = q ? flat.toLowerCase().indexOf(q) : -1;
+  return k > 50 ? `…${flat.slice(k - 24)}` : flat;
 }
 
 export default function MemoBoardPage() {
@@ -139,7 +123,28 @@ export default function MemoBoardPage() {
   }, [loaded, user]);
 
   const canEdit = (n: MemoNote) => isAdmin || (!!user && n.authorId === user.id);
-  const shown = notes.filter(n => cat === 'ALL' || n.category === cat);
+  // 검색 (v2.0 사용자 요청) — 내용에서 찾고, 찾은 말은 목록·읽기 창 모두 하이라이트
+  const [q, setQ] = useState('');
+  const ql = q.trim().toLowerCase();
+  const shown = notes.filter(n => (cat === 'ALL' || n.category === cat) && (!ql || n.content.toLowerCase().includes(ql)));
+  /* 목록 + 읽기 창 (v2.0 사용자 선택 — 카드를 펼치면 한 칸만 길어져 읽기 불편했다).
+     PC: 왼쪽 목록 · 오른쪽 읽기 창(고른 게 없으면 첫 메모). 폰: 목록 → 누르면 읽기 화면, BACK으로 목록 */
+  const [selId, setSelId] = useState<string | null>(null);
+  const [reading, setReading] = useState(false);   // 폰에서 읽기 화면을 보고 있는가
+  const sel = shown.find(n => n.id === selId) ?? shown[0] ?? null;
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const pick = (id: string) => {
+    setSelId(id);
+    setReading(true);
+    // 폰은 목록을 내려 둔 채 읽기 화면으로 바뀌므로 맨 위로
+    if (window.matchMedia('(max-width:620px)').matches) {
+      const top = (wrapRef.current?.getBoundingClientRect().top ?? 0) + window.scrollY - 70;
+      window.scrollTo({ top: Math.max(0, top) });
+    }
+  };
+  const copy = (text: string) => {
+    navigator.clipboard?.writeText(text).then(() => toast('복사했습니다'), () => toast('복사하지 못했습니다'));
+  };
 
   const openNew = () => { setEditId('new'); setFCat(cat !== 'ALL' ? cat : 'OOC'); setFText(''); };
   const openEdit = (n: MemoNote) => { setEditId(n.id); setFCat(CATS.includes(n.category) ? n.category : '기타'); setFText(n.content); };
@@ -164,7 +169,7 @@ export default function MemoBoardPage() {
         <EditableDesc k="memo2-desc" def="OOC · 프롬 · 기타 메모 — PC·모바일 어디서나 같은 내용" />
       </div>
 
-      <div className="toolrow">
+      <div className="toolrow mn-tool">
         <div className="mn-left">
           <span className="mn-count">{arch ? 'TOTAL' : '총'} {shown.length}</span>
           <div className="seg">
@@ -174,22 +179,52 @@ export default function MemoBoardPage() {
               </button>
             ))}
           </div>
+          <label className="mn-search">
+            <span aria-hidden="true">⌕</span>
+            <input type="search" value={q} placeholder="메모 검색" onChange={e => setQ(e.target.value)} />
+            {q && <button type="button" aria-label="지우기" onClick={() => setQ('')}>✕</button>}
+          </label>
         </div>
         {user && <button className="btn btn-dark" onClick={openNew}>＋ {arch ? 'NEW MEMO' : '새 메모'}</button>}
       </div>
 
       {shown.length > 0 ? (
-        <div className="mn-grid">
-          {shown.map(n => (
-            <NoteCard key={n.id} n={n} canEdit={canEdit(n)} onEdit={() => openEdit(n)}
-              onDel={() => del.ask('이 메모를 삭제하시겠습니까?', () => setNotes(notes.filter(x => x.id !== n.id)))} />
-          ))}
+        <div ref={wrapRef} className={`mn-wrap${reading ? ' m-read' : ''}`}>
+          <div className="panel mn-list">
+            {shown.map(n => (
+              <button key={n.id} type="button" className={`mn-row${sel?.id === n.id ? ' on' : ''}`} onClick={() => pick(n.id)}>
+                <span className="mn-meta"><span className="mn-cat">{n.category}</span><span className="mn-dt">{fmt(n.date)}</span></span>
+                <span className="mn-snip"><Hl text={snippet(n.content, ql)} q={ql} /></span>
+              </button>
+            ))}
+          </div>
+          {sel && (
+            <article className="panel mn-reader">
+              <button type="button" className="mn-back" onClick={() => setReading(false)}>‹ BACK TO LIST</button>
+              <div className="mn-rhead">
+                <span className="mn-cat">{sel.category}</span>
+                <span className="mn-dt">{fmt(sel.date)}</span>
+                <span className="mn-sp" />
+                {isAdmin && <button type="button" className="mn-btn p" onClick={() => copy(sel.content)}>COPY</button>}
+                {canEdit(sel) && <button type="button" className="mn-btn" onClick={() => openEdit(sel)}>EDIT</button>}
+                {canEdit(sel) && (
+                  <button type="button" className="mn-btn" onClick={() => del.ask('이 메모를 삭제하시겠습니까?', () => {
+                    setNotes(notes.filter(x => x.id !== sel.id));
+                    setSelId(null); setReading(false);
+                  })}>DEL</button>
+                )}
+              </div>
+              <div className="mn-text"><Hl text={sel.content} q={ql} /></div>
+            </article>
+          )}
         </div>
       ) : (
-        <div className="panel" style={{ textAlign: 'center', padding: 44, fontSize: 13, color: 'var(--faint)' }}>등록된 메모가 없습니다</div>
+        <div className="panel" style={{ textAlign: 'center', padding: 44, fontSize: 13, color: 'var(--faint)' }}>
+          {ql ? `「${q.trim()}」 — 찾은 메모가 없습니다` : '등록된 메모가 없습니다'}
+        </div>
       )}
 
-      <Modal open={editId !== null} onClose={close} small dirty={!!fText.trim()}
+      <Modal open={editId !== null} onClose={close} small dirty={!!fText.trim()} className="mn-modal"
         title={editId === 'new' ? (arch ? 'NEW MEMO' : '새 메모') : (arch ? 'EDIT MEMO' : '메모 수정')}
         actions={<>
           <button className="btn btn-ghost" onClick={close}>CANCEL</button>
@@ -199,7 +234,8 @@ export default function MemoBoardPage() {
           <div className="seg" style={{ justifySelf: 'start' }}>
             {CATS.map(c => <button key={c} className={fCat === c ? 'on' : ''} onClick={() => setFCat(c)}>{c}</button>)}
           </div>
-          <KTextarea rows={8} placeholder="메모를 입력하세요" value={fText} onChange={e => setFText(e.target.value)} />
+          {/* 글이 길어져도 창은 그대로, 칸 안에서만 스크롤 (v2.0 사용자 제보 — 창이 늘어나며 꺾쇠가 어긋났다) */}
+          <textarea className="k-textarea mn-input" placeholder="메모를 입력하세요" value={fText} onChange={e => setFText(e.target.value)} />
         </div>
       </Modal>
       {del.element}
