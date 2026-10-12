@@ -277,6 +277,7 @@ export default function RelDetailPage() {
   const [oneMode, setOneMode] = useState<boolean | null>(null);
   const [qaNo, setQaNo] = useState<number | null>(null);
   const [qaQuery, setQaQuery] = useState('');
+  const [qaPage, setQaPage] = useState(0);   // 문항 리스트 쪽 번호 — 한 쪽에 10개 (v2.0 사용자 요청)
   const [qaText, setQaText] = useState('');
   // 답변 수정·오너 부연 모달 (v1.9) — 훅은 early return 앞에
   const [ansEdit, setAnsEdit] = useState<{ qNo: number; idx: number; text: string; note: string } | null>(null);
@@ -520,6 +521,18 @@ export default function RelDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [rel, auId, qaQuery],
   );
+  /* 문항 리스트는 한 쪽에 10개까지 — 넘으면 리스트만 다음 쪽으로 넘긴다 (v2.0 사용자 요청) */
+  const QA_PER = 10;
+  const qaPages = Math.max(1, Math.ceil(qaFiltered.length / QA_PER));
+  const qaPageCur = Math.min(qaPage, qaPages - 1);
+  const qaPageItems = qaFiltered.slice(qaPageCur * QA_PER, qaPageCur * QA_PER + QA_PER);
+  // 검색어를 바꾸면 첫 쪽부터, 다른 문항을 보게 되면(출제·AU 전환) 그 문항이 있는 쪽으로
+  useEffect(() => { setQaPage(0); }, [qaQuery, auId]);
+  useEffect(() => {
+    const i = qaFiltered.findIndex(q => q.no === curQa?.no);
+    if (i >= 0) setQaPage(Math.floor(i / QA_PER));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [curQa?.no]);
   const relLogs = useMemo(() => logs.filter(l => l.relId === rel?.id), [logs, rel]);
   // 역극 연동 (4.9) — 내가 참여한 방 + 공개 전환된 완결 방만 (비참여 방은 존재 자체 비노출)
   const relRooms = useMemo(() => rooms.filter(rm => rm.relId === rel?.id
@@ -1047,9 +1060,14 @@ export default function RelDetailPage() {
               <>
                 <div className="rb-shade" />
                 <div className="rb-text">
-                  <h1 style={{
+                  {/* 이름 색을 직접 정하지 않았으면 캐릭터 프로필 이름처럼 강철 그라데이션 (v2.0 사용자 요청).
+                      글자를 투명하게 칠하므로 그림자는 text-shadow 대신 drop-shadow로 (같은 색·강도) */}
+                  <h1 className={auSt.nameColor ? undefined : 'rb-steel'} style={auSt.nameColor ? {
                     fontFamily: familyOf(rel.fontId), color: auSt.nameColor,
                     textShadow: `0 4px 30px ${withAlpha(auSt.nameShadowColor ?? '#000000', 0.6 * ((auSt.nameShadow ?? 100) / 100))}`,
+                  } : {
+                    fontFamily: familyOf(rel.fontId),
+                    filter: `drop-shadow(0 4px 22px ${withAlpha(auSt.nameShadowColor ?? '#000000', 0.6 * ((auSt.nameShadow ?? 100) / 100))})`,
                   }}>{(!isBaseAu && au?.name?.trim()) || rel.name}</h1>
                   <div className="rb-seal">
                     {auCpLabel && (
@@ -1406,7 +1424,7 @@ export default function RelDetailPage() {
                 <input placeholder={qw('질문 검색')} value={qaQuery} onChange={e => setQaQuery(e.target.value)} />
               </div>
               <div className="qa-scroll">
-                {qaFiltered.map(q => (
+                {qaPageItems.map(q => (
                   /* 우클릭 — 메뉴에서 「리스트로 되돌리기」를 고르면 확인 모달이 뜬다 (v2.0 사용자 요청 —
                      바로 모달이 뜨는 것보다 한 단계 거치는 쪽이 실수로 우클릭했을 때 안전하다).
                      지금 보고 있는 질문이 아니어도 리스트에서 바로 고를 수 있다 */
@@ -1418,6 +1436,13 @@ export default function RelDetailPage() {
                   </div>
                 ))}
               </div>
+              {qaPages > 1 && (
+                <div className="qa-pager">
+                  <button type="button" disabled={qaPageCur === 0} onClick={() => setQaPage(qaPageCur - 1)}>‹ PREV</button>
+                  <span>{qaPageCur + 1} / {qaPages}</span>
+                  <button type="button" disabled={qaPageCur >= qaPages - 1} onClick={() => setQaPage(qaPageCur + 1)}>NEXT ›</button>
+                </div>
+              )}
             </div>
           </div>
         )}
