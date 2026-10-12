@@ -218,6 +218,9 @@ html.ui-arch .page-arch,.mng-box.arch-modal{--a-pn:rgba(13,18,25,.64);--a-ln:rgb
 html.ui-arch .page-arch .page-head{padding-bottom:18px;margin-bottom:26px;border-bottom:1px solid var(--a-ln)}
 html.ui-arch .page-arch .page-head::after{content:'';position:absolute;left:0;bottom:-1px;width:120px;height:1px;background:var(--a-ac);box-shadow:0 0 12px var(--a-ac)}
 html.ui-arch .page-arch .page-head h1{font:300 clamp(30px,4.4vw,52px)/1.05 'Jost','Noto Sans KR',sans-serif;letter-spacing:.32em;background:var(--a-sil);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* J·Q처럼 아래로 내려오는 글자 — 줄높이가 좁아 그라데이션(글자 칠)이 상자 밖에서 잘렸다 (v2.0 사용자 발견: JOURNAL의 J).
+   칠할 자리만 아래로 늘리고 같은 만큼 당겨 자리(레이아웃)는 그대로 */
+html.ui-arch .page-arch .page-head h1{padding-bottom:.16em;margin-bottom:-.16em}
 html.ui-arch .page-arch .page-head p{margin-top:12px;font:300 13px/1.7 'Noto Sans KR',sans-serif;letter-spacing:.04em;color:#b3bec9}
 html.ui-arch .page-arch .head-actions{bottom:18px}
 /* 버튼 — HTML 페이지 EDIT 버튼과 같은 결 */

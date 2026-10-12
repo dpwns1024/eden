@@ -31,7 +31,7 @@ import { BlobImg, useBlobUrl } from '@/lib/blobStore';
 import { CroppedBlobImg, CropEditor, type CropValue } from '@/components/ui/CropEditor';
 import { Lightbox } from '@/components/ui/Lightbox';
 import { useToast } from '@/components/ui/Toast';
-import { PageTitle } from '@/components/ui/PageText';
+import { PageTitle, EditableDesc } from '@/components/ui/PageText';
 
 /** 전신 이미지 — 비율 유지, 하단 정렬, 크기 %는 자관 수정 미리보기에서 지정 (v1.9) */
 // 전신 그림자는 「그림자 직접 지정」의 색·강도를 따른다 (v2.0 사용자 요청) — 자관명 그림자와 같은 설정
@@ -856,6 +856,15 @@ export default function RelDetailPage() {
 
   return (
     <section className="page page-arch page-rel-detail">
+      {/* 메뉴 제목 (v2.0 사용자 요청 — 다른 게시판은 글에 들어가도 위에 메뉴 이름이 뜨는데 페어링만 없었다).
+          캐릭터 상세와 같이: 큰 글씨 = 메뉴 타이틀(누르면 목록), 아래 = 이 페어 설명(관리자가 클릭해 고침) */}
+      {arch && (
+        <div className="page-head">
+          <PageTitle href="/rels">PAIRING</PageTitle>
+          <EditableDesc k={`rel-detail-desc:${rel.id}`}
+            def={`${(!isBaseAu && au?.name?.trim()) || rel.name}${au?.label ? ` (${au.label})` : ''}`} />
+        </div>
+      )}
       {/* 헤더 이미지 (v1.5) — 풀폭 블러 + 아래로 페이드아웃.
           AU별 완전 분리 (v1.9 사용자 확정): AU는 자기 헤더만 — base 것을 물려받지 않음.
           이미지가 없으면 아무것도 안 그리는 게 기본(v2.0) — 다만 자관 수정에서 배경 그라데이션을
