@@ -2889,9 +2889,6 @@ html.ui-arch .page-memo2 .mn-act button:hover{border-color:rgba(var(--a-acr),.6)
 }
 
 /* ===== 발췌 이미지 (components/shell/ExcerptMaker.tsx — 관리자 전용) ===== */
-.excerpt-btn{position:fixed;z-index:900;transform:translateX(-50%);padding:8px 14px;border:1px solid rgba(150,170,195,.5);background:rgba(10,13,18,.92);
-  color:#e6ebf1;font:400 12px/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.14em;white-space:nowrap;box-shadow:0 6px 20px rgba(0,0,0,.35);cursor:var(--cur-pointer,pointer)}
-.excerpt-btn:hover{border-color:#8aa3c2;color:#fff}
 .excerpt-preview{display:block;max-width:100%;max-height:70vh;margin:0 auto;box-shadow:0 0 0 1px rgba(190,208,228,.14)}
 /* 화면 밖에서 찍는 카드 */
 .excerpt-card{position:fixed;left:-30000px;top:0;width:640px;box-sizing:border-box;padding:40px 40px 26px;background-size:cover;background-position:center;
