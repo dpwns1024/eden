@@ -18,14 +18,14 @@ export default function DiaryWritePage() {
 
   if (!isAdmin) {
     return (
-      <section className="page">
+      <section className="page page-arch page-diary">
         <div className="page-head"><PageTitle>DIARY</PageTitle><p>일기는 관리자만 쓸 수 있습니다</p></div>
       </section>
     );
   }
 
   return (
-    <section className="page">
+    <section className="page page-arch page-diary">
       <div className="page-head"><PageTitle>WRITE DIARY</PageTitle><EditableDesc k="diary-write-desc" def="일기 쓰기" /></div>
       <DiaryForm initial={null} moods={moods}
         onCancel={() => router.push('/diary')}

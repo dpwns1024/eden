@@ -241,7 +241,7 @@ function TrpgPageInner() {
   );
 
   return (
-    <section className="page">
+    <section className="page page-arch page-trpg">
       <div className="page-head">
         <PageTitle>{sec.id === 'main' ? 'TRPG LOG' : sec.name}</PageTitle>
         <EditableDesc k="trpg-desc" def="티켓형 스킨 · 시나리오 타이틀 폰트 개별 설정 · 우측 자관 뱃지로 필터" />
@@ -437,5 +437,5 @@ function TrpgPageInner() {
 }
 
 export default function TrpgPage() {
-  return <Suspense fallback={<section className="page" />}><TrpgPageInner /></Suspense>;
+  return <Suspense fallback={<section className="page page-arch page-trpg" />}><TrpgPageInner /></Suspense>;
 }

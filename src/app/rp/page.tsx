@@ -265,7 +265,7 @@ ${rows}
     URL.revokeObjectURL(u);
   };
 
-  if (!loaded) return <section className="page" />;
+  if (!loaded) return <section className="page page-arch page-rp" />;
 
   const relCharNames = (relId?: string) => {
     const rel = rels.find(r => r.id === relId);
@@ -291,7 +291,7 @@ ${rows}
   const speakerChar = rpChars.find(c => c.id === speaker);
 
   return (
-    <section className={`page ${mFocus ? 'rp-focus' : ''}`}>
+    <section className={`page page-arch page-rp ${mFocus ? 'rp-focus' : ''}`}>
       <div className="page-head">
         <PageTitle>ROLEPLAY</PageTitle>
         <EditableDesc k="rp-desc" def="실시간 채팅형 · 참여자에게만 존재 노출 · 캐릭터 선택 발화" />
