@@ -60,6 +60,17 @@ export function SlotMenu() {
     return () => document.removeEventListener('pointerdown', close);
   }, [open]);
   useEffect(() => { setOpen(null); }, [pathname]);
+  // 펼친 하위 메뉴가 화면 밖으로 나가면 안쪽으로 당긴다 (v2.0 — 모바일에서 상위 메뉴 아래 가운데에 띄우면서
+  // 화면 가장자리 메뉴의 상자가 잘렸다). 위치 이동은 애니메이션이 덮지 않게 transform 대신 margin으로
+  useEffect(() => {
+    const sub = ref.current?.querySelector<HTMLElement>('.oh-grp.open > .oh-sub');
+    if (!sub) return;
+    sub.style.marginLeft = '';
+    const r = sub.getBoundingClientRect();
+    const pad = 8;
+    const shift = r.left < pad ? pad - r.left : r.right > window.innerWidth - pad ? window.innerWidth - pad - r.right : 0;
+    if (shift) sub.style.marginLeft = `${Math.round(shift)}px`;
+  }, [open]);
 
   if (!menuLoaded || !boardsLoaded) return <nav className="oh-menu" ref={ref} />;
   const items = [
