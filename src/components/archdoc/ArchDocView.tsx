@@ -10,7 +10,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArchDoc, ArchBlock, ArchCard, ArchClass, ArchFact, ArchMore, ArchRank, ArchRanks, ICONS, iconSvg, iconKeyOf, blankBlock, blankCard, blankClass,
-  BLOCK_LABEL, moreOf, ranksOf, blankRank,
+  BLOCK_LABEL, moreOf, ranksOf, gradeOf, blankRank,
 } from '@/lib/archDocStore';
 import { newId } from '@/lib/postStore';
 import { sanitizeHtml } from '@/lib/sanitize';
@@ -118,7 +118,7 @@ function RanksView({ ranks }: { ranks: ArchRanks }) {
         <i />{ranks.caption}
       </div>
       <article className="ar-pn ar-card ar-rank-card" key={cur.id}>
-        <div className="ar-c-k"><span>RANK · {cur.key}</span><span>{cur.grade}</span></div>
+        <div className="ar-c-k"><span>RANK · {cur.tag || cur.key}</span>{cur.grade && <span>{cur.grade}</span>}</div>
         <h3><span className="ar-silver">{cur.en}</span><small>{[cur.name, cur.alias && `‘${cur.alias}’`].filter(Boolean).join(' · ')}</small></h3>
         {cur.body && <p>{cur.body}</p>}
       </article>
@@ -159,10 +159,10 @@ function BlockView({ b }: { b: ArchBlock }) {
               ))}
             </div>
           )}
-          {b.grade && b.grade.letters.length > 0 && (
+          {gradeOf(b) && gradeOf(b)!.letters.length > 0 && (
             <div className="ar-pn ar-grade">
-              {b.grade.letters.map((l, i) => <span key={i} className={i === b.grade!.on ? 's' : undefined}>{l}</span>)}
-              <i />{b.grade.caption}
+              {gradeOf(b)!.letters.map((l, i) => <span key={i} className={i === gradeOf(b)!.on ? 's' : undefined}>{l}</span>)}
+              <i />{gradeOf(b)!.caption}
             </div>
           )}
           {ranksOf(b) && <RanksView ranks={ranksOf(b)!} />}
@@ -314,7 +314,8 @@ function RanksEditor({ ranks, onChange }: { ranks: ArchRanks | null; onChange: (
             render={(r: ArchRank, sr: (v: ArchRank) => void) => (
               <div className="ad-grid">
                 <Field label="버튼 글자 (영어 · 예: SS)"><KInput maxLength={4} value={r.key} onChange={e => sr({ ...r, key: e.target.value })} /></Field>
-                <Field label="오른쪽 위 작은 글씨 (예: SS급 · 총 6명)"><KInput value={r.grade} onChange={e => sr({ ...r, grade: e.target.value })} /></Field>
+                <Field label="카드 위 RANK 글씨 (비우면 버튼 글자)"><KInput value={r.tag ?? ''} placeholder={r.key} onChange={e => sr({ ...r, tag: e.target.value || undefined })} /></Field>
+                <Field label="오른쪽 위 작은 글씨 (선택)"><KInput value={r.grade} onChange={e => sr({ ...r, grade: e.target.value })} /></Field>
                 <Field label="영문 이름 (은빛 큰 글씨)"><KInput value={r.en} onChange={e => sr({ ...r, en: e.target.value })} /></Field>
                 <Field label="한글 이름"><KInput value={r.name} onChange={e => sr({ ...r, name: e.target.value })} /></Field>
                 <Field label="별칭 (예: 원소의 군주)"><KInput value={r.alias} onChange={e => sr({ ...r, alias: e.target.value })} /></Field>
@@ -401,7 +402,9 @@ function BlockEditor({ b, set }: { b: ArchBlock; set: (b: ArchBlock) => void }) 
           render={(c, sc) => <CardEditor c={c} onChange={sc} />} />
       );
     case 'classes': {
-      const g = b.grade;
+      const g = gradeOf(b);
+      // 등급 띠·직급 체계 중 하나를 고치면 다른 하나도 지금 보이는 값으로 고정 — 기본값 판정이 풀리며 숨겨 둔 띠가 되살아나지 않게
+      const setGrade = (grade: typeof g) => set({ ...b, grade, ranks: ranksOf(b) });
       return (
         <>
           <ItemList items={b.items} onChange={items => set({ ...b, items })} make={blankClass} addLabel="분류 추가"
@@ -409,18 +412,18 @@ function BlockEditor({ b, set }: { b: ArchBlock; set: (b: ArchBlock) => void }) 
             render={(c, sc) => <ClassEditor it={c} onChange={sc} />} />
           <div className="ad-field wide" style={{ marginTop: 14 }}>
             <KCheck label="아래 등급 띠 넣기 (S A B C D …)" checked={!!g}
-              onChange={v => set({ ...b, grade: v ? (g ?? { letters: ['S', 'A', 'B', 'C', 'D'], on: 0, caption: 'CLASS RATING' }) : null })} />
+              onChange={v => setGrade(v ? (g ?? { letters: ['S', 'A', 'B', 'C', 'D'], on: 0, caption: 'CLASS RATING' }) : null)} />
             {g && (
               <div className="ad-row">
                 <KInput placeholder="글자 (띄어쓰기로 구분)" value={g.letters.join(' ')}
-                  onChange={e => set({ ...b, grade: { ...g, letters: e.target.value.split(/\s+/).filter(Boolean) } })} />
-                <KSelect value={String(g.on)} onChange={v => set({ ...b, grade: { ...g, on: Number(v) } })}
+                  onChange={e => setGrade({ ...g, letters: e.target.value.split(/\s+/).filter(Boolean) })} />
+                <KSelect value={String(g.on)} onChange={v => setGrade({ ...g, on: Number(v) })}
                   options={g.letters.map((l, i) => ({ value: String(i), label: `강조: ${l}` }))} minWidth={110} />
-                <KInput placeholder="오른쪽 글씨" value={g.caption} onChange={e => set({ ...b, grade: { ...g, caption: e.target.value } })} style={{ flex: 2 }} />
+                <KInput placeholder="오른쪽 글씨" value={g.caption} onChange={e => setGrade({ ...g, caption: e.target.value })} style={{ flex: 2 }} />
               </div>
             )}
           </div>
-          <RanksEditor ranks={ranksOf(b)} onChange={ranks => set({ ...b, ranks })} />
+          <RanksEditor ranks={ranksOf(b)} onChange={ranks => set({ ...b, ranks, grade: g })} />
         </>
       );
     }

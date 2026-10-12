@@ -33,7 +33,9 @@ export interface ArchRank {
   id: string;
   key: string;                         // 버튼 글자 (SS · S · A-B · C · H)
   en: string; name: string; alias: string;   // 영문 이름 · 한글 이름 · 별칭('원소의 군주')
-  grade: string;                       // 오른쪽 위 작은 글씨 (예: SS급 · 6명)
+  grade: string;                       // 오른쪽 위 작은 글씨 (비우면 없음)
+  /** 카드 위 「RANK · 」 뒤 글씨 — 비우면 버튼 글자 (하모니처럼 버튼은 H, 등급은 S-C일 때) */
+  tag?: string;
   body: string;
   /** 버튼 앞에 구분선 — 직급이 아닌 부서(하모니)처럼 따로 묶을 때 */
   apart?: boolean;
@@ -115,23 +117,33 @@ export const moreOf = (it: ArchClass): ArchMore | null =>
 export const DEFAULT_RANKS: ArchRanks = {
   caption: 'RANK SYSTEM · ARCH STANDARD',
   items: [
-    { id: 'rk-ss', key: 'SS', en: 'ARCH PRIMA', name: '아크 프리마', alias: '원소의 군주', grade: 'SS급 · 총 6명',
+    { id: 'rk-ss', key: 'SS', en: 'ARCH PRIMA', name: '아크 프리마', alias: '원소의 군주', grade: '',
       body: '기관을 이끄는 간부들. 각 속성의 정점에 선 단 한 명의 존재 (총 6명).' },
-    { id: 'rk-s', key: 'S', en: 'VANGUARD', name: '뱅가드', alias: '선봉대', grade: 'S급',
+    { id: 'rk-s', key: 'S', en: 'VANGUARD', name: '뱅가드', alias: '선봉대', grade: '',
       body: '최정예 베테랑 현장 리더.' },
-    { id: 'rk-ab', key: 'A-B', en: 'AGENT', name: '에이전트', alias: '요원', grade: 'A–B급',
+    { id: 'rk-ab', key: 'A-B', en: 'AGENT', name: '에이전트', alias: '요원', grade: '',
       body: 'ARCH의 주력이 되는 실전 멤버.' },
-    { id: 'rk-c', key: 'C', en: 'ACOLYTE', name: '애콜라이트', alias: '신입', grade: 'C급 이하',
+    { id: 'rk-c', key: 'C', en: 'ACOLYTE', name: '애콜라이트', alias: '신입', grade: '',
       body: '훈련과 성장이 필요한 신입 요원.' },
-    { id: 'rk-h', key: 'H', en: 'HARMONY', name: '하모니 부서', alias: '가이드 지원 · 관리', grade: 'DEPT. · C–S급', apart: true,
+    { id: 'rk-h', key: 'H', en: 'HARMONY', name: '하모니 부서', alias: '가이드 지원 · 관리', grade: '', tag: 'S-C', apart: true,
       body: "모든 가이드가 소속된 지원 및 관리 부서. 하모니 부서 안에서도 따로 C~S급이 나뉘며, 아크의 가이드는 '무속성'과 '속성 가이드'들로 나뉘어 있습니다. 속성 가이드는 가장 희귀한 포지션이기에 무조건 S급으로 배정받습니다." },
   ],
 };
 /** 이 분류 블록의 직급 체계 — 손대지 않은 ARCH 분류 블록(센티넬·가이드 카드가 있는)은 기본값 */
-export function ranksOf(b: Extract<ArchBlock, { type: 'classes' }>): ArchRanks | null {
-  if (b.ranks !== undefined) return b.ranks;
+type ClassesBlock = Extract<ArchBlock, { type: 'classes' }>;
+/** ARCH 분류 블록인가 — 센티넬·가이드 카드가 함께 있는 */
+const isArchClasses = (b: ClassesBlock) => {
   const keys = b.items.map(it => iconKeyOf(it.icon));
-  return b.grade && keys.includes('sentinel') && keys.includes('guide') ? DEFAULT_RANKS : null;
+  return keys.includes('sentinel') && keys.includes('guide');
+};
+export function ranksOf(b: ClassesBlock): ArchRanks | null {
+  if (b.ranks !== undefined) return b.ranks;
+  return isArchClasses(b) ? DEFAULT_RANKS : null;
+}
+/** 등급 띠(S A B C D) — 손대지 않은 ARCH 분류 블록에선 뺀다 (v2.0 사용자 요청 — 직급 체계가 대신한다).
+ *  관리자가 직급 체계나 등급 띠를 한 번이라도 고치면 그때부터는 저장된 값대로 */
+export function gradeOf(b: ClassesBlock): ClassesBlock['grade'] {
+  return b.ranks === undefined && isArchClasses(b) ? null : (b.grade ?? null);
 }
 export const blankRank = (): ArchRank => ({ id: newId(), key: 'X', en: 'RANK', name: '', alias: '', grade: '', body: '' });
 
