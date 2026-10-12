@@ -101,37 +101,40 @@ export default function MemoBoardPage() {
   const [fCat, setFCat] = useState('OOC');
   const [fText, setFText] = useState('');
 
-  /* 이 기기에만 있던 옛 메모 → 서버로 (한 번). 서버에 같은 id가 있으면 건너뛴다 */
+  /* 이 기기에만 있던 옛 메모 → 서버로. 서버에 같은 id가 있으면 건너뛴다.
+     ⚠ 이 기기 사본(localStorage)은 **지우지 않는다** (v2.0 사용자 제보 — PC 메모가 사라짐).
+     예전엔 「서버에 없는 메모가 0개」면 사본을 지웠는데, id가 글자가 아닌(숫자 등) 옛 메모는 아예 세지 않아서
+     하나도 옮기지 않고 사본만 지울 수 있었다. 사본은 작아서 남겨 둬도 되고, 다음에 열 때 다시 대조할 뿐이다. */
   const migrated = useRef(false);
   useEffect(() => {
     if (!loaded || !user || migrated.current) return;
     migrated.current = true;
     const have = new Set(notes.map(n => n.id));
     const found: MemoNote[] = [];
-    const used: string[] = [];
-    let missing = 0;   // 아직 서버에 없는 메모 수 — 0이 되면(다음에 열 때 서버에 다 있으면) 이 기기 사본을 지운다
     for (const k of LEGACY_KEYS) {
       try {
         const raw = localStorage.getItem(k);
         if (!raw) continue;
-        used.push(k);
         const arr = JSON.parse(raw);
         if (!Array.isArray(arr)) continue;
-        for (const m of arr) {
-          if (!m || typeof m !== 'object' || typeof m.id !== 'string' || have.has(m.id)) continue;
-          have.add(m.id);
-          missing += 1;
-          const d = typeof m.date === 'string' ? m.date.replace(/\./g, '-') : today();
-          found.push({ id: m.id, kind: 'note', category: legacyCat(m.category), content: String(m.content ?? ''), date: d, authorId: user.id });
-        }
+        arr.forEach((m: Record<string, unknown> | null, i: number) => {
+          if (!m || typeof m !== 'object') return;
+          const content = String(m.content ?? m.text ?? '').trim();
+          if (!content) return;
+          // id가 없거나 숫자여도 옮긴다 — 없으면 저장소 이름·순서로 늘 같은 id를 만들어 두 번 올라가지 않게
+          const id = m.id != null && String(m.id) ? String(m.id) : `legacy-${k}-${i}`;
+          if (have.has(id)) return;
+          have.add(id);
+          const d = typeof m.date === 'string' ? m.date.replace(/\./g, '-')
+            : typeof m.date === 'number' ? new Date(m.date).toISOString().slice(0, 10) : today();
+          found.push({ id, kind: 'note', category: legacyCat(m.category), content, date: d, authorId: user.id });
+        });
       } catch { /* 무시 */ }
     }
     if (found.length) {
       setNotes([...found, ...notes]);
       toast(`이 기기에 있던 메모 ${found.length}개를 서버로 옮겼습니다 — 이제 PC·모바일 어디서나 보입니다`);
     }
-    // 서버에 다 올라간 게 확인된 뒤에만 지운다 — 저장이 실패했는데 사본까지 지우면 메모가 사라진다
-    if (!missing) used.forEach(k => { try { localStorage.removeItem(k); } catch { /* 무시 */ } });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaded, user]);
 
