@@ -49,14 +49,31 @@ export interface ArchDoc {
 
 /** 분류 카드 아이콘 — ARCH 소개 HTML에 있던 것과 같은 그림 */
 export const ICONS: Record<string, { label: string; svg: string }> = {
-  sentinel: { label: '센티넬 (육각 화살)', svg: '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1"><path d="M20 3 34 11v18L20 37 6 29V11Z"/><path d="M20 10v20M13 16l7-6 7 6" stroke-width="1.2"/><circle cx="20" cy="20" r="3" fill="currentColor" stroke="none"/></svg>' },
-  guide: { label: '가이드 (조준 원)', svg: '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1"><circle cx="20" cy="20" r="16"/><circle cx="20" cy="20" r="9" stroke-dasharray="2 2.5"/><path d="M20 4v6M20 30v6M4 20h6M30 20h6"/><circle cx="20" cy="20" r="2.4" fill="currentColor" stroke="none"/></svg>' },
+  // 센티넬 — 원소 고리: 여섯 조각(6원소) 중 한 조각만 빛나고, 가운데 네 갈래 섬광은 갑작스러운 각성 (v2.0 사용자 선택 S3)
+  sentinel: { label: '센티넬 (원소 고리 · 섬광)', svg: '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1"><circle cx="20" cy="20" r="15" stroke-dasharray="12.71 3" transform="rotate(-84 20 20)" stroke-opacity=".6"/><path d="M21.57 5.08A15 15 0 0 1 32.22 11.3" stroke-width="2.2"/><path d="M20 11.5 21.8 18.2 28.5 20 21.8 21.8 20 28.5 18.2 21.8 11.5 20 18.2 18.2Z" stroke-width="1.1"/><circle cx="20" cy="20" r="1.3" fill="currentColor" stroke="none"/></svg>' },
+  // 가이드 — 같은 고리, 빛나는 조각은 센티넬의 정반대 자리. 작게 줄인 섬광을 네 꺾쇠가 붙잡는다(안정) (v2.0 사용자 선택 GB)
+  guide: { label: '가이드 (원소 고리 · 꺾쇠)', svg: '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1"><circle cx="20" cy="20" r="15" stroke-dasharray="12.71 3" transform="rotate(-84 20 20)" stroke-opacity=".6"/><path d="M18.43 34.92A15 15 0 0 1 7.78 28.7" stroke-width="2.2"/><path d="M12.5 16V12.5H16M27.5 16V12.5H24M12.5 24V27.5H16M27.5 24V27.5H24" stroke-width="1.1"/><path d="M20 15.2 21 19 24.8 20 21 21 20 24.8 19 21 15.2 20 19 19Z" fill="currentColor" stroke="none"/></svg>' },
+  hexarrow: { label: '육각 화살 (예전 센티넬)', svg: '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1"><path d="M20 3 34 11v18L20 37 6 29V11Z"/><path d="M20 10v20M13 16l7-6 7 6" stroke-width="1.2"/><circle cx="20" cy="20" r="3" fill="currentColor" stroke="none"/></svg>' },
+  target: { label: '조준 원 (예전 가이드)', svg: '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1"><circle cx="20" cy="20" r="16"/><circle cx="20" cy="20" r="9" stroke-dasharray="2 2.5"/><path d="M20 4v6M20 30v6M4 20h6M30 20h6"/><circle cx="20" cy="20" r="2.4" fill="currentColor" stroke="none"/></svg>' },
   bond: { label: '결속 (두 원)', svg: '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1"><circle cx="12" cy="20" r="8"/><circle cx="28" cy="20" r="8"/><path d="M4 20h32" stroke-dasharray="1.5 2.5"/></svg>' },
   diamond: { label: '마름모', svg: '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1"><path d="M20 4 36 20 20 36 4 20Z"/><path d="M20 12 28 20 20 28 12 20Z" stroke-dasharray="2 2"/></svg>' },
   shield: { label: '방패', svg: '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1"><path d="M20 4 33 9v10c0 9-6 14-13 17C13 33 7 28 7 19V9Z"/><path d="M20 11v18M14 18h12" stroke-width="1.2"/></svg>' },
 };
-export const iconSvg = (icon: string): string =>
-  icon.startsWith('svg:') ? icon.slice(4) : (ICONS[icon]?.svg ?? '');
+/** 그림 비교용 — 공백 무시, `<path …></path>`(HTML로 읽으면 이렇게 나온다)와 `<path …/>`를 같게 */
+const svgKey = (s: string) => s.replace(/\s+/g, '').replace(/><\/(path|circle|line|rect|polygon|polyline|ellipse)>/g, '/>').toLowerCase();
+/** ARCH 소개 HTML에 있던 예전 센티넬·가이드 그림 → 지금의 센티넬·가이드 마크 키 */
+const legacyKey = (raw: string): string | null => {
+  const k = svgKey(raw);
+  if (k === svgKey(ICONS.hexarrow.svg)) return 'sentinel';
+  if (k === svgKey(ICONS.target.svg)) return 'guide';
+  return null;
+};
+export const iconSvg = (icon: string): string => {
+  if (!icon.startsWith('svg:')) return ICONS[icon]?.svg ?? '';
+  // 예전 그림이 그대로 저장된 문서도 새 마크로 보여 준다
+  const lk = legacyKey(icon.slice(4));
+  return lk ? ICONS[lk].svg : icon.slice(4);
+};
 
 /* ── 저장 ── */
 export function useArchDocs(): [Record<string, ArchDoc>, (id: string, doc: ArchDoc | null) => void, boolean] {
@@ -107,12 +124,13 @@ const ownText = (el: Element | null | undefined) => {
   c.querySelectorAll('small').forEach(s => s.remove());
   return txt(c);
 };
-const norm = (s: string) => s.replace(/\s+/g, '').toLowerCase();
 
 function iconOf(svg: SVGElement | null): string {
   if (!svg) return 'none';
   const raw = svg.outerHTML;
-  const hit = Object.entries(ICONS).find(([, v]) => norm(v.svg) === norm(raw));
+  const legacy = legacyKey(raw);
+  if (legacy) return legacy;
+  const hit = Object.entries(ICONS).find(([, v]) => svgKey(v.svg) === svgKey(raw));
   return hit ? hit[0] : `svg:${raw}`;
 }
 
