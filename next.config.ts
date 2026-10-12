@@ -5,6 +5,9 @@ const ROUTE_ALIASES: [canon: string, pub: string][] = [
   ["/page", "/arch"],
   ["/chars", "/profile"],
   ["/rels", "/pairing"],
+  ["/trpg", "/report"],
+  ["/rp", "/comms"],
+  ["/diary", "/journal"],
 ];
 
 const nextConfig: NextConfig = {

@@ -31,4 +31,4 @@
 
 ## 요약 주소
 
-주소창에는 요약 주소가 보인다 — `/page`→`/arch`, `/chars`→`/profile`, `/rels`→`/pairing` (`next.config.ts` rewrites·redirects + `src/lib/routeAlias.ts`). 페이지 폴더·메뉴 설정은 원래 주소 그대로이고, 화면 코드는 현재 주소를 `useAppPathname()`(원래 주소로 되돌림)으로 읽는다. 늘릴 때는 두 파일의 목록을 같이 고친다.
+주소창에는 요약 주소가 보인다 — `/page`→`/arch`, `/chars`→`/profile`, `/rels`→`/pairing`, `/trpg`→`/report`, `/rp`→`/comms`, `/diary`→`/journal` (`next.config.ts` rewrites·redirects + `src/lib/routeAlias.ts`). 페이지 폴더·메뉴 설정은 원래 주소 그대로이고, 화면 코드는 현재 주소를 `useAppPathname()`(원래 주소로 되돌림)으로 읽는다. 늘릴 때는 두 파일의 목록을 같이 고친다.
