@@ -371,7 +371,14 @@ html.ui-arch .page-arch .mrow .nm b,html.ui-arch .page-arch .multi-row b{font-fa
 html.ui-arch .page-arch .mrow .nm small,html.ui-arch .page-arch .mrow .nm .ext,html.ui-arch .page-arch .multi-row .meta{color:var(--a-mu)}
 /* 타임라인/문답 탭 */
 html.ui-arch .page-arch .rel-tabs{border-bottom:1px solid var(--a-ln)}
-html.ui-arch .page-arch .rel-tabs > button{font:300 calc(14px*var(--fs,1))/1.2 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;color:var(--a-mu);padding:10px 14px} /* 위아래 여백을 같게 — 오른쪽 추가 버튼과 세로 가운데가 맞도록 */
+html.ui-arch .page-arch .rel-tabs > button{font:300 calc(14px*var(--fs,1))/1.2 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;color:var(--a-mu);padding:16px 14px}
+/* 탭 줄 오른쪽 버튼 — 아래 경계선에 붙지 않게 조금 낮게(32px) 하고 탭 글자와 세로 가운데 (v2.0 사용자 요청) */
+html.ui-arch .page-arch .rel-tabs .btn{height:32px !important}
+html.ui-arch .page-arch .tl-sort-row{background:rgba(5,8,12,.5) !important;border-color:var(--a-ln2) !important;border-radius:0 !important}
+/* 문답 — 날짜·답변 수 표시는 숨김 (v2.0 사용자 요청) */
+html.ui-arch .page-arch .qa-date,html.ui-arch .page-arch .qa-item small{display:none}
+/* 배너형 카드에선 캐릭터 색 팔레트(마름모 점) 숨김 (v2.0 사용자 요청) */
+html.ui-arch .page-arch .rel-banner .mini-prof .palette-row{display:none} /* 위아래 여백을 같게 — 오른쪽 추가 버튼과 세로 가운데가 맞도록 */
 html.ui-arch .page-arch .rel-tabs > button:hover{color:#fff}
 html.ui-arch .page-arch .rel-tabs > button.on{color:#fff;border-bottom:1px solid var(--a-ac);box-shadow:0 8px 12px -10px rgba(var(--a-acr),.8)}
 /* 타임라인 */
@@ -1359,6 +1366,13 @@ body.edit-on .main-grid.gridlines .wgt{outline-offset:0}
   font-family:inherit;font-size:calc(13px*var(--fs,1));font-weight:700;text-align:center}
 .ctx-menu .ord-input:focus{outline:none;border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.1)}
 .ctx-menu .ord-hint{margin:6px 2px 4px;font-size:calc(10px*var(--fs,1));color:#8b919b;line-height:1.45;text-align:center}
+/* 게시판 디자인 ARCH 화면의 우클릭 메뉴 — 각진 어두운 칸 (v2.0 사용자 요청) */
+html.ui-arch body:has(.page-arch) .ctx-menu{background:rgba(8,11,15,.97);border:1px solid rgba(190,208,228,.22);border-radius:0;box-shadow:0 18px 44px -14px #000,0 0 18px -8px rgba(184,216,255,.35);padding:5px}
+html.ui-arch body:has(.page-arch) .ctx-menu button{border-radius:0;font-family:'Noto Sans KR',sans-serif;color:#c9d2dc}
+html.ui-arch body:has(.page-arch) .ctx-menu button:hover{background:rgba(184,216,255,.08);color:#fff}
+html.ui-arch body:has(.page-arch) .ctx-menu button.danger:hover{background:rgba(255,90,100,.14);color:#ff8a92}
+html.ui-arch body:has(.page-arch) .ctx-menu .ctx-ttl{font:400 9px/1.4 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.24em;color:#b8d8ff}
+html.ui-arch body:has(.page-arch) .ctx-menu .sep{background:rgba(190,208,228,.14)}
 
 /* 공통 드래그 리스트 (v1.9 — 들어 올림 + 빈 자리 + FLIP) */
 .dl-row{transition:transform .18s ease}

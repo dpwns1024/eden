@@ -251,6 +251,8 @@ export default function RelDetailPage() {
   const [ansEdit, setAnsEdit] = useState<{ qNo: number; idx: number; text: string; note: string } | null>(null);
   // 질문에 대한 오너 설명 입력 모달 (v2.0)
   const [qNote, setQNote] = useState<{ no: number; text: string } | null>(null);
+  // 질문 문구 수정 (v2.0 사용자 요청 — 질문 리스트·질문 우클릭 「질문 수정」)
+  const [qEdit, setQEdit] = useState<{ no: number; text: string } | null>(null);
   // 멤버 얼굴칸(1:1) 크롭 편집 (v2.0)
   const [faceEdit, setFaceEdit] = useState<{ charId: string; ref: string; crop?: CropValue } | null>(null);
   // 타임라인 항목 우클릭 메뉴 (v2.0 사용자 요청) — 수정·삭제. 늘 떠 있는 [삭제] 글자는 없앴다
@@ -690,6 +692,14 @@ export default function RelDetailPage() {
     toast('질문 설명을 저장했습니다');
   };
 
+  const saveQEdit = () => {
+    if (!qEdit) return;
+    if (!qEdit.text.trim()) { toast('질문을 입력해 주세요'); return; }
+    patchAuData({ questions: auQuestions.map(q => (q.no === qEdit.no ? { ...q, q: qEdit.text.trim() } : q)) });
+    setQEdit(null);
+    toast('질문을 수정했습니다');
+  };
+
   const canEditAns = (a: QaAnswer) => (a.authorId ? a.authorId === user?.id : isAdmin);
   const canDelAns = (a: QaAnswer) => isAdmin || (!!a.authorId && a.authorId === user?.id);
   // 분리 저장분(rowId)과 옛 자관 안의 답변(legacyIdx)을 모두 다룬다 (v2.0)
@@ -803,7 +813,7 @@ export default function RelDetailPage() {
             const isBase = a.id === 'base';
             const thumb = isBase ? (rel.thumbId ?? rel.arts?.[0]) : a.arts?.[0];
             return (
-              <div key={a.id} className={`au-item ${auId === a.id ? 'on' : ''}`} data-tip={a.label}
+              <div key={a.id} className={`au-item ${auId === a.id ? 'on' : ''}`}
                 onClick={() => { setAuId(a.id); setArtIdx(0); setQaNo(null); }}>
                 <CroppedBlobImg fileRef={thumb} crop={isBase ? rel.thumbCrop : undefined}
                   ph={['cool', 'pale', 'red'][i % 3]} />
@@ -1116,7 +1126,8 @@ export default function RelDetailPage() {
           {isAdmin && (
             <span style={{ marginLeft: 'auto', display: 'flex', gap: 6, alignItems: 'center' }}>
               {/* 이 줄의 버튼은 홈 공통 버튼과 같은 세로 크기(35px)로 — 탭 줄에서만 작아 보이던 것 */}
-              {tab === 'tl' && auTimeline.length > 1 && (
+              {/* ARCH에선 평소엔 숨기고(타임라인 우클릭 「순서 바꾸기」로 켬) 정렬 중일 때만 「정렬 완료」를 보인다 (v2.0 사용자 요청) */}
+              {tab === 'tl' && auTimeline.length > 1 && (!arch || tlSort) && (
                 <button className={`btn ${tlSort ? 'btn-accent' : 'btn-ghost'}`}
                   style={{ height: 35, padding: '0 14px', fontSize: 11.5 }}
                   onClick={() => setTlSort(v => !v)}>
@@ -1158,7 +1169,7 @@ export default function RelDetailPage() {
               keyOf={x => x.key}
               onReorder={list => patchAuData({ timeline: list.map(x => x.item) })}
               render={({ item }) => (
-                <div style={{ display: 'flex', gap: 10, alignItems: 'center', width: '100%', padding: '8px 6px', border: '1.5px dashed var(--line)', borderRadius: 9, marginBottom: 6, background: '#fff' }}>
+                <div className="tl-sort-row" style={{ display: 'flex', gap: 10, alignItems: 'center', width: '100%', padding: '8px 6px', border: '1.5px dashed var(--line)', borderRadius: 9, marginBottom: 6, background: '#fff' }}>
                   <span className="drag-h">⠿</span>
                   <div style={{ minWidth: 0 }}>
                     {item.era && <div className="era">{item.era}</div>}
@@ -1211,7 +1222,8 @@ export default function RelDetailPage() {
                       </small>
                     )}
                   </div>
-                  <div className="qa-q">{curQa.q}</div>
+                  <div className="qa-q"
+                    onContextMenu={e => { if (!isAdmin) return; e.preventDefault(); setQaCtx({ x: e.clientX, y: e.clientY, no: curQa.no }); }}>{curQa.q}</div>
                   {curQa.note && <div className="qa-note">{curQa.note}</div>}
                   {/* 날짜만, 오른쪽 정렬 (v1.9 사용자 피드백) */}
                   <div className="qa-date" style={{ textAlign: 'right' }}>{curQa.date.replace(/-/g, '.')}</div>
@@ -1297,7 +1309,7 @@ export default function RelDetailPage() {
                      바로 모달이 뜨는 것보다 한 단계 거치는 쪽이 실수로 우클릭했을 때 안전하다).
                      지금 보고 있는 질문이 아니어도 리스트에서 바로 고를 수 있다 */
                   <div key={q.no} className={`qa-item ${curQa?.no === q.no ? 'on' : ''}`} onClick={() => setQaNo(q.no)}
-                    data-tip={isAdmin ? '우클릭 — 리스트로 되돌리기' : undefined}
+                    data-tip={isAdmin ? '우클릭 — 질문 수정 · 리스트로 되돌리기' : undefined}
                     onContextMenu={e => { if (!isAdmin) return; e.preventDefault(); setQaCtx({ x: e.clientX, y: e.clientY, no: q.no }); }}>
                     <b>Q.{String(q.no).padStart(3, '0')} {q.q}</b>
                     <small>{q.date.slice(5).replace('-', '.')} · 답변 {answersOf(q.no).length}</small>
@@ -1616,6 +1628,19 @@ export default function RelDetailPage() {
         )}
       </Modal>
 
+      {/* 질문 문구 수정 (v2.0) */}
+      <Modal open={qEdit !== null} onClose={() => setQEdit(null)} small title="질문 수정"
+        dirty={!!qEdit && qEdit.text !== (auQuestions.find(q => q.no === qEdit.no)?.q ?? '')}
+        actions={<>
+          <button className="btn btn-ghost" onClick={() => setQEdit(null)}>CANCEL</button>
+          <button className="btn btn-dark" onClick={saveQEdit}>SAVE</button>
+        </>}>
+        {qEdit && (
+          <KTextarea value={qEdit.text} onChange={e => setQEdit(s => s && { ...s, text: e.target.value })}
+            style={{ minHeight: 80 }} />
+        )}
+      </Modal>
+
       {/* 질문에 대한 오너 설명 (v2.0) — 답변의 부연과 달리 질문 아래에 그대로 보인다 */}
       <Modal open={qNote !== null} onClose={() => setQNote(null)} small title="질문 설명"
         desc="이 질문이 왜 나왔는지, 어떤 맥락인지 — 질문 아래에 그대로 표시됩니다"
@@ -1639,6 +1664,9 @@ export default function RelDetailPage() {
         <div className="ctx-menu on" style={{ left: tlCtx.x, top: tlCtx.y }} onClick={e => e.stopPropagation()}>
           <div className="ctx-ttl">{auTimeline[tlCtx.idx].era || '타임라인 항목'}</div>
           <button onClick={() => { const i = tlCtx.idx; setTlCtx(null); openTlEdit(i); }}>수정</button>
+          {auTimeline.length > 1 && (
+            <button onClick={() => { setTlCtx(null); setTlSort(true); }}>순서 바꾸기</button>
+          )}
           <button className="danger" onClick={() => {
             const i = tlCtx.idx;
             setTlCtx(null);
@@ -1653,6 +1681,11 @@ export default function RelDetailPage() {
       {qaCtx && createPortal(
         <div className="ctx-menu on" style={{ left: qaCtx.x, top: qaCtx.y }} onClick={e => e.stopPropagation()}>
           <div className="ctx-ttl">Q.{String(qaCtx.no).padStart(3, '0')}</div>
+          <button onClick={() => {
+            const q = auQuestions.find(x => x.no === qaCtx.no);
+            setQaCtx(null);
+            if (q) setQEdit({ no: q.no, text: q.q });
+          }}>질문 수정</button>
           <button className="danger" onClick={() => {
             const q = auQuestions.find(x => x.no === qaCtx.no);
             setQaCtx(null);
