@@ -77,8 +77,18 @@ function blockedView(vis: 'member' | 'admin') {
 export function useHrefBlock(href?: string): React.ReactElement | null {
   const { user, isAdmin, ready } = useAuth();
   const [menuSet, , loaded] = useMenuSettings();
+  /* 비밀번호 메뉴의 글도 여기서 막는다 (v2.0) — 예전엔 통과하지 않은 방문자에게 서버가 글 자체를 안 줘서
+     상세가 어차피 안 열렸다. 이제 FIELD REPORT 목록처럼 목록 문서는 열어 두는 곳이 생겨(페어링 페이지에서
+     제목은 보이게) 상세가 열리므로, 본문 대신 비밀번호 창을 띄운다. 본문 문서는 서버가 계속 잠근다 */
+  const lockHref = loaded && href ? governingLock(href) : null;
+  const lock = useLockOpen(lockHref);
   if (!href || !loaded || !ready) return null;
   const vis = hrefAccess(menuSet, href);
-  if (vis === 'all' || (vis === 'member' && !!user) || (vis === 'admin' && isAdmin)) return null;
-  return blockedView(vis);
+  if (!(vis === 'all' || (vis === 'member' && !!user) || (vis === 'admin' && isAdmin))) return blockedView(vis);
+  if (lock === 'loading') return <section className="page" />;
+  if (lock === 'locked' && lockHref) {
+    const title = menuLabelOf(menuSet, lockHref) ?? menuLabelFor(lockHref) ?? 'LOCKED';
+    return <MenuLockScreen lockHref={lockHref} title={title} />;
+  }
+  return null;
 }

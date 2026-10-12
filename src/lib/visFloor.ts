@@ -82,7 +82,29 @@ export function visFloorOf(coll: string, item: ListItem): Visibility | 'locked' 
   const v = href ? hrefAccess(currentMenuSettings(), href) : 'all';
   if (v === 'admin') return 'private';
   if (v === 'member') return 'member';
-  return lockKeyOfItem(coll, item) ? 'locked' : 'public';
+  if (!lockKeyOfItem(coll, item)) return 'public';
+  return listOpenUnderLock(coll, item) ? 'public' : 'locked';
+}
+
+/**
+ * 비밀번호 메뉴여도 **목록 문서만은** 열어 두는 것 (v2.0 사용자 요청 — 페어링 페이지의
+ * FIELD REPORT · COMMS ARCHIVE 칸에 비밀번호 없이도 제목은 보이게, 누르면 비밀번호).
+ *
+ * - FIELD REPORT 목록(trpg_logs): 제목·라이터·날짜 같은 목록 정보뿐 — 본문은 trpg_log_bodies에
+ *   따로 있고 그쪽은 계속 잠근다.
+ * - COMMS ARCHIVE 방(rp_rooms): 「완결 · 공개」로 돌린 방만 (페어링 페이지가 손님에게 보여 주는 것이
+ *   그것뿐이다). 대화는 rp_messages에 따로 있고 계속 잠근다. 다만 옛 방은 대화가 방 문서 안에
+ *   들어 있어서, 그런 방은 열면 대화까지 새어 나가므로 잠근 채로 둔다.
+ *
+ * 화면의 비밀번호 창(메뉴 잠금)은 그대로라, 게시판 자체와 글 내용은 여전히 비밀번호를 넣어야 보인다.
+ */
+function listOpenUnderLock(coll: string, item: ListItem): boolean {
+  if (coll === 'trpg_logs') return true;
+  if (coll === 'rp_rooms') {
+    const legacy = Array.isArray(item.messages) && item.messages.length > 0;
+    return item.status === 'done' && item.isPublic === true && !legacy;
+  }
+  return false;
 }
 
 const RANK: Record<string, number> = { public: 0, locked: 0.5, member: 1, private: 2 };

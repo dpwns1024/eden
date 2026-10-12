@@ -270,8 +270,8 @@ export default function RelDetailPage() {
   const { familyOf } = useFonts();
   const [rels, setRels, loaded] = useLocalList<Relation>('ohome.rels.v1', REL_SEED);
   const [chars, setChars, charsLoaded] = useLocalList<Character>('ohome.chars.v1', CHAR_SEED);
-  const [logs] = useLocalList<TrpgLog>('ohome.trpg.v1', TRPG_SEED);
-  const [rooms] = useLocalList<RpRoom>('ohome.rp.v1', RP_SEED);
+  const [logs, setLogs, logsLoaded] = useLocalList<TrpgLog>('ohome.trpg.v1', TRPG_SEED);
+  const [rooms, setRooms, roomsLoaded] = useLocalList<RpRoom>('ohome.rp.v1', RP_SEED);
   const [tab, setTab] = useState<'tl' | 'qa'>('tl');
   const [auId, setAuId] = useState('base');
   const [oneMode, setOneMode] = useState<boolean | null>(null);
@@ -542,6 +542,19 @@ export default function RelDetailPage() {
     if (i >= 0) setQaPage(Math.floor(i / QA_PER));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [curQa?.no, QA_PER]);
+  /* 잠긴 메뉴의 목록 열어 두기 (v2.0 — lib/visFloor.ts의 listOpenUnderLock) — 옛 문서는 예전 규칙(잠금)으로
+     저장돼 있어, 관리자가 이 페이지를 열면 한 번 다시 저장해 새 규칙을 입힌다. 내용은 그대로이고 판수만 붙는다 */
+  useEffect(() => {
+    if (!isAdmin || !logsLoaded) return;
+    if (logs.some(l => l.lv !== 2)) setLogs(logs.map(l => (l.lv === 2 ? l : { ...l, lv: 2 })));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin, logsLoaded, logs]);
+  useEffect(() => {
+    if (!isAdmin || !roomsLoaded) return;
+    const stale = (r: RpRoom) => r.status === 'done' && r.isPublic && r.lv !== 2;
+    if (rooms.some(stale)) setRooms(rooms.map(r => (stale(r) ? { ...r, lv: 2 } : r)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin, roomsLoaded, rooms]);
   const relLogs = useMemo(() => logs.filter(l => l.relId === rel?.id), [logs, rel]);
   // 역극 연동 (4.9) — 내가 참여한 방 + 공개 전환된 완결 방만 (비참여 방은 존재 자체 비노출)
   const relRooms = useMemo(() => rooms.filter(rm => rm.relId === rel?.id
