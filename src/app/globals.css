@@ -2219,7 +2219,11 @@ html.ui-arch body:has(.page-arch) .ctx-menu .sep{background:rgba(190,208,228,.14
 .g-item:hover{transform:translateY(-4px)}
 .g-item .thumb{aspect-ratio:4/3;position:relative;overflow:hidden}
 .g-item .thumb img{width:100%;height:100%;object-fit:cover}
-.g-item .typ{position:absolute;top:10px;left:10px;z-index:3}
+/* 말머리는 제목 칸 안 제목 옆 (v2.0 사용자 요청) */
+.g-item .g-head{display:flex;align-items:center;gap:8px;min-width:0}
+.g-item .g-head b{min-width:0}
+.g-item .typ{flex-shrink:0}
+.g-item .info small{display:flex;flex-wrap:wrap;gap:2px 8px;margin-top:4px}
 .g-item .info{padding:12px 15px}
 .g-item .info b{font-size:calc(13px*var(--fs,1));display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .g-item .info small{color:var(--faint);font-size:calc(10.5px*var(--fs,1))}
@@ -2758,9 +2762,10 @@ html.ui-arch .page-gallery .g-item .thumb::after{content:'';position:absolute;in
 /* 말머리 — 설정한 테두리 색은 살리고 바탕은 어둡게, 글자는 밝게(어두운 배경에서 읽히게) */
 html.ui-arch .page-arch :is(.g-item .typ,.list-item .typ,.g-badge){background:rgba(8,11,15,.78) !important;color:#e6ebf1 !important;border-radius:0 !important;
   font:400 calc(9px*var(--fs,1))/1 'JetBrains Mono','Noto Sans KR',monospace !important;letter-spacing:.22em;padding:5px 8px 5px 10px !important}
-html.ui-arch .page-gallery .g-item .info{padding:14px 16px 15px;border-top:1px solid var(--a-ln)}
-html.ui-arch .page-gallery .g-item .info b{font:300 calc(18px*var(--fs,1))/1.2 'Jost','Noto Sans KR',sans-serif;letter-spacing:.14em;color:#fff;margin-bottom:6px}
-html.ui-arch .page-gallery .g-item .info small{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font:400 calc(9.5px*var(--fs,1))/1.5 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.14em;color:var(--a-mu)}
+html.ui-arch .page-gallery .g-item .info{padding:12px 16px 13px;border-top:1px solid var(--a-ln)}
+html.ui-arch .page-gallery .g-item .g-head{gap:12px}
+html.ui-arch .page-gallery .g-item .info b{font:300 calc(18px*var(--fs,1))/1.2 'Jost','Noto Sans KR',sans-serif;letter-spacing:.14em;color:#fff}
+html.ui-arch .page-gallery .g-item .info small{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin-top:7px;font:400 calc(9.5px*var(--fs,1))/1.5 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.14em;color:var(--a-mu)}
 html.ui-arch .page-arch .tag-in{font-style:normal;color:var(--a-ac);white-space:nowrap;letter-spacing:.06em}
 html.ui-arch .page-gallery .g-item .cover{background:rgba(5,7,10,.72)}
 /* 상세 */
@@ -2773,9 +2778,16 @@ html.ui-arch .page-gallery-detail .thumb-strip .t.on{border-color:var(--a-ac);bo
 html.ui-arch .page-gallery-detail .post-body{color:#b3bec9}
 @media (max-width:620px){
   html.ui-arch .page-gallery .g3{grid-template-columns:repeat(2,1fr);gap:10px}
-  html.ui-arch .page-gallery .g-item .info{padding:10px 11px 11px}
-  html.ui-arch .page-gallery .g-item .info b{font-size:calc(15px*var(--fs,1));margin-bottom:4px}
+  html.ui-arch .page-gallery .g-item .info{padding:9px 10px 10px}
+  html.ui-arch .page-gallery .g-item .g-head{gap:7px}
+  html.ui-arch .page-gallery .g-item .info b{font-size:calc(14px*var(--fs,1));letter-spacing:.1em}
+  html.ui-arch .page-gallery .g-item .info small{margin-top:5px}
   html.ui-arch .page-gallery .g-item .info small{font-size:calc(8.5px*var(--fs,1));gap:2px 8px;letter-spacing:.1em}
-  html.ui-arch .page-arch .g-item .typ{top:8px;left:8px;font-size:calc(8px*var(--fs,1)) !important;padding:4px 6px 4px 8px !important}
+  html.ui-arch .page-arch .g-item .typ{font-size:calc(7.5px*var(--fs,1)) !important;padding:3px 5px 3px 7px !important;letter-spacing:.16em}
   html.ui-arch .page-gallery-detail .g-title{font-size:calc(18px*var(--fs,1)) !important}
 }
+/* 갤러리 — 태그 줄 앞 들여쓰기 없애기, 리스트 제목 줄의 말머리 테두리가 잘리지 않게 */
+.page-gallery .g-item .info small .tag-in,.page-gallery .list-item small .tag-in{margin-left:0}
+.page-gallery .list-item small{display:flex;flex-wrap:wrap;gap:2px 8px;margin-top:5px}
+.page-gallery .list-item b{display:flex;align-items:center;gap:8px;overflow:visible}
+.page-gallery .list-item b .typ{margin-left:0 !important;flex-shrink:0}
