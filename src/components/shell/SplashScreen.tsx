@@ -681,9 +681,6 @@ function SplashInner() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    /* 메인(/)으로 들어왔을 때만 (v2.0 사용자 요청) — 공유받은 글·게시판 주소로 바로 들어오면 건너뛰고
-       그 페이지(비밀번호 창 등)를 바로 보여 준다. 레이아웃에 한 번만 붙어 있으므로 들어온 첫 주소만 본다 */
-    if (window.location.pathname !== '/') return;
     if (conf.enabled && conf.bgBlobId && !splashSeenThisSession()) {
       setShow(true);
       document.body.style.overflow = 'hidden';

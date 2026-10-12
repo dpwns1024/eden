@@ -37,9 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title,
     description,
-    ...(favicon ? { icons: { icon: favicon, apple: favicon } } : {}),
-    // 홈 화면에 추가 → 앱처럼(주소창 없이) 열기 (v2.0 사용자 요청). 아이폰 위쪽 상태 표시줄은 검게
-    appleWebApp: { capable: true, title, statusBarStyle: 'black' },
+    ...(favicon ? { icons: { icon: favicon } } : {}),
     openGraph: { title, description, type: 'website' },
     twitter: { card: 'summary', title, description },
   };
@@ -49,9 +47,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ko">
       <head>
-        {/* 아이폰 「홈 화면에 추가」로 연 경우 사파리가 아니라 앱처럼 — Next는 mobile-web-app-capable만 넣어 줘서
-            예전 iOS를 위해 애플 이름으로도 직접 둔다 */}
-        <meta name="apple-mobile-web-app-capable" content="yes" />
         <script dangerouslySetInnerHTML={{
           __html: `(function(){try{var m=JSON.parse(localStorage.getItem('ohome.themeCss.v1'));if(m){var s=document.documentElement.style;for(var k in m)s.setProperty(k,m[k]);}}catch(e){}})();`,
         }} />
