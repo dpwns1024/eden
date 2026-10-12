@@ -1634,7 +1634,8 @@ html body:has(.arh) .htmlpage > .htmlpage-edit{right:calc(max(0px, (100% - 1280p
 .oh-item[data-lsfix]::after{margin-left:var(--lsfix,0)}
 .htmlpage{position:relative;min-height:60vh;animation:fade .35s}   /* 다른 페이지(.page)와 같은 등장 효과 */
 .htmlpage-body{display:flow-root}
-.htmlpage-edit{position:absolute;right:16px;top:12px;z-index:60;padding:5px 12px !important;font-size:11px !important}
+.htmlpage-edit{position:absolute;right:16px;top:12px;z-index:60;display:flex;gap:6px}
+.htmlpage-edit .btn{padding:5px 12px !important;font-size:11px !important}
 .htmlpage-empty{text-align:center;padding:90px 20px !important}
 .site-head-html{position:relative;z-index:50}
 .site-foot-html{position:relative}
