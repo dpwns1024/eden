@@ -55,26 +55,29 @@ export interface AegisSpot {
   dir?: 'l' | 'c';         // 글씨를 왼쪽으로 · 표시 아래 가운데로
   big?: boolean;           // 숙소동 강조 — 영문 이름을 크게
   cell?: string;           // 누를 칸 (본부 그림)
+  room?: boolean;          // 본부 방 — 표시 대신 그림 기호 + 이름
+  icon?: string;           // 방 그림 기호 (AegisMap.tsx의 ICONS)
 }
 
 /** 그림 속 자리 — 모든 그림은 viewBox 0 0 1000 1000. 순서 = 목록 순서(위층부터).
- *  본부: 옥상(훈련 돔 · 코어 탑, 그 위 상공에 하늘정원) y330 · 9–10F ~ 2F · 1F 로비 654–698 · 지하 B1 · B2 */
+ *  본부(층별 안내도): 건물 x140–900, 한가운데 코어 x492–548, 오른쪽 끝 계단 x852–900.
+ *  옥상 y250(왼쪽 끝 훈련 돔 · 가운데 코어 탑, 그 위 상공에 하늘정원) · 9–10F ~ 2F · 1F 로비 · 지하 B1 · B2 */
 export const AEGIS_SPOTS: Record<string, AegisSpot> = {
-  sky:       { label: '본부 · 코어 탑 위 상공 (하늘정원)', view: 'hq', lx: 800, ly: 72, cell: 'M520 66 Q650 44 780 66 Q742 126 650 148 Q558 126 520 66 Z' },
-  core:      { label: '본부 · 옥상 코어 탑', view: 'hq', lx: 714, ly: 268, cell: 'M588 176 H712 V200 H664 L688 330 H612 L636 200 H588 Z' },
-  dome:      { label: '본부 · 옥상 돔', view: 'hq', lx: 252, ly: 294, cell: 'M218 330 A112 112 0 0 1 442 330 Z' },
-  hdiv:      { label: '본부 · 9–10F 왼쪽', view: 'hq', lx: 186, ly: 362, cell: 'M160 330H500V394H160Z' },
-  harmony:   { label: '본부 · 9–10F 오른쪽', view: 'hq', lx: 526, ly: 362, cell: 'M500 330H840V394H500Z' },
-  sdiv:      { label: '본부 · 7–8F', view: 'hq', lx: 186, ly: 426, cell: 'M160 394H840V458H160Z' },
-  resonance: { label: '본부 · 6F', view: 'hq', lx: 186, ly: 480, cell: 'M160 458H840V502H160Z' },
-  medbay:    { label: '본부 · 4–5F 왼쪽', view: 'hq', lx: 186, ly: 534, cell: 'M160 502H500V566H160Z' },
-  ward:      { label: '본부 · 4–5F 오른쪽', view: 'hq', lx: 526, ly: 534, cell: 'M500 502H840V566H500Z' },
-  stabil:    { label: '본부 · 3F (격리)', view: 'hq', lx: 186, ly: 588, cell: 'M160 566H840V610H160Z' },
-  lounge:    { label: '본부 · 2F 왼쪽', view: 'hq', lx: 184, ly: 632, cell: 'M160 610H387V654H160Z' },
-  dining:    { label: '본부 · 2F 가운데', view: 'hq', lx: 411, ly: 632, cell: 'M387 610H613V654H387Z' },
-  igarden:   { label: '본부 · 2F 오른쪽', view: 'hq', lx: 637, ly: 632, cell: 'M613 610H840V654H613Z' },
-  aqua:      { label: '본부 · B1 (바닷속)', view: 'hq', lx: 584, ly: 737, cell: 'M560 708H900 Q946 737 900 766 H560Z' },
-  arena:     { label: '본부 · B2 최하층', view: 'hq', lx: 266, ly: 821, cell: 'M240 786H760V856H240Z' },
+  sky:       { label: '본부 · 코어 탑 위 상공 (하늘정원)', view: 'hq', lx: 664, ly: 62, cell: 'M400 58 Q520 36 640 58 Q604 116 520 138 Q436 116 400 58 Z' },
+  core:      { label: '본부 · 옥상 가운데 코어 탑', view: 'hq', lx: 572, ly: 214, cell: 'M458 166 H582 V188 H538 L556 250 H484 L502 188 H458 Z' },
+  dome:      { label: '본부 · 옥상 왼쪽 끝 돔', view: 'hq', lx: 176, ly: 222, cell: 'M146 250 A84 84 0 0 1 314 250 Z' },
+  harmony:   { label: '본부 · 9–10F 왼쪽', view: 'hq', lx: 158, ly: 288, cell: 'M140 250H492V326H140Z', room: true, icon: 'talk' },
+  hdiv:      { label: '본부 · 9–10F 오른쪽', view: 'hq', lx: 566, ly: 288, cell: 'M548 250H852V326H548Z', room: true, icon: 'desk' },
+  sdiv:      { label: '본부 · 7–8F', view: 'hq', lx: 158, ly: 364, cell: 'M140 326H492V402H140Z M548 326H852V402H548Z', room: true, icon: 'desk' },
+  resonance: { label: '본부 · 6F', view: 'hq', lx: 158, ly: 432, cell: 'M140 402H492V462H140Z M548 402H852V462H548Z', room: true, icon: 'wave' },
+  medbay:    { label: '본부 · 4–5F 왼쪽', view: 'hq', lx: 158, ly: 500, cell: 'M140 462H492V538H140Z', room: true, icon: 'cross' },
+  ward:      { label: '본부 · 4–5F 오른쪽', view: 'hq', lx: 566, ly: 500, cell: 'M548 462H852V538H548Z', room: true, icon: 'bed' },
+  stabil:    { label: '본부 · 3F (격리)', view: 'hq', lx: 158, ly: 568, cell: 'M140 538H492V598H140Z M548 538H852V598H548Z', room: true, icon: 'alert' },
+  lounge:    { label: '본부 · 2F 왼쪽', view: 'hq', lx: 158, ly: 628, cell: 'M140 598H316V658H140Z', room: true, icon: 'cup' },
+  dining:    { label: '본부 · 2F 가운데', view: 'hq', lx: 334, ly: 628, cell: 'M316 598H492V658H316Z', room: true, icon: 'fork' },
+  igarden:   { label: '본부 · 2F 오른쪽', view: 'hq', lx: 566, ly: 628, cell: 'M548 598H852V658H548Z', room: true, icon: 'leaf' },
+  aqua:      { label: '본부 · B1 오른쪽 (바닷속)', view: 'hq', lx: 566, ly: 749, cell: 'M548 714H900V784H548Z', room: true, icon: 'fish' },
+  arena:     { label: '본부 · B2', view: 'hq', lx: 158, ly: 819, cell: 'M140 784H492V854H140Z M548 784H852V854H548Z', room: true, icon: 'target' },
   quarters:  { label: '숙소 단지 · 가운데 정원', view: 'res', lx: yardX, ly: yardY, dir: 'c' },
   eden:      { label: '숙소 단지 · 왼쪽 끝 강조 동', view: 'res', lx: edenX, ly: edenY, big: true },
   eve:       { label: '숙소 단지 · 오른쪽 끝 강조 동', view: 'res', lx: eveX, ly: eveY, big: true },

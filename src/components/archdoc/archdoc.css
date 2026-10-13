@@ -312,6 +312,23 @@ body:has(.arx)::before{display:none !important}
 .arx .am-zs{font:400 15px 'Noto Sans KR',sans-serif;letter-spacing:.22em;fill:rgba(220,230,240,.62)}
 .arx .am-pulse{fill:none;stroke:var(--ac);stroke-width:1.4;transform-box:fill-box;transform-origin:center;animation:amPulse 2.2s ease-out infinite;pointer-events:none}
 @keyframes amPulse{0%{opacity:.9;transform:scale(.5)}100%{opacity:0;transform:scale(2.6)}}
+/* 본부 — 층별 안내도 */
+.arx .am-bldg{fill:rgba(14,19,26,.97);stroke:rgba(225,233,242,.7);stroke-width:2.2}
+.arx .am-room{fill:rgba(190,208,228,.035);stroke:rgba(220,230,240,.16);stroke-width:1}
+.arx .am-slab{fill:none;stroke:rgba(225,233,242,.62);stroke-width:2.4}
+.arx .am-stair{fill:none;stroke:rgba(225,233,242,.45);stroke-width:1.4}
+.arx .am-core{fill:rgba(var(--acr),.07);stroke:rgba(var(--acr),.4);stroke-width:1.2}
+.arx .am-plq{fill:rgba(5,7,10,.92);stroke:rgba(225,233,242,.6);stroke-width:1.4}
+.arx .am-plqt{font:500 15px 'JetBrains Mono',monospace;letter-spacing:.14em;fill:#e8edf3}
+.arx .am-room-t{font:400 14px 'JetBrains Mono',monospace;letter-spacing:.32em;fill:rgba(220,230,240,.42)}
+.arx .am-room-t.dim{fill:rgba(220,230,240,.22)}
+.arx .am-room-sub{font:400 12px 'JetBrains Mono',monospace;letter-spacing:.24em;fill:rgba(220,230,240,.3)}
+.arx .am-rl.on .am-room-sub{fill:rgba(var(--acr),.8)}
+.arx .am-ico{fill:none;stroke:rgba(var(--acr),.75);stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
+.arx .am-rl{cursor:pointer}
+.arx .am-rl .am-code{font-size:20px}
+.arx .am-rl .am-nm{font-size:17px}
+.arx .am-rl.on .am-ico{stroke:#fff}
 /* 누를 칸 */
 .arx .am-cell{fill:rgba(190,208,228,.01);stroke:transparent;stroke-width:1.4;cursor:pointer;transition:fill .25s,stroke .25s}
 .arx .am-cell:hover{fill:rgba(var(--acr),.08);stroke:rgba(var(--acr),.45)}
@@ -382,6 +399,12 @@ body:has(.arx)::before{display:none !important}
   .arx .am-zl{font-size:36px;letter-spacing:.18em}
   .arx .am-zs{font-size:22px}
   .arx .am-mcode{font-size:16px}
+  .arx .am-rl .am-code{font-size:28px}
+  .arx .am-rl .am-nm{font-size:24px}
+  .arx .am-plqt{font-size:22px;letter-spacing:.06em}
+  .arx .am-room-t{font-size:20px;letter-spacing:.2em}
+  .arx .am-room-sub{font-size:17px;letter-spacing:.1em}
+  .arx .am-ico{stroke-width:2}
   .arx .am-arrow{height:34px;padding:0 9px}
   .arx .am-arrow span{display:none}
   .arx .am-legend{grid-template-columns:repeat(2,minmax(0,1fr))}
