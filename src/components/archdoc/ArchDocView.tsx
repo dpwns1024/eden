@@ -415,6 +415,14 @@ function MapEditor({ b, set }: { b: Extract<ArchBlock, { type: 'map' }>; set: (b
               onChange={e => sn({ ...n, quote: e.target.value ? { text: e.target.value, cite: n.quote?.cite ?? '' } : null })} /></Field>
             {n.quote && <Field label="현장 묘사 출처" wide><KInput value={n.quote.cite} onChange={e => sn({ ...n, quote: { text: n.quote!.text, cite: e.target.value } })} /></Field>}
             <Field label="덧붙임 (※ 뒤 작은 글씨 · 선택)" wide><KInput value={n.note ?? ''} onChange={e => sn({ ...n, note: e.target.value || undefined })} /></Field>
+            {AEGIS_SPOTS[n.spot]?.big && (
+              <Field label="강조 색 (#RRGGBB · 비우면 이름이 같은 캐릭터의 대표색)" wide>
+                <div className="ad-row">
+                  <KInput value={n.color ?? ''} placeholder="#b8d8ff" onChange={e => sn({ ...n, color: e.target.value.trim() || undefined })} />
+                  <input type="color" value={/^#[0-9a-f]{6}$/i.test(n.color ?? '') ? n.color : '#b8d8ff'} onChange={e => sn({ ...n, color: e.target.value })} style={{ width: 44, height: 36, padding: 0, border: 0, background: 'none' }} />
+                </div>
+              </Field>
+            )}
           </div>
         )} />
     </>
