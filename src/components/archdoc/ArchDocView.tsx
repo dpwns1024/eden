@@ -20,6 +20,8 @@ import { Modal } from '@/components/ui/Modal';
 import { KInput, KTextarea, KCheck, KSelect } from '@/components/ui/Kit';
 import { RichEditor } from '@/components/ui/RichEditor';
 import { useToast } from '@/components/ui/Toast';
+import { AegisMap } from './AegisMap';
+import { AEGIS_SPOTS, type ArchMapNode } from '@/lib/aegisMap';
 import './archdoc.css';
 
 const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v));
@@ -176,6 +178,8 @@ function BlockView({ b }: { b: ArchBlock }) {
         : <Pending label="기록 준비 중" />;
     case 'image':
       return b.src ? <ImageView src={b.src} caption={b.caption} /> : <Pending label="자료 준비 중" />;
+    case 'map':
+      return b.nodes.length ? <AegisMap nodes={b.nodes} caption={b.caption} /> : <Pending label="자료 준비 중" />;
     case 'html':
       return <div className="ar-rawhtml" dangerouslySetInnerHTML={{ __html: stripScripts(b.html) }} />;
   }
@@ -386,6 +390,37 @@ function ImageEditor({ b, set }: { b: Extract<ArchBlock, { type: 'image' }>; set
   );
 }
 
+const SPOT_OPTS = Object.entries(AEGIS_SPOTS).map(([value, s]) => ({ value, label: s.label }));
+const blankNode = (): ArchMapNode => ({ id: newId(), code: '', en: 'FACILITY', name: '', zone: '', spot: 'systems', body: '', quote: null });
+
+/** 아이기스 지도 — 그림은 고정, 시설마다 그림 속 자리를 하나 고른다 */
+function MapEditor({ b, set }: { b: Extract<ArchBlock, { type: 'map' }>; set: (b: ArchBlock) => void }) {
+  return (
+    <>
+      <div className="ad-grid">
+        <Field label="지도 위 제목 (비우면 THE AEGIS · CROSS SECTION)" wide><KInput value={b.caption} onChange={e => set({ ...b, caption: e.target.value })} /></Field>
+      </div>
+      <ItemList items={b.nodes} onChange={nodes => set({ ...b, nodes })} make={blankNode} addLabel="시설 추가"
+        title={(n: ArchMapNode) => `${n.code || '—'} ${n.name || n.en || '(이름 없음)'}`}
+        render={(n: ArchMapNode, sn: (v: ArchMapNode) => void) => (
+          <div className="ad-grid">
+            <Field label="번호 (예: 01)"><KInput maxLength={4} value={n.code} onChange={e => sn({ ...n, code: e.target.value })} /></Field>
+            <Field label="그림 속 자리"><KSelect options={SPOT_OPTS} value={n.spot} onChange={v => sn({ ...n, spot: v })} minWidth={180} /></Field>
+            <Field label="영문 이름 (은빛 큰 글씨)"><KInput value={n.en} onChange={e => sn({ ...n, en: e.target.value })} /></Field>
+            <Field label="한글 이름"><KInput value={n.name} onChange={e => sn({ ...n, name: e.target.value })} /></Field>
+            <Field label="다른 이름 (선택)"><KInput value={n.alias ?? ''} onChange={e => sn({ ...n, alias: e.target.value || undefined })} /></Field>
+            <Field label="구역 (예: DECK 1)"><KInput value={n.zone} onChange={e => sn({ ...n, zone: e.target.value })} /></Field>
+            <Field label="설명 (빈 줄로 문단 나눔)" wide><KTextarea rows={6} value={n.body} onChange={e => sn({ ...n, body: e.target.value })} /></Field>
+            <Field label="현장 묘사 (선택)" wide><KTextarea rows={3} value={n.quote?.text ?? ''}
+              onChange={e => sn({ ...n, quote: e.target.value ? { text: e.target.value, cite: n.quote?.cite ?? '' } : null })} /></Field>
+            {n.quote && <Field label="현장 묘사 출처" wide><KInput value={n.quote.cite} onChange={e => sn({ ...n, quote: { text: n.quote!.text, cite: e.target.value } })} /></Field>}
+            <Field label="덧붙임 (※ 뒤 작은 글씨 · 선택)" wide><KInput value={n.note ?? ''} onChange={e => sn({ ...n, note: e.target.value || undefined })} /></Field>
+          </div>
+        )} />
+    </>
+  );
+}
+
 function BlockEditor({ b, set }: { b: ArchBlock; set: (b: ArchBlock) => void }) {
   switch (b.type) {
     case 'head':
@@ -433,6 +468,8 @@ function BlockEditor({ b, set }: { b: ArchBlock; set: (b: ArchBlock) => void }) 
       return <RichEditor value={b.html} onChange={html => set({ ...b, html })} placeholder="내용을 입력하세요" />;
     case 'image':
       return <ImageEditor b={b} set={set} />;
+    case 'map':
+      return <MapEditor b={b} set={set} />;
     case 'html':
       return (
         <KTextarea value={b.html} onChange={e => set({ ...b, html: e.target.value })}
