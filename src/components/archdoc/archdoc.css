@@ -244,3 +244,60 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-rank-card{overflow:hidden}
 .arx .ar-rank-card > :not(.bg){position:relative;z-index:1}
 .arx .ar-rank-card .bg{position:absolute;right:-8px;bottom:-22px;font:600 92px/1 'Saira Semi Condensed',sans-serif;color:transparent;-webkit-text-stroke:1px rgba(190,208,228,.07);pointer-events:none;white-space:nowrap}
+
+/* ── 아이기스 단면 지도 (AegisMap.tsx · MAP 탭) — PC는 지도 왼쪽 · 설명 오른쪽, 폰은 위아래 ── */
+.arx .am{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px;align-items:start}
+.arx .am-frame{padding:0 0 6px}
+.arx .am-hd{display:flex;justify-content:space-between;gap:10px;height:36px;align-items:center;padding:0 16px;border-bottom:1px solid var(--ln);
+  font:400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--mu);white-space:nowrap;overflow:hidden}
+.arx .am-hd span:last-child{color:var(--dim)}
+.arx .am-svg{display:block;width:100%;height:auto;-webkit-tap-highlight-color:transparent}
+.arx .am-hull{fill:rgba(190,208,228,.035);stroke:rgba(220,230,240,.5);stroke-width:1.4}
+.arx .am-line{fill:none;stroke:rgba(220,230,240,.42);stroke-width:1.2}
+.arx .am-line.thin{stroke:rgba(220,230,240,.2);stroke-width:1}
+.arx .am-sea{fill:none;stroke:rgba(var(--acr),.45);stroke-width:1.2}
+.arx .am-sea.dim{stroke:rgba(var(--acr),.18)}
+.arx .am-beam{fill:none;stroke:rgba(var(--acr),.5);stroke-width:1;stroke-dasharray:3 6;animation:amFlow 1.6s linear infinite}
+.arx .am-shaft{fill:none;stroke:rgba(var(--acr),.35);stroke-width:1;stroke-dasharray:6 5}
+.arx .am-tag{font:400 11px 'JetBrains Mono',monospace;letter-spacing:.2em;fill:rgba(190,208,228,.38)}
+@keyframes amFlow{to{stroke-dashoffset:-18}}
+.arx .am-cell{fill:rgba(190,208,228,.02);stroke:rgba(220,230,240,.22);stroke-width:1;cursor:pointer;transition:fill .25s,stroke .25s}
+.arx .am-cell:hover{fill:rgba(var(--acr),.08);stroke:rgba(var(--acr),.5)}
+.arx .am-cell.on{fill:rgba(var(--acr),.14);stroke:var(--ac);filter:drop-shadow(0 0 8px rgba(var(--acr),.5))}
+.arx .am-cell.empty{fill:rgba(190,208,228,.015);stroke:rgba(220,230,240,.1);stroke-dasharray:4 4;cursor:default;pointer-events:none}
+.arx .am-mk{cursor:pointer}
+.arx .am-mk rect{fill:#05070a;stroke:rgba(var(--acr),.7);stroke-width:1.4;transition:fill .2s}
+.arx .am-mk.on rect{fill:var(--ac);filter:drop-shadow(0 0 6px var(--ac))}
+.arx .am-code{font:500 20px 'Saira Semi Condensed',sans-serif;fill:#fff;letter-spacing:.04em}
+.arx .am-nm{font:400 14px 'Noto Sans KR',sans-serif;fill:rgba(220,230,240,.62);letter-spacing:.06em}
+.arx .am-mk.on .am-code{fill:var(--ac)}
+.arx .am-mk.on .am-nm{fill:#fff}
+.arx .am-legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-top:10px}
+.arx .am-legend button{display:flex;align-items:center;gap:9px;min-width:0;height:34px;padding:0 10px;border:1px solid var(--ln2);background:rgba(8,11,15,.5);cursor:pointer;
+  font:400 12px/1 'Noto Sans KR',sans-serif;color:var(--mu);text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .2s,border-color .2s,box-shadow .2s}
+.arx .am-legend em{font:normal 500 13px/1 'Saira Semi Condensed',sans-serif;color:var(--dim)}
+.arx .am-legend button:hover{color:#fff;border-color:rgba(var(--acr),.45)}
+.arx .am-legend button.on{color:#fff;border-color:rgba(var(--acr),.6);box-shadow:0 0 16px -4px rgba(var(--acr),.6)}
+.arx .am-legend button.on em{color:var(--ac)}
+.arx .am-card{overflow:hidden;animation:arIn .35s ease both}
+.arx .am-card > :not(.bg){position:relative;z-index:1}
+.arx .am-card h3{font-size:28px;letter-spacing:.22em;line-height:1.15}
+.arx .am-body p{margin-top:14px}
+.arx .am-body p:first-child{margin-top:18px}
+.arx .am-quote{white-space:pre-line;word-break:keep-all}
+.arx .am-quote cite{display:block;margin-top:8px;font:normal 400 10.5px/1.4 'Noto Sans KR',sans-serif;letter-spacing:.08em;color:var(--mu)}
+.arx .am-card p.am-note{margin-top:16px;padding-top:12px;border-top:1px dashed var(--ln);font-size:12px;line-height:1.7;color:var(--mu)}
+.arx .am-card .bg{position:absolute;right:-6px;bottom:-24px;font:600 110px/1 'Saira Semi Condensed',sans-serif;color:transparent;-webkit-text-stroke:1px rgba(190,208,228,.07);pointer-events:none}
+@media (max-width:900px){
+  .arx .am{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .arx .am-hd{padding:0 12px;font-size:7.5px;letter-spacing:.16em}
+  .arx .am-nm{display:none}
+  .arx .am-code{font-size:30px}
+  .arx .am-mk rect{transform:rotate(45deg) scale(1.4)}
+  .arx .am-tag{font-size:16px}
+  .arx .am-legend{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .arx .am-card{padding:22px 18px 20px}
+  .arx .am-card h3{font-size:22px;letter-spacing:.16em}
+}

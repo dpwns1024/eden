@@ -13,6 +13,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getSetting, setSetting, onSettingChange } from './settingStore';
 import { newId } from './postStore';
+import { AEGIS_NODES, type ArchMapNode } from './aegisMap';
 
 export const ARCH_DOC_KEY = 'ohome.archdoc.v1';
 
@@ -56,6 +57,8 @@ export type ArchBlock =
       ranks?: ArchRanks | null }
   | { id: string; type: 'text'; html: string }
   | { id: string; type: 'image'; src: string; caption: string }
+  /** 아이기스 단면 지도 (MAP 탭) — 그림은 코드, 시설 설명은 nodes */
+  | { id: string; type: 'map'; caption: string; nodes: ArchMapNode[] }
   | { id: string; type: 'html'; html: string };
 export interface ArchTab { id: string; label: string; blocks: ArchBlock[] }
 export interface ArchDoc {
@@ -150,25 +153,41 @@ export function gradeOf(b: ClassesBlock): ClassesBlock['grade'] {
 export const blankRank = (): ArchRank => ({ id: newId(), key: 'X', en: 'RANK', name: '', alias: '', grade: '', body: '' });
 
 /* ── 저장된 문서 고치기 ── */
-export const DOC_REV = 2;
+export const DOC_REV = 3;
+const cloneNodes = (): ArchMapNode[] => AEGIS_NODES.map(n => ({ ...n, quote: n.quote ? { ...n.quote } : null }));
+const isMapTab = (t: ArchTab) => /^(맵|map)$/i.test(t.label.trim()) || t.blocks.some(b => b.type === 'head' && /^map$/i.test(b.title.trim()));
 /**
  * 예전 판으로 저장된 문서를 지금 판으로 (한 번만 — 관리자가 열면 저장된다).
  *  rev 2 (v2.0 사용자 요청): ARCH 분류 블록의 S~D 등급 띠를 빼고, 직급 카드 오른쪽 위 글씨를 지우고,
  *  하모니(H)는 카드 위를 RANK · S-C로. 관리자가 고친 이름·설명 등 나머지는 그대로 둔다.
+ *  rev 3 (v2.0 사용자 요청): MAP 탭에 아이기스 단면 지도 — 비어 있는 이미지 칸을 지도로 바꾸고, 없으면 끝에 붙인다.
  */
 export function migrateDoc(d: ArchDoc): ArchDoc {
-  if ((d.rev ?? 1) >= DOC_REV) return d;
-  const tabs = d.tabs.map(t => ({
-    ...t,
-    blocks: t.blocks.map(b => {
-      if (b.type !== 'classes' || !isArchClasses(b)) return b;
-      const ranks = b.ranks ? {
-        ...b.ranks,
-        items: b.ranks.items.map(r => ({ ...r, grade: '', tag: r.tag || (r.key === 'H' ? 'S-C' : undefined) })),
-      } : b.ranks;
-      return { ...b, grade: null, ranks };
-    }),
-  }));
+  const rev = d.rev ?? 1;
+  if (rev >= DOC_REV) return d;
+  let tabs = d.tabs;
+  if (rev < 2) {
+    tabs = tabs.map(t => ({
+      ...t,
+      blocks: t.blocks.map(b => {
+        if (b.type !== 'classes' || !isArchClasses(b)) return b;
+        const ranks = b.ranks ? {
+          ...b.ranks,
+          items: b.ranks.items.map(r => ({ ...r, grade: '', tag: r.tag || (r.key === 'H' ? 'S-C' : undefined) })),
+        } : b.ranks;
+        return { ...b, grade: null, ranks };
+      }),
+    }));
+  }
+  if (rev < 3) {
+    tabs = tabs.map(t => {
+      if (!isMapTab(t) || t.blocks.some(b => b.type === 'map')) return t;
+      const map = blankBlock('map');
+      const at = t.blocks.findIndex(b => b.type === 'image' && !b.src);
+      const blocks = at >= 0 ? t.blocks.map((b, i) => (i === at ? map : b)) : [...t.blocks, map];
+      return { ...t, blocks };
+    });
+  }
   return { ...d, tabs, rev: DOC_REV };
 }
 
@@ -205,11 +224,12 @@ export function blankBlock(type: ArchBlock['type'], num = ''): ArchBlock {
     case 'classes': return { id, type, items: [blankClass()], grade: null };
     case 'text': return { id, type, html: '' };
     case 'image': return { id, type, src: '', caption: '' };
+    case 'map': return { id, type, caption: '', nodes: cloneNodes() };
     default: return { id, type: 'html', html: '' };
   }
 }
 export const BLOCK_LABEL: Record<ArchBlock['type'], string> = {
-  head: '섹션 제목', cards: '정보 카드', classes: '분류 카드', text: '글', image: '이미지', html: 'HTML',
+  head: '섹션 제목', cards: '정보 카드', classes: '분류 카드', text: '글', image: '이미지', map: '지도', html: 'HTML',
 };
 
 /* ── ARCH 소개 HTML → 탭 문서 ── */
@@ -314,7 +334,7 @@ export function htmlToArchDoc(html: string): ArchDoc | null {
     if (!tabs.some(t => t.label === '맵')) {
       tabs.push({ id: newId(), label: '맵', blocks: [
         { id: newId(), type: 'head', num: String(tabs.length + 1).padStart(2, '0'), title: 'MAP', sub: '구역도', doc: '' },
-        { id: newId(), type: 'image', src: '', caption: '' },
+        blankBlock('map'),
       ] });
     }
   }
