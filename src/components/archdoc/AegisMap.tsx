@@ -115,13 +115,14 @@ const ICONS: Record<string, string> = {
 function HqView() {
   return <g dangerouslySetInnerHTML={{ __html: HQ_ART }} />;
 }
-/** 본부 시설 글씨 — PC: 기호 원 + 영문(번호) · 한글 두 줄 / 폰: 번호 + 한글 한 줄 (작은 화면에서도 읽히게) */
+/** 본부 시설 글씨 — PC: 기호 원 + 영문(번호) · 한글 두 줄 / 폰: 번호 + 한글 한 줄 (작은 화면에서도 읽히게).
+ *  세로 가운데는 dominant-baseline 대신 dy=".35em" — 아이폰 사파리는 tspan에 기준선을 물려주지 않아 글자가 어긋난다 */
 function HqLabel({ n, x, y, kind, icon }: { n: ArchMapNode; x: number; y: number; kind: string; icon?: string }) {
   const badge = icon && ICONS[icon] && (
     <><circle className="am-bd" r="15" /><path className="am-ic" transform="scale(.85)" d={ICONS[icon]} /></>
   );
   if (kind === 'mini') {
-    return <g transform={`translate(${x} ${y})`}><text className="am-tg2 am-lb" textAnchor="middle" dominantBaseline="central">{n.en}</text></g>;
+    return <g transform={`translate(${x} ${y})`}><text className="am-tg2 am-lb" textAnchor="middle" dy=".35em">{n.en}</text></g>;
   }
   if (kind === 'text' || kind === 'center') {
     const top = kind === 'center' ? 30 : 0;
@@ -132,8 +133,8 @@ function HqLabel({ n, x, y, kind, icon }: { n: ArchMapNode; x: number; y: number
           <text className="am-en2" y={top} textAnchor="middle">{n.code && <tspan className="am-cd">{n.code} </tspan>}{n.en}</text>
           <text className="am-ko2" y={top + 17} textAnchor="middle">{n.name}</text>
         </g>
-        <text className="am-mob" y={kind === 'center' ? 44 : 6} textAnchor="middle" dominantBaseline="central">
-          {n.code && <tspan className="am-cd am-mcode2">{n.code} </tspan>}<tspan className="am-mnm">{n.name}</tspan>
+        <text className="am-mob am-mnm" y={kind === 'center' ? 44 : 6} textAnchor="middle" dy=".35em">
+          {n.code && <tspan className="am-cd am-mcode2">{n.code} </tspan>}{n.name}
         </text>
       </g>
     );
@@ -145,8 +146,8 @@ function HqLabel({ n, x, y, kind, icon }: { n: ArchMapNode; x: number; y: number
         <text className="am-en2" x="25" y="-5">{n.code && <tspan className="am-cd">{n.code} </tspan>}{n.en}</text>
         <text className="am-ko2" x="25" y="13">{n.name}</text>
       </g>
-      <text className="am-mob" x="-14" y="0" dominantBaseline="central">
-        {n.code && <tspan className="am-cd am-mcode2">{n.code} </tspan>}<tspan className="am-mnm">{n.name}</tspan>
+      <text className="am-mob am-mnm" x="-14" y="0" dy=".35em">
+        {n.code && <tspan className="am-cd am-mcode2">{n.code} </tspan>}{n.name}
       </text>
     </g>
   );
@@ -250,9 +251,9 @@ function Marks({ list, on, pick, tint }: { list: ArchMapNode[]; on: string | nul
         return (
           <g key={n.id} className={cls} transform={`translate(${s.lx} ${s.ly})`} onClick={() => pick(n.spot)}>
             {mark}
-            <text x={end ? -16 : 16} y="0" textAnchor={end ? 'end' : 'start'} dominantBaseline="central">
-              {n.code && <tspan className="am-code" dominantBaseline="central">{n.code}</tspan>}
-              <tspan className="am-nm" dx={n.code ? 10 : 0} dominantBaseline="central">{n.name}</tspan>
+            <text className="am-nm" x={end ? -16 : 16} y="0" textAnchor={end ? 'end' : 'start'} dy=".35em">
+              {n.code && <tspan className="am-code">{n.code}</tspan>}
+              <tspan dx={n.code ? 10 : 0}>{n.name}</tspan>
             </text>
           </g>
         );
