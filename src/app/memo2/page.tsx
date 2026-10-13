@@ -16,6 +16,7 @@ import { useLocalList, newId } from '@/lib/postStore';
 import { MEMO_SEED } from '@/lib/memoStore';
 import { Modal, useConfirmDelete } from '@/components/ui/Modal';
 import { PageTitle, EditableDesc } from '@/components/ui/PageText';
+import { Pager } from '@/components/ui/Kit';
 import { useToast } from '@/components/ui/Toast';
 import { useBoardSkin } from '@/lib/boardSkin';
 
@@ -131,7 +132,15 @@ export default function MemoBoardPage() {
      PC: 왼쪽 목록 · 오른쪽 읽기 창(고른 게 없으면 첫 메모). 폰: 목록 → 누르면 읽기 화면, BACK으로 목록 */
   const [selId, setSelId] = useState<string | null>(null);
   const [reading, setReading] = useState(false);   // 폰에서 읽기 화면을 보고 있는가
-  const sel = shown.find(n => n.id === selId) ?? shown[0] ?? null;
+  // 목록은 한 쪽에 10개씩 (v2.0 사용자 요청) — 말머리·검색을 바꾸면 첫 쪽으로
+  const PER = 10;
+  const [page, setPage] = useState(1);
+  useEffect(() => { setPage(1); }, [cat, ql]);
+  const pages = Math.max(1, Math.ceil(shown.length / PER));
+  const pg = Math.min(page, pages);
+  const pageItems = shown.slice((pg - 1) * PER, pg * PER);
+  // 고른 게 없거나 다른 쪽에 있으면 이 쪽의 첫 메모를 읽기 창에
+  const sel = pageItems.find(n => n.id === selId) ?? pageItems[0] ?? null;
   const wrapRef = useRef<HTMLDivElement>(null);
   const pick = (id: string) => {
     setSelId(id);
@@ -191,12 +200,13 @@ export default function MemoBoardPage() {
       {shown.length > 0 ? (
         <div ref={wrapRef} className={`mn-wrap${reading ? ' m-read' : ''}`}>
           <div className="panel mn-list">
-            {shown.map(n => (
+            {pageItems.map(n => (
               <button key={n.id} type="button" className={`mn-row${sel?.id === n.id ? ' on' : ''}`} onClick={() => pick(n.id)}>
                 <span className="mn-meta"><span className="mn-cat">{n.category}</span><span className="mn-dt">{fmt(n.date)}</span></span>
                 <span className="mn-snip"><Hl text={snippet(n.content, ql)} q={ql} /></span>
               </button>
             ))}
+            <Pager page={pg} total={pages} onChange={p => { setPage(p); setSelId(null); }} />
           </div>
           {sel && (
             <article className="panel mn-reader">
