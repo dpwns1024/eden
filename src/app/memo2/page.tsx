@@ -206,7 +206,7 @@ export default function MemoBoardPage() {
                 <span className="mn-snip"><Hl text={snippet(n.content, ql)} q={ql} /></span>
               </button>
             ))}
-            <Pager page={pg} total={pages} onChange={p => { setPage(p); setSelId(null); }} />
+            <Pager page={pg} total={pages} block={8} onChange={p => { setPage(p); setSelId(null); }} />
           </div>
           {sel && (
             <article className="panel mn-reader">

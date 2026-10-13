@@ -363,9 +363,12 @@ export function SearchBar({ placeholder = '검색', light, onSearch }: {
 }
 
 /* ---------- 페이지네이션 (v1.6) ---------- */
-export function Pager({ page, total, onChange }: { page: number; total: number; onChange: (p: number) => void }) {
+/** 쪽 번호. block을 주면 번호를 그만큼씩만 보여 준다 (예: 8 → 1~8, ›로 9쪽에 가면 9~16) */
+export function Pager({ page, total, onChange, block }: { page: number; total: number; onChange: (p: number) => void; block?: number }) {
   if (total <= 1) return null;
-  const pages = Array.from({ length: total }, (_, i) => i + 1);
+  const start = block ? Math.floor((page - 1) / block) * block + 1 : 1;
+  const end = block ? Math.min(total, start + block - 1) : total;
+  const pages = Array.from({ length: end - start + 1 }, (_, i) => start + i);
   return (
     <div className="pager">
       <button disabled={page <= 1} onClick={() => onChange(page - 1)}>‹</button>
