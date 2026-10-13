@@ -3085,58 +3085,13 @@ html.ui-arch .toast::after{right:-1px;bottom:-1px;border-width:0 1px 1px 0}
 .page-prompt .pr-search input{flex:1;min-width:0;border:0;background:none;outline:none;font-size:calc(12.5px*var(--fs,1));color:var(--ink)}
 .page-prompt .pr-search input::-webkit-search-cancel-button{display:none}
 .page-prompt .pr-search button{font-size:11px;color:var(--faint);padding:2px 4px}
-.page-prompt .pr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;align-items:start}
-.page-prompt .pr-card{display:flex;flex-direction:column;padding:0;overflow:hidden;min-width:0}
-.page-prompt .pr-open{display:flex;flex-direction:column;gap:10px;width:100%;padding:0 0 4px;text-align:left;background:none;border:0;cursor:pointer;color:inherit}
-.page-prompt .pr-thumb{position:relative;display:block;aspect-ratio:4/3;overflow:hidden;background:rgba(0,0,0,.06)}
-.page-prompt .pr-thumb img,.page-prompt .pr-thumb .pr-ph{width:100%;height:100%;object-fit:cover;display:block}
-.page-prompt .pr-thumb em{position:absolute;right:8px;bottom:8px;font:normal 400 10px/1 'JetBrains Mono',monospace;padding:4px 6px;background:rgba(0,0,0,.6);color:#fff}
-.page-prompt .pr-title{display:block;padding:0 16px;margin-top:4px;font-size:calc(14px*var(--fs,1));color:var(--ink);font-weight:500}
-.page-prompt .pr-open > .pr-title:first-child,.page-prompt .pr-open > .pr-text:first-child{margin-top:16px}
-.page-prompt .pr-text{padding:0 16px;font:400 calc(12px*var(--fs,1))/1.65 'JetBrains Mono','Noto Sans KR',monospace;color:var(--sub);white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
-.page-prompt .pr-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding:10px 16px 14px;border-top:1px solid var(--line)}
-.page-prompt .pr-dt{font-size:calc(10px*var(--fs,1));color:var(--faint);letter-spacing:.08em}
-.page-prompt .pr-copy{height:30px;padding:0 16px;border:1px solid var(--ink);border-radius:6px;background:none;color:var(--ink);font-size:calc(10.5px*var(--fs,1));letter-spacing:.2em;cursor:pointer}
-.page-prompt .pr-ph{background:rgba(0,0,0,.06)}
 html.ui-arch .page-prompt .pr-count{font:400 calc(10px*var(--fs,1))/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--a-mu)}
 html.ui-arch .page-prompt .pr-search{border-radius:0;border-color:var(--a-ln2);background:rgba(8,11,15,.72);color:var(--a-mu)}
 html.ui-arch .page-prompt .pr-search input{color:var(--a-tx);font-family:'Noto Sans KR',sans-serif}
 html.ui-arch .page-prompt .pr-search input::placeholder{color:var(--a-dim)}
 html.ui-arch .page-prompt .pr-search:focus-within{border-color:rgba(var(--a-acr),.55)}
-html.ui-arch .page-prompt .pr-card{transition:border-color .2s}
-html.ui-arch .page-prompt .pr-card:hover{border-color:rgba(var(--a-acr),.38)}
-html.ui-arch .page-prompt .pr-thumb{background:rgba(184,216,255,.04);border-bottom:1px solid var(--a-ln)}
-html.ui-arch .page-prompt .pr-thumb em{background:rgba(5,7,10,.78);border:1px solid var(--a-ln2);color:var(--a-ac)}
-html.ui-arch .page-prompt .pr-title{font:400 calc(14px*var(--fs,1))/1.4 'Jost','Noto Sans KR',sans-serif;letter-spacing:.08em;color:#fff}
-html.ui-arch .page-prompt .pr-text{color:#b3bec9}
-html.ui-arch .page-prompt .pr-foot{border-top-color:var(--a-ln)}
-html.ui-arch .page-prompt .pr-dt{font-family:'JetBrains Mono',monospace;letter-spacing:.14em;color:var(--a-mu)}
-html.ui-arch .page-prompt .pr-copy{border-radius:0;border-color:rgba(var(--a-acr),.5);background:rgba(var(--a-acr),.1);color:#fff;font-family:'Jost',sans-serif;letter-spacing:.3em;transition:box-shadow .2s,border-color .2s}
-html.ui-arch .page-prompt .pr-copy:hover{border-color:rgba(var(--a-acr),.8);box-shadow:0 0 18px -5px rgba(var(--a-acr),.6)}
-html.ui-arch .page-prompt .pr-ph{background:linear-gradient(135deg,rgba(184,216,255,.06),rgba(5,7,10,.7))}
-@media (max-width:620px){
-  .page-prompt .pr-left{flex:1 1 100%}
-  .page-prompt .pr-search{flex:1 1 100%;min-width:0}
-  .page-prompt .pr-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-  .page-prompt .pr-title{padding:0 11px;font-size:calc(12.5px*var(--fs,1))}
-  .page-prompt .pr-text{padding:0 11px;font-size:calc(10.5px*var(--fs,1));-webkit-line-clamp:4}
-  .page-prompt .pr-foot{padding:8px 11px 11px;flex-wrap:wrap;row-gap:6px}
-  .page-prompt .pr-copy{height:28px;padding:0 12px;font-size:9.5px}
-  .page-prompt .pr-dt{font-size:9px}
-}
 /* 크게 보기 · 쓰기 창 */
-.mng-box.pr-modal{width:min(720px,94vw)}
 .mng-box.pr-modal.sm{width:min(560px,94vw)}
-.pr-view{display:grid;gap:14px}
-.pr-imgs{display:grid;gap:8px}
-.pr-imgs.n2{grid-template-columns:1fr 1fr}
-.pr-imgs.n3{grid-template-columns:repeat(3,1fr)}
-.pr-imgs img,.pr-imgs .pr-ph{width:100%;display:block;object-fit:cover;max-height:60vh;border-radius:0 !important}
-.pr-imgs.n2 img,.pr-imgs.n3 img{aspect-ratio:3/4;height:auto}
-.pr-full{white-space:pre-wrap;overflow-wrap:anywhere;font:400 calc(12.5px*var(--fs,1))/1.75 'JetBrains Mono','Noto Sans KR',monospace;padding:14px 16px;border:1px solid var(--line);background:rgba(0,0,0,.03)}
-.pr-view .pr-dt{font-size:10px;color:var(--faint);letter-spacing:.1em}
-.mng-box.arch-modal .pr-full{border-color:rgba(190,208,228,.14);background:rgba(5,7,10,.6);color:#d3dbe4}
-.mng-box.arch-modal .pr-view .pr-dt{font-family:'JetBrains Mono',monospace;color:#8592a0}
 .pr-form{display:grid;gap:12px}
 .pr-up{display:flex;flex-wrap:wrap;gap:8px}
 .pr-upimg{position:relative;width:76px;height:76px;overflow:hidden;border:1px solid var(--line)}
@@ -3152,3 +3107,61 @@ html.ui-arch .page-prompt .pr-ph{background:linear-gradient(135deg,rgba(184,216,
 .mng-box.pr-modal .pr-input::-webkit-scrollbar{display:none}
 .mng-box.arch-modal.pr-modal .pr-input{border:1px solid rgba(190,208,228,.18);border-radius:0;background:rgba(5,7,10,.75);color:#e4e9ef}
 .mng-box.arch-modal.pr-modal .pr-input:focus{outline:none;border-color:rgba(184,216,255,.6)}
+
+/* 프롬프트 리스트 — 왼쪽 세로 사진 크게 · 오른쪽 프롬프트 (v2.0 사용자 요청). 프롬프트 칸은 사진 높이에 맞추고 넘치면 안에서 스크롤 */
+.page-prompt .pr-list > div{display:grid;gap:14px}
+.page-prompt .pr-row{display:grid;grid-template-columns:260px minmax(0,1fr);gap:0;padding:0;overflow:hidden;min-width:0}
+.page-prompt .pr-media{display:flex;flex-direction:column;gap:6px;padding:12px;border-right:1px solid var(--line)}
+.page-prompt .pr-main{display:block;aspect-ratio:2/3;overflow:hidden;background:rgba(0,0,0,.06)}
+.page-prompt .pr-main img,.page-prompt .pr-main .pr-ph{width:100%;height:100%;object-fit:cover;display:block;border-radius:0}
+.page-prompt .pr-strip{display:flex;gap:5px;flex-wrap:wrap}
+.page-prompt .pr-strip button{width:40px;height:52px;padding:0;overflow:hidden;border:1px solid transparent;opacity:.55;cursor:pointer;background:none;transition:opacity .2s,border-color .2s}
+.page-prompt .pr-strip button.on,.page-prompt .pr-strip button:hover{opacity:1;border-color:var(--ink)}
+.page-prompt .pr-strip img,.page-prompt .pr-strip .pr-ph{width:100%;height:100%;object-fit:cover;display:block}
+/* 오른쪽 칸은 사진 칸이 정한 줄 높이를 채우기만 한다(스스로 줄을 늘리지 않게) */
+.page-prompt .pr-body{display:flex;flex-direction:column;min-width:0;height:0;min-height:100%;padding:16px 20px 14px}
+.page-prompt .pr-row.no-img{grid-template-columns:minmax(0,1fr)}
+.page-prompt .pr-row.no-img .pr-body{height:auto}
+.page-prompt .pr-head{display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.page-prompt .pr-drag{font-size:15px;touch-action:none;padding:2px}
+.page-prompt .pr-title{flex:1;min-width:0;font-size:calc(14px*var(--fs,1));font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.page-prompt .pr-untitled{color:var(--faint);font-weight:400;letter-spacing:.2em;font-size:calc(10px*var(--fs,1))}
+.page-prompt .pr-dt{font-size:calc(10px*var(--fs,1));color:var(--faint);letter-spacing:.08em;white-space:nowrap}
+.page-prompt .pr-text{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;margin:12px 0;padding:12px 14px;border:1px solid var(--line);background:rgba(0,0,0,.03);
+  font:400 calc(12.5px*var(--fs,1))/1.75 'JetBrains Mono','Noto Sans KR',monospace;color:var(--sub);white-space:pre-wrap;overflow-wrap:anywhere}
+.page-prompt .pr-text::-webkit-scrollbar{display:none}
+.page-prompt .pr-row.no-img .pr-text{max-height:280px}
+.page-prompt .pr-foot{display:flex;justify-content:flex-end;align-items:center;gap:6px}
+.page-prompt .pr-mini{height:28px;padding:0 10px;border:1px solid var(--line-dark);border-radius:6px;background:none;color:var(--sub);font-size:calc(9.5px*var(--fs,1));letter-spacing:.16em;cursor:pointer}
+.page-prompt .pr-copy{height:32px;padding:0 20px;border:1px solid var(--ink);border-radius:6px;background:none;color:var(--ink);font-size:calc(10.5px*var(--fs,1));letter-spacing:.24em;cursor:pointer}
+.page-prompt .pr-ph{background:rgba(0,0,0,.06)}
+html.ui-arch .page-prompt .pr-media{border-right-color:var(--a-ln)}
+html.ui-arch .page-prompt .pr-main{background:rgba(184,216,255,.04);box-shadow:0 0 0 1px var(--a-ln)}
+html.ui-arch .page-prompt .pr-strip button.on,html.ui-arch .page-prompt .pr-strip button:hover{border-color:var(--a-ac)}
+html.ui-arch .page-prompt .pr-head{border-bottom-color:var(--a-ln)}
+html.ui-arch .page-prompt .pr-title{font:400 calc(15px*var(--fs,1))/1.3 'Jost','Noto Sans KR',sans-serif;letter-spacing:.1em;color:#fff}
+html.ui-arch .page-prompt .pr-untitled{font-family:'JetBrains Mono',monospace;color:var(--a-dim);font-size:calc(10px*var(--fs,1))}
+html.ui-arch .page-prompt .pr-dt{font-family:'JetBrains Mono',monospace;letter-spacing:.14em;color:var(--a-mu)}
+html.ui-arch .page-prompt .pr-text{border-color:rgba(190,208,228,.1);background:rgba(5,7,10,.5);color:#c3ccd6}
+html.ui-arch .page-prompt .pr-mini{border-radius:0;border-color:var(--a-ln2);color:#c9d2dc;font-family:'Jost',sans-serif;letter-spacing:.24em}
+html.ui-arch .page-prompt .pr-mini:hover{border-color:rgba(var(--a-acr),.6);color:#fff}
+html.ui-arch .page-prompt .pr-copy{border-radius:0;border-color:rgba(var(--a-acr),.5);background:rgba(var(--a-acr),.1);color:#fff;font-family:'Jost',sans-serif;letter-spacing:.3em;transition:box-shadow .2s,border-color .2s}
+html.ui-arch .page-prompt .pr-copy:hover{border-color:rgba(var(--a-acr),.8);box-shadow:0 0 18px -5px rgba(var(--a-acr),.6)}
+html.ui-arch .page-prompt .pr-ph{background:linear-gradient(135deg,rgba(184,216,255,.06),rgba(5,7,10,.7))}
+@media (max-width:620px){
+  .page-prompt .pr-left{flex:1 1 100%}
+  .page-prompt .pr-search{flex:1 1 100%;min-width:0}
+  .page-prompt .pr-list > div{gap:10px}
+  .page-prompt .pr-row{grid-template-columns:132px minmax(0,1fr)}
+  .page-prompt .pr-media{padding:8px;gap:4px}
+  .page-prompt .pr-strip button{width:26px;height:34px}
+  .page-prompt .pr-body{padding:10px 10px 10px 11px}
+  .page-prompt .pr-head{padding-bottom:8px;gap:6px}
+  .page-prompt .pr-title,html.ui-arch .page-prompt .pr-title{font-size:calc(12.5px*var(--fs,1));letter-spacing:.04em}
+  .page-prompt .pr-dt{display:none}
+  .page-prompt .pr-text{margin:8px 0;padding:8px 9px;font-size:calc(10.5px*var(--fs,1));line-height:1.6}
+  .page-prompt .pr-foot{flex-wrap:wrap}
+  .page-prompt .pr-mini{height:26px;padding:0 7px;font-size:8.5px;letter-spacing:.1em}
+  .page-prompt .pr-copy{height:28px;padding:0 12px;font-size:9.5px;letter-spacing:.2em}
+}
+.mng-box.pr-modal{width:min(560px,94vw)}

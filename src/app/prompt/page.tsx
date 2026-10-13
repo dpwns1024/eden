@@ -6,7 +6,8 @@
  * 다시 붙여넣지 않아도 된다. 스티커 메모(/memo)·메모 게시판은 kind로 걸러 보고, 저장할 땐 서로의 항목을
  * 그대로 둔다. 공개범위·비밀번호는 이 메뉴(/prompt)의 설정을 따른다 (lib/visFloor.ts).
  *
- * 카드: 사진 · 제목 · 프롬프트 미리보기 · COPY. 카드를 누르면 전문과 사진 전부를 큰 창에서 본다.
+ * 리스트: 왼쪽에 세로 사진 크게(여러 장이면 아래 작은 사진으로 바꿔 보기) · 오른쪽에 제목 · 프롬프트 전문 · COPY (v2.0 사용자 요청).
+ * 관리자는 ⠿ 손잡이를 끌어 순서를 바꾼다(검색 중에는 끔).
  * 사진은 올릴 때 메타데이터를 지운 사본으로 저장된다(putBlob → lib/imageClean.ts) — 프롬프트는 글로 따로 적는다.
  */
 import React, { useEffect, useState } from 'react';
@@ -16,6 +17,7 @@ import { MEMO_SEED } from '@/lib/memoStore';
 import { useBlobUrl, putBlob } from '@/lib/blobStore';
 import { Modal, useConfirmDelete } from '@/components/ui/Modal';
 import { KInput, Pager } from '@/components/ui/Kit';
+import { DragList } from '@/components/ui/DragList';
 import { PageTitle, EditableDesc } from '@/components/ui/PageText';
 import { useToast } from '@/components/ui/Toast';
 
@@ -32,7 +34,7 @@ type AnyMemo = { id: string; kind?: string; [k: string]: unknown };
 const isPrompt = (m: AnyMemo): m is AnyMemo & PromptItem => m.kind === 'prompt';
 
 const MAX_IMG = 6;
-const PER = 12;
+const PER = 10;
 const fmt = (d: string) => (d || '').slice(0, 10).replace(/-/g, '.');
 const today = () => {
   const n = new Date();
@@ -43,6 +45,45 @@ function Img({ src, className }: { src?: string; className?: string }) {
   const url = useBlobUrl(src);
   // eslint-disable-next-line @next/next/no-img-element
   return url ? <img src={url} alt="" className={className} draggable={false} /> : <div className={`pr-ph ${className ?? ''}`} />;
+}
+
+/** 한 줄 — 왼쪽 세로 사진(여러 장이면 아래 작은 사진으로 바꿔 보기) · 오른쪽 제목 · 프롬프트 · COPY */
+function PromptRow({ p, drag, canEdit, onCopy, onEdit, onDel }: {
+  p: PromptItem; drag: boolean; canEdit: boolean;
+  onCopy: () => void; onEdit: () => void; onDel: () => void;
+}) {
+  const imgs = p.images ?? [];
+  const [cur, setCur] = useState(0);
+  const at = Math.min(cur, Math.max(0, imgs.length - 1));
+  return (
+    <article className={`panel pr-row${imgs.length ? '' : ' no-img'}`}>
+      {imgs.length > 0 && (
+        <div className="pr-media">
+          <span className="pr-main"><Img src={imgs[at]} /></span>
+          {imgs.length > 1 && (
+            <span className="pr-strip">
+              {imgs.map((src, i) => (
+                <button key={i} type="button" className={i === at ? 'on' : ''} onClick={() => setCur(i)} aria-label={`사진 ${i + 1}`}><Img src={src} /></button>
+              ))}
+            </span>
+          )}
+        </div>
+      )}
+      <div className="pr-body">
+        <div className="pr-head">
+          {drag && <span className="drag-h pr-drag" title="끌어서 순서 바꾸기">⠿</span>}
+          {p.title ? <b className="pr-title">{p.title}</b> : <span className="pr-title pr-untitled">UNTITLED</span>}
+          <span className="pr-dt">{fmt(p.date)}</span>
+        </div>
+        <div className="pr-text">{p.prompt}</div>
+        <div className="pr-foot">
+          {canEdit && <button type="button" className="pr-mini" onClick={onEdit}>EDIT</button>}
+          {canEdit && <button type="button" className="pr-mini" onClick={onDel}>DEL</button>}
+          <button type="button" className="pr-copy" onClick={onCopy}>COPY</button>
+        </div>
+      </div>
+    </article>
+  );
 }
 
 export default function PromptPage() {
@@ -63,9 +104,9 @@ export default function PromptPage() {
   const pages = Math.max(1, Math.ceil(shown.length / PER));
   const pg = Math.min(page, pages);
   const pageItems = shown.slice((pg - 1) * PER, pg * PER);
+  // 순서 바꾸기 — 관리자, 검색 중이 아닐 때 (걸러 낸 목록에서 바꾸면 전체 순서가 어긋난다)
+  const canSort = isAdmin && !ql;
 
-  const [viewId, setViewId] = useState<string | null>(null);
-  const view = items.find(p => p.id === viewId) ?? null;
 
   // 쓰기 창
   const [editId, setEditId] = useState<string | null>(null);   // 'new' = 새 프롬프트
@@ -74,7 +115,7 @@ export default function PromptPage() {
   const [fImgs, setFImgs] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const openNew = () => { setEditId('new'); setFTitle(''); setFPrompt(''); setFImgs([]); };
-  const openEdit = (p: PromptItem) => { setViewId(null); setEditId(p.id); setFTitle(p.title); setFPrompt(p.prompt); setFImgs(p.images ?? []); };
+  const openEdit = (p: PromptItem) => { setEditId(p.id); setFTitle(p.title); setFPrompt(p.prompt); setFImgs(p.images ?? []); };
   const close = () => setEditId(null);
   const addFiles = async (files: FileList | null) => {
     if (!files?.length) return;
@@ -130,25 +171,17 @@ export default function PromptPage() {
 
       {pageItems.length > 0 ? (
         <>
-          <div className="pr-grid">
-            {pageItems.map(p => (
-              <article key={p.id} className="panel pr-card">
-                <button type="button" className="pr-open" onClick={() => setViewId(p.id)} aria-label="크게 보기">
-                  {p.images?.length > 0 && (
-                    <span className="pr-thumb">
-                      <Img src={p.images[0]} />
-                      {p.images.length > 1 && <em>+{p.images.length - 1}</em>}
-                    </span>
-                  )}
-                  {p.title && <b className="pr-title">{p.title}</b>}
-                  <span className="pr-text">{p.prompt}</span>
-                </button>
-                <div className="pr-foot">
-                  <span className="pr-dt">{fmt(p.date)}</span>
-                  <button type="button" className="pr-copy" onClick={() => copy(p.prompt)}>COPY</button>
-                </div>
-              </article>
-            ))}
+          <div className="pr-list">
+            <DragList items={pageItems} keyOf={p => p.id} disabled={!canSort}
+              onReorder={next => {
+                // 이 쪽의 순서만 바꿔 전체 목록에 다시 끼운다
+                const start = (pg - 1) * PER;
+                setItems([...items.slice(0, start), ...next, ...items.slice(start + next.length)]);
+              }}
+              render={p => (
+                <PromptRow p={p} drag={canSort} canEdit={canEdit(p)} onCopy={() => copy(p.prompt)} onEdit={() => openEdit(p)}
+                  onDel={() => del.ask('이 프롬프트를 삭제하시겠습니까?', () => setItems(items.filter(x => x.id !== p.id)))} />
+              )} />
           </div>
           <Pager page={pg} total={pages} block={8} onChange={setPage} />
         </>
@@ -157,30 +190,6 @@ export default function PromptPage() {
           {ql ? `「${q.trim()}」 — 찾은 프롬프트가 없습니다` : '등록된 프롬프트가 없습니다'}
         </div>
       )}
-
-      {/* 크게 보기 — 사진 전부 + 프롬프트 전문 + COPY */}
-      <Modal open={!!view} onClose={() => setViewId(null)} className="pr-modal" title={view?.title || 'PROMPT'}
-        actions={view ? <>
-          {canEdit(view) && <button className="btn btn-ghost" onClick={() => openEdit(view)}>EDIT</button>}
-          {canEdit(view) && (
-            <button className="btn btn-ghost" onClick={() => del.ask('이 프롬프트를 삭제하시겠습니까?', () => {
-              setItems(items.filter(x => x.id !== view.id)); setViewId(null);
-            })}>DEL</button>
-          )}
-          <button className="btn btn-dark" onClick={() => copy(view.prompt)}>COPY</button>
-        </> : undefined}>
-        {view && (
-          <div className="pr-view">
-            {view.images?.length > 0 && (
-              <div className={`pr-imgs n${Math.min(view.images.length, 3)}`}>
-                {view.images.map((src, i) => <Img key={i} src={src} />)}
-              </div>
-            )}
-            <div className="pr-full">{view.prompt}</div>
-            <span className="pr-dt">{fmt(view.date)}</span>
-          </div>
-        )}
-      </Modal>
 
       {/* 쓰기 창 */}
       <Modal open={editId !== null} onClose={close} small className="pr-modal pr-edit" dirty={!!fPrompt.trim() || fImgs.length > 0}
