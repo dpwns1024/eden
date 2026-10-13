@@ -631,7 +631,7 @@ export function MemoBoardWidget() {
   const router = useRouter();
   const { user, isAdmin } = useAuth();
   const [allMemos] = useLocalList<StickyMemo>('ohome.memo.v1', MEMO_SEED);
-  const memos = allMemos.filter(m => m.kind !== 'note');   // 메모 게시판(/memo2)의 메모는 제외
+  const memos = allMemos.filter(m => !m.kind);   // 메모 게시판(/memo2)·프롬프트(/prompt) 항목은 제외 — 스티커만
   const [settings] = useMemoSettings();
   const [menuSet] = useMenuSettings();
   if (!canViewHref(menuSet, '/memo', { loggedIn: !!user, isAdmin })) return null;
