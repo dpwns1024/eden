@@ -2,7 +2,7 @@
 /**
  * 아이기스 지도 (v2.0 사용자 요청 · lib/aegisMap.ts) — 세 장.
  *  1) 섬 전체 — 세계지도처럼 위에서 본 섬 실루엣. 통합 지휘본부 · 요원 거주구역 두 곳의 표식만. 누르면 그 건물로 확대되며 넘어간다.
- *  2) 지휘본부 — 층별 안내도처럼 간략히 꾸민 단면 (옥상 왼쪽 끝 훈련 돔 · 한가운데 코어 탑, 그 위 상공의 하늘정원부터 지하 B2까지). 옆 화살표로 거주구역으로.
+ *  2) 지휘본부 — 층별 안내도 (방마다 칸 · 소품. 옥상 훈련 돔 · 코어 탑 · 헬기 착륙장, 코어 위 상공의 하늘정원부터 지하 B5까지). 옆 화살표로 거주구역으로.
  *  3) 거주구역 — 입체로 본 숙소동들. 양 끝의 이브 · 에덴 숙소동을 강조 — 고르면 그 캐릭터의 대표색으로 빛난다.
  * 칸이나 표시를 누르면(또는 아래 목록) 그 시설이 지도 아래(PC는 오른쪽) 카드로 나온다.
  */
@@ -10,13 +10,14 @@ import React, { useState } from 'react';
 import { AEGIS_SPOTS, SPOT_ORDER, RES_TOWERS, resP, type AegisView, type ArchMapNode } from '@/lib/aegisMap';
 import { useLocalList } from '@/lib/postStore';
 import { CHAR_SEED, type Character } from '@/lib/charStore';
+import { HQ_ART } from './aegisHqArt';
 
 type View = 'site' | AegisView;
 type Pick = (spot: string) => void;
 
 /** 두 건물의 이름 — 섬 지도 · 머리줄 · 목록이 같이 쓴다 */
 const SITE: Record<AegisView, { x: number; y: number; code: string; en: string; ko: string; hd: string }> = {
-  hq: { x: 440, y: 470, code: 'SECTOR A · 01', en: 'ARCH COMMAND', ko: '통합 지휘본부', hd: 'B2 – 10F · ROOF' },
+  hq: { x: 440, y: 470, code: 'SECTOR A · 01', en: 'ARCH COMMAND', ko: '통합 지휘본부', hd: 'B5 – 11F · ROOF' },
   res: { x: 600, y: 505, code: 'SECTOR R · 02', en: 'AGENT QUARTERS', ko: '요원 거주구역', hd: '7 BLOCKS' },
 };
 /** 확대 · 축소 모션의 기준점(%) = 섬 지도에서 두 건물의 자리 */
@@ -34,6 +35,7 @@ const Defs = () => (
     <pattern id="amLeaf" width="11" height="11" patternUnits="userSpaceOnUse"><circle cx="5.5" cy="5.5" r="1.5" fill="rgba(160,220,190,.32)" /></pattern>
     <pattern id="amSoil" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="3" cy="4" r="1" fill="rgba(190,208,228,.07)" /><circle cx="10" cy="11" r="1" fill="rgba(190,208,228,.05)" /></pattern>
     <linearGradient id="amSea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="rgba(120,170,230,.16)" /><stop offset="1" stopColor="rgba(120,170,230,.02)" /></linearGradient>
+    <radialGradient id="amPortal"><stop offset="0" stopColor="rgba(184,216,255,.45)" /><stop offset=".6" stopColor="rgba(184,216,255,.12)" /><stop offset="1" stopColor="rgba(184,216,255,0)" /></radialGradient>
     <radialGradient id="amGlow"><stop offset="0" stopColor="rgba(184,216,255,.35)" /><stop offset="1" stopColor="rgba(184,216,255,0)" /></radialGradient>
   </defs>
 );
@@ -89,8 +91,9 @@ function SiteView({ go }: { go: (v: AegisView) => void }) {
   );
 }
 
-/* ───────── 2) 지휘본부 — 층별 안내도 ───────── */
-/** 방 그림 기호 — 가운데 (0,0), 한 변 약 24 */
+/* ───────── 2) 지휘본부 — 층별 안내도 (그림: aegisHqArt.ts · viewBox 0 0 1000 1190) ───────── */
+export const HQ_H = 1190;
+/** 시설 그림 기호 — 가운데 (0,0), 한 변 약 24 */
 const ICONS: Record<string, string> = {
   talk: 'M-11 -8 H11 V5 H-2 L-7 10 V5 H-11 Z',
   desk: 'M-11 -3 H11 V9 H-11 Z M-5 -3 V-8 H5 V-3 M-11 3 H11',
@@ -101,90 +104,51 @@ const ICONS: Record<string, string> = {
   cup: 'M-10 -5 H5 V3 Q5 9 -2.5 9 Q-10 9 -10 3 Z M5 -2 H8 Q11 -2 11 1 Q11 4 8 4 H5',
   fork: 'M-6 -10 V10 M-9 -10 V-4 Q-9 0 -6 0 Q-3 0 -3 -4 V-10 M6 10 V-10 Q11 -6 10 2 H6',
   leaf: 'M-9 9 Q-11 -9 10 -10 Q11 9 -9 9 Z M-9 9 L4 -4',
-  fish: 'M-11 0 Q-3 -9 6 0 Q-3 9 -11 0 Z M6 0 L11 -5 V5 Z M-5 -1 V-1.5',
+  fish: 'M-11 0 Q-3 -9 6 0 Q-3 9 -11 0 Z M6 0 L11 -5 V5 Z',
   target: 'M10 0 A10 10 0 1 1 -10 0 A10 10 0 1 1 10 0 Z M4 0 A4 4 0 1 1 -4 0 A4 4 0 1 1 4 0 Z',
+  gear: 'M7 0 A7 7 0 1 1 -7 0 A7 7 0 1 1 7 0 Z M0 -12 V-8 M0 8 V12 M-12 0 H-8 M8 0 H12 M-8.5 -8.5 L-6 -6 M6 6 L8.5 8.5 M-8.5 8.5 L-6 6 M6 -6 L8.5 -8.5',
+  door: 'M-9 10 V-10 H9 V10 M0 -10 V10 M-3 1 V2 M3 1 V2',
+  blade: 'M-9 9 L8 -8 M5 -10 L10 -5 M-9 -9 L8 8 M5 10 L10 5 M-11 7 L-7 11 M-11 -7 L-7 -11',
+  gate: 'M7 0 A7 11 0 1 1 -7 0 A7 11 0 1 1 7 0 Z M3.5 0 A3.5 6 0 1 1 -3.5 0 A3.5 6 0 1 1 3.5 0 Z',
+  file: 'M-8 -11 H4 L9 -6 V11 H-8 Z M4 -11 V-6 H9 M-4 -1 H5 M-4 3 H5 M-4 7 H2',
 };
-/** 층 — [윗선, 아랫선, 이름표] */
-const LEVELS: [number, number, string][] = [
-  [250, 326, '9–10F'], [326, 402, '7–8F'], [402, 462, '6F'], [462, 538, '4–5F'], [538, 598, '3F'],
-  [598, 658, '2F'], [658, 714, '1F'], [714, 784, 'B1'], [784, 854, 'B2'],
-];
-/** 방 상자 — 칸 안쪽으로 6 들여서 */
-const ROOMS: [number, number, number, number][] = [
-  [140, 492, 250, 326], [548, 852, 250, 326], [140, 492, 326, 402], [548, 852, 326, 402], [140, 492, 402, 462], [548, 852, 402, 462],
-  [140, 492, 462, 538], [548, 852, 462, 538], [140, 492, 538, 598], [548, 852, 538, 598], [140, 316, 598, 658], [316, 492, 598, 658],
-  [548, 852, 598, 658], [140, 492, 658, 714], [548, 852, 658, 714], [140, 492, 714, 784], [548, 900, 714, 784], [140, 492, 784, 854], [548, 852, 784, 854],
-];
-const plaque = (x: number, y: number) => `M${x - 52} ${y} L${x - 40} ${y - 17} H${x + 40} L${x + 52} ${y} L${x + 40} ${y + 17} H${x - 40} Z`;
-function stairs(t: number, b: number) {
-  const n = 5, w = 40 / n, h = (b - t - 10) / n;
-  let d = `M856 ${b - 5}`;
-  for (let i = 0; i < n; i++) d += ` h${w} v${-h}`;
-  return d;
-}
 function HqView() {
-  const wave = 'M0 730 ' + Array.from({ length: 20 }, () => 'q12.5 -6 25 0 t25 0').join(' ');
+  return <g dangerouslySetInnerHTML={{ __html: HQ_ART }} />;
+}
+/** 본부 시설 글씨 — PC: 기호 원 + 영문(번호) · 한글 두 줄 / 폰: 번호 + 한글 한 줄 (작은 화면에서도 읽히게) */
+function HqLabel({ n, x, y, kind, icon }: { n: ArchMapNode; x: number; y: number; kind: string; icon?: string }) {
+  const badge = icon && ICONS[icon] && (
+    <><circle className="am-bd" r="15" /><path className="am-ic" transform="scale(.85)" d={ICONS[icon]} /></>
+  );
+  if (kind === 'mini') {
+    return <g transform={`translate(${x} ${y})`}><text className="am-tg2 am-lb" textAnchor="middle" dominantBaseline="central">{n.en}</text></g>;
+  }
+  if (kind === 'text' || kind === 'center') {
+    const top = kind === 'center' ? 30 : 0;
+    return (
+      <g transform={`translate(${x} ${y})`}>
+        {kind === 'center' && badge}
+        <g className="am-dsk">
+          <text className="am-en2" y={top} textAnchor="middle">{n.code && <tspan className="am-cd">{n.code} </tspan>}{n.en}</text>
+          <text className="am-ko2" y={top + 17} textAnchor="middle">{n.name}</text>
+        </g>
+        <text className="am-mob" y={kind === 'center' ? 44 : 6} textAnchor="middle" dominantBaseline="central">
+          {n.code && <tspan className="am-cd am-mcode2">{n.code} </tspan>}<tspan className="am-mnm">{n.name}</tspan>
+        </text>
+      </g>
+    );
+  }
   return (
-    <>
-      {/* 바다 · 섬 */}
-      <rect x="0" y="730" width="1000" height="270" fill="url(#amSea)" />
-      <path className="am-sea" d={wave} />
-      <rect x="120" y="714" width="800" height="286" className="am-earth" />
-      <rect x="120" y="714" width="800" height="286" fill="url(#amSoil)" />
-      <path className="am-line" d="M100 714 H940 M120 714 V1000 M920 714 V1000" />
-      <text className="am-tag" x="960" y="744" textAnchor="middle" dominantBaseline="central">SEA</text>
-
-      {/* 건물 — 굵은 외곽선 + 층 바닥 */}
-      <rect className="am-bldg" x="140" y="250" width="760" height="604" />
-      {ROOMS.map(([x0, x1, y0, y1]) => <rect key={`${x0}-${y0}`} className="am-room" x={x0 + 6} y={y0 + 6} width={x1 - x0 - 12} height={y1 - y0 - 12} rx="6" />)}
-      <rect x="146" y="544" width="340" height="48" rx="6" fill="url(#amHatch)" />
-      <rect x="554" y="544" width="292" height="48" rx="6" fill="url(#amHatch)" />
-      <rect x="770" y="606" width="74" height="44" rx="6" fill="url(#amLeaf)" />
-      <path className="am-glass" d="M900 724 Q946 749 900 774 Z" />
-      <rect x="760" y="720" width="134" height="58" fill="url(#amLeaf)" opacity=".7" />
-      {LEVELS.map(([t]) => <path key={t} className="am-slab" d={`M140 ${t} H900`} />)}
-      <path className="am-slab" d="M120 854 H920" />
-      {/* 계단 (2F~10F) */}
-      <path className="am-slab" d="M852 250 V714" />
-      {LEVELS.slice(0, 6).map(([t, b]) => <path key={t} className="am-stair" d={stairs(t, b)} />)}
-      {/* 가운데 코어 (승강로) */}
-      <rect className="am-core" x="492" y="250" width="56" height="604" />
-      {LEVELS.map(([t, b]) => (
-        <path key={t} className="am-l2" d={`M512 ${(t + b) / 2 - 3} l8 -8 l8 8 M512 ${(t + b) / 2 + 3} l8 8 l8 -8`} />
-      ))}
-      {/* 1F 로비 */}
-      <text className="am-room-t" x="164" y="686" dominantBaseline="central">LOBBY</text>
-      <path className="am-l2" d="M670 714 V690 H730 V714" />
-      <text className="am-room-t dim" x="164" y="749" dominantBaseline="central">MECH.</text>
-      {/* 층 이름표 */}
-      {[[250, 250, 'ROOF'] as const, ...LEVELS].map(([t, b, n]) => {
-        const y = n === 'ROOF' ? 222 : (t + b) / 2;
-        return (
-          <g key={n}>
-            <path className="am-plq" d={plaque(72, y)} />
-            <text className="am-plqt" x="72" y={y} textAnchor="middle" dominantBaseline="central">{n}</text>
-          </g>
-        );
-      })}
-
-      {/* 옥상 — 왼쪽 끝 훈련 돔 */}
-      <path className="am-bldg" d="M146 250 A84 84 0 0 1 314 250 Z" />
-      <path className="am-l2" d="M230 166 V250 M156 214 Q230 232 304 214 M178 186 Q230 200 282 186" />
-      {/* 옥상 — 오른쪽 정원 난간 */}
-      <path className="am-l2" d="M700 250 V232 H880 V250 M730 232 V250 M760 232 V250 M790 232 V250 M820 232 V250 M850 232 V250" />
-      <rect x="704" y="238" width="172" height="10" fill="url(#amLeaf)" />
-      {/* 옥상 — 가운데 코어 탑 + 위 상공의 하늘정원 */}
-      <path className="am-bldg" d="M506 184 H534 L552 250 H488 Z" />
-      <ellipse className="am-bldg" cx="520" cy="176" rx="58" ry="9" />
-      <circle cx="520" cy="154" r="24" fill="url(#amGlow)" />
-      <path className="am-acc" d="M520 142 V168 M510 154 H530" />
-      <path className="am-beam" d="M506 140 V166 M534 140 V166" />
-      <circle cx="520" cy="88" r="88" fill="url(#amGlow)" opacity=".55" />
-      <path className="am-hull" d="M400 58 Q520 36 640 58 Q604 116 520 138 Q436 116 400 58 Z" />
-      <path className="am-line" d="M440 56 V32 M432 40 H448 M460 52 V38 M586 52 V34 M578 42 H594 M606 56 V40" />
-      <path className="am-l2" d="M502 48 V34 H538 V48 M496 34 L520 22 L544 34" />
-      <text className="am-tag dim" x="388" y="40" textAnchor="end" dominantBaseline="central">ALT 1,200m</text>
-    </>
+    <g transform={`translate(${x} ${y})`}>
+      <g className="am-dsk">
+        {badge}
+        <text className="am-en2" x="25" y="-5">{n.code && <tspan className="am-cd">{n.code} </tspan>}{n.en}</text>
+        <text className="am-ko2" x="25" y="13">{n.name}</text>
+      </g>
+      <text className="am-mob" x="-14" y="0" dominantBaseline="central">
+        {n.code && <tspan className="am-cd am-mcode2">{n.code} </tspan>}<tspan className="am-mnm">{n.name}</tspan>
+      </text>
+    </g>
   );
 }
 
@@ -264,16 +228,11 @@ function Marks({ list, on, pick, tint }: { list: ArchMapNode[]; on: string | nul
             </g>
           );
         }
-        if (s.room) {
+        if (s.kind) {
           return (
-            <g key={n.id} className={`${cls} am-rl`} transform={`translate(${s.lx} ${s.ly})`} onClick={() => pick(n.spot)}>
-              {s.icon && ICONS[s.icon] && <path className="am-ico" d={ICONS[s.icon]} transform="translate(12 0)" />}
-              <text x={s.icon ? 34 : 0} y="0" dominantBaseline="central">
-                {n.code && <tspan className="am-code" dominantBaseline="central">{n.code}</tspan>}
-                <tspan className="am-nm" dx={n.code ? 9 : 0} dominantBaseline="central">{n.name}</tspan>
-              </text>
-              {/* 코어 양쪽을 다 쓰는 층 — 오른쪽 칸에는 영문 이름을 작게 */}
-              {s.cell?.includes(' M') && <text className="am-room-sub" x={566 - s.lx} y="0" dominantBaseline="central">{n.en}</text>}
+            <g key={n.id} className={`am-hq${act ? ' on' : ''}`} onClick={() => pick(n.spot)}>
+              <HqLabel n={n} x={s.lx} y={s.ly} kind={s.kind} icon={s.icon} />
+              {s.lx2 !== undefined && <HqLabel n={n} x={s.lx2} y={s.ly2 ?? s.ly} kind={s.kind} icon={s.icon} />}
             </g>
           );
         }
@@ -342,9 +301,9 @@ export function AegisMap({ nodes, caption }: { nodes: ArchMapNode[]; caption?: s
   };
   const layer = (v: View, body: React.ReactNode, label: string) => (
     <div className={`am-v${v === view ? ' cur' : ''}`} style={style(v)} aria-hidden={v !== view}>
-      <svg className="am-svg" viewBox="0 0 1000 1000" role="img" aria-label={label}>
+      <svg className="am-svg" viewBox={`0 0 1000 ${v === 'hq' ? HQ_H : 1000}`} role="img" aria-label={label}>
         <Defs />
-        <rect width="1000" height="1000" fill="url(#amGrid)" />
+        <rect width="1000" height={v === 'hq' ? HQ_H : 1000} fill="url(#amGrid)" />
         {body}
       </svg>
     </div>
