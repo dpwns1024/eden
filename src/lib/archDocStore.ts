@@ -154,7 +154,7 @@ export function gradeOf(b: ClassesBlock): ClassesBlock['grade'] {
 export const blankRank = (): ArchRank => ({ id: newId(), key: 'X', en: 'RANK', name: '', alias: '', grade: '', body: '' });
 
 /* ── 저장된 문서 고치기 ── */
-export const DOC_REV = 4;
+export const DOC_REV = 5;
 const isMapTab = (t: ArchTab) => /^(맵|map)$/i.test(t.label.trim()) || t.blocks.some(b => b.type === 'head' && /^map$/i.test(b.title.trim()));
 /**
  * 예전 판으로 저장된 문서를 지금 판으로 (한 번만 — 관리자가 열면 저장된다).
@@ -162,6 +162,7 @@ const isMapTab = (t: ArchTab) => /^(맵|map)$/i.test(t.label.trim()) || t.blocks
  *  하모니(H)는 카드 위를 RANK · S-C로. 관리자가 고친 이름·설명 등 나머지는 그대로 둔다.
  *  rev 3 (v2.0 사용자 요청): MAP 탭에 아이기스 단면 지도 — 비어 있는 이미지 칸을 지도로 바꾸고, 없으면 끝에 붙인다.
  *  rev 4 (v2.0 사용자 요청): 지도가 섬 · 본부 · 숙소 세 장으로 — 예전 구역 글씨를 층으로, 새 시설(위치만)을 덧붙인다.
+ *  rev 5 (v2.0 사용자 요청): 본부 층수를 상식적인 범위로 — 손대지 않은 층 글씨를 새 층으로.
  */
 export function migrateDoc(d: ArchDoc): ArchDoc {
   const rev = d.rev ?? 1;
@@ -189,7 +190,7 @@ export function migrateDoc(d: ArchDoc): ArchDoc {
       return { ...t, blocks };
     });
   }
-  if (rev < 4) {
+  if (rev < 5) {
     tabs = tabs.map(t => ({ ...t, blocks: t.blocks.map(b => (b.type === 'map' ? { ...b, nodes: upgradeAegisNodes(b.nodes) } : b)) }));
   }
   return { ...d, tabs, rev: DOC_REV };

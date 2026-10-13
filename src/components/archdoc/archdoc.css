@@ -285,6 +285,18 @@ body:has(.arx)::before{display:none !important}
 .arx .am-road{fill:none;stroke:rgba(220,230,240,.12);stroke-width:7;stroke-linecap:round}
 .arx .am-tag{font:400 13px 'JetBrains Mono',monospace;letter-spacing:.2em;fill:rgba(190,208,228,.45)}
 .arx .am-tag.dim{fill:rgba(190,208,228,.28)}
+/* 섬 지도 — 세계지도처럼 회색 땅 + 이어진 흰 점 */
+.arx .am-land{fill:rgba(150,166,184,.26);stroke:rgba(200,214,230,.12);stroke-width:1;filter:drop-shadow(0 10px 24px rgba(0,0,0,.6))}
+.arx .am-lot{fill:rgba(5,7,10,.35);stroke:rgba(220,230,240,.22);stroke-width:1}
+.arx .am-link{fill:none;stroke:rgba(235,240,246,.42);stroke-width:1.1}
+.arx .am-link.route{stroke:rgba(235,240,246,.18);stroke-dasharray:3 6}
+.arx .am-dot{fill:#fff;filter:drop-shadow(0 0 4px rgba(255,255,255,.6))}
+.arx .am-dot.big{fill:#fff;filter:drop-shadow(0 0 10px rgba(var(--acr),.9))}
+.arx .am-node{cursor:pointer}
+.arx .am-node:hover .am-dot.big{fill:var(--ac)}
+.arx .am-node:hover .am-zl{fill:var(--ac)}
+.arx .am-beam{fill:none;stroke:rgba(var(--acr),.5);stroke-width:1;stroke-dasharray:3 5;animation:amFlow 1.6s linear infinite}
+@keyframes amFlow{to{stroke-dashoffset:-16}}
 /* 섬 지도 — 건물 두 곳 */
 .arx .am-bld{cursor:pointer}
 .arx .am-hit{fill:transparent}

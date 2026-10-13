@@ -1,8 +1,8 @@
 'use client';
 /**
  * 아이기스 지도 (v2.0 사용자 요청 · lib/aegisMap.ts) — 세 장.
- *  1) 섬 전체 — 위에서 본 인공섬. 본부 건물 · 숙소 단지 두 곳만 간략히. 누르면 그 건물로 확대되며 넘어간다.
- *  2) 본부 — 한 건물의 층별 단면 (상공의 하늘정원부터 바닷속 B7까지). 옆 화살표로 숙소 단지로.
+ *  1) 섬 전체 — 세계지도처럼 위에서 본 섬 실루엣 + 이어진 점. 본부 건물 · 숙소 단지 두 곳만. 누르면 그 건물로 확대되며 넘어간다.
+ *  2) 본부 — 한 건물의 층별 단면 (코어 탑 위 하늘정원부터 바닷속 B5까지). 옆 화살표로 숙소 단지로.
  *  3) 숙소 단지 — 입체로 본 숙소동들. 이브 · 에덴 숙소동을 강조.
  * 칸이나 표시를 누르면(또는 아래 목록) 그 시설이 지도 아래(PC는 오른쪽) 카드로 나온다.
  */
@@ -13,7 +13,7 @@ type View = 'site' | AegisView;
 type Pick = (spot: string) => void;
 
 /** 섬 지도에서 두 건물의 자리 — 확대 · 축소 모션의 기준점(%) */
-const ORIGIN: Record<AegisView, string> = { hq: '37.5% 47.5%', res: '72% 52%' };
+const ORIGIN: Record<AegisView, string> = { hq: '40% 47%', res: '65% 51%' };
 
 function Paras({ text }: { text: string }) {
   return <>{text.split(/\n{2,}/).map((p, i) => <p key={i}>{p}</p>)}</>;
@@ -22,7 +22,7 @@ function Paras({ text }: { text: string }) {
 const Defs = () => (
   <defs>
     <pattern id="amGrid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="rgba(190,208,228,.05)" /></pattern>
-    <pattern id="amFl" width="10" height="9" patternUnits="userSpaceOnUse"><path d="M0 8.5H10" stroke="rgba(220,230,240,.05)" /></pattern>
+    <pattern id="amFl" y="300" width="10" height="24" patternUnits="userSpaceOnUse"><path d="M0 23.5H10" stroke="rgba(220,230,240,.07)" /></pattern>
     <pattern id="amHatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0V7" stroke="rgba(255,150,160,.22)" /></pattern>
     <pattern id="amLeaf" width="11" height="11" patternUnits="userSpaceOnUse"><circle cx="5.5" cy="5.5" r="1.5" fill="rgba(160,220,190,.32)" /></pattern>
     <linearGradient id="amSea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="rgba(120,170,230,.16)" /><stop offset="1" stopColor="rgba(120,170,230,.02)" /></linearGradient>
@@ -31,120 +31,123 @@ const Defs = () => (
   </defs>
 );
 
-/* ───────── 1) 섬 전체 ───────── */
+/* ───────── 1) 섬 전체 — 세계지도 모양 ───────── */
+const ISLAND = 'M863 492 L857 506 L847 520 L841 534 L833 547 L820 558 L810 570 L806 584 L795 596 L774 603 L754 609 L744 620 L737 634 L724 644 L708 652 L691 659 L671 663 L646 659 L621 652 L603 651 L587 655 L567 645 L549 634 L535 642 L520 665 L502 676 L483 676 L462 682 L438 692 L414 696 L396 688 L381 677 L365 668 L348 660 L335 650 L318 642 L295 639 L272 634 L260 622 L254 608 L243 596 L228 586 L219 574 L217 559 L215 545 L216 532 L230 517 L252 503 L263 492 L259 481 L252 469 L253 457 L254 445 L252 432 L256 420 L267 411 L276 400 L275 385 L278 371 L292 362 L313 357 L329 350 L343 341 L358 333 L371 324 L381 307 L392 289 L410 280 L433 280 L455 279 L476 276 L498 276 L520 281 L541 285 L561 288 L579 297 L593 313 L607 324 L625 326 L646 325 L665 328 L682 334 L700 339 L714 348 L719 362 L723 376 L736 384 L753 390 L763 400 L766 413 L773 424 L785 433 L794 444 L804 455 L825 466 L851 478 Z';
+const ISLETS = [
+  'M221 300 L217 304 L214 308 L210 311 L204 314 L196 313 L192 315 L186 318 L178 320 L172 317 L166 315 L161 312 L157 308 L159 304 L161 300 L159 296 L160 293 L163 289 L167 286 L170 280 L179 280 L186 282 L192 285 L199 284 L203 287 L208 290 L211 293 L218 296 Z',
+  'M877 262 L875 266 L871 270 L868 274 L860 275 L855 278 L850 281 L842 284 L834 283 L826 281 L818 280 L815 275 L814 270 L817 265 L809 262 L809 258 L809 253 L815 249 L817 244 L826 242 L834 242 L842 244 L849 244 L856 245 L860 249 L868 250 L875 253 L883 256 Z',
+  'M898 648 L897 652 L893 655 L888 658 L885 661 L879 663 L873 661 L868 662 L863 663 L856 664 L851 661 L845 659 L842 656 L840 652 L846 648 L846 645 L846 642 L848 638 L853 636 L857 634 L861 630 L868 630 L874 631 L878 635 L884 636 L886 639 L889 642 L891 645 Z',
+  'M166 714 L165 717 L163 720 L159 722 L155 723 L154 727 L149 729 L144 730 L139 728 L134 728 L130 725 L128 722 L128 719 L124 717 L122 714 L122 711 L123 708 L125 704 L128 701 L135 702 L140 702 L144 702 L149 700 L153 702 L158 703 L162 705 L168 707 L167 711 Z',
+  'M909 454 L908 456 L906 458 L905 460 L902 461 L899 462 L897 463 L894 465 L891 465 L888 463 L884 463 L883 460 L882 458 L884 456 L881 454 L880 452 L881 449 L883 448 L884 445 L887 444 L891 444 L894 445 L897 445 L900 445 L901 447 L905 448 L907 449 L911 451 Z',
+  'M244 604 L243 606 L242 607 L240 608 L238 610 L236 609 L234 610 L232 610 L230 611 L227 611 L226 610 L223 609 L222 607 L222 606 L224 604 L223 603 L224 601 L224 600 L226 599 L227 597 L229 596 L232 596 L234 598 L236 598 L238 599 L239 600 L240 601 L242 602 Z',
+  'M812 700 L811 702 L811 703 L808 704 L807 706 L806 708 L803 709 L800 709 L797 708 L794 708 L793 706 L792 704 L791 703 L788 702 L788 700 L788 698 L789 696 L789 694 L792 693 L795 693 L798 693 L800 693 L803 693 L805 693 L808 693 L811 694 L813 696 L811 698 Z',
+];
+const DOT: Record<string, [number, number]> = {
+  hq: [400, 470], res: [650, 510], harbor: [538, 646], heli: [318, 392], beacon: [742, 420],
+  i1: [186, 302], i2: [842, 262], i3: [868, 648], i4: [144, 714], i5: [894, 454],
+};
+const LINKS: [string, string][] = [['hq', 'res'], ['hq', 'harbor'], ['res', 'harbor'], ['hq', 'heli'], ['res', 'beacon'], ['heli', 'i1'], ['beacon', 'i2'], ['beacon', 'i5'], ['harbor', 'i3'], ['harbor', 'i4'], ['res', 'i3'], ['hq', 'i4']];
+const ROUTES: [string, [number, number]][] = [['i1', [0, 190]], ['i2', [1000, 150]], ['i4', [0, 840]], ['harbor', [600, 1000]], ['i3', [1000, 780]], ['i5', [1000, 470]]];
 function SiteView({ go }: { go: (v: AegisView) => void }) {
-  const isl = (o: number) => `M${250 - o * .6} ${220 - o} H${750 + o * .6} L${880 + o} ${350 - o * .4} V${700 + o * .4} L${750 + o * .6} ${830 + o} H${250 - o * .6} L${120 - o} ${700 + o * .4} V${350 - o * .4} Z`;
-  const dorms: [number, number, string?][] = [[640, 410], [720, 410], [800, 410], [640, 520, 'hl'], [800, 520, 'hl'], [640, 630], [720, 630], [800, 630]];
+  const lp = (a: [number, number], b: [number, number]) => `M${a[0]} ${a[1]} L${b[0]} ${b[1]}`;
   return (
     <>
-      {[40, 85, 135].map((o, k) => <path key={o} className="am-l3" strokeDasharray={`${2 + k * 2} 6`} d={isl(o)} />)}
-      <text className="am-tag dim" x="70" y="900">-20m</text><text className="am-tag dim" x="24" y="960">-60m</text>
-      <path d={isl(0)} fill="rgba(184,216,255,.05)" stroke="rgba(184,216,255,.18)" strokeWidth="12" />
-      <path className="am-hull" d={isl(0)} />
-      <path className="am-l3" d={isl(-16)} />
-      <rect x="226" y="690" width="280" height="96" rx="30" fill="url(#amLeaf)" stroke="rgba(160,220,190,.18)" />
-      <rect x="600" y="712" width="240" height="64" rx="26" fill="url(#amLeaf)" stroke="rgba(160,220,190,.18)" />
-      {/* 항구 */}
-      <path className="am-line" d="M570 830 V902 M630 830 V892" />
-      <path className="am-l2" d="M590 862 l10 -6 h16 l-4 6 z" />
-      <text className="am-tag" x="600" y="930" textAnchor="middle">HARBOR</text>
-      {/* 연결 보행로 */}
-      <path className="am-l2" strokeDasharray="4 4" d="M520 494 H590 M520 506 H590" />
+      {/* 경위선 */}
+      {[200, 400, 600, 800].map(v => <path key={v} className="am-l3" d={`M0 ${v} H1000 M${v} 0 V1000`} />)}
+      <ellipse cx="520" cy="500" rx="360" ry="260" fill="url(#amGlow)" opacity=".35" />
+      {/* 땅 */}
+      <path d={ISLAND} className="am-land" />
+      {ISLETS.map(d => <path key={d} d={d} className="am-land" />)}
+      {/* 두 건물의 터 */}
+      <rect className="am-lot" x="352" y="424" width="96" height="92" rx="6" />
+      <circle className="am-lot" cx="400" cy="470" r="22" />
+      {[[618, 478], [650, 478], [682, 478], [618, 510], [682, 510], [618, 542], [650, 542], [682, 542]].map(([x, y]) => <rect key={`${x}-${y}`} className="am-lot" x={x - 11} y={y - 11} width="22" height="22" />)}
+      {/* 이어진 길 */}
+      {LINKS.map(([a, b]) => <path key={a + b} className="am-link" d={lp(DOT[a], DOT[b])} />)}
+      {ROUTES.map(([a, b]) => <path key={a + b[0]} className="am-link route" d={lp(DOT[a], b)} />)}
+      {Object.entries(DOT).filter(([k]) => k !== 'hq' && k !== 'res').map(([k, [x, y]]) => <circle key={k} className="am-dot" cx={x} cy={y} r="5" />)}
+      <text className="am-tag" x="556" y="676">HARBOR</text>
 
-      {/* 본부 */}
-      <g className="am-bld" onClick={() => go('hq')} role="button" aria-label="본부 건물 지도 열기">
-        <rect className="am-hit" x="190" y="280" width="340" height="380" />
-        <rect className="am-b" x="200" y="330" width="320" height="320" rx="8" />
-        <rect className="am-l2" x="212" y="342" width="296" height="296" rx="4" />
-        <circle className="am-b" cx="258" cy="598" r="44" />
-        <path className="am-l2" d="M258 554 V642 M214 598 H302 M227 567 L289 629 M289 567 L227 629" />
-        <circle className="am-l2" cx="258" cy="598" r="24" />
-        <rect className="am-b" x="305" y="405" width="140" height="140" />
-        <circle cx="375" cy="475" r="58" fill="url(#amGlow)" />
-        <circle className="am-b" cx="375" cy="475" r="34" />
-        <circle className="am-acc" cx="375" cy="475" r="18" />
-        <path className="am-acc" d="M375 448 V502 M348 475 H402" />
-        <circle className="am-dash" cx="375" cy="475" r="118" />
-        <text className="am-tag" x="375" y="350" textAnchor="middle">▲ SKY GARDEN</text>
-        <circle className="am-pulse" cx="375" cy="475" r="20" />
-        <text className="am-zl" x="200" y="292">ARCH HQ</text>
-        <text className="am-zs" x="200" y="318">본부 · 1–50F ›</text>
-      </g>
+      {/* 본부 · 숙소 */}
+      {([['hq', 'ARCH HQ', '본부 건물 ›', -1], ['res', 'RESIDENCE', '숙소 단지 ›', 1]] as const).map(([k, en, ko, side]) => {
+        const [x, y] = DOT[k];
+        // 본부는 점 위, 숙소는 점 아래에 이름 (가운데 정렬 — 폰에서 글씨가 커져도 넘치지 않게)
+        const [y1, y2] = side < 0 ? [y - 52, y - 26] : [y + 56, y + 82];
+        return (
+          <g key={k} className="am-node" onClick={() => go(k)} role="button" aria-label={`${ko.replace(' ›', '')} 지도 열기`}>
+            <circle className="am-hit" cx={x} cy={y} r="70" />
+            <circle cx={x} cy={y} r="46" fill="url(#amGlow)" />
+            <circle className="am-pulse" cx={x} cy={y} r="14" />
+            <circle className="am-dot big" cx={x} cy={y} r="10" />
+            <text className="am-zl" x={x} y={y1} textAnchor="middle">{en}</text>
+            <text className="am-zs" x={x} y={y2} textAnchor="middle">{ko}</text>
+          </g>
+        );
+      })}
 
-      {/* 숙소 단지 */}
-      <g className="am-bld" onClick={() => go('res')} role="button" aria-label="숙소 단지 지도 열기">
-        <rect className="am-hit" x="580" y="290" width="280" height="410" />
-        <rect className="am-l2" x="590" y="350" width="260" height="340" rx="8" />
-        <circle cx="720" cy="520" r="32" fill="url(#amLeaf)" stroke="rgba(160,220,190,.3)" />
-        <path className="am-l2" d="M720 362 V488 M720 552 V678 M602 520 H688 M752 520 H838" />
-        {dorms.map(([x, y, hl]) => (
-          <rect key={`${x}-${y}`} className={hl ? 'am-b am-hl' : 'am-b'} x={x - 28} y={y - 28} width="56" height="56" />
-        ))}
-        <circle className="am-pulse" cx="720" cy="520" r="20" />
-        <text className="am-zl" x="590" y="312">RESIDENCE</text>
-        <text className="am-zs" x="590" y="338">숙소 단지 ›</text>
-      </g>
-
+      <text className="am-tag dim" x="24" y="976">AEGIS · MOBILE CITADEL</text>
       <g transform="translate(930 90)"><circle className="am-l2" r="24" /><path d="M0 -19 L5 0 L0 19 L-5 0 Z" fill="rgba(184,216,255,.6)" /><text className="am-tag" y="-32" textAnchor="middle">N</text></g>
-      <path className="am-line" d="M800 950 H940 M800 944 V956 M870 947 V953 M940 944 V956" /><text className="am-tag dim" x="870" y="978" textAnchor="middle">200m</text>
     </>
   );
 }
 
 /* ───────── 2) 본부 — 층별 단면 ───────── */
-const FLOORS: [number, string][] = [[179, '50F'], [241, '41–49F'], [315, '31–40F'], [378, '21–30F'], [432, '11–20F'], [486, '6–10F'], [538, '4–5F']];
+const FLOORS: [number, string][] = [[328, '13–14F'], [376, '11–12F'], [412, '10F'], [448, '8–9F'], [484, '7F'], [520, '5–6F'], [556, '4F']];
 function HqView() {
-  const wave = 'M0 690 ' + Array.from({ length: 20 }, () => 'q12.5 -6 25 0 t25 0').join(' ');
+  const wave = 'M0 664 ' + Array.from({ length: 20 }, () => 'q12.5 -6 25 0 t25 0').join(' ');
   return (
     <>
       {/* 바다 · 섬 몸통 */}
-      <rect x="0" y="690" width="1000" height="310" fill="url(#amSea)" />
+      <rect x="0" y="664" width="1000" height="336" fill="url(#amSea)" />
       <path className="am-sea" d={wave} />
-      <path className="am-hull body" d="M40 660 H960 V700 L995 990 H5 L40 700 Z" />
-      <rect x="0" y="690" width="1000" height="300" fill="rgba(90,140,210,.07)" />
-      <path className="am-sea dim" strokeDasharray="6 6" d="M40 690 H960" />
-      <text className="am-tag" x="56" y="682">SEA LEVEL</text>
-      <path className="am-line" d="M28 660 H972" />
-      {[760, 820, 880, 940].map(y => <path key={y} className="am-l3" d={`M${40 - (y - 700) * .12} ${y} H${960 + (y - 700) * .12}`} />)}
+      <path className="am-hull body" d="M40 640 H960 V680 L995 990 H5 L40 680 Z" />
+      <rect x="0" y="664" width="1000" height="326" fill="rgba(90,140,210,.07)" />
+      <path className="am-sea dim" strokeDasharray="6 6" d="M40 664 H960" />
+      <text className="am-tag" x="56" y="658">SEA LEVEL</text>
+      <path className="am-line" d="M28 640 H972" />
+      {[760, 820, 880, 940].map(y => <path key={y} className="am-l3" d={`M${40 - (y - 680) * .11} ${y} H${960 + (y - 680) * .11}`} />)}
 
       {/* 저층부 (1–3F) + 훈련 돔 */}
-      <rect className="am-b" x="120" y="560" width="760" height="100" />
-      <path className="am-l2" d="M330 593 H880 M330 626 H880 M520 660 V634 H600 V660" />
-      <text className="am-tag" x="866" y="650" textAnchor="end">1–3F · LOBBY</text>
-      <path className="am-b" d="M137 560 A88 88 0 0 1 313 560 Z" />
-      <path className="am-l2" d="M225 472 V560 M150 526 Q225 546 300 526 M168 496 Q225 512 282 496" />
+      <rect className="am-b" x="120" y="564" width="760" height="76" />
+      <path className="am-l2" d="M330 589 H880 M330 614 H880 M520 640 V618 H600 V640" />
+      <text className="am-tag" x="866" y="632" textAnchor="end">1–3F · LOBBY</text>
+      <path className="am-b" d="M137 564 A88 88 0 0 1 313 564 Z" />
+      <path className="am-l2" d="M225 476 V564 M150 530 Q225 550 300 530 M168 500 Q225 516 282 500" />
 
-      {/* 고층부 */}
-      <rect className="am-b" x="360" y="150" width="400" height="410" />
-      <rect x="360" y="150" width="400" height="410" fill="url(#amFl)" />
-      <rect x="570" y="400" width="190" height="56" fill="url(#amHatch)" stroke="rgba(255,140,150,.5)" />
-      <rect x="360" y="456" width="400" height="52" fill="rgba(184,216,255,.06)" />
-      <rect x="640" y="462" width="114" height="40" fill="url(#amLeaf)" />
-      <path className="am-line" d="M360 200 H760 M360 274 H760 M360 348 H760 M360 400 H760 M360 456 H760 M360 508 H760 M560 200 V274 M570 400 V456 M560 508 V560" />
-      <path className="am-b" d="M352 150 L372 130 H748 L768 150 Z" />
-      <circle cx="560" cy="114" r="24" fill="url(#amGlow)" />
-      <path className="am-acc" d="M560 130 V114 M552 121 H568" />
+      {/* 본관 (4–14F) */}
+      <rect className="am-b" x="360" y="300" width="400" height="264" />
+      <rect x="360" y="300" width="400" height="264" fill="url(#amFl)" />
+      <rect x="360" y="468" width="400" height="24" fill="url(#amHatch)" stroke="rgba(255,140,150,.5)" />
+      <rect x="360" y="492" width="400" height="48" fill="rgba(184,216,255,.06)" />
+      <rect x="640" y="498" width="114" height="36" fill="url(#amLeaf)" />
+      <path className="am-line" d="M360 348 H760 M360 396 H760 M360 420 H760 M360 468 H760 M360 492 H760 M360 540 H760 M560 300 V348 M560 540 V564" />
+      <path className="am-line" d="M352 300 H768" />
       {FLOORS.map(([y, t]) => <text key={t} className="am-tag" x="774" y={y}>{t}</text>)}
 
-      {/* 상공 — 하늘정원 */}
-      <circle cx="560" cy="66" r="80" fill="url(#amGlow)" opacity=".5" />
-      <path className="am-hull rock" d="M450 58 Q560 72 670 58 L646 80 L600 88 L578 110 L554 96 L530 108 L500 82 L468 76 Z" />
-      <path className="am-hull" d="M450 58 Q560 44 670 58 Q560 72 450 58 Z" />
-      <path className="am-line" d="M490 56 V38 M506 54 V30 M612 54 V32 M628 56 V44" />
-      <path className="am-l2" d="M548 52 V40 H572 V52 M544 40 L560 30 L576 40" />
-      <ellipse cx="596" cy="57" rx="14" ry="3" fill="url(#amLeaf)" />
-      <text className="am-tag dim" x="436" y="44" textAnchor="end">ALT 1,200m</text>
+      {/* 코어 탑 + 위 상공의 하늘정원 (처음 지도 모양) */}
+      <path className="am-b" d="M548 193 H572 L590 300 H530 Z" />
+      <path className="am-l2" d="M560 196 V300 M538 250 H582" />
+      <ellipse className="am-b" cx="560" cy="184" rx="58" ry="9" />
+      <path className="am-acc" d="M560 154 V176 M550 164 H570" />
+      <circle cx="560" cy="164" r="22" fill="url(#amGlow)" />
+      <path className="am-beam" d="M546 148 V172 M574 148 V172" />
+      <circle cx="560" cy="96" r="84" fill="url(#amGlow)" opacity=".55" />
+      <path className="am-hull" d="M440 64 Q560 42 680 64 Q646 124 560 146 Q474 124 440 64 Z" />
+      <path className="am-line" d="M470 62 V38 M462 46 H478 M490 58 V44 M626 58 V40 M618 48 H634 M646 62 V46" />
+      <path className="am-l2" d="M542 54 V40 H578 V54 M536 40 L560 28 L584 40" />
+      <text className="am-tag dim" x="430" y="40" textAnchor="end">ALT 1,200m</text>
+      <text className="am-tag dim" x="604" y="290">CORE TOWER</text>
 
       {/* 지하 (바닷속) */}
-      <path className="am-shaft" d="M540 660 V880 M580 660 V880" />
-      <path className="am-l2" d="M580 751 H600" />
-      <path className="am-glass" d="M600 716 H940 Q985 751 940 786 H600 Z" />
-      <rect x="610" y="722" width="320" height="58" fill="url(#amLeaf)" opacity=".7" />
-      <rect className="am-b" x="300" y="880" width="460" height="70" />
-      <rect className="am-acc" x="312" y="892" width="436" height="46" />
-      <text className="am-tag" x="60" y="755">B1–B3</text>
-      <text className="am-tag dim" x="60" y="826">B4–B6</text>
-      <text className="am-tag" x="60" y="919">B7</text>
+      <path className="am-shaft" d="M540 640 V812 M580 640 V812" />
+      <path className="am-l2" d="M580 688 H600" />
+      <path className="am-glass" d="M600 664 H940 Q985 688 940 712 H600 Z" />
+      <rect x="610" y="670" width="320" height="36" fill="url(#amLeaf)" opacity=".7" />
+      <rect className="am-b" x="300" y="812" width="460" height="72" />
+      <rect className="am-acc" x="312" y="824" width="436" height="48" />
+      <text className="am-tag" x="60" y="692">B1</text>
+      <text className="am-tag dim" x="60" y="766">B2–B4</text>
+      <text className="am-tag" x="60" y="852">B5</text>
     </>
   );
 }
@@ -275,7 +278,7 @@ export function AegisMap({ nodes, caption }: { nodes: ArchMapNode[]; caption?: s
               {view === 'site' ? (caption || 'THE AEGIS · ARTIFICIAL ISLAND')
                 : <><button type="button" className="am-crumb" onClick={() => go('site')}>‹ THE AEGIS</button><b> / {crumb}</b></>}
             </span>
-            <span>{view === 'site' ? 'OPEN SEA — UNDISCLOSED' : view === 'hq' ? 'ARCH HQ · B7–50F' : 'RESIDENCE · 8 BLOCKS'}</span>
+            <span>{view === 'site' ? 'OPEN SEA — UNDISCLOSED' : view === 'hq' ? 'ARCH HQ · B5–14F' : 'RESIDENCE · 8 BLOCKS'}</span>
           </div>
           <div className={`am-stage v-${view}`}>
             {layer('site', <SiteView go={go} />, '아이기스 섬 지도')}
