@@ -55,29 +55,36 @@ export interface AegisSpot {
   dir?: 'l' | 'c';         // 글씨를 왼쪽으로 · 표시 아래 가운데로
   big?: boolean;           // 숙소동 강조 — 영문 이름을 크게
   cell?: string;           // 누를 칸 (본부 그림)
-  room?: boolean;          // 본부 방 — 표시 대신 그림 기호 + 이름
-  icon?: string;           // 방 그림 기호 (AegisMap.tsx의 ICONS)
+  /** 본부 안내도 글씨 모양 — entry: 기호 원 + 영문 · 한글 두 줄 / center: 가운데 정렬 / text: 기호 없이 가운데 / mini: 작은 영문 한 줄 */
+  kind?: 'entry' | 'center' | 'text' | 'mini';
+  icon?: string;           // 그림 기호 (AegisMap.tsx의 ICONS)
+  lx2?: number; ly2?: number;  // 같은 시설이 두 칸일 때 두 번째 표시 자리
 }
 
-/** 그림 속 자리 — 모든 그림은 viewBox 0 0 1000 1000. 순서 = 목록 순서(위층부터).
- *  본부(층별 안내도): 건물 x140–900, 한가운데 코어 x492–548, 오른쪽 끝 계단 x852–900.
- *  옥상 y250(왼쪽 끝 훈련 돔 · 가운데 코어 탑, 그 위 상공에 하늘정원) · 9–10F ~ 2F · 1F 로비 · 지하 B1 · B2 */
+/** 그림 속 자리 — 섬 · 숙소 그림은 viewBox 0 0 1000 1000, 본부 안내도는 0 0 1000 1190 (aegisHqArt.ts). 순서 = 목록 순서(위층부터).
+ *  본부: 옥상(왼쪽 끝 훈련 돔 · 가운데 코어 탑 · 오른쪽 끝 헬기 착륙장, 코어 위 상공에 하늘정원) · 11F ~ 1F · 지하 B1 · B2–B4 · B5 */
 export const AEGIS_SPOTS: Record<string, AegisSpot> = {
-  sky:       { label: '본부 · 코어 탑 위 상공 (하늘정원)', view: 'hq', lx: 664, ly: 62, cell: 'M400 58 Q520 36 640 58 Q604 116 520 138 Q436 116 400 58 Z' },
-  core:      { label: '본부 · 옥상 가운데 코어 탑', view: 'hq', lx: 572, ly: 214, cell: 'M458 166 H582 V188 H538 L556 250 H484 L502 188 H458 Z' },
-  dome:      { label: '본부 · 옥상 왼쪽 끝 돔', view: 'hq', lx: 176, ly: 222, cell: 'M146 250 A84 84 0 0 1 314 250 Z' },
-  harmony:   { label: '본부 · 9–10F 왼쪽', view: 'hq', lx: 158, ly: 288, cell: 'M140 250H492V326H140Z', room: true, icon: 'talk' },
-  hdiv:      { label: '본부 · 9–10F 오른쪽', view: 'hq', lx: 566, ly: 288, cell: 'M548 250H852V326H548Z', room: true, icon: 'desk' },
-  sdiv:      { label: '본부 · 7–8F', view: 'hq', lx: 158, ly: 364, cell: 'M140 326H492V402H140Z M548 326H852V402H548Z', room: true, icon: 'desk' },
-  resonance: { label: '본부 · 6F', view: 'hq', lx: 158, ly: 432, cell: 'M140 402H492V462H140Z M548 402H852V462H548Z', room: true, icon: 'wave' },
-  medbay:    { label: '본부 · 4–5F 왼쪽', view: 'hq', lx: 158, ly: 500, cell: 'M140 462H492V538H140Z', room: true, icon: 'cross' },
-  ward:      { label: '본부 · 4–5F 오른쪽', view: 'hq', lx: 566, ly: 500, cell: 'M548 462H852V538H548Z', room: true, icon: 'bed' },
-  stabil:    { label: '본부 · 3F (격리)', view: 'hq', lx: 158, ly: 568, cell: 'M140 538H492V598H140Z M548 538H852V598H548Z', room: true, icon: 'alert' },
-  lounge:    { label: '본부 · 2F 왼쪽', view: 'hq', lx: 158, ly: 628, cell: 'M140 598H316V658H140Z', room: true, icon: 'cup' },
-  dining:    { label: '본부 · 2F 가운데', view: 'hq', lx: 334, ly: 628, cell: 'M316 598H492V658H316Z', room: true, icon: 'fork' },
-  igarden:   { label: '본부 · 2F 오른쪽', view: 'hq', lx: 566, ly: 628, cell: 'M548 598H852V658H548Z', room: true, icon: 'leaf' },
-  aqua:      { label: '본부 · B1 오른쪽 (바닷속)', view: 'hq', lx: 566, ly: 749, cell: 'M548 714H900V784H548Z', room: true, icon: 'fish' },
-  arena:     { label: '본부 · B2', view: 'hq', lx: 158, ly: 819, cell: 'M140 784H492V854H140Z M548 784H852V854H548Z', room: true, icon: 'target' },
+  sky:       { label: '본부 · 코어 탑 위 상공 (하늘정원)', view: 'hq', lx: 650, ly: 108, cell: 'M374 60 Q500 36 626 60 Q588 120 500 144 Q412 120 374 60 Z', kind: 'entry', icon: 'leaf' },
+  core:      { label: '본부 · 옥상 가운데 코어 탑', view: 'hq', lx: 560, ly: 236, cell: 'M440 198 H560 V218 H515 L528 300 H472 L485 218 H440 Z', kind: 'entry', icon: 'gear' },
+  dome:      { label: '본부 · 옥상 왼쪽 끝 돔', view: 'hq', lx: 226, ly: 266, cell: 'M130 300 A96 96 0 0 1 322 300 Z', kind: 'text' },
+  heli:      { label: '본부 · 옥상 오른쪽 끝 헬기 착륙장', view: 'hq', lx: 806, ly: 236, cell: 'M720 246 H890 V300 H720 Z', kind: 'mini' },
+  lounge:    { label: '본부 · 11F 왼쪽', view: 'hq', lx: 140, ly: 332, cell: 'M116 306H364V384H116Z', kind: 'entry', icon: 'cup' },
+  dining:    { label: '본부 · 11F 가운데', view: 'hq', lx: 400, ly: 332, cell: 'M376 306H624V384H376Z', kind: 'entry', icon: 'fork' },
+  igarden:   { label: '본부 · 11F 오른쪽', view: 'hq', lx: 660, ly: 332, cell: 'M636 306H884V384H636Z', kind: 'entry', icon: 'leaf' },
+  resonance: { label: '본부 · 10F', view: 'hq', lx: 144, ly: 430, cell: 'M116 396H884V464H116Z', kind: 'entry', icon: 'wave' },
+  hdiv:      { label: '본부 · 7–9F 왼쪽', view: 'hq', lx: 140, ly: 510, cell: 'M116 476H364V574H116Z', kind: 'entry', icon: 'desk' },
+  harmony:   { label: '본부 · 7–9F 가운데', view: 'hq', lx: 400, ly: 510, cell: 'M376 476H624V574H376Z', kind: 'entry', icon: 'talk' },
+  rst:       { label: '본부 · 7–9F 오른쪽', view: 'hq', lx: 660, ly: 510, cell: 'M636 476H884V574H636Z', kind: 'entry', icon: 'file' },
+  sdiv:      { label: '본부 · 4–6F', view: 'hq', lx: 144, ly: 624, cell: 'M116 586H884V684H116Z', kind: 'entry', icon: 'desk' },
+  medbay:    { label: '본부 · 2–3F 왼쪽', view: 'hq', lx: 144, ly: 734, cell: 'M116 696H494V784H116Z', kind: 'entry', icon: 'cross' },
+  ward:      { label: '본부 · 2–3F 오른쪽', view: 'hq', lx: 534, ly: 726, cell: 'M506 696H884V784H506Z', kind: 'entry', icon: 'bed' },
+  stabil:    { label: '본부 · 1F 양 끝 (격리)', view: 'hq', lx: 140, ly: 835, cell: 'M116 796H364V874H116Z M636 796H884V874H636Z', kind: 'entry', icon: 'alert', lx2: 660, ly2: 835 },
+  lobby:     { label: '본부 · 1F 가운데', view: 'hq', lx: 500, ly: 818, cell: 'M376 796H624V874H376Z', kind: 'center', icon: 'door' },
+  mech:      { label: '본부 · B1 왼쪽', view: 'hq', lx: 184, ly: 916, cell: 'M156 886H637V964H156Z', kind: 'entry', icon: 'gear' },
+  aqua:      { label: '본부 · B1 오른쪽 (바닷속)', view: 'hq', lx: 673, ly: 910, cell: 'M649 886H884V964H649Z', kind: 'entry', icon: 'fish' },
+  armory:    { label: '본부 · B2–B4 왼쪽', view: 'hq', lx: 184, ly: 1006, cell: 'M156 976H514V1064H156Z', kind: 'entry', icon: 'blade' },
+  gate:      { label: '본부 · B2–B4 오른쪽', view: 'hq', lx: 554, ly: 1006, cell: 'M526 976H884V1064H526Z', kind: 'entry', icon: 'gate' },
+  arena:     { label: '본부 · B5 최하층', view: 'hq', lx: 184, ly: 1115, cell: 'M156 1076H884V1154H156Z', kind: 'entry', icon: 'target' },
   quarters:  { label: '숙소 단지 · 가운데 정원', view: 'res', lx: yardX, ly: yardY, dir: 'c' },
   eden:      { label: '숙소 단지 · 왼쪽 끝 강조 동', view: 'res', lx: edenX, ly: edenY, big: true },
   eve:       { label: '숙소 단지 · 오른쪽 끝 강조 동', view: 'res', lx: eveX, ly: eveY, big: true },
@@ -95,42 +102,42 @@ export const AEGIS_NODES: ArchMapNode[] = [
     body: "모든 작전을 지휘하고 전 세계의 위협을 감시하는 24시간 관제 센터. '원소의 군주'들의 회의실 또한 이곳 최상층에 위치해 있다.",
     note: '여기도 자주 나오진 않더라고용..?ㅋㅋㅋ',
   },
-  { id: 'mp-hdiv', code: '', en: 'HARMONY DIV.', name: '하모니 부서층', alias: '대기실 · 사무실', zone: '9–10F', spot: 'hdiv', body: '' },
+  { id: 'mp-hdiv', code: '', en: 'HARMONY DIV.', name: '하모니 부서', alias: '사무실', zone: '7–9F', spot: 'hdiv', body: '' },
   {
-    id: 'mp-harmony', code: '06', en: 'HARMONY COUNSEL', name: '하모니 심리상담실', alias: '상담실', zone: '9–10F', spot: 'harmony',
+    id: 'mp-harmony', code: '06', en: 'HARMONY COUNSEL', name: '하모니 심리상담실', alias: '상담실', zone: '7–9F', spot: 'harmony',
     body: '센티넬의 트라우마 관리와 파트너 관계 유지를 위해 운영되는 상담 전용 공간. 소파와 조명 색감까지 맞춤 설정되어 있다.\n\n파트너와의 관계가 좋지 않거나 큰 갈등이 생기면 하모니 책임자에게 불려가 여기서 상담을 받게 된다.',
     note: "가끔 '!일정' 수행하다보면 상담 일정 뜰 때 있죠?!ㅋㅋㅋ",
   },
-  { id: 'mp-sdiv', code: '', en: 'SENTINEL DIV.', name: '전투요원층', alias: '대기실 · 사무실', zone: '7–8F', spot: 'sdiv', body: '' },
+  { id: 'mp-sdiv', code: '', en: 'SENTINEL DIV.', name: '센티넬 대기실', alias: '전투요원층', zone: '4–6F', spot: 'sdiv', body: '' },
   {
-    id: 'mp-resonance', code: '08', en: 'RESONANCE LAB', name: '공명연구실', zone: '6F', spot: 'resonance',
+    id: 'mp-resonance', code: '08', en: 'RESONANCE LAB', name: '공명연구실', zone: '10F', spot: 'resonance',
     body: '공명 연구실은 센티넬과 가이드의 감정 파장을 분석하기 위해 설계된 실험 공간이다. 벽면에는 정밀 측정 장치와 감정파 센서가 배치되어, 가이딩 세션이 철저히 기록되고 데이터화된다.\n\n따뜻함 대신 냉철한 과학적 분위기가 감돌며, 침대 대신 투명 공명포드가 설치되어 있다. 이곳에서의 가이딩은 치유가 아닌 연구 대상으로서 이루어지며, 관계마저 수치와 그래프로 환원된다.',
   },
   {
-    id: 'mp-medbay', code: '07', en: 'MED BAY', name: '의무실', zone: '4–5F', spot: 'medbay',
+    id: 'mp-medbay', code: '07', en: 'MED BAY', name: '의무실', zone: '2–3F', spot: 'medbay',
     body: 'ARCH 의무실은 센티넬과 가이드의 부상 치료와 심리 안정화를 전담하는 공간이다. 능력 사용으로 인한 신체 손상뿐 아니라 정신적 폭주 후유증까지 관리하기 위해 첨단 의료 장비와 속성별 맞춤 치료 시스템이 갖춰져 있다.\n\n병상은 일반 환자실과 달리 속성 차폐막과 정신파장 안정화 기기가 기본 장착되어, 폭주 여파로 발생하는 무의식적 발화를 억제한다. 치료 과정에는 의료진 외에도 가이드가 배석해, 신체적 치료와 함께 가이딩을 통한 정신 회복을 병행하기도 한다. 벽면 모니터에는 실시간 신체·파장 수치가 표시되며, 중증 폭주 환자는 전용 격리병동으로 옮겨진다.\n\n의무실은 전장과 가장 가까운 안전지대이자, 요원들에게는 “다시 숨을 고를 수 있는 유일한 장소”로 불린다.',
     note: '앞으로 나올 신캐인 퓨어쌤의 일터입니다!',
   },
-  { id: 'mp-ward', code: '', en: 'GENERAL WARD', name: '일반 병실', alias: '입원 병동', zone: '4–5F', spot: 'ward', body: '' },
+  { id: 'mp-ward', code: '', en: 'GENERAL WARD', name: '일반 병실', alias: '입원 병동', zone: '2–3F', spot: 'ward', body: '' },
   {
-    id: 'mp-stabil', code: '09', en: 'STABILIZATION WARD', name: '비상 안정화실', alias: '긴급 가이딩 시설', zone: '3F · ISOLATION', spot: 'stabil',
+    id: 'mp-stabil', code: '09', en: 'STABILIZATION WARD', name: '비상 안정화실', alias: '긴급 가이딩 시설', zone: '1F · ISOLATION', spot: 'stabil',
     body: '폭주 직전의 센티넬을 긴급 진정시키기 위해 설계된 격리 공간. 폭주 수치가 80%를 넘으면 이곳으로 데려간다. S급 센티넬들이 모여 긴급으로 포박하여 데려가는 식이며, 내부는 속성 대응 소재로 코팅되어 능력을 최대한 억제하고, 감시 장비와 구속 장치가 기본 탑재된다.\n\n차가운 흰색 조명과 무음 시스템 속에서, 가이딩은 치료가 아닌 생존을 위한 절차로 진행된다. 방마다 남아 있는 불길한 그을음과 흠집들은 이곳이 단순한 휴식실이 아님을 증명한다. 구속을 통해 전담 파트너, 혹은 상황이 여의치 않을 경우 임시 가이드가 강제 가이딩을 시행하게 된다.\n\n센티넬들은 이곳에서 가이딩 받는 것에 수치심과 거부감을 느끼기에, 계속 거부할 경우의 최후의 수단으로 사용한다.',
     note: "윈터가 '말 안들으면 긴급 가이딩 시설로 보낼겁니다 ㅡㅡ' 하면서 말한 곳이 여기예용! 재밌는 공간이죠?",
   },
-  { id: 'mp-igarden', code: '', en: 'INDOOR GARDEN', name: '실내 정원', zone: '2F', spot: 'igarden', body: '' },
+  { id: 'mp-igarden', code: '', en: 'INDOOR GARDEN', name: '실내 정원', zone: '11F', spot: 'igarden', body: '' },
   {
-    id: 'mp-lounge', code: '04', en: 'LOUNGE', name: '라운지', zone: '2F', spot: 'lounge',
+    id: 'mp-lounge', code: '04', en: 'LOUNGE', name: '라운지', zone: '11F', spot: 'lounge',
     body: 'ARCH 라운지는 카페처럼 꾸며진 휴식 공간으로, 고단한 임무 뒤 센티넬과 가이드가 긴장을 풀 수 있는 몇 안 되는 장소다. 공간 전체가 속성 간 간섭을 최소화하도록 설계되어 있으며, 한쪽 벽엔 속성별 인기 음료 메뉴가 걸려 있다. 넓은 창으로 들어오는 햇빛과 식물, 부드러운 음악이 긴장감을 완화하며, 이곳에서만큼은 요원들이 서로를 경쟁자가 아닌 동료로 느낀다.',
     note: '윈터가 다크초코민트 아이스크림을 먹는 그곳입니다!',
   },
-  { id: 'mp-dining', code: '', en: 'DINING HALL', name: '식당', zone: '2F', spot: 'dining', body: '' },
+  { id: 'mp-dining', code: '', en: 'DINING', name: '식당', zone: '11F', spot: 'dining', body: '' },
   {
     id: 'mp-dome', code: '03', en: 'TRAINING DOME', name: '훈련소', alias: '훈련구역 · 훈련실', zone: 'ROOF · DOME', spot: 'dome',
     body: 'ARCH 훈련소는 거대한 돔 형태의 다목적 전투 공간으로, 센티넬들의 능력 사용 훈련과 실전 모의전을 위해 설계되었다. 벽면과 바닥은 속성 반응을 흡수하거나 반사할 수 있는 특수 소재로 제작되어 폭발·빙결·폭풍 등 다양한 능력의 충격을 견딜 수 있다. 내부는 상황에 따라 도시, 산악, 실내 구조물 등으로 자유롭게 변형되며, 전투 중 발생하는 파장과 데이터는 실시간으로 기록된다.\n\n훈련소 상단의 관람석과 VIP 전용 시뮬레이션룸에서는 파트너와 상관들이 훈련 장면을 직접 참관할 수 있으며, 일부 가이드들은 현장에서 응원하거나 훈련을 지원하기 위해 직접 배석하기도 한다. 이 때문에 훈련소는 단순한 연습장이 아니라, 파트너와 센티넬의 관계성을 실시간으로 확인할 수 있는 무대로 여겨진다.',
   },
   { id: 'mp-aqua', code: '', en: 'AQUA GARDEN', name: '수중 식물원', zone: 'B1', spot: 'aqua', body: '' },
   {
-    id: 'mp-arena', code: '10', en: 'SPECIAL CONTROL ARENA', name: '특별통제 훈련장', zone: 'B2', spot: 'arena',
+    id: 'mp-arena', code: '10', en: 'SPECIAL CONTROL ARENA', name: '특별통제 훈련장', zone: 'B5', spot: 'arena',
     body: '위험 등급의 센티넬을 위해 지하 깊숙한 곳에 만들어진 격리 시설. 어떤 속성의 힘도 견뎌낼 수 있는 특수 합금으로 만들어졌다.\n\n이곳은 센티넬이 자신의 한계를 시험하는 훈련장이자, 동시에 자신의 파괴적인 본능과 홀로 마주해야 하는 고독한 투기장이다. 센티넬끼리 대련을 하며 실력을 시험해보기도 한다.',
     note: '애쉬가 있던 그곳 맞습니다!',
   },
@@ -142,6 +149,12 @@ export const AEGIS_NODES: ArchMapNode[] = [
       cite: '신규 가이드 교육 매뉴얼 中',
     },
   },
+  { id: 'mp-rst', code: '11', en: 'R.S.T. OFFICE', name: 'R.S.T. 사무실', zone: '7–9F', spot: 'rst', body: '' },
+  { id: 'mp-heli', code: '', en: 'HELIPAD', name: '헬기 착륙장', zone: 'ROOF', spot: 'heli', body: '' },
+  { id: 'mp-lobby', code: '', en: 'LOBBY', name: '메인 로비', zone: '1F', spot: 'lobby', body: '' },
+  { id: 'mp-mech', code: '', en: 'MECH.', name: '기계실', zone: 'B1', spot: 'mech', body: '' },
+  { id: 'mp-armory', code: '', en: 'ARMORY', name: '무기고', alias: '장비 보관', zone: 'B2–B4', spot: 'armory', body: '' },
+  { id: 'mp-gate', code: '', en: 'DEPLOY GATE', name: '출전 게이트', alias: '워프 이동 · 출전용', zone: 'B2–B4', spot: 'gate', body: '' },
   { id: 'mp-eden', code: '', en: 'EDEN', name: '에덴 숙소동', zone: 'AGENT QUARTERS', spot: 'eden', body: '' },
   { id: 'mp-eve', code: '', en: 'EVE', name: '이브 숙소동', zone: 'AGENT QUARTERS', spot: 'eve', body: '' },
 ];
@@ -151,10 +164,17 @@ export const cloneAegisNodes = (list = AEGIS_NODES): ArchMapNode[] => list.map(n
 /** 예전 판들의 기본 층 · 구역 글씨 — 손대지 않았으면 지금 기본값으로 바꾼다 */
 const PAST_ZONES: Record<string, string[]> = {
   'mp-sky': ['FLOATING ISLE', 'ABOVE HQ'], 'mp-core': ['COMMAND TOWER', '50F', 'CORE TOWER'], 'mp-dome': ['UPPER DECK', '1–3F · DOME'],
-  'mp-lounge': ['DECK 1', '4–5F', '4F'], 'mp-quarters': ['DECK 1', 'RESIDENCE'], 'mp-harmony': ['DECK 2', '41–49F', '13–14F'], 'mp-hdiv': ['41–49F', '13–14F'],
-  'mp-sdiv': ['31–40F', '11–12F'], 'mp-medbay': ['DECK 2', '11–20F', '8–9F'], 'mp-resonance': ['DECK 2', '21–30F', '10F'],
-  'mp-stabil': ['DECK 3', '11–20F · ISOLATION', '7F · ISOLATION'], 'mp-igarden': ['6–10F', '5–6F'], 'mp-dining': ['4–5F', '4F'],
-  'mp-aqua': ['B1–B3'], 'mp-arena': ['SUB-SEA LEVEL', 'B7', 'B5'], 'mp-eden': ['RESIDENCE'], 'mp-eve': ['RESIDENCE'],
+  'mp-lounge': ['DECK 1', '4–5F', '4F', '2F'], 'mp-quarters': ['DECK 1', 'RESIDENCE'], 'mp-harmony': ['DECK 2', '41–49F', '13–14F', '9–10F'],
+  'mp-hdiv': ['41–49F', '13–14F', '9–10F'], 'mp-sdiv': ['31–40F', '11–12F', '7–8F'], 'mp-medbay': ['DECK 2', '11–20F', '8–9F', '4–5F'],
+  'mp-ward': ['4–5F'], 'mp-resonance': ['DECK 2', '21–30F', '10F', '6F'], 'mp-stabil': ['DECK 3', '11–20F · ISOLATION', '7F · ISOLATION', '3F · ISOLATION'],
+  'mp-igarden': ['6–10F', '5–6F', '2F'], 'mp-dining': ['4–5F', '4F', '2F'], 'mp-aqua': ['B1–B3'], 'mp-arena': ['SUB-SEA LEVEL', 'B7', 'B5', 'B2'],
+  'mp-eden': ['RESIDENCE'], 'mp-eve': ['RESIDENCE'],
+};
+/** 예전 판들의 기본 이름 — 손대지 않았으면 지금 기본 이름으로 */
+const PAST_NAMES: Record<string, { en: string; name: string; alias?: string }[]> = {
+  'mp-hdiv': [{ en: 'HARMONY DIV.', name: '하모니 부서층', alias: '대기실 · 사무실' }],
+  'mp-sdiv': [{ en: 'SENTINEL DIV.', name: '전투요원층', alias: '대기실 · 사무실' }],
+  'mp-dining': [{ en: 'DINING HALL', name: '식당' }],
 };
 /**
  * 저장된 시설 목록을 지금 지도에 맞춘다 (v2.0 사용자 요청 — 섬 · 본부 · 숙소 세 장 지도, 층수는 상식적인 범위로).
@@ -164,7 +184,11 @@ export function upgradeAegisNodes(nodes: ArchMapNode[]): ArchMapNode[] {
   const def = new Map(AEGIS_NODES.map(n => [n.id, n]));
   const out = nodes.map(n => {
     const d = def.get(n.id);
-    return d && PAST_ZONES[n.id]?.includes(n.zone) ? { ...n, zone: d.zone } : n;
+    if (!d) return n;
+    let m = n;
+    if (PAST_ZONES[n.id]?.includes(n.zone)) m = { ...m, zone: d.zone };
+    if (PAST_NAMES[n.id]?.some(p => p.en === n.en && p.name === n.name && (p.alias ?? '') === (n.alias ?? ''))) m = { ...m, en: d.en, name: d.name, alias: d.alias };
+    return m;
   });
   const have = new Set(out.map(n => n.id));
   return [...out, ...cloneAegisNodes(AEGIS_NODES.filter(n => !have.has(n.id)))];
