@@ -391,7 +391,7 @@ function ImageEditor({ b, set }: { b: Extract<ArchBlock, { type: 'image' }>; set
 }
 
 const SPOT_OPTS = Object.entries(AEGIS_SPOTS).map(([value, s]) => ({ value, label: s.label }));
-const blankNode = (): ArchMapNode => ({ id: newId(), code: '', en: 'FACILITY', name: '', zone: '', spot: 'systems', body: '', quote: null });
+const blankNode = (): ArchMapNode => ({ id: newId(), code: '', en: 'FACILITY', name: '', zone: '', spot: 'sdiv', body: '', quote: null });
 
 /** 아이기스 지도 — 그림은 고정, 시설마다 그림 속 자리를 하나 고른다 */
 function MapEditor({ b, set }: { b: Extract<ArchBlock, { type: 'map' }>; set: (b: ArchBlock) => void }) {
