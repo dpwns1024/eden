@@ -115,7 +115,8 @@ function DiaryPageInner() {
       {/* 무드 필터 + 달 필터 표시 + 검색·WRITE — 필터 줄 오른쪽 정렬 (v1.9 사용자 요청).
           그리드 밖(풀폭): 캘린더가 일기 패널과 같은 높이에서 시작 */}
       <div className="toolrow" style={{ marginBottom: 16 }}>
-        <div className="tag-row">
+        {/* ARCH에선 목차 탭 줄 모양 (v2.0 사용자 요청 — globals.css .arch-tabbar) */}
+        <div className="tag-row arch-tabbar">
           <div className={`tag ${fMood === 'all' ? 'on' : ''}`} onClick={() => { setFMood('all'); setPage(1); }}>
             전체 <small>{cnt('all')}</small>
           </div>
