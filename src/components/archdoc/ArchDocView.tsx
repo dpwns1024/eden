@@ -77,7 +77,7 @@ function ImageView({ src, caption }: { src: string; caption: string }) {
   return (
     <figure className="ar-pn ar-figure">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {url && <a href={url} target="_blank" rel="noreferrer"><img src={url} alt={caption} /></a>}
+      {url && <img src={url} alt={caption} />}
       {caption && <figcaption>{caption}</figcaption>}
     </figure>
   );
