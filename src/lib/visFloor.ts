@@ -59,6 +59,8 @@ export function areaHrefOf(coll: string, item: ListItem): string | null {
   if (coll === 'comments') return commentHref(item);
   // 메모 게시판(/memo2)의 메모는 스티커 메모와 같은 목록에 있지만 공개범위·잠금은 그 메뉴를 따른다
   if (coll === 'memos' && item.kind === 'note') return '/memo2';
+  // 프롬프트(/prompt)도 같은 목록 — 공개범위·잠금은 그 메뉴를 따른다
+  if (coll === 'memos' && item.kind === 'prompt') return '/prompt';
   const a = AREA[coll];
   if (!a) return null;
   if (a.href) return a.href;

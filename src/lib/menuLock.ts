@@ -27,7 +27,7 @@ export const menuLockSupported = () => serverConfig()?.kind === 'firebase';
 /** 비밀번호를 걸 수 있는 메뉴 — 글이 서버 목록(컬렉션)에 저장되는 곳만.
  *  스케줄러·소개처럼 사이트 설정에 담기는 메뉴는 누구나 읽는 설정이라 서버에서 가릴 수 없다 */
 const LOCKABLE = new Set([
-  '/board', '/guest', '/memo', '/rp', '/rels', '/tchars', '/comm-apply',
+  '/board', '/guest', '/memo', '/prompt', '/rp', '/rels', '/tchars', '/comm-apply',
   ...(['gallery', 'roadview', 'trpg', 'dotori', 'playlog', 'comm', 'diary', 'threads', 'chars'] as const)
     .map(k => SECTION_META[k].href),
 ]);
