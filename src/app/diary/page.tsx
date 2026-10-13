@@ -1,12 +1,13 @@
 'use client';
-// 다이어리 (4.14) — 아코디언 목록: 제목+무드+날짜 한 줄, 클릭 시 그 자리에서 펼침 ·
-// 무드 필터 · 페이지네이션 · 공개범위(비공개는 관리자만)
+// 다이어리 (4.14) — 카드 목록 (v2.0 사용자 선택 · JOURNAL 시안 B): 큰 날짜 · 무드색 띠 · 첫 사진 · 세 줄 미리보기,
+// 누르면 그 카드가 한 줄을 다 차지하며 그 자리에서 펼쳐진다 · 무드 필터 · 페이지네이션 · 공개범위(비공개는 관리자만)
+// 오른쪽: 미니 달력(일기 쓴 날 무드색 점, 누르면 그 일기) + 달별 보관함
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useSectionParam, filterSection, sectionSetter } from '@/lib/sectionStore';
 import { useLocalList } from '@/lib/postStore';
-import { DiaryPost, DIARY_SEED, Mood, MOOD_SEED, moodTint } from '@/lib/diaryStore';
+import { DiaryPost, DIARY_SEED, Mood, MOOD_SEED } from '@/lib/diaryStore';
 import { renderBody } from '@/lib/sanitize';
 import { SearchBar, Pager } from '@/components/ui/Kit';
 import { ConfirmModal } from '@/components/ui/Modal';
@@ -14,19 +15,9 @@ import { Lightbox } from '@/components/ui/Lightbox';
 import { BlobImg } from '@/lib/blobStore';
 import { EditableDesc, PageTitle } from '@/components/ui/PageText';
 
-const PAGE_SIZE = 10;
-
-function MoodIcon({ mood, size = 30 }: { mood?: Mood; size?: number }) {
-  return (
-    <span className="dy-mood" style={{
-      width: size, height: size, borderRadius: '50%', flexShrink: 0,
-      // 줄높이를 1로 눌러야 글자 상자가 아니라 글자 자체가 가운데로 온다 (v2.0 사용자 발견)
-      display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
-      fontSize: size * 0.45,
-      background: moodTint(mood?.color ?? '#888'), color: mood?.color ?? 'var(--sub)',
-    }}>{mood?.icon ?? '·'}</span>
-  );
-}
+const PAGE_SIZE = 12;   // 카드 3열 × 4줄
+const WD = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+const MON = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
 function DiaryBody({ p, onOpen }: { p: DiaryPost; onOpen: (ids: string[], idx: number) => void }) {
   const html = useMemo(() => renderBody('md', p.body), [p.body]);
@@ -44,6 +35,53 @@ function DiaryBody({ p, onOpen }: { p: DiaryPost; onOpen: (ids: string[], idx: n
         </div>
       )}
     </div>
+  );
+}
+
+/** 본문 첫머리 글자만 — 카드 미리보기용 */
+function plain(md: string) {
+  return renderBody('md', md).replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\s+/g, ' ').trim();
+}
+
+function DiaryCard({ p, mood, opened, isAdmin, onToggle, onImg, onEdit, onDel }: {
+  p: DiaryPost; mood?: Mood; opened: boolean; isAdmin: boolean;
+  onToggle: () => void; onImg: (ids: string[], idx: number) => void; onEdit: () => void; onDel: () => void;
+}) {
+  const ex = useMemo(() => plain(p.body), [p.body]);
+  const [y, mo, d] = p.date.split('-').map(Number);
+  const wd = WD[new Date(y, (mo || 1) - 1, d || 1).getDay()];
+  const color = mood?.color ?? '#8592a0';
+  return (
+    <article id={p.id} className={`panel dy-card${opened ? ' open' : ''}`} style={{ '--mc': color } as React.CSSProperties}>
+      <i className="dy-band" />
+      <div className="dy-ch" onClick={onToggle}>
+        <b className="dy-day">{String(d || '').padStart(2, '0')}</b>
+        <span className="dy-dm">{MON[(mo || 1) - 1]} {y}<br />{wd}</span>
+        <span className="dy-mi" style={{ color }}>{mood?.icon ?? '·'}</span>
+      </div>
+      {!opened && p.imgIds.length > 0 && (
+        <div className="dy-cimg" onClick={onToggle}><BlobImg fileRef={p.imgIds[0]} ph="" /></div>
+      )}
+      <h3 className="dy-ct" onClick={onToggle}>
+        {p.title}
+        {p.visibility !== 'public' && <span className="pill">{p.visibility === 'member' ? '멤버' : '비공개'}</span>}
+      </h3>
+      {opened ? (
+        <>
+          <DiaryBody p={p} onOpen={onImg} />
+          {isAdmin && (
+            <div className="dy-adm">
+              <button className="btn btn-ghost" onClick={onEdit}>EDIT</button>
+              <button className="btn btn-ghost" onClick={onDel}>DELETE</button>
+            </div>
+          )}
+        </>
+      ) : ex && <p className="dy-ex" onClick={onToggle}>{ex}</p>}
+      <div className="dy-cf" onClick={onToggle}>
+        <span style={{ color }}>{mood ? `${mood.icon} ${mood.name}` : ''}</span>
+        <span>{opened ? 'CLOSE ‹' : 'READ ›'}</span>
+      </div>
+    </article>
   );
 }
 
@@ -73,6 +111,12 @@ function DiaryPageInner() {
     const h = window.location.hash.slice(1);
     if (h) setOpen(h);
   }, [loaded]);
+  // 펼친 카드는 한 줄을 다 차지하며 자리가 바뀌므로 그 카드 위치로 데려간다
+  useEffect(() => {
+    if (!open) return;
+    const t = setTimeout(() => document.getElementById(open)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 60);
+    return () => clearTimeout(t);
+  }, [open]);
 
   if (!loaded) return <section className="page page-arch page-diary" />;
 
@@ -101,6 +145,10 @@ function DiaryPageInner() {
   const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
   const shown = visible.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const moodOf = (id: string) => moods.find(m => m.id === id);
+  // 보관함 — 볼 수 있는 일기의 달별 개수 (최근 달부터)
+  const archMap = new Map<string, number>();
+  posts.filter(canSee).forEach(p => { const k = p.date.slice(0, 7); if (/^\d{4}-\d{2}$/.test(k)) archMap.set(k, (archMap.get(k) ?? 0) + 1); });
+  const archive = [...archMap.entries()].sort((a, b) => b[0].localeCompare(a[0])).slice(0, 12);
   const cnt = (mid: string) => posts
     .filter(p => isAdmin || (p.visibility === 'public' || (p.visibility === 'member' && !!user)))
     .filter(p => mid === 'all' || p.moodId === mid).length;
@@ -138,50 +186,26 @@ function DiaryPageInner() {
         </div>
       </div>
 
-      {/* 좌 리스트 + 우 미니 캘린더 (4.14 달력 보기) — 두 패널 시작 높이 동일 */}
+      {/* 좌 카드 목록 + 우 미니 달력 · 보관함 (4.14 달력 보기 · v2.0 시안 B) */}
       <div className="dy-layout">
       <div>
-      <div className="panel" style={{ padding: '6px 20px' }}>
-        {shown.map(p => {
-          const m = moodOf(p.moodId);
-          const opened = open === p.id;
-          return (
-            <div key={p.id} id={p.id} className={`dy-row ${opened ? 'open' : ''}`}>
-              {/* 접힘: 제목 세로 중앙 / 펼침: 위 정렬 (4.14 v1.8) */}
-              <div className="hd" onClick={() => setOpen(o => (o === p.id ? null : p.id))}>
-                <MoodIcon mood={m} />
-                <b className="tt">{p.title}</b>
-                {p.visibility !== 'public' && (
-                  <span className="pill" style={{ flexShrink: 0 }}>{p.visibility === 'member' ? '멤버' : '비공개'}</span>
-                )}
-                <small className="dt">{p.date.replace(/-/g, '.')}{m ? ` · ${m.name}` : ''}</small>
-                <span className={`arr ${opened ? 'up' : ''}`} />
-              </div>
-              {/* 항상 렌더 + grid-rows 트랜지션으로 부드럽게 펼침 (덜컥임 방지) */}
-              <div className="dy-fold" aria-hidden={!opened}>
-                <div className="dy-fold-in">
-                  <DiaryBody p={p} onOpen={(ids, idx) => setLb({ srcs: ids, idx })} />
-                  {isAdmin && (
-                    <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', padding: '0 0 14px' }}>
-                      <button className="btn btn-ghost" style={{ padding: '4px 11px', fontSize: 10.5 }}
-                        onClick={() => router.push(`/diary/${p.id}/edit`)}>EDIT</button>
-                      <button className="btn btn-ghost" style={{ padding: '4px 11px', fontSize: 10.5 }}
-                        onClick={() => setDelFor(p)}>DELETE</button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-        {shown.length === 0 && <p className="hint" style={{ padding: 16 }}>{query ? '검색 결과가 없습니다' : '일기가 없습니다'}</p>}
+      <div className="dy-cards">
+        {shown.map(p => (
+          <DiaryCard key={p.id} p={p} mood={moodOf(p.moodId)} opened={open === p.id} isAdmin={isAdmin}
+            onToggle={() => setOpen(o => (o === p.id ? null : p.id))}
+            onImg={(ids, idx) => setLb({ srcs: ids, idx })}
+            onEdit={() => router.push(`/diary/${p.id}/edit`)}
+            onDel={() => setDelFor(p)} />
+        ))}
       </div>
+      {shown.length === 0 && <div className="panel"><p className="hint" style={{ padding: 16 }}>{query ? '검색 결과가 없습니다' : '일기가 없습니다'}</p></div>}
 
       <div style={{ marginTop: 14, display: 'flex', justifyContent: 'center' }}>
         <Pager page={page} total={totalPages} onChange={setPage} />
       </div>
       </div>
 
+      <div className="dy-side">
       {/* 우: 미니 캘린더 — 일기 쓴 날은 무드색 점, 달을 넘기면 그 달만 목록에 */}
       <div className="panel dy-cal">
         <div className="hd">
@@ -212,6 +236,19 @@ function DiaryPageInner() {
             );
           })}
         </div>
+      </div>
+      {/* 달별 보관함 — 누르면 그 달만 */}
+      {archive.length > 0 && (
+        <div className="panel dy-arch">
+          <h4>ARCHIVE</h4>
+          {archive.map(([k, n]) => (
+            <button key={k} type="button" className={monthFilter && k === monthKey ? 'on' : ''}
+              onClick={() => { const [yy, mm] = k.split('-').map(Number); setView({ y: yy, m: mm - 1 }); setMonthFilter(true); setPage(1); }}>
+              <span>{k.replace('-', ' · ')}</span><b>{n}</b>
+            </button>
+          ))}
+        </div>
+      )}
       </div>
       </div>
 
