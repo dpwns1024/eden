@@ -3,18 +3,26 @@
  * 메인 화면 (v2.0 사용자 요청) — 환경설정의 HTML 블록으로 그리던 ARCH 메인을 코드로 옮겼다.
  * 모양은 그 HTML 그대로(상단 정보 띠 · 헤더 · 히어로 · 푸터), 스타일은 archHome.css.
  * 메뉴는 이 자리에서 바로 그리고, 로그인 영역은 상단 바(TopBar)가 member 자리로 옮겨 그린다 (lib/htmlSlots.ts).
+ *
+ * ABOUT ARCH (v2.0 사용자 요청): ARCH 메뉴로 넘어가는 대신 메인 안에서 화면만 바뀐다 — 헤더는 그대로 두고
+ * 히어로 자리에 ARCH 메뉴의 본문(기본 HTML 페이지 · 탭 문서)이 뜬다. 주소에 ?view=arch를 남겨
+ * 브라우저 뒤로가기로 지금의 메인 화면으로 돌아온다.
  */
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { SlotMenu } from '@/components/main/HtmlSlots';
+import { HtmlPageBody } from '@/components/archdoc/HtmlPageBody';
 import { setMemberSlot, clearMemberSlot } from '@/lib/htmlSlots';
-import { toPublicHref } from '@/lib/routeAlias';
+import { useSections, MAIN_SEC } from '@/lib/sectionStore';
 import './archHome.css';
 
 const FONTS = 'https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Saira+Semi+Condensed:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&family=Noto+Sans+KR:wght@300;400;500&family=Mrs+Saint+Delafield&display=swap';
 
-/** ABOUT ARCH 버튼이 여는 곳 — ARCH 메뉴(HTML 페이지) */
-const ABOUT_HREF = '/page';
+/** ABOUT ARCH 화면의 주소 — 메인 그대로, 뒤에 표시만 붙인다 */
+const ABOUT_HREF = '/?view=arch';
+/** 히어로가 사라지는 시간(ms) — archHome.css의 .ah-leave와 맞춘다 */
+const LEAVE_MS = 260;
 
 /** 방패 표식 — 헤더 · 구분선 · 푸터 */
 function Mark() {
@@ -58,9 +66,10 @@ const LETTERS: { d: string; paths: string[] }[] = [
   { d: '0.54s', paths: ['M626 0 H670 V160 H626 Z', 'M746 0 H790 V160 H746 Z', 'M678 60 H738 V100 H678 Z'] },
 ];
 
-function HeroLogo() {
+/** 표식 · 글자 · 큰 로고가 같이 쓰는 그라디언트 — 히어로가 없는 소개 화면에서도 헤더 · 푸터 표식이 보이게 따로 둔다 */
+function SharedDefs() {
   return (
-    <svg className="ar-logo" viewBox="0 0 1200 400" role="img" aria-label="ARCH">
+    <svg className="ah-defs" width="0" height="0" aria-hidden="true" focusable="false">
       <defs>
         <linearGradient id="arS" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#fff" /><stop offset=".3" stopColor="#dfe6ee" /><stop offset=".5" stopColor="#8a96a3" />
@@ -92,6 +101,13 @@ function HeroLogo() {
           <path d="M-60 176 L860 -24" stroke="#000" strokeWidth="7" />
         </mask>
       </defs>
+    </svg>
+  );
+}
+
+function HeroLogo() {
+  return (
+    <svg className="ar-logo" viewBox="0 0 1200 400" role="img" aria-label="ARCH">
       <circle className="ring2" cx="600" cy="218" r="152" fill="none" stroke="rgba(220,230,240,.1)" strokeDasharray="2 9" />
       <g className="rt">
         <circle cx="600" cy="218" r="133" fill="none" stroke="url(#arC)" strokeWidth="1" />
@@ -133,9 +149,36 @@ export function ArchHome() {
     return () => clearMemberSlot(el);
   }, []);
 
+  // 지금 화면 — 메인(히어로) / ARCH 소개
+  const router = useRouter();
+  const about = useSearchParams().get('view') === 'arch';
+  const { list } = useSections();
+  const aboutName = list('page').find(s => s.id === MAIN_SEC)?.name ?? 'ARCH';
+  const [leaving, setLeaving] = useState(false);
+  // 한 번 소개 화면에 갔다 오면 히어로의 등장 연출(로고가 그려지는 2~3초)은 건너뛴다
+  const [back, setBack] = useState(false);
+  const pushed = useRef(false);
+  useEffect(() => {
+    setLeaving(false);
+    if (about) setBack(true);
+  }, [about]);
+
+  const openAbout = (e: React.MouseEvent) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;   // 새 탭으로 열기는 그대로
+    e.preventDefault();
+    setLeaving(true);
+    window.setTimeout(() => { pushed.current = true; router.push(ABOUT_HREF); }, LEAVE_MS);
+  };
+  // 화면 안의 BACK — 여기서 넘어왔으면 브라우저 뒤로가기와 똑같이, 주소로 바로 들어왔으면 메인으로
+  const closeAbout = () => {
+    if (pushed.current) router.back();
+    else router.replace('/');
+  };
+
   return (
     <div className="arx ah-main">
       <link rel="stylesheet" href={FONTS} precedence="default" />
+      <SharedDefs />
       <div className="ar-wrap">
 
         {/* 상단 정보 띠 */}
@@ -155,19 +198,27 @@ export function ArchHome() {
           <div className="ar-member" ref={memberRef} />
         </header>
 
-        {/* 히어로 */}
-        <section className="ar-hero">
-          <div className="ar-h-side l"><span>N 00°00′00″</span><span>E 000°00′00″</span><i /><b>SIGNAL — MASKED</b></div>
-          <div className="ar-h-side r"><span>ESTABLISHED BY</span><b>ARCH-PRIMA</b><i /><span>HQ — THE AEGIS</span></div>
-          <HeroLogo />
-          <p className="ar-tag">ARCANE RESPONSE CONTROL HUB</p>
-          <div className="ar-div"><i /><Mark /><i /></div>
-          <h1 className="ar-h1">우리는 인류의 <b>유일한 방패</b>이자,<br />평범한 세상에는 속할 수 없는 <b>이방인</b>이다.</h1>
-          <p className="ar-h-en">THE SOLE SHIELD OF HUMANITY — STRANGERS TO THE ORDINARY WORLD</p>
-          <div className="ar-cta">
-            <Link className="ar-btn p" href={toPublicHref(ABOUT_HREF)}>ABOUT ARCH<span>→</span></Link>
+        {about ? (
+          /* ARCH 소개 — ARCH 메뉴(기본 HTML 페이지)의 본문을 그대로 */
+          <div className="ah-view ah-about" key="about">
+            <button type="button" className="ah-back" onClick={closeAbout}><span>←</span>BACK</button>
+            <HtmlPageBody id={MAIN_SEC} name={aboutName} />
           </div>
-        </section>
+        ) : (
+          /* 히어로 */
+          <section className={`ar-hero${back ? ' ah-view ah-quick' : ''}${leaving ? ' ah-leave' : ''}`} key="home">
+            <div className="ar-h-side l"><span>N 00°00′00″</span><span>E 000°00′00″</span><i /><b>SIGNAL — MASKED</b></div>
+            <div className="ar-h-side r"><span>ESTABLISHED BY</span><b>ARCH-PRIMA</b><i /><span>HQ — THE AEGIS</span></div>
+            <HeroLogo />
+            <p className="ar-tag">ARCANE RESPONSE CONTROL HUB</p>
+            <div className="ar-div"><i /><Mark /><i /></div>
+            <h1 className="ar-h1">우리는 인류의 <b>유일한 방패</b>이자,<br />평범한 세상에는 속할 수 없는 <b>이방인</b>이다.</h1>
+            <p className="ar-h-en">THE SOLE SHIELD OF HUMANITY — STRANGERS TO THE ORDINARY WORLD</p>
+            <div className="ar-cta">
+              <Link className="ar-btn p" href={ABOUT_HREF} onClick={openAbout}>ABOUT ARCH<span>→</span></Link>
+            </div>
+          </section>
+        )}
 
         {/* 푸터 */}
         <footer className="ar-foot">

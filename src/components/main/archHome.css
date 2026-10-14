@@ -17,7 +17,7 @@ body:has(.ah-main){background:#05070a !important}
 body:has(.ah-main)::before{display:none !important}
 .arx:where(.ah-main){--bg:#05070a;--pn:rgba(13,18,25,.64);--ln:rgba(190,208,228,.10);--ln2:rgba(190,208,228,.22);--tx:#e4e9ef;--mu:#8592a0;--dim:#4a5461; --ac:#b8d8ff;--acr:184,216,255;--ok:#7fdcae;--red:#ff5a64; --sil:linear-gradient(180deg,#fff 0%,#d3dbe4 34%,#7f8a97 52%,#e6ebf1 68%,#98a3b0 100%); position:relative;overflow:hidden;min-height:100vh;color:var(--tx);font:400 13px/1.6 'Jost','Noto Sans KR',sans-serif;font-variant-numeric:tabular-nums; background: radial-gradient(1300px 760px at 50% -4%,rgba(130,160,200,.16),transparent 66%), radial-gradient(900px 600px at 50% 112%,rgba(90,120,160,.10),transparent 70%), repeating-linear-gradient(90deg,rgba(190,208,228,.032) 0 1px,transparent 1px 128px), repeating-linear-gradient(0deg,rgba(190,208,228,.022) 0 1px,transparent 1px 128px),var(--bg)}
 .arx:where(.ah-main)::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:3;background:repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0 1px,transparent 1px 3px);box-shadow:inset 0 0 220px 40px rgba(0,0,0,.78)}
-.arx:where(.ah-main) *{box-sizing:border-box;margin:0;padding:0}
+.arx:where(.ah-main) :where(*:not(.ah-about *)){box-sizing:border-box;margin:0;padding:0}   /* 소개 화면 안은 그 문서 스타일(archdoc.css)이 맡는다 */
 .arx:where(.ah-main) a{color:inherit;text-decoration:none}
 .arx:where(.ah-main) .ar-wrap{position:relative;z-index:2;max-width:1280px;min-height:100vh;display:flex;flex-direction:column;margin:0 auto;padding:0 clamp(16px,3.6vw,48px) clamp(28px,4vw,52px)}
 .arx:where(.ah-main) .ar-wrap .ok{color:var(--ok)}
@@ -130,3 +130,29 @@ body:has(.ah-main)::before{display:none !important}
   .arx:where(.ah-main) .ar-logo .hzl{transform:none}
   .arx:where(.ah-main) .ar-logo .axl,.arx:where(.ah-main) .ar-logo .axd,.arx:where(.ah-main) .ar-logo .rt,.arx:where(.ah-main) .ar-logo .lk,.arx:where(.ah-main) .ar-logo .gl{opacity:1}
 }
+/* ── 화면 전환 (ABOUT ARCH) — 히어로가 흐려지며 사라지고, 소개 화면이 아래에서 떠오른다 ── */
+@keyframes ahmViewIn{from{opacity:0;transform:translateY(14px);filter:blur(5px)}to{opacity:1;transform:none;filter:none}}
+@keyframes ahmViewOut{to{opacity:0;transform:translateY(-10px);filter:blur(5px)}}
+.arx:where(.ah-main) .ah-view{animation:ahmViewIn .6s cubic-bezier(.2,.7,.2,1) both}
+.arx:where(.ah-main) .ah-leave{animation:ahmViewOut .26s ease forwards;pointer-events:none}
+/* 돌아왔을 때 히어로 — 그려지는 연출은 끝난 모습으로, 반짝임 · 회전 같은 반복 움직임만 남긴다 */
+.arx:where(.ah-main) .ah-quick .ar-logo :is(.axl,.axd,.rt,.lk){animation:none;opacity:1}
+.arx:where(.ah-main) .ah-quick .ar-logo .hzl{animation:none;transform:none}
+.arx:where(.ah-main) .ah-quick .ar-logo .lt{animation:none;fill-opacity:1;stroke-opacity:0}
+.arx:where(.ah-main) .ah-quick .ar-logo .gl{opacity:1;animation:ahmGlint 3.2s ease-in-out infinite}
+.arx:where(.ah-main) .ah-quick :is(.ar-tag,.ar-div,.ar-h1,.ar-h-en,.ar-cta){animation:none}
+/* 소개 화면 — ARCH 메뉴 본문(.arx 문서)을 메인 틀 안에 그대로. 바깥 틀(배경 · 가장자리 그늘 · 여백)은 메인 것을 쓴다 */
+.arx:where(.ah-main) .ah-about{position:relative}
+.arx:where(.ah-main) .ah-about .htmlpage{min-height:0;animation:none}
+.arx:where(.ah-main) .ah-about .arx{min-height:0;overflow:visible;background:none}
+.arx:where(.ah-main) .ah-about .arx::after{content:none}
+.arx:where(.ah-main) .ah-about .arx > .ar-wrap{max-width:none;min-height:0;padding:0}
+.arx:where(.ah-main) .ah-about .ad-bar{right:0}   /* 관리자 EDIT — 문서 틀의 여백을 뺐으니 오른쪽 끝선에 맞춘다 */
+.arx:where(.ah-main) .ah-back{display:inline-flex;align-items:center;gap:10px;margin-top:clamp(18px,2.4vw,28px);padding:6px 0;border:0;background:none;font:400 10px/1 'JetBrains Mono',monospace;letter-spacing:.26em;color:var(--mu);cursor:var(--cur-pointer,pointer);transition:color .25s}
+.arx:where(.ah-main) .ah-back span{letter-spacing:0;transition:transform .25s}
+.arx:where(.ah-main) .ah-back:hover{color:#fff}
+.arx:where(.ah-main) .ah-back:hover span{transform:translateX(-4px)}
+@media (prefers-reduced-motion:reduce){
+  .arx:where(.ah-main) .ah-view,.arx:where(.ah-main) .ah-leave{animation:none !important}
+}
+.arx:where(.ah-main) .ah-defs{position:absolute;width:0;height:0;overflow:hidden}
