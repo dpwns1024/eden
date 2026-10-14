@@ -216,6 +216,14 @@ export function ArchHome() {
             <p className="ar-h-en">THE SOLE SHIELD OF HUMANITY — STRANGERS TO THE ORDINARY WORLD</p>
             <div className="ar-cta">
               <Link className="ar-btn p" href={ABOUT_HREF} onClick={openAbout}>ABOUT ARCH<span>→</span></Link>
+              {/* 오류 난 것처럼 ABOUT ARCH? ↔ ABOUT EVEDEN이 오락가락하는 버튼 — 어디로 갈지는 아직 정하지 않았다 */}
+              <button type="button" className="ar-btn ah-glitch" aria-label="ABOUT EVEDEN">
+                <em className="gl-w" aria-hidden="true">
+                  <b className="gl-a" data-t="ABOUT ARCH?">ABOUT ARCH?</b>
+                  <b className="gl-e" data-t="ABOUT EVEDEN">ABOUT EVEDEN</b>
+                </em>
+                <span>→</span>
+              </button>
             </div>
           </section>
         )}
