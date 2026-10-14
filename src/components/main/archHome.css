@@ -156,3 +156,30 @@ body:has(.ah-main)::before{display:none !important}
   .arx:where(.ah-main) .ah-view,.arx:where(.ah-main) .ah-leave{animation:none !important}
 }
 .arx:where(.ah-main) .ah-defs{position:absolute;width:0;height:0;overflow:hidden}
+/* ── ABOUT ARCH? ↔ ABOUT EVEDEN — 신호가 튀듯 두 글자가 오락가락 (4.6초 주기) ──
+ * 두 글자를 한 칸에 겹쳐 두고(폭은 긴 쪽에 맞춰 고정 — 바뀔 때 버튼이 출렁이지 않게) 보이는 쪽을 끊어서 바꾼다.
+ * 바뀌는 순간에만 빨강 · 파랑으로 어긋난 조각(::before · ::after)이 번쩍인다. 움직임 줄이기 설정이면 ABOUT ARCH?만 */
+.arx:where(.ah-main) .ah-glitch .gl-w{display:grid;font-style:normal}
+.arx:where(.ah-main) .ah-glitch .gl-w b{grid-area:1/1;position:relative;font:inherit;white-space:nowrap;text-align:center}
+.arx:where(.ah-main) .ah-glitch .gl-w .gl-a{animation:ahmGlA 4.6s steps(1,end) infinite}
+.arx:where(.ah-main) .ah-glitch .gl-w .gl-e{opacity:0;color:#fff;animation:ahmGlE 4.6s steps(1,end) infinite}
+.arx:where(.ah-main) .ah-glitch .gl-w b::before,.arx:where(.ah-main) .ah-glitch .gl-w b::after{content:attr(data-t);position:absolute;inset:0;opacity:0;pointer-events:none}
+.arx:where(.ah-main) .ah-glitch .gl-w b::before{color:var(--red);animation:ahmGlR 4.6s steps(1,end) infinite}
+.arx:where(.ah-main) .ah-glitch .gl-w b::after{color:var(--ac);animation:ahmGlB 4.6s steps(1,end) infinite}
+.arx:where(.ah-main) .ah-glitch:hover .gl-w b{color:#fff}
+@keyframes ahmGlA{0%{opacity:1}62%{opacity:0}63%{opacity:1}64.5%{opacity:0}66%{opacity:1}67%{opacity:0}88%{opacity:1}89%{opacity:0}90.5%{opacity:1}92%{opacity:0}93%{opacity:1}}
+@keyframes ahmGlE{0%{opacity:0}62%{opacity:1}63%{opacity:0}64.5%{opacity:1}66%{opacity:0}67%{opacity:1}88%{opacity:0}89%{opacity:1}90.5%{opacity:0}92%{opacity:1}93%{opacity:0}}
+@keyframes ahmGlR{0%{opacity:0}
+  62%{opacity:.9;clip-path:inset(10% 0 55% 0);translate:-3px 0}63%{opacity:.9;clip-path:inset(60% 0 8% 0);translate:2px 0}
+  64.5%{opacity:.9;clip-path:inset(30% 0 40% 0);translate:-2px 0}66%{opacity:.9;clip-path:inset(0 0 70% 0);translate:3px 0}67.5%{opacity:0}
+  88%{opacity:.9;clip-path:inset(45% 0 20% 0);translate:-3px 0}89%{opacity:.9;clip-path:inset(5% 0 65% 0);translate:2px 0}
+  90.5%{opacity:.9;clip-path:inset(70% 0 0 0);translate:-2px 0}92%{opacity:.9;clip-path:inset(20% 0 50% 0);translate:3px 0}93.5%{opacity:0}}
+@keyframes ahmGlB{0%{opacity:0}
+  62%{opacity:.9;clip-path:inset(55% 0 10% 0);translate:3px 0}63%{opacity:.9;clip-path:inset(8% 0 60% 0);translate:-2px 0}
+  64.5%{opacity:.9;clip-path:inset(40% 0 30% 0);translate:2px 0}66%{opacity:.9;clip-path:inset(70% 0 0 0);translate:-3px 0}67.5%{opacity:0}
+  88%{opacity:.9;clip-path:inset(20% 0 45% 0);translate:3px 0}89%{opacity:.9;clip-path:inset(65% 0 5% 0);translate:-2px 0}
+  90.5%{opacity:.9;clip-path:inset(0 0 70% 0);translate:2px 0}92%{opacity:.9;clip-path:inset(50% 0 20% 0);translate:-3px 0}93.5%{opacity:0}}
+/* 모바일 — 두 버튼이 한 줄에 들어가게 안쪽 여백만 조금 줄인다 */
+@media (max-width:560px){
+  .arx:where(.ah-main) .ar-cta .ar-btn{padding:0 17px;gap:11px}
+}
