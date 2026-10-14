@@ -677,6 +677,7 @@ function MainPagePane() {
           { label: 'CANCEL', kind: 'ghost', onClick: () => setResetAsk(false) },
         ]} />
       <div className="d">모바일 표시 여부 + 모바일 세로 나열 순서 — ⠿ 드래그로 순서 변경</div>
+      <p className="hint">메인 화면은 이제 코드로 그립니다 — 여기 위젯 설정은 메인에 나오지 않고, 공통 상단 HTML을 비웠을 때 다른 페이지 위쪽(배너·메뉴 위젯)에만 쓰입니다</p>
 
       {/* 메인 레이아웃은 고정 캔버스 하나 — 반응형 옵션 제거 (v1.9, PC/모바일 두 가지만) */}
       <DragList
@@ -782,6 +783,7 @@ function WidgetsPane() {
     <div className="set-sec">
       <h3>위젯</h3>
       <div className="d">메인 위젯의 내용·설정값 관리 — 메인 페이지의 관리 모달과 같은 데이터라서 어느 쪽에서 바꿔도 즉시 반영</div>
+      <p className="hint">메인 화면은 이제 코드로 그립니다 — 여기 위젯 설정은 메인에 나오지 않고, 공통 상단 HTML을 비웠을 때 다른 페이지 위쪽(배너·메뉴 위젯)에만 쓰입니다</p>
 
       {editable.map(w => (
         <div key={w.id} style={{ padding: '16px 0', borderBottom: '1px solid var(--line)' }}>
