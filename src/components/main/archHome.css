@@ -167,6 +167,13 @@ body:has(.ah-main)::before{display:none !important}
 .arx:where(.ah-main) .ah-glitch .gl-w b::before{color:var(--red);animation:ahmGlR 4.6s steps(1,end) infinite}
 .arx:where(.ah-main) .ah-glitch .gl-w b::after{color:var(--ac);animation:ahmGlB 4.6s steps(1,end) infinite}
 .arx:where(.ah-main) .ah-glitch:hover .gl-w b{color:#fff}
+/* 버튼 색도 글자와 같은 박자로 — ARCH?일 때는 왼쪽 버튼과 같은 푸른 버튼, EVEDEN일 때는 붉은 버튼 */
+.arx:where(.ah-main) .ah-glitch{animation:ahmGlBtn 4.6s steps(1,end) infinite}
+.arx:where(.ah-main) .ah-glitch::before,.arx:where(.ah-main) .ah-glitch::after{animation:ahmGlCorner 4.6s steps(1,end) infinite}
+@keyframes ahmGlBtn{
+  0%,63%,66%,88%,90.5%,93%{background:linear-gradient(180deg,rgba(var(--acr),.14),rgba(var(--acr),.03));border-color:rgba(var(--acr),.45);box-shadow:0 0 0 0 transparent}
+  62%,64.5%,67%,89%,92%{background:linear-gradient(180deg,rgba(255,90,100,.2),rgba(255,90,100,.05));border-color:rgba(255,90,100,.62);box-shadow:0 0 24px -8px rgba(255,90,100,.65)}}
+@keyframes ahmGlCorner{0%,63%,66%,88%,90.5%,93%{border-color:var(--ac)}62%,64.5%,67%,89%,92%{border-color:var(--red)}}
 @keyframes ahmGlA{0%{opacity:1}62%{opacity:0}63%{opacity:1}64.5%{opacity:0}66%{opacity:1}67%{opacity:0}88%{opacity:1}89%{opacity:0}90.5%{opacity:1}92%{opacity:0}93%{opacity:1}}
 @keyframes ahmGlE{0%{opacity:0}62%{opacity:1}63%{opacity:0}64.5%{opacity:1}66%{opacity:0}67%{opacity:1}88%{opacity:0}89%{opacity:1}90.5%{opacity:0}92%{opacity:1}93%{opacity:0}}
 @keyframes ahmGlR{0%{opacity:0}
