@@ -1,11 +1,11 @@
 /* 가이드 매칭 연출 (components/main/SyncMatch.tsx) — 참고 영상의 붉은 경보 화면을 따랐다.
  * 붉은 단색 · 빛 번짐 · 칠한 띠(어두운 글씨) · 테두리만 그린 상자 · 화면 네 귀퉁이 꺾쇠 · 브라운관 결 · 색 번짐 글리치.
- * 에덴을 찾는 순간부터(.sm-found · .sm-done) 같은 화면이 푸른 신호색으로 바뀐다 — 색은 --hud 하나로 돌린다.
+ * 에덴을 찾는 순간부터(.sm-found · .sm-open) 같은 화면이 푸른 신호색으로 바뀐다 — 색은 --hud 하나로 돌린다.
  * body 바로 아래에 뜨는 화면이라 ARCH 색은 여기서 다시 정한다. */
 .sm-root{--hud:#ff3d3d;--hudr:255,61,61;--ink:#2a0205;--hi:#ffd9d6;
   position:fixed;inset:0;z-index:400;overflow:hidden;color:var(--hud);background:#070102;
   font:500 12px/1.5 'Saira Semi Condensed','Jost','Noto Sans KR',sans-serif;font-variant-numeric:tabular-nums;animation:smIn .3s ease both}
-.sm-found,.sm-done{--hud:#b8d8ff;--hudr:184,216,255;--ink:#04101d;--hi:#ffffff}
+.sm-found,.sm-open{--hud:#b8d8ff;--hudr:184,216,255;--ink:#04101d;--hi:#ffffff}
 .sm-root *{box-sizing:border-box;margin:0;padding:0}
 @keyframes smIn{from{opacity:0}to{opacity:1}}
 
@@ -14,7 +14,7 @@
 .sm-bg.red{background:radial-gradient(ellipse 75% 65% at 50% 40%,rgba(170,14,18,.6),rgba(80,4,8,.8) 45%,#0b0102 88%),
   radial-gradient(circle at 20% 70%,rgba(255,40,40,.08),transparent 30%),radial-gradient(circle at 80% 25%,rgba(255,40,40,.07),transparent 26%),#0b0102}
 .sm-bg.blue{opacity:0;background:radial-gradient(ellipse 75% 65% at 50% 42%,rgba(46,90,150,.5),rgba(8,20,38,.85) 48%,#020509 88%),#020509}
-.sm-found .sm-bg.blue,.sm-done .sm-bg.blue{opacity:1}
+.sm-found .sm-bg.blue,.sm-open .sm-bg.blue{opacity:1}
 /* 브라운관 결 — 픽셀 격자 · 주사선 · 가장자리 그늘, 아주 약하게 깜빡 */
 .sm-root::after{content:'';position:absolute;inset:0;z-index:7;pointer-events:none;
   background:repeating-linear-gradient(0deg,rgba(0,0,0,.3) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px);
@@ -40,7 +40,7 @@
 
 /* 무대 */
 .sm-stage{position:absolute;z-index:2;left:0;right:0;top:96px;bottom:28px}
-.sm-lock .sm-stage::before,.sm-found .sm-stage::before{content:'';position:absolute;left:25%;right:25%;top:50%;height:1.5px;background:repeating-linear-gradient(90deg,rgba(var(--hudr),.55) 0 8px,transparent 8px 14px);filter:drop-shadow(0 0 4px rgba(var(--hudr),.8))}
+.sm-lock .sm-stage::before,.sm-found .sm-stage::before,.sm-open .sm-stage::before{content:'';position:absolute;left:25%;right:25%;top:50%;height:1.5px;background:repeating-linear-gradient(90deg,rgba(var(--hudr),.55) 0 8px,transparent 8px 14px);filter:drop-shadow(0 0 4px rgba(var(--hudr),.8))}
 .sm-pos{position:absolute;transform:translate(-50%,-50%)}
 .sm-pos.slot{z-index:2}
 .sm-pos.slot.l{left:25%;top:50%}
@@ -57,7 +57,7 @@
 /* 간략 프로필 창 — 테두리만 · 위 칠한 띠 · 아래 상태 상자 */
 .sm-win{position:relative;width:236px;color:var(--hud);background:linear-gradient(180deg,rgba(var(--hudr),.07),rgba(var(--hudr),.02)),rgba(14,1,3,.78);border:1.5px solid var(--hud);
   box-shadow:0 0 14px rgba(var(--hudr),.4),inset 0 0 22px rgba(var(--hudr),.1);transform:rotate(var(--r))}
-.sm-found .sm-win{background:linear-gradient(180deg,rgba(var(--hudr),.07),rgba(var(--hudr),.02)),rgba(2,8,16,.8)}
+.sm-found .sm-win,.sm-open .sm-win{background:linear-gradient(180deg,rgba(var(--hudr),.07),rgba(var(--hudr),.02)),rgba(2,8,16,.8)}
 .slot .sm-win{width:276px}
 .sm-wh{display:flex;justify-content:space-between;align-items:center;gap:8px;height:22px;padding:0 8px;background:var(--hud);color:var(--ink);font:700 10px/1 'Saira Semi Condensed','Jost',sans-serif;letter-spacing:.2em;white-space:nowrap}
 .sm-wb{display:grid;grid-template-columns:56px minmax(0,1fr);gap:11px;padding:10px 10px 8px}
@@ -67,8 +67,8 @@
 .sm-ph img{width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.25) brightness(.9);transition:filter .6s}
 /* 붉은(푸른) 한 색으로 물든 사진 */
 .sm-ph::after{content:'';position:absolute;inset:0;background:var(--hud);mix-blend-mode:multiply;opacity:.92;pointer-events:none;transition:opacity .6s}
-.sm-found .sm-ph img{filter:none}
-.sm-found .sm-ph::after{opacity:0}
+.sm-found .sm-ph img,.sm-open .sm-ph img{filter:none}
+.sm-found .sm-ph::after,.sm-open .sm-ph::after{opacity:0}
 .sm-noimg{display:grid;place-items:center;text-align:center;font:600 8px/1.5 'Saira Semi Condensed',sans-serif;letter-spacing:.2em}
 .sm-bars{color:var(--hud)}
 .sm-bars::after{display:none}
@@ -78,8 +78,8 @@
 .sm-wi strong{display:block;font:600 19px/1.05 'Saira Semi Condensed','Jost','Noto Sans KR',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--hi);text-shadow:0 0 10px rgba(var(--hudr),.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sm-wi small{display:block;margin-top:5px;font:400 10px/1.35 'Noto Sans KR',sans-serif;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sm-wi dl{margin-top:7px}
-.sm-wi dl div,.sm-ci dl div{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:3px 0;border-top:1px dashed rgba(var(--hudr),.4)}
-.sm-wi dt,.sm-ci dt{font:600 8px/1.2 'Saira Semi Condensed',sans-serif;letter-spacing:.16em;opacity:.7;white-space:nowrap}
+.sm-wi dl div{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:3px 0;border-top:1px dashed rgba(var(--hudr),.4)}
+.sm-wi dt{font:600 8px/1.2 'Saira Semi Condensed',sans-serif;letter-spacing:.16em;opacity:.7;white-space:nowrap}
 .sm-wi dd{min-width:0;font:600 10px/1.2 'Saira Semi Condensed','Noto Sans KR',sans-serif;letter-spacing:.08em;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sm-wf{display:flex;gap:6px;padding:0 10px 10px}
 .sm-wf span{padding:3px 10px 2px;border:1.5px solid var(--hud);font:700 10px/1 'Saira Semi Condensed',sans-serif;letter-spacing:.4em;white-space:nowrap}
@@ -108,43 +108,21 @@
 .sm-win.out{animation:smOut .2s steps(3) forwards}
 @keyframes smOut{to{opacity:0;transform:rotate(var(--r)) scale(1.15,.03)}}
 .sm-win.fly{transform:translate(var(--fx),var(--fy)) rotate(var(--fr));opacity:0;filter:blur(1.5px);transition:transform .7s cubic-bezier(.3,.55,.35,1),opacity .7s ease-in,filter .7s}
-.sm-found .slot .sm-win{box-shadow:0 0 34px rgba(var(--hudr),.6),inset 0 0 22px rgba(var(--hudr),.14)}
+.sm-found .slot .sm-win,.sm-open .slot .sm-win{box-shadow:0 0 34px rgba(var(--hudr),.6),inset 0 0 22px rgba(var(--hudr),.14)}
 
 /* 동기화율 */
 .sm-meter{position:absolute;left:50%;top:50%;z-index:3;width:220px;padding:16px 0;transform:translate(-50%,-50%);text-align:center;
   background:radial-gradient(closest-side,rgba(10,1,2,.92),rgba(10,1,2,.55) 70%,transparent)}
-.sm-found .sm-meter{background:radial-gradient(closest-side,rgba(2,6,12,.92),rgba(2,6,12,.55) 70%,transparent)}
-.sm-meter small,.sm-mid small{display:block;font:700 10px/1 'Saira Semi Condensed',sans-serif;letter-spacing:.3em}
+.sm-found .sm-meter,.sm-open .sm-meter{background:radial-gradient(closest-side,rgba(2,6,12,.92),rgba(2,6,12,.55) 70%,transparent)}
+.sm-meter small{display:block;font:700 10px/1 'Saira Semi Condensed',sans-serif;letter-spacing:.3em}
 .sm-meter b{display:block;margin-top:6px;font:300 56px/1 'Saira Semi Condensed','Jost',sans-serif;color:var(--hi);text-shadow:0 0 18px rgba(var(--hudr),.9)}
-.sm-meter b em,.sm-mid b em{font-size:.4em;font-style:normal;margin-left:3px;color:var(--hud)}
+.sm-meter b em{font-size:.4em;font-style:normal;margin-left:3px;color:var(--hud)}
 .sm-bar{display:block;height:8px;margin:12px 20px 12px;background:repeating-linear-gradient(90deg,rgba(var(--hudr),.18) 0 6px,transparent 6px 8px)}
 .sm-bar i{display:block;height:100%;background:repeating-linear-gradient(90deg,var(--hud) 0 6px,transparent 6px 8px);filter:drop-shadow(0 0 4px rgba(var(--hudr),.9));transition:width .22s}
 .sm-found .sm-bar i{transition:none}
 .sm-ms{display:inline-block;padding:4px 12px 3px 16px;border:1.5px solid var(--hud);font:700 12px/1 'Saira Semi Condensed',sans-serif;letter-spacing:.4em;text-shadow:0 0 6px rgba(var(--hudr),.7)}
 .sm-meter.fail b{animation:smBlink .16s steps(2) 3}
 .sm-meter.fail .sm-ms{background:var(--hud);color:var(--ink);text-shadow:none}
-
-/* 마지막 — 두 사람의 프로필 */
-.sm-final{position:absolute;left:0;right:0;top:96px;bottom:28px;z-index:2;display:grid;grid-template-columns:minmax(0,360px) 230px minmax(0,360px);justify-content:center;align-items:center;gap:30px;padding:10px 70px 30px;overflow-y:auto}
-.sm-card{position:relative;color:var(--hud);background:linear-gradient(180deg,rgba(var(--hudr),.08),rgba(var(--hudr),.02)),rgba(2,8,16,.82);border:1.5px solid var(--hud);
-  box-shadow:0 0 30px rgba(var(--hudr),.4),inset 0 0 30px rgba(var(--hudr),.08);animation:smCard .6s steps(6,end) both}
-.sm-card.l{--sx:-40px}
-.sm-card.r{--sx:40px;animation-delay:.1s}
-@keyframes smCard{0%{opacity:0;transform:translateX(var(--sx))}30%{opacity:1}45%{opacity:.3}60%{opacity:1}100%{opacity:1;transform:none}}
-.sm-card .sm-wh{height:28px;padding:0 12px;font-size:11px;background:var(--c);color:#fff;box-shadow:0 0 18px var(--c)}
-.sm-cb{display:grid;grid-template-columns:124px minmax(0,1fr);gap:18px;padding:18px 18px 14px}
-.sm-card .sm-ph img{filter:none}
-.sm-card .sm-ph::after{opacity:0}
-.sm-ci{min-width:0}
-.sm-ci strong{display:block;font:600 34px/1 'Saira Semi Condensed','Jost','Noto Sans KR',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#fff;text-shadow:0 0 14px rgba(var(--hudr),.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sm-ci small{display:block;margin-top:8px;font:400 12px/1.45 'Noto Sans KR',sans-serif;opacity:.85}
-.sm-ci dl{margin-top:12px}
-.sm-ci dd{min-width:0;font:600 11.5px/1.25 'Saira Semi Condensed','Noto Sans KR',sans-serif;letter-spacing:.08em;color:#e8f2ff;text-align:right}
-.sm-card .sm-wf{padding:0 18px 16px}
-.sm-mid{display:flex;flex-direction:column;align-items:center;text-align:center;filter:drop-shadow(0 0 10px rgba(var(--hudr),.5));animation:smIn .6s .25s both}
-.sm-mid b{display:block;margin-top:8px;font:300 74px/1 'Saira Semi Condensed','Jost',sans-serif;color:#fff;text-shadow:0 0 26px rgba(var(--hudr),.9)}
-.sm-ok{margin-top:16px;padding:6px 20px 5px;background:var(--hud);color:var(--ink);font:600 17px/1.1 'Saira Semi Condensed',sans-serif;letter-spacing:.16em}
-.sm-mid .sm-ms{margin-top:12px}
 
 /* 번쩍임 · 화면 튐(색 번짐 띠) */
 .sm-flash{position:absolute;inset:0;z-index:8;pointer-events:none;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.6),rgba(var(--hudr),.18) 55%,transparent 82%);opacity:0;animation:smFlash .5s ease-out}
@@ -161,7 +139,7 @@
   .sm-term{left:40px;top:22px;max-width:calc(100% - 150px);font-size:9.5px;letter-spacing:.04em}
   .sm-x{right:40px;top:22px;height:28px;padding:0 10px;font-size:10px;letter-spacing:.24em}
   .sm-stage{top:84px;bottom:24px}
-  .sm-lock .sm-stage::before,.sm-found .sm-stage::before{left:50%;right:auto;top:22%;bottom:22%;width:1.5px;height:auto;background:repeating-linear-gradient(180deg,rgba(var(--hudr),.55) 0 8px,transparent 8px 14px)}
+  .sm-lock .sm-stage::before,.sm-found .sm-stage::before,.sm-open .sm-stage::before{left:50%;right:auto;top:22%;bottom:22%;width:1.5px;height:auto;background:repeating-linear-gradient(180deg,rgba(var(--hudr),.55) 0 8px,transparent 8px 14px)}
   .sm-pos.slot.l{left:50%;top:22%}
   .sm-pos.slot.r{left:50%;top:78%}
   /* 경보는 한 줄로 줄여 동기화율 바로 위에 */
@@ -179,14 +157,6 @@
   .sm-wf span{font-size:9px;letter-spacing:.3em}
   .sm-meter{width:180px;padding:10px 0}
   .sm-meter b{font-size:42px}
-  .sm-final{top:84px;bottom:24px;grid-template-columns:minmax(0,1fr);align-content:start;gap:18px;padding:6px 26px 30px}
-  .sm-card.l,.sm-card.r{--sx:0}
-  .sm-cb{grid-template-columns:86px minmax(0,1fr);gap:14px;padding:14px 14px 12px}
-  .sm-ci strong{font-size:26px}
-  .sm-ci small{font-size:11px}
-  .sm-card .sm-wf{padding:0 14px 14px}
-  .sm-mid b{font-size:52px}
-  .sm-ok{margin-top:12px;font-size:14px}
 }
 @media (prefers-reduced-motion:reduce){
   .sm-root,.sm-root *,.sm-root::after{animation:none !important;transition:none !important}

@@ -5,27 +5,23 @@
  *  1) 탐색 — 이브와 익명 가이드 요원들의 간략 프로필 창이 아무 데나 마구 떴다가 매칭에 실패하고 사라진다.
  *  2) 고정 — 이브 프로필은 왼쪽(모바일은 위)에 고정. 익명 가이드들이 차례로 들어와 동기화율이 낮게 나오고
  *     MATCH FAILED와 함께 창이 튕겨 나간다. 점점 빨라지고 겹친다. 실패할 때마다 화면이 튄다.
- *  3) 발견 — 에덴 프로필이 들어오면 화면이 붉은 경보에서 푸른 신호로 바뀌고 동기화율이 98.7%까지 오른 뒤,
- *     두 사람의 프로필 카드가 뜬다.
- * 에덴 · 이브 정보는 캐릭터 목록(ohome.chars.v1)에서 이름으로 찾는다 — 없으면 이름 · 대표색만.
- * 역할은 이야기대로 고정한다 — 이브 SENTINEL, 에덴과 익명 요원들 GUIDE.
- * 이어지는 소개 화면은 아직 없다 — 지금은 마지막 카드에서 닫기만.
+ *  3) 발견 — 에덴 프로필이 들어오면 화면이 붉은 경보에서 푸른 신호로 바뀌고 동기화율이 98.7%까지 오른다.
+ *  4) 매칭 성공 — 곧바로 두 사람의 기밀 파일 페이지(/eveden)로 넘어간다. SKIP도 그 페이지로.
+ * 에덴 · 이브 정보는 lib/pairChars.ts (캐릭터 목록에서 이름으로) — 익명 요원들은 모두 GUIDE.
+ * 프로필 창에는 한 줄 소개(대사)를 넣지 않는다 — 이름과 프로필 칸 두 개만.
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useLocalList } from '@/lib/postStore';
-import { CHAR_SEED, type Character } from '@/lib/charStore';
+import { useRouter } from 'next/navigation';
+import { usePairProfiles, type PairProfile } from '@/lib/pairChars';
 import { CroppedBlobImg } from '@/components/ui/CropEditor';
 import './syncMatch.css';
 
 const FINAL = 98.7;
+/** 매칭에 성공하면 넘어가는 두 사람의 기밀 파일 */
+export const PAIR_FILE_HREF = '/eveden';
 
-interface Profile {
-  name: string; sub: string; color: string; role: string; code: string;
-  img?: string; crop?: Character['thumbCrop']; specs: { label: string; value: string }[];
-  /** 익명 요원 — 사진 대신 그리는 바코드 */
-  bars?: string;
-}
+type Profile = PairProfile;
 type Kind = 'eve' | 'anon' | 'eden';
 type WinState = 'in' | 'fail' | 'out' | 'fly';
 interface Win {
@@ -34,22 +30,10 @@ interface Win {
   ex?: number; fx?: number; fy?: number; fr?: number;
   anon?: Profile;
 }
-type Phase = 'scan' | 'lock' | 'found' | 'done';
+type Phase = 'scan' | 'lock' | 'found' | 'open';
 
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
 const pick = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)];
-
-/** 캐릭터 → 간략 프로필 (프로필 정보 칸을 그대로) */
-function profileOf(c: Character | undefined, fb: { name: string; color: string; role: string; code: string; sub: string }): Profile {
-  if (!c) return { ...fb, specs: [] };
-  return {
-    ...fb, name: c.name || fb.name, sub: c.sub || fb.sub, color: c.color || fb.color,
-    img: c.arts?.[0] ?? c.thumbId, crop: c.thumbCrop,
-    specs: (c.specs ?? []).filter(s => s.label?.trim() && s.value?.trim()),
-  };
-}
-const findChar = (chars: Character[], en: string, ko: string) =>
-  chars.find(c => new RegExp(`^\\s*${en}\\s*$`, 'i').test(c.name)) ?? chars.find(c => `${c.name} ${c.sub}`.includes(ko));
 
 /** 세로 막대가 제멋대로인 바코드 (background 값) */
 function barcode() {
@@ -67,8 +51,7 @@ function barcode() {
 function anonGuide(): Profile {
   const n = String(Math.floor(rand(100, 9999))).padStart(4, '0');
   return {
-    name: pick(['UNKNOWN', '██████', 'N/A', 'REDACTED', '███ ████', 'UNREGISTERED']),
-    sub: pick(['미등록 가이드 · 익명', '외부 협력 가이드', 'ARCH 연수 가이드', '민간 가이드 · 익명']),
+    name: pick(['UNKNOWN', '██████', 'N/A', 'REDACTED', '███ ████', 'UNREGISTERED']), sub: '',
     color: '#ff3b3b', role: 'GUIDE', code: `G-${n}`, bars: barcode(),
     specs: [
       { label: 'CLASS', value: `GUIDE · ${pick(['C', 'B', 'B+', 'A-', 'A'])}` },
@@ -98,33 +81,12 @@ function DataWin({ p, st }: { p: Profile; st: WinState }) {
         <Photo p={p} />
         <div className="sm-wi">
           <strong>{p.name}</strong>
-          <small>{p.sub}</small>
           <dl>{p.specs.slice(0, 2).map(s => <div key={s.label}><dt>{s.label}</dt><dd>{s.value}</dd></div>)}</dl>
         </div>
       </div>
       <div className="sm-wf"><span>{failed ? 'REJECTED.' : 'STANDBY.'}</span><i /></div>
       {failed && <em className="sm-stamp">MATCH FAILED</em>}
     </>
-  );
-}
-
-/** 마지막 프로필 카드 */
-function Card({ p, side }: { p: Profile; side: 'l' | 'r' }) {
-  return (
-    <div className={`sm-card ${side}`} style={{ '--c': p.color } as React.CSSProperties}>
-      <div className="sm-wh"><b>{p.role}</b><span>{p.code}</span></div>
-      <div className="sm-cb">
-        <Photo p={p} />
-        <div className="sm-ci">
-          <strong>{p.name}</strong>
-          <small>{p.sub}</small>
-          {p.specs.length > 0 && (
-            <dl>{p.specs.slice(0, 4).map(s => <div key={s.label}><dt>{s.label}</dt><dd>{s.value}</dd></div>)}</dl>
-          )}
-        </div>
-      </div>
-      <div className="sm-wf"><span>VERIFIED.</span><i /></div>
-    </div>
   );
 }
 
@@ -140,9 +102,8 @@ function Warn() {
 }
 
 export function SyncMatch({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [chars] = useLocalList<Character>('ohome.chars.v1', CHAR_SEED);
-  const eve = profileOf(findChar(chars, 'EVE', '이브'), { name: 'EVE', color: '#D11C20', role: 'SENTINEL', code: 'S-0001', sub: '이브' });
-  const eden = profileOf(findChar(chars, 'EDEN', '에덴'), { name: 'EDEN', color: '#607ca0', role: 'GUIDE', code: 'G-0001', sub: '에덴' });
+  const router = useRouter();
+  const { eve, eden } = usePairProfiles();
 
   const [phase, setPhase] = useState<Phase>('scan');
   const [wins, setWins] = useState<Win[]>([]);
@@ -173,18 +134,18 @@ export function SyncMatch({ open, onClose }: { open: boolean; onClose: () => voi
     timers.current = [];
     cancelAnimationFrame(raf.current);
   };
-  const finish = () => {
+  // 기밀 파일로 — 매칭 성공 · SKIP · 움직임 줄이기
+  const openFile = () => {
     stop();
-    setWins([]);
-    setMeter({ v: FINAL, st: 'ok' });
-    setPhase('done');
+    router.push(PAIR_FILE_HREF);
   };
 
   // 연출 시간표 — 열 때마다 새로 짠다
   useEffect(() => {
     if (!open) return;
     setPhase('scan'); setWins([]); setMeter({ v: 0, st: 'idle' }); setTries(0);
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { finish(); return; }
+    router.prefetch(PAIR_FILE_HREF);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { openFile(); return; }
 
     let seq = 0;
     const at = (ms: number, fn: () => void) => { timers.current.push(window.setTimeout(fn, ms)); };
@@ -258,7 +219,9 @@ export function SyncMatch({ open, onClose }: { open: boolean; onClose: () => voi
       };
       raf.current = requestAnimationFrame(step);
     });
-    at(tC + 2700, () => { setFlash(f => f + 1); setWins([]); setPhase('done'); });
+    // 4) 매칭 성공 — 번쩍이고 곧바로 기밀 파일로
+    at(tC + 2500, () => { setFlash(f => f + 1); setJolt(n => n + 1); setPhase('open'); });
+    at(tC + 3000, () => router.push(PAIR_FILE_HREF));
     return stop;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -280,9 +243,9 @@ export function SyncMatch({ open, onClose }: { open: boolean; onClose: () => voi
     scan: 'SEARCHING GUIDE REGISTRY...',
     lock: `SUBJECT LOCKED > MATCHING...`,
     found: 'SIGNAL ACQUIRED > SYNCHRONIZING...',
-    done: 'PAIR CONFIRMED.',
+    open: 'ACCESS GRANTED > OPENING PAIR FILE...',
   };
-  const blue = phase === 'found' || phase === 'done';
+  const blue = phase === 'found' || phase === 'open';
 
   return createPortal(
     <div className={`sm-root sm-${phase}`} role="dialog" aria-modal="true" aria-label="가이드 매칭">
@@ -296,53 +259,36 @@ export function SyncMatch({ open, onClose }: { open: boolean; onClose: () => voi
         <p>STATUS: &gt; {STATUS[phase]}<i className="sm-cur" /></p>
         <p>ATTEMPT {String(tries).padStart(4, '0')}&nbsp;&nbsp;&nbsp;{blue ? 'MATCH 0001' : `FAILED ${String(tries).padStart(4, '0')}`}</p>
       </div>
-      {phase === 'done'
-        ? <button type="button" className="sm-x" onClick={onClose}>CLOSE ✕</button>
-        : <button type="button" className="sm-x" onClick={finish}>SKIP »</button>}
+      <button type="button" className="sm-x" onClick={openFile}>SKIP »</button>
 
-      {phase !== 'done' && (
-        <div className="sm-stage" ref={stageRef}>
-          {/* 가운데 경보 — 실패할 때마다 다시 깜빡인다 */}
-          <div className={`sm-alarm${blue ? ' ok' : ''}`} key={blue ? 'ok' : `a${alarm}`}>
-            <Warn />
-            <small>{blue ? 'NOTICE' : 'ATTENTION'}</small>
-            <b>{blue ? 'COMPATIBLE GUIDE FOUND' : phase === 'scan' ? 'NO COMPATIBLE GUIDE' : 'MATCH FAILED'}</b>
-          </div>
-          {(phase === 'lock' || phase === 'found') && (
-            <div className={`sm-meter ${meter.st}`}>
-              <small>SYNC RATE</small>
-              <b>{meter.v.toFixed(1)}<em>%</em></b>
-              <span className="sm-bar"><i style={{ width: `${meter.v}%` }} /></span>
-              <span className="sm-ms">{meter.st === 'fail' ? 'REJECTED.' : meter.st === 'ok' ? 'MATCHED.' : 'ANALYZING.'}</span>
-            </div>
-          )}
-          {wins.map(w => (
-            <div key={w.id} className={`sm-pos${w.slot ? ` slot ${w.slot}` : ''}`}
-              style={w.slot ? undefined : { left: `${w.x}%`, top: `${w.y}%` }}>
-              <div className={`sm-win k-${w.kind} ${w.st}`}
-                style={{
-                  '--r': `${w.r}deg`, '--ex': `${w.ex ?? 0}px`,
-                  '--fx': `${w.fx ?? 0}vw`, '--fy': `${w.fy ?? 0}vh`, '--fr': `${w.fr ?? 0}deg`,
-                } as React.CSSProperties}>
-                <DataWin p={pOf(w)} st={w.st} />
-              </div>
-            </div>
-          ))}
+      <div className="sm-stage" ref={stageRef}>
+        {/* 가운데 경보 — 실패할 때마다 다시 깜빡인다 */}
+        <div className={`sm-alarm${blue ? ' ok' : ''}`} key={blue ? 'ok' : `a${alarm}`}>
+          <Warn />
+          <small>{blue ? 'NOTICE' : 'ATTENTION'}</small>
+          <b>{phase === 'open' ? 'ACCESSING PAIR FILE' : blue ? 'COMPATIBLE GUIDE FOUND' : phase === 'scan' ? 'NO COMPATIBLE GUIDE' : 'MATCH FAILED'}</b>
         </div>
-      )}
-
-      {phase === 'done' && (
-        <div className="sm-final">
-          <Card p={eve} side="l" />
-          <div className="sm-mid">
+        {phase !== 'scan' && (
+          <div className={`sm-meter ${meter.st}`}>
             <small>SYNC RATE</small>
-            <b>{FINAL}<em>%</em></b>
-            <span className="sm-ok">SYNCHRONIZED</span>
-            <span className="sm-ms">PAIR CONFIRMED.</span>
+            <b>{meter.v.toFixed(1)}<em>%</em></b>
+            <span className="sm-bar"><i style={{ width: `${meter.v}%` }} /></span>
+            <span className="sm-ms">{meter.st === 'fail' ? 'REJECTED.' : meter.st === 'ok' ? 'MATCHED.' : 'ANALYZING.'}</span>
           </div>
-          <Card p={eden} side="r" />
-        </div>
-      )}
+        )}
+        {wins.map(w => (
+          <div key={w.id} className={`sm-pos${w.slot ? ` slot ${w.slot}` : ''}`}
+            style={w.slot ? undefined : { left: `${w.x}%`, top: `${w.y}%` }}>
+            <div className={`sm-win k-${w.kind} ${w.st}`}
+              style={{
+                '--r': `${w.r}deg`, '--ex': `${w.ex ?? 0}px`,
+                '--fx': `${w.fx ?? 0}vw`, '--fy': `${w.fy ?? 0}vh`, '--fr': `${w.fr ?? 0}deg`,
+              } as React.CSSProperties}>
+              <DataWin p={pOf(w)} st={w.st} />
+            </div>
+          </div>
+        ))}
+      </div>
 
       {/* 번쩍임 · 화면 튐(색 번짐 띠) */}
       <div className="sm-flash" key={`f${flash}`} />

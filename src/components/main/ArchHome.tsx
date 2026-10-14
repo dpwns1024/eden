@@ -16,9 +16,9 @@ import { HtmlPageBody } from '@/components/archdoc/HtmlPageBody';
 import { SyncMatch } from '@/components/main/SyncMatch';
 import { setMemberSlot, clearMemberSlot } from '@/lib/htmlSlots';
 import { useSections, MAIN_SEC } from '@/lib/sectionStore';
+import { ARCH_FONTS } from '@/lib/archFonts';
 import './archHome.css';
 
-const FONTS = 'https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Saira+Semi+Condensed:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&family=Noto+Sans+KR:wght@300;400;500&family=Mrs+Saint+Delafield&display=swap';
 
 /** ABOUT ARCH 화면의 주소 — 메인 그대로, 뒤에 표시만 붙인다 */
 const ABOUT_HREF = '/?view=arch';
@@ -181,7 +181,7 @@ export function ArchHome() {
 
   return (
     <div className="arx ah-main">
-      <link rel="stylesheet" href={FONTS} precedence="default" />
+      <link rel="stylesheet" href={ARCH_FONTS} precedence="default" />
       <SharedDefs />
       <div className="ar-wrap">
 
