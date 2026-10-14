@@ -8,11 +8,12 @@
  * 히어로 자리에 ARCH 메뉴의 본문(기본 HTML 페이지 · 탭 문서)이 뜬다. 주소에 ?view=arch를 남겨
  * 브라우저 뒤로가기로 지금의 메인 화면으로 돌아온다.
  */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { SlotMenu } from '@/components/main/HtmlSlots';
 import { HtmlPageBody } from '@/components/archdoc/HtmlPageBody';
+import { SyncMatch } from '@/components/main/SyncMatch';
 import { setMemberSlot, clearMemberSlot } from '@/lib/htmlSlots';
 import { useSections, MAIN_SEC } from '@/lib/sectionStore';
 import './archHome.css';
@@ -155,6 +156,9 @@ export function ArchHome() {
   const { list } = useSections();
   const aboutName = list('page').find(s => s.id === MAIN_SEC)?.name ?? 'ARCH';
   const [leaving, setLeaving] = useState(false);
+  // ABOUT EVEDEN — 가이드 매칭 연출 (SyncMatch)
+  const [matching, setMatching] = useState(false);
+  const closeMatch = useCallback(() => setMatching(false), []);
   // 한 번 소개 화면에 갔다 오면 히어로의 등장 연출(로고가 그려지는 2~3초)은 건너뛴다
   const [back, setBack] = useState(false);
   const pushed = useRef(false);
@@ -216,8 +220,8 @@ export function ArchHome() {
             <p className="ar-h-en">THE SOLE SHIELD OF HUMANITY — STRANGERS TO THE ORDINARY WORLD</p>
             <div className="ar-cta">
               <Link className="ar-btn p" href={ABOUT_HREF} onClick={openAbout}>ABOUT ARCH<span>→</span></Link>
-              {/* 오류 난 것처럼 ABOUT ARCH? ↔ ABOUT EVEDEN이 오락가락하는 버튼 — 어디로 갈지는 아직 정하지 않았다 */}
-              <button type="button" className="ar-btn ah-glitch" aria-label="ABOUT EVEDEN">
+              {/* 오류 난 것처럼 ABOUT ARCH? ↔ ABOUT EVEDEN이 오락가락하는 버튼 — 누르면 가이드 매칭 연출 (에덴 · 이브 소개는 그 뒤에 붙일 예정) */}
+              <button type="button" className="ar-btn p ah-glitch" aria-label="ABOUT EVEDEN" onClick={() => setMatching(true)}>
                 <em className="gl-w" aria-hidden="true">
                   <b className="gl-a" data-t="ABOUT ARCH?">ABOUT ARCH?</b>
                   <b className="gl-e" data-t="ABOUT EVEDEN">ABOUT EVEDEN</b>
@@ -227,6 +231,8 @@ export function ArchHome() {
             </div>
           </section>
         )}
+
+        <SyncMatch open={matching} onClose={closeMatch} />
 
         {/* 푸터 */}
         <footer className="ar-foot">
