@@ -2,10 +2,10 @@
 /**
  * LOST EDEN — 가이드 매칭 연출 (v2.0 사용자 요청). 메인의 LOST EDEN 버튼을 누르면 화면 위로 뜬다.
  * 모양은 사용자가 준 참고 영상(경보 화면 · 브라운관 결 · 색 번짐 글리치)을 따랐다 — syncMatch.css.
- *  1) 페어 — 이브는 가이드 아담과 페어를 맺고 있다 (푸른 신호 · 동기화율 91.4% · LINKED).
+ *  1) 페어 — 이브는 가이드 아담과 페어를 맺고 있다 (푸른 신호 · 동기화율 64.2% · LINKED).
  *  2) 소실 — 아담의 신호가 끊기고(SIGNAL LOST) 순직(K.I.A.) — 사진 · 정보가 찾을 수 없는 기록으로 바뀌고 창이 꺼진다.
  *     화면은 붉은 경보로, 동기화율은 0으로 떨어진다.
- *  3) 재배정 — 갈 곳 잃은 이브(왼쪽 · 모바일은 위에 고정)에게 익명 가이드들이 차례로 붙지만 낮은 동기화율로
+ *  3) 재배정 — 갈 곳 잃은 이브(오른쪽 · 모바일은 아래에 고정)에게 익명 가이드들이 차례로 붙지만 낮은 동기화율로
  *     MATCH FAILED와 함께 튕겨 나간다. 점점 빨라지고 겹친다. 실패할 때마다 화면이 튄다.
  *  4) 발견 — 에덴이 들어오면 푸른 신호로 바뀌고 동기화율이 98.7%까지.
  *  5) 매칭 성공 — 곧바로 두 사람의 기밀 파일 페이지(/eveden)로. SKIP도 그 페이지로.
@@ -21,7 +21,7 @@ import './syncMatch.css';
 
 const FINAL = 98.7;
 /** 아담과의 페어 — 처음에 보이는 동기화율 */
-const ADAM_SYNC = 91.4;
+const ADAM_SYNC = 64.2;
 /** 매칭에 성공하면 넘어가는 두 사람의 기밀 파일 */
 export const PAIR_FILE_HREF = '/eveden';
 
@@ -191,18 +191,19 @@ export function SyncMatch({ open, onClose }: { open: boolean; onClose: () => voi
     };
 
     // 1) 페어 — 이브 × 아담
-    add({ kind: 'eve', slot: 'l', st: 'in', x: 0, y: 0, r: 0 });
+    // 이브는 오른쪽(모바일 아래) 고정 · 가이드들은 왼쪽(모바일 위)으로 들어온다
+    add({ kind: 'eve', slot: 'r', st: 'in', x: 0, y: 0, r: 0 });
     let adamId = 0;
-    at(260, () => { adamId = add({ kind: 'adam', slot: 'r', st: 'in', x: 0, y: 0, r: 0, ex: 120 }); });
+    at(260, () => { adamId = add({ kind: 'adam', slot: 'l', st: 'in', x: 0, y: 0, r: 0, ex: -120 }); });
     at(700, () => { patch(adamId, { st: 'link' }); count(0, ADAM_SYNC, 900, 'ok', 'LINKED.'); });
 
     // 2) 소실 — 신호가 흔들리다 끊기고, 순직 · 정보 소실, 창이 꺼진다
-    at(2300, () => count(ADAM_SYNC, 63, 500, 'run', undefined, 4));
+    at(2300, () => count(ADAM_SYNC, 38, 500, 'run', undefined, 4));
     at(2850, () => {
       setFlash(f => f + 1); setJolt(n => n + 1);
       setPhase('lost'); setMsg('GUIDE SIGNAL LOST');
       patch(adamId, { st: 'lost' });
-      count(63, 0, 700, 'fail', 'SEVERED.', 3);
+      count(38, 0, 700, 'fail', 'SEVERED.', 3);
     });
     at(3700, () => { setJolt(n => n + 1); setAlarm(n => n + 1); setMsg('GUIDE K.I.A. — DATA NOT FOUND'); patch(adamId, { st: 'kia' }); });
     at(4900, () => patch(adamId, { st: 'out' }));
@@ -215,7 +216,7 @@ export function SyncMatch({ open, onClose }: { open: boolean; onClose: () => voi
     for (const d of [560, 500, 440, 380, 330, 290, 250, 230, 210, 190]) {
       const t0 = t;
       at(t0, () => {
-        const id = add({ kind: 'anon', slot: 'r', st: 'in', x: 0, y: 0, r: rand(-3, 3), ex: pick([-1, 1]) * rand(80, 160), anon: anonGuide() });
+        const id = add({ kind: 'anon', slot: 'l', st: 'in', x: 0, y: 0, r: rand(-3, 3), ex: pick([-1, 1]) * rand(80, 160), anon: anonGuide() });
         setMeter({ v: rand(4, 71), st: 'run' });
         at(d * 0.55, () => { patch(id, { st: 'fail' }); setMeter(m => ({ ...m, st: 'fail', label: 'REJECTED.' })); fail(); });
         at(d, () => patch(id, { st: 'fly', ...fling() }));
@@ -239,7 +240,7 @@ export function SyncMatch({ open, onClose }: { open: boolean; onClose: () => voi
       setFlash(f => f + 1); setJolt(n => n + 1);
       setPhase('found'); setMsg('COMPATIBLE GUIDE FOUND');
       setMeter({ v: 0, st: 'run' });
-      add({ kind: 'eden', slot: 'r', st: 'in', x: 0, y: 0, r: 0, ex: 140 });
+      add({ kind: 'eden', slot: 'l', st: 'in', x: 0, y: 0, r: 0, ex: -140 });
     });
     at(tC + 450, () => count(0, FINAL, 1700, 'ok', 'MATCHED.', .6));
     // 5) 매칭 성공 — 번쩍이고 곧바로 기밀 파일로
