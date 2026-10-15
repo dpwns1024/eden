@@ -542,3 +542,14 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-el.tint{border-left-color:var(--ec);background:linear-gradient(90deg,color-mix(in srgb,var(--ec) 12%,transparent),transparent 70%)}
 .arx .ar-el.tint .ar-el-h .mk{color:color-mix(in srgb,var(--ec) 72%,#fff);filter:drop-shadow(0 0 4px var(--ec))}
 .arx .ar-el.tint .ar-el-h .mk svg [stroke-width="2.2"]{stroke:var(--ec)}
+/* 직급 분류 — PC: 왼쪽 세로 버튼 줄(지금 가로 줄 높이만큼 좁게) · 오른쪽 설명, 사이를 연결선으로 (v2.0 사용자 요청). 폰은 예전처럼 위아래 */
+.arx .ar-ranks > .ar-link{display:none}
+@media (min-width:821px){
+  .arx .ar-ranks{position:relative;display:grid;grid-template-columns:78px minmax(0,1fr);gap:18px;align-items:stretch}
+  .arx .ar-ranks > .ar-rank-bar{flex-direction:column;flex-wrap:nowrap;align-items:center;justify-content:center;gap:10px;margin:0;padding:18px 0}
+  .arx .ar-ranks > .ar-rank-bar button{width:44px;padding:0}
+  .arx .ar-ranks > .ar-rank-bar .ar-rank-sep{align-self:center;width:22px;height:1px;margin:2px 0}
+  .arx .ar-ranks > .ar-rank-bar > i,.arx .ar-ranks > .ar-rank-bar .cap{display:none}   /* 세로 줄에선 오른쪽 글씨 · 선을 뺀다 (소제목이 대신) */
+  .arx .ar-ranks > .ar-rank-card{margin-top:0}
+  .arx .ar-ranks > .ar-link{position:absolute;z-index:3;top:50%;left:78px;width:18px;height:9px;margin-top:-4.5px;display:flex;align-items:center;pointer-events:none}
+}

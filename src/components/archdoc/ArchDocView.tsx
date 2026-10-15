@@ -235,8 +235,10 @@ function RanksView({ ranks }: { ranks: ArchRanks }) {
             <button type="button" role="tab" aria-selected={i === on} className={i === on ? 's' : undefined} onClick={() => setOn(i)}>{r.key}</button>
           </React.Fragment>
         ))}
-        <i />{ranks.caption}
+        <i /><span className="cap">{ranks.caption}</span>
       </div>
+      {/* 버튼 줄 → 설명 카드 잇는 선 (PC — 각성자 · 속성 각성자와 같은 모양) */}
+      <span className="ar-link" aria-hidden="true"><i /><b /><i /></span>
       <article className="ar-pn ar-card ar-rank-card" key={cur.id}>
         <div className="ar-c-k"><span>RANK · {cur.tag || cur.key}</span>{cur.grade && <span>{cur.grade}</span>}</div>
         <h3><span className="ar-silver">{cur.en}</span><small>{[cur.name, cur.alias && `‘${cur.alias}’`].filter(Boolean).join(' · ')}</small></h3>
