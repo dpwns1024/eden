@@ -87,7 +87,7 @@ body:has(.ah-main)::before{display:none !important}
 .arx:where(.ah-main) .ar-div i::after{content:'';display:block;width:5px;height:5px;margin-top:-2px;transform:rotate(45deg);border:1px solid rgba(220,230,240,.7);background:var(--bg)}
 .arx:where(.ah-main) .ar-div i:first-child::after{margin-left:auto}
 .arx:where(.ah-main) .ar-div svg{width:34px;height:34px}
-.arx:where(.ah-main) .ar-h1{margin-top:clamp(24px,3.4vw,40px);font:300 clamp(19px,2.6vw,30px)/1.45 'Noto Sans KR',sans-serif;letter-spacing:.02em;color:#dfe5ec;animation:ahmIn 1.2s 2.6s ease both}
+.arx:where(.ah-main) .ar-h1{margin-top:clamp(24px,3.4vw,40px);font:300 clamp(16px,2.1vw,24px)/1.5 'Noto Sans KR',sans-serif;   /* 한 단계 작게 (v2.0 사용자 요청 — 30→24px · 폰 19→16px) */letter-spacing:.02em;color:#dfe5ec;animation:ahmIn 1.2s 2.6s ease both}
 .arx:where(.ah-main) .ar-h1 b{font-weight:500;color:#fff;text-shadow:0 0 22px rgba(var(--acr),.4)}
 .arx:where(.ah-main) .ar-h-en{margin-top:12px;font:400 clamp(8.5px,1vw,10.5px)/1.6 'Jost',sans-serif;letter-spacing:.4em;color:var(--mu);animation:ahmIn 1.2s 2.7s ease both}
 .arx:where(.ah-main) .ar-cta{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:clamp(22px,3vw,34px);animation:ahmIn 1.2s 2.8s ease both}
