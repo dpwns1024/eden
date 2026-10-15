@@ -5,6 +5,7 @@
  * 발췌 모드 — 왼쪽 아래 ✂ 버튼으로 켜고, 시작 문단 → 끝 문단을 차례로 누르면 그 사이가 통째로 골라진다.
  * 문단·이미지·인용구·구분선이 각각 한 칸이다. PC·모바일 같은 방식 (드래그로 고르기는 없앴다 — 사용자 요청).
  * 고른 부분은 홈페이지 배경 위 카드에 다시 그려 PNG로 만든다 → 미리보기 창에서 저장·공유.
+ * 카드 아래 글씨는 그 글의 제목 — 본문 칸의 data-ex-title (없으면 페이지 제목).
  *
  * - 고른 부분을 그대로 복제해(range.cloneContents) 화면 밖 카드에 넣고 html-to-image로 찍는다.
  * - 이미지가 섞이면 브라우저가 그 파일을 받아 와야 한다 — Firebase는 저장소 CORS가 열려 있어야
@@ -90,22 +91,34 @@ export function ExcerptMaker() {
     if (!els.length) return;
     const frag = document.createDocumentFragment();
     /* 화면에 보이는 간격 그대로 (v2.0 사용자 제보 — 엔터 친 곳이 없는데 발췌하면 문단 사이가 한 줄 벌어졌다).
-       붙여 넣은 글에는 아주 작은 글씨(1px 등)로 된 빈 줄이 숨어 있곤 하다 — 화면에서는 안 보이지만,
+       붙여 넣은 글에는 아주 작은 글씨(1px 등)로 된 줄이 숨어 있곤 하다 — 비어 있거나, 보이지 않는 공백 글자
+       (ㅤ 한글 채움 문자 · 점자 빈칸 등)만 들어 있다. 화면에서는 높이가 거의 없어 안 보이지만,
        카드에서는 글씨 크기를 통일하면서 한 줄만큼 커졌다. 그래서
-       ① 화면에서 거의 높이가 없는 빈 칸은 빼고 ② 칸 사이 간격은 화면에서 잰 값을 카드 글씨 크기에 맞춰 옮긴다 */
+       ① 화면에서 반 줄보다 낮게 그려진 칸은 (그림 · 구분선이 아니면) 내용과 상관없이 빼고
+       ② 칸 사이 간격은 화면에서 잰 값을 카드 글씨 크기에 맞춰 옮긴다 — 뺀 칸이 차지하던 자리도 그대로 남는다 */
     const rs = getComputedStyle(pick!.root);
     const pageFont = parseFloat(rs.fontSize) || 15;
     const line = parseFloat(rs.lineHeight) || pageFont * 1.8;
     const scale = 15 / pageFont;   // 카드 본문 글씨 15px (globals.css .excerpt-card .ex-body)
     const MEDIA = 'img,video,iframe,hr,svg,canvas,table';
-    const blank = (e: Element) => !e.matches(MEDIA) && !e.querySelector(MEDIA)
-      && !(e.textContent ?? '').replace(/[\s ​﻿]/g, '');
+    const media = (e: Element) => e.matches(MEDIA) || !!e.querySelector(MEDIA);
+    // 보이는 글자가 없는가 — 공백 · 줄바꿈 없는 공백 · 폭 없는 글자 · ㅤ(한글 채움) · 점자 빈칸 · 전각 공백
+    const INVISIBLE = /[\s\u00a0\u180e\u200b-\u200f\u2028\u2029\u2060\ufeff\u115f\u1160\u3164\u2800\u3000\uffa0]/g;
+    const blankText = (e: Element) => !(e.textContent ?? '').replace(INVISIBLE, '');
     let prevBottom: number | null = null;
     els.forEach(e => {
       const r = e.getBoundingClientRect();
-      if (blank(e) && r.height < line * 0.5) return;   // 화면에서 안 보이는 빈 칸
+      const isMedia = media(e);
+      if (!isMedia && r.height < line * 0.5) return;   // 화면에서 안 보이는 칸
       const c = e.cloneNode(true) as HTMLElement;
       c.classList.remove('ex-picked');
+      // 보이는 글자가 없는 빈 줄은 화면에서의 높이 그대로 — 글씨 크기를 통일해도 커지지 않게
+      if (!isMedia && blankText(e)) {
+        const h = `${(r.height * scale).toFixed(1)}px`;
+        c.style.setProperty('height', h, 'important');
+        c.style.setProperty('min-height', '0', 'important');
+        c.style.setProperty('overflow', 'hidden', 'important');
+      }
       const gap = prevBottom === null ? 0 : Math.max(0, r.top - prevBottom) * scale;
       c.style.setProperty('margin-top', `${gap.toFixed(1)}px`, 'important');
       c.style.setProperty('margin-bottom', '0', 'important');
@@ -145,7 +158,8 @@ export function ExcerptMaker() {
     [card, body].forEach(el => { el.style.setProperty('-webkit-text-size-adjust', '100%'); el.style.setProperty('text-size-adjust', '100%'); });
     const foot = document.createElement('div');
     foot.className = 'ex-foot';
-    foot.textContent = document.title || '';
+    // 글 제목 (v2.0 사용자 요청 — 홈 제목 대신). 본문 칸에 적어 둔 data-ex-title, 없으면 페이지 제목
+    foot.textContent = pick?.root.getAttribute('data-ex-title')?.trim() || document.title || '';
     frame.appendChild(body);
     card.appendChild(frame);
     card.appendChild(foot);

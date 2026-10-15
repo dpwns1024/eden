@@ -23,7 +23,7 @@ function DiaryBody({ p, onOpen }: { p: DiaryPost; onOpen: (ids: string[], idx: n
   const html = useMemo(() => renderBody('md', p.body), [p.body]);
   return (
     <div className="dy-body">
-      <div className="post-body" dangerouslySetInnerHTML={{ __html: html }} />
+      <div className="post-body" data-ex-title={p.title} dangerouslySetInnerHTML={{ __html: html }} />
       {/* 이미지는 썸네일 리스트로 — 클릭하면 뷰어(좌우 넘김) (v1.9 사용자 확정) */}
       {p.imgIds.length > 0 && (
         <div className="dy-thumbs">
