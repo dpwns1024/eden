@@ -11,7 +11,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArchDoc, ArchBlock, ArchCard, ArchClass, ArchFact, ArchMore, ArchRank, ArchRanks, ICONS, iconSvg, iconKeyOf, blankBlock, blankCard, blankClass,
   BLOCK_LABEL, moreOf, ranksOf, gradeOf, blankRank,
-  layoutOf, elementalOf, headsOf, blankElemGroup, blankElement, DEFAULT_HEADS, ELEM_ICON_KEYS,
+  layoutOf, elementalOf, headsOf, blankElemGroup, blankElement, DEFAULT_HEADS, ELEM_ICON_KEYS, ELEM_COLOR,
   type ArchElemGroup, type ArchElement, type ArchSubHead,
 } from '@/lib/archDocStore';
 import { newId } from '@/lib/postStore';
@@ -175,7 +175,8 @@ function ElemBox({ group, from }: { group: ArchElemGroup; from: string }) {
           {Array.from({ length: slots }, (_, i) => {
             const x = group.elements[i];
             return x ? (
-              <button key={x.id} type="button" role="tab" aria-selected={x === e} className={x === e ? 'on' : undefined} onClick={() => setEl(i)}>
+              <button key={x.id} type="button" role="tab" aria-selected={x === e} className={`${x === e ? 'on' : ''}${ELEM_COLOR[x.icon] ? ' tint' : ''}`} onClick={() => setEl(i)}
+                style={ELEM_COLOR[x.icon] ? { '--ec': ELEM_COLOR[x.icon] } as React.CSSProperties : undefined}>
                 <ElemIcon icon={x.icon} /><em>{x.en}</em>
               </button>
             ) : (
@@ -184,7 +185,7 @@ function ElemBox({ group, from }: { group: ArchElemGroup; from: string }) {
           })}
         </div>
         {e ? (
-          <div className="ar-el" key={e.id}>
+          <div className={`ar-el${ELEM_COLOR[e.icon] ? ' tint' : ''}`} key={e.id} style={ELEM_COLOR[e.icon] ? { '--ec': ELEM_COLOR[e.icon] } as React.CSSProperties : undefined}>
             <div className="ar-el-h">{ICONS[e.icon] && <span className="mk" dangerouslySetInnerHTML={{ __html: ICONS[e.icon].svg }} />}<b>{e.en}</b>{e.ko && <small>{e.ko}</small>}</div>
             <dl>
               {e.power && <div><dt>POWER · 힘의 특징</dt><dd>{e.power}</dd></div>}
@@ -474,7 +475,7 @@ function ElementalEditor({ groups, onChange }: { groups: ArchElemGroup[] | null;
                               onChange={v => sx({ ...x, icon: v === '__text' ? '' : v })}
                               options={[...ELEM_ICON_KEYS.map(k => ({ value: k, label: ICONS[k].label })), { value: '__text', label: '직접 입력 (글자 · 이모지)' }]} />
                             {ICONS[x.icon]
-                              ? <span className="ad-icprev" dangerouslySetInnerHTML={{ __html: ICONS[x.icon].svg }} />
+                              ? <span className="ad-icprev" style={{ color: ELEM_COLOR[x.icon] }} dangerouslySetInnerHTML={{ __html: ICONS[x.icon].svg }} />
                               : <KInput maxLength={4} placeholder="예: 🔥" value={x.icon} onChange={e => sx({ ...x, icon: e.target.value })} />}
                           </div>
                         </Field>

@@ -206,6 +206,11 @@ export const blankElemGroup = (): ArchElemGroup => ({ id: newId(), icon: 'diamon
 export const blankElement = (): ArchElement => ({ id: newId(), icon: '', en: 'ELEMENT', ko: '', power: '', overload: '' });
 /** 원소 마크 키 (ICONS 안 el-*) — 원소 칸 그림 고르기에 쓴다 */
 export const ELEM_ICON_KEYS = ['el-water', 'el-fire', 'el-grass', 'el-thunder', 'el-wind', 'el-ice'];
+/** 원소 색 (v2.0 사용자 지정) — 원소 마크 · 칸 테두리 · 빛 */
+export const ELEM_COLOR: Record<string, string> = {
+  'el-wind': '#1ABC9C', 'el-water': '#0052CC', 'el-grass': '#1B5C1F',
+  'el-thunder': '#FAC300', 'el-fire': '#F64600', 'el-ice': '#8ECCCC',
+};
 export const blankRank = (): ArchRank => ({ id: newId(), key: 'X', en: 'RANK', name: '', alias: '', grade: '', body: '' });
 
 /* ── 저장된 문서 고치기 ── */
