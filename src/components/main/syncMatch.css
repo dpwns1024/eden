@@ -99,7 +99,8 @@
   50%{opacity:.3;transform:rotate(var(--r)) translateX(-4px)}
   75%{opacity:1;transform:rotate(var(--r)) translateX(2px)}
   100%{opacity:1;transform:rotate(var(--r))}}
-.slot.r .sm-win.in{animation:smSlide .34s steps(5,end) both}
+/* 가운데 자리로 들어오는 가이드들 — 옆에서 미끄러져 들어온다 (고정된 이브는 제자리에서 뜬다) */
+.slot .sm-win.in:not(.k-eve){animation:smSlide .34s steps(5,end) both}
 @keyframes smSlide{0%{opacity:0;transform:translateX(var(--ex)) rotate(var(--r))}40%{opacity:.7}60%{opacity:.2}100%{opacity:1;transform:rotate(var(--r))}}
 .sm-win.fail{animation:smShake .3s steps(6) both}
 @keyframes smShake{

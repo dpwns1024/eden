@@ -21,7 +21,7 @@ export interface PairProfile {
 }
 
 /** 아담 사진 — public/ 아래에 넣은 파일 경로. 비어 있으면 실루엣 */
-export const ADAM_IMG = '';
+export const ADAM_IMG = '/img/adam.jpg';
 
 type Fallback = { name: string; color: string; role: string; code: string; sub: string; specs?: PairProfile['specs']; src?: string };
 function profileOf(c: Character | undefined, fb: Fallback): PairProfile {
