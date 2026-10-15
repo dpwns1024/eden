@@ -216,7 +216,7 @@ export default function BoardDetailPage() {
               </div>
             </div>
           )}
-          <div className="post-body" style={post.fold && !open ? { minHeight: 120, filter: 'blur(6px)' } : undefined}
+          <div className="post-body" data-ex-title={post.title} style={post.fold && !open ? { minHeight: 120, filter: 'blur(6px)' } : undefined}
             dangerouslySetInnerHTML={{ __html: html }} />
         </div>
       </div>

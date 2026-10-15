@@ -110,7 +110,7 @@ export default function ApplicantDetailPage() {
         <div style={{ paddingTop: 16 }}>
           {canSee ? (
             a.content
-              ? <HtmlBody className="post-body" style={{ fontSize: 13 }} html={html} />
+              ? <HtmlBody className="post-body" style={{ fontSize: 13 }} html={html} exTitle={comm?.name} />
               : <p className="hint">내용이 비어 있습니다</p>
           ) : (
             <p className="hint" style={{ textAlign: 'center', padding: '14px 0' }}>

@@ -192,7 +192,7 @@ export default function CommDetailPage() {
 
       {/* 5. 커미션 설명 — 격리 새니타이즈 렌더 (게시판과 동일 규칙) */}
       <div className="panel" style={{ padding: 26, marginTop: 18 }}>
-        <div className="post-body" style={{ fontFamily: familyOf(c.bodyFontId) }}
+        <div className="post-body" data-ex-title={c.name} style={{ fontFamily: familyOf(c.bodyFontId) }}
           dangerouslySetInnerHTML={{ __html: descHtml }} />
         {!c.descHtml && <p className="hint">설명이 비어 있습니다</p>}
       </div>

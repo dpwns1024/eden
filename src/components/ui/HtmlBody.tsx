@@ -12,10 +12,12 @@ import React, { useMemo, useRef, useState } from 'react';
 import { Lightbox } from '@/components/ui/Lightbox';
 import { sanitizeHtml } from '@/lib/sanitize';
 
-export function HtmlBody({ html, className, style }: {
+export function HtmlBody({ html, className, style, exTitle }: {
   html: string;
   className?: string;
   style?: React.CSSProperties;
+  /** 발췌 이미지 아래에 찍을 글 제목 (components/shell/ExcerptMaker.tsx) */
+  exTitle?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [lb, setLb] = useState<{ srcs: string[]; i: number } | null>(null);
@@ -38,7 +40,7 @@ export function HtmlBody({ html, className, style }: {
 
   return (
     <>
-      <div ref={ref} className={`${className ?? ''} html-body`} style={style}
+      <div ref={ref} className={`${className ?? ''} html-body`} style={style} data-ex-title={exTitle}
         onClick={onClick} dangerouslySetInnerHTML={{ __html: safe }} />
       {lb && <Lightbox srcs={lb.srcs} index={lb.i} onClose={() => setLb(null)} />}
     </>

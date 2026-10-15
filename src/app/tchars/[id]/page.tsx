@@ -113,7 +113,7 @@ export default function TCharDetailPage() {
             )}
           </div>
           {c.desc ? (
-            <div className="post-body" style={{ fontSize: 13, paddingTop: 14 }}
+            <div className="post-body" data-ex-title={c.name} style={{ fontSize: 13, paddingTop: 14 }}
               dangerouslySetInnerHTML={{ __html: sanitizeHtml(c.desc) }} />
           ) : (
             <p className="hint" style={{ paddingTop: 14 }}>설명이 없습니다</p>

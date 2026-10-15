@@ -322,13 +322,13 @@ function CharDetailInner() {
                   </>
                 )}
               </dl>
-              <div className="prose" dangerouslySetInnerHTML={{ __html: basicHtml }} />
+              <div className="prose" data-ex-title={eff.name} dangerouslySetInnerHTML={{ __html: basicHtml }} />
             </>
           ) : (
             <>
               <h3>{curTab?.title}</h3>
               {curTab?.subtitle && <div className="sub">{curTab.subtitle}</div>}
-              <div className="prose" dangerouslySetInnerHTML={{ __html: tabHtml }} />
+              <div className="prose" data-ex-title={curTab?.title ? `${eff.name} · ${curTab.title}` : eff.name} dangerouslySetInnerHTML={{ __html: tabHtml }} />
             </>
           )}
         </div>
