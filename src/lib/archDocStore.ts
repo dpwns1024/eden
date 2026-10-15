@@ -50,12 +50,38 @@ export interface ArchClass {
   /** 상세 버튼. undefined = 손댄 적 없음(기본값이 있으면 그것), null = 관리자가 뺐음 */
   more?: ArchMore | null;
 }
+/** 속성 원소 하나 (v2.0 사용자 요청 — 분류 탭 「속성 각성자」 상자) */
+export interface ArchElement {
+  id: string;
+  icon: string;                        // 그림 글자 (예: 🔥)
+  en: string; ko: string;              // 영문 이름(PYRE) · 한글(불)
+  power: string;                       // 힘의 특징
+  overload: string;                    // 폭주 징후
+}
+/** 속성 상자의 마크 하나 — 속성 센티넬 / 속성 가이드 */
+export interface ArchElemGroup {
+  id: string;
+  icon: string;                        // 마크 그림 (ICONS 키)
+  title: string; sub: string;          // ELEMENTAL SENTINEL · 속성 센티넬
+  body: string;                        // 소개
+  elements: ArchElement[];
+}
+/** 분류 탭 소제목 — [영문, 한글, 오른쪽 작은 글씨] */
+export type ArchSubHead = [string, string, string];
+export interface ArchClassHeads { aw: ArchSubHead; el: ArchSubHead; rk: ArchSubHead }
 export type ArchBlock =
   | { id: string; type: 'head'; num: string; title: string; sub: string; doc: string }
   | { id: string; type: 'cards'; cards: ArchCard[] }
   | { id: string; type: 'classes'; items: ArchClass[]; grade?: { letters: string[]; on: number; caption: string } | null;
       /** 직급 체계 — 등급 띠와 같은 모양의 버튼 줄, 누르면 아래 설명. undefined = 손댄 적 없음(기본값), null = 뺐음 */
-      ranks?: ArchRanks | null }
+      ranks?: ArchRanks | null;
+      /** 보기 (v2.0) — switch: 분류를 한 상자에 넣고 마크로 전환 + 옆에 속성 상자 · grid: 카드 나란히(예전).
+       *  undefined = 센티넬·가이드가 있는 ARCH 분류 블록은 switch, 그 밖엔 grid */
+      layout?: 'switch' | 'grid';
+      /** 속성 상자 (switch 보기) — undefined = 기본값, null = 뺐음 */
+      elemental?: ArchElemGroup[] | null;
+      /** 소제목 (switch 보기) — undefined = 기본값 */
+      heads?: ArchClassHeads }
   | { id: string; type: 'text'; html: string }
   | { id: string; type: 'image'; src: string; caption: string }
   /** 아이기스 단면 지도 (MAP 탭) — 그림은 코드, 시설 설명은 nodes */
@@ -151,6 +177,26 @@ export function ranksOf(b: ClassesBlock): ArchRanks | null {
 export function gradeOf(b: ClassesBlock): ClassesBlock['grade'] {
   return b.ranks === undefined && isArchClasses(b) ? null : (b.grade ?? null);
 }
+/** 분류 탭 기본 소제목 (v2.0 사용자 요청 — 각성자 · 속성 각성자 · 직급 분류) */
+export const DEFAULT_HEADS: ArchClassHeads = {
+  aw: ['AWAKENED', '각성자', '2 CLASSES'],
+  el: ['ELEMENTAL AWAKENED', '속성 각성자', '6 ELEMENTS'],
+  rk: ['RANK SYSTEM', '직급 분류', ''],   // 오른쪽 글씨는 직급 버튼 줄에 이미 있다
+};
+/** 속성 상자 기본값 (v2.0 사용자 요청 — 속성 센티넬 소개 · 불(Pyre) 예시). 관리자가 고치면 그 값이 우선 */
+export const DEFAULT_ELEMENTAL: ArchElemGroup[] = [
+  { id: 'el-s', icon: 'sentinel', title: 'ELEMENTAL SENTINEL', sub: '속성 센티넬',
+    body: "세상의 원소와 공명하여 초월적인 공격 능력을 각성한 존재. 이들의 힘은 오직 '파괴'와 '공격'에만 특화되어 있습니다. 모든 속성 센티넬은 각자 고유한 힘과 그에 따른 폭주의 고통을 안고 살아갑니다. 센티넬들은 능력 합이 잘 맞는 다른 센티넬과 페어를 맺어 활동하기도 합니다.",
+    elements: [
+      { id: 'el-pyre', icon: '🔥', en: 'PYRE', ko: '불', power: '파괴, 열기, 폭발. 가장 공격적이고 직관적인 힘.', overload: '몸이 불타는 듯한 환각열, 주체할 수 없는 파괴 충동.' },
+    ] },
+  { id: 'el-g', icon: 'guide', title: 'ELEMENTAL GUIDE', sub: '속성 가이드', body: '', elements: [] },
+];
+export const layoutOf = (b: ClassesBlock): 'switch' | 'grid' => b.layout ?? (isArchClasses(b) ? 'switch' : 'grid');
+export const elementalOf = (b: ClassesBlock): ArchElemGroup[] | null => (b.elemental !== undefined ? b.elemental : DEFAULT_ELEMENTAL);
+export const headsOf = (b: ClassesBlock): ArchClassHeads => b.heads ?? DEFAULT_HEADS;
+export const blankElemGroup = (): ArchElemGroup => ({ id: newId(), icon: 'diamond', title: 'ELEMENTAL', sub: '', body: '', elements: [] });
+export const blankElement = (): ArchElement => ({ id: newId(), icon: '', en: 'ELEMENT', ko: '', power: '', overload: '' });
 export const blankRank = (): ArchRank => ({ id: newId(), key: 'X', en: 'RANK', name: '', alias: '', grade: '', body: '' });
 
 /* ── 저장된 문서 고치기 ── */
