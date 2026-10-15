@@ -5,7 +5,7 @@
  * 발췌 모드 — 왼쪽 아래 ✂ 버튼으로 켜고, 시작 문단 → 끝 문단을 차례로 누르면 그 사이가 통째로 골라진다.
  * 문단·이미지·인용구·구분선이 각각 한 칸이다. PC·모바일 같은 방식 (드래그로 고르기는 없앴다 — 사용자 요청).
  * 고른 부분은 홈페이지 배경 위 카드에 다시 그려 PNG로 만든다 → 미리보기 창에서 저장·공유.
- * 카드 아래 글씨는 그 글의 제목 — 본문 칸의 data-ex-title (없으면 페이지 제목).
+ * 카드 아래 글씨는 그 글의 제목 — 본문 칸(또는 그 바깥)의 data-ex-title (없으면 페이지 제목).
  *
  * - 고른 부분을 그대로 복제해(range.cloneContents) 화면 밖 카드에 넣고 html-to-image로 찍는다.
  * - 이미지가 섞이면 브라우저가 그 파일을 받아 와야 한다 — Firebase는 저장소 CORS가 열려 있어야
@@ -113,11 +113,22 @@ export function ExcerptMaker() {
       const c = e.cloneNode(true) as HTMLElement;
       c.classList.remove('ex-picked');
       // 보이는 글자가 없는 빈 줄은 화면에서의 높이 그대로 — 글씨 크기를 통일해도 커지지 않게
-      if (!isMedia && blankText(e)) {
-        const h = `${(r.height * scale).toFixed(1)}px`;
-        c.style.setProperty('height', h, 'important');
-        c.style.setProperty('min-height', '0', 'important');
-        c.style.setProperty('overflow', 'hidden', 'important');
+      const pin = (el: HTMLElement, h: number) => {
+        el.style.setProperty('height', `${(h * scale).toFixed(1)}px`, 'important');
+        el.style.setProperty('min-height', '0', 'important');
+        el.style.setProperty('overflow', 'hidden', 'important');
+      };
+      if (!isMedia && blankText(e)) pin(c, r.height);
+      // 고른 칸 안쪽(문단을 감싼 칸이 있는 글)도 같은 기준 — 복제본은 구조가 같으니 같은 순서로 짝지어 본다
+      const INNER = 'p,div,li,h1,h2,h3,h4,h5,h6,blockquote,section';
+      const os = Array.from(e.querySelectorAll(INNER)), cs = Array.from(c.querySelectorAll<HTMLElement>(INNER));
+      if (os.length === cs.length) {
+        os.forEach((o, i) => {
+          if (media(o)) return;
+          const h = o.getBoundingClientRect().height;
+          if (h < line * 0.5) cs[i].remove();
+          else if (blankText(o)) pin(cs[i], h);
+        });
       }
       const gap = prevBottom === null ? 0 : Math.max(0, r.top - prevBottom) * scale;
       c.style.setProperty('margin-top', `${gap.toFixed(1)}px`, 'important');
@@ -159,7 +170,7 @@ export function ExcerptMaker() {
     const foot = document.createElement('div');
     foot.className = 'ex-foot';
     // 글 제목 (v2.0 사용자 요청 — 홈 제목 대신). 본문 칸에 적어 둔 data-ex-title, 없으면 페이지 제목
-    foot.textContent = pick?.root.getAttribute('data-ex-title')?.trim() || document.title || '';
+    foot.textContent = pick?.root.closest('[data-ex-title]')?.getAttribute('data-ex-title')?.trim() || document.title || '';
     frame.appendChild(body);
     card.appendChild(frame);
     card.appendChild(foot);
