@@ -89,7 +89,30 @@ export function ExcerptMaker() {
     const els = pickedBlocks(pick);
     if (!els.length) return;
     const frag = document.createDocumentFragment();
-    els.forEach(e => { const c = e.cloneNode(true) as Element; c.classList.remove('ex-picked'); frag.appendChild(c); });
+    /* 화면에 보이는 간격 그대로 (v2.0 사용자 제보 — 엔터 친 곳이 없는데 발췌하면 문단 사이가 한 줄 벌어졌다).
+       붙여 넣은 글에는 아주 작은 글씨(1px 등)로 된 빈 줄이 숨어 있곤 하다 — 화면에서는 안 보이지만,
+       카드에서는 글씨 크기를 통일하면서 한 줄만큼 커졌다. 그래서
+       ① 화면에서 거의 높이가 없는 빈 칸은 빼고 ② 칸 사이 간격은 화면에서 잰 값을 카드 글씨 크기에 맞춰 옮긴다 */
+    const rs = getComputedStyle(pick!.root);
+    const pageFont = parseFloat(rs.fontSize) || 15;
+    const line = parseFloat(rs.lineHeight) || pageFont * 1.8;
+    const scale = 15 / pageFont;   // 카드 본문 글씨 15px (globals.css .excerpt-card .ex-body)
+    const MEDIA = 'img,video,iframe,hr,svg,canvas,table';
+    const blank = (e: Element) => !e.matches(MEDIA) && !e.querySelector(MEDIA)
+      && !(e.textContent ?? '').replace(/[\s ​﻿]/g, '');
+    let prevBottom: number | null = null;
+    els.forEach(e => {
+      const r = e.getBoundingClientRect();
+      if (blank(e) && r.height < line * 0.5) return;   // 화면에서 안 보이는 빈 칸
+      const c = e.cloneNode(true) as HTMLElement;
+      c.classList.remove('ex-picked');
+      const gap = prevBottom === null ? 0 : Math.max(0, r.top - prevBottom) * scale;
+      c.style.setProperty('margin-top', `${gap.toFixed(1)}px`, 'important');
+      c.style.setProperty('margin-bottom', '0', 'important');
+      frag.appendChild(c);
+      prevBottom = r.bottom;
+    });
+    if (!frag.childNodes.length) return;
     setBusy(true);
     // 화면 밖 카드 — ARCH 글 모양(.page-arch .post-body)을 그대로 빌려 쓴다
     const card = document.createElement('div');
