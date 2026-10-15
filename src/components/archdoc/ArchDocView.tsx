@@ -11,6 +11,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArchDoc, ArchBlock, ArchCard, ArchClass, ArchFact, ArchMore, ArchRank, ArchRanks, ICONS, iconSvg, iconKeyOf, blankBlock, blankCard, blankClass,
   BLOCK_LABEL, moreOf, ranksOf, gradeOf, blankRank,
+  layoutOf, elementalOf, headsOf, blankElemGroup, blankElement, DEFAULT_HEADS,
+  type ArchElemGroup, type ArchElement, type ArchSubHead,
 } from '@/lib/archDocStore';
 import { newId } from '@/lib/postStore';
 import { sanitizeHtml } from '@/lib/sanitize';
@@ -103,6 +105,91 @@ function MoreButton({ more }: { more: ArchMore }) {
   );
 }
 
+/** 분류 탭 소제목 (v2.0 사용자 요청 — 각성자 · 속성 각성자 · 직급 분류) — 섹션 제목보다 한 단계 작게 */
+function SubHead({ h }: { h: ArchSubHead }) {
+  if (!h[0] && !h[1]) return null;
+  return (
+    <div className="ar-subh">
+      <span className="bar" aria-hidden="true" />
+      <div><b>{h[0]}</b>{h[1] && <small>{h[1]}</small>}</div>
+      <i />{h[2] && <em>{h[2]}</em>}
+    </div>
+  );
+}
+
+/** 마크 줄 — 누른 마크는 밝게 · 굵게 · 빛나게 (v2.0 사용자 요청) */
+function Marks({ items, on, setOn, label }: {
+  items: { id: string; icon: string; name: string }[]; on: number; setOn: (i: number) => void; label: string;
+}) {
+  return (
+    <div className="ar-marks" role="tablist" aria-label={label}>
+      {items.map((it, i) => (
+        <button key={it.id} type="button" role="tab" aria-selected={i === on} className={i === on ? 'on' : undefined} onClick={() => setOn(i)}>
+          <span className="mk" dangerouslySetInnerHTML={{ __html: iconSvg(it.icon) }} />
+          <em>{it.name}</em>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** 분류를 한 상자에 — 마크를 누르면 그 분류 설명 (v2.0 사용자 요청) */
+function ClassSwitch({ items }: { items: ArchClass[] }) {
+  const [on, setOn] = useState(0);
+  const cur = items[Math.min(on, items.length - 1)];
+  if (!cur) return null;
+  const more = moreOf(cur);
+  return (
+    <div className="ar-pn ar-sw">
+      <Marks items={items.map(it => ({ id: it.id, icon: it.icon, name: it.title }))} on={on} setOn={setOn} label="분류" />
+      <div className="ar-sw-body" key={cur.id}>
+        {more && <MoreButton more={more} />}
+        <b>{cur.title}</b>{cur.sub && <small>{cur.sub}</small>}
+        {cur.body && <p>{cur.body}</p>}
+      </div>
+      {cur.letter && <span className="bg" aria-hidden="true">{cur.letter}</span>}
+    </div>
+  );
+}
+
+/** 속성 상자 — 마크(속성 센티넬 · 속성 가이드)로 전환, 원소 칸을 누르면 아래에 힘의 특징 · 폭주 징후 */
+function ElemBox({ groups }: { groups: ArchElemGroup[] }) {
+  const [on, setOn] = useState(0);
+  const [el, setEl] = useState(0);
+  const cur = groups[Math.min(on, groups.length - 1)];
+  if (!cur) return null;
+  const e: ArchElement | undefined = cur.elements[Math.min(el, cur.elements.length - 1)];
+  return (
+    <div className="ar-pn ar-sw ar-elbox">
+      <Marks items={groups.map(g => ({ id: g.id, icon: g.icon, name: g.title }))} on={on} setOn={i => { setOn(i); setEl(0); }} label="속성" />
+      <div className="ar-sw-body" key={cur.id}>
+        <b>{cur.title}</b>{cur.sub && <small>{cur.sub}</small>}
+        {cur.body ? <p>{cur.body}</p> : <p className="pend">기록 준비 중</p>}
+        {cur.elements.length > 0 && (
+          <>
+            <div className="ar-els" role="tablist" aria-label="원소">
+              {cur.elements.map((x, i) => (
+                <button key={x.id} type="button" role="tab" aria-selected={x === e} className={x === e ? 'on' : undefined} onClick={() => setEl(i)}>
+                  <span>{x.icon || '·'}</span><em>{x.en}</em>
+                </button>
+              ))}
+            </div>
+            {e && (
+              <div className="ar-el" key={e.id}>
+                <div className="ar-el-h"><b>{e.en}</b>{e.ko && <small>{e.ko}</small>}</div>
+                <dl>
+                  {e.power && <div><dt>POWER · 힘의 특징</dt><dd>{e.power}</dd></div>}
+                  {e.overload && <div className="rd"><dt>OVERLOAD · 폭주 징후</dt><dd>{e.overload}</dd></div>}
+                </dl>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /** 직급 체계 — 등급 띠와 같은 버튼 줄, 누른 직급의 설명이 아래 카드로 */
 function RanksView({ ranks }: { ranks: ArchRanks }) {
   const [on, setOn] = useState(0);
@@ -148,6 +235,25 @@ function BlockView({ b }: { b: ArchBlock }) {
         </div>
       ) : null;
     case 'classes':
+      if (layoutOf(b) === 'switch') {
+        // 한 상자 + 속성 상자 보기 (v2.0 사용자 요청) — 각성자 | 속성 각성자, 아래 직급 분류
+        const hd = headsOf(b), els = elementalOf(b);
+        return (
+          <>
+            <div className={`ar-cls2${els ? '' : ' one'}`}>
+              {b.items.length > 0 && <div className="ar-cls2-col"><SubHead h={hd.aw} /><ClassSwitch items={b.items} /></div>}
+              {els && els.length > 0 && <div className="ar-cls2-col"><SubHead h={hd.el} /><ElemBox groups={els} /></div>}
+            </div>
+            {gradeOf(b) && gradeOf(b)!.letters.length > 0 && (
+              <div className="ar-pn ar-grade">
+                {gradeOf(b)!.letters.map((l, i) => <span key={i} className={i === gradeOf(b)!.on ? 's' : undefined}>{l}</span>)}
+                <i />{gradeOf(b)!.caption}
+              </div>
+            )}
+            {ranksOf(b) && <><SubHead h={hd.rk} /><RanksView ranks={ranksOf(b)!} /></>}
+          </>
+        );
+      }
       return (
         <>
           {b.items.length > 0 && (
@@ -307,6 +413,50 @@ function MoreEditor({ more, onChange }: { more: ArchMore | null; onChange: (m: A
   );
 }
 
+/** 속성 상자 편집 (v2.0) — 마크(속성 센티넬 · 속성 가이드)마다 소개 + 원소 목록 */
+function ElementalEditor({ groups, onChange }: { groups: ArchElemGroup[] | null; onChange: (g: ArchElemGroup[] | null) => void }) {
+  const icons = [...Object.entries(ICONS).map(([k, v]) => ({ value: k, label: v.label })), { value: 'none', label: '없음' }];
+  return (
+    <div className="ad-field wide" style={{ marginTop: 14 }}>
+      <KCheck label="옆에 속성 상자 넣기 (마크로 전환 · 원소를 누르면 설명)" checked={!!groups}
+        onChange={v => onChange(v ? (groups ?? [blankElemGroup()]) : null)} />
+      {groups && (
+        <div className="ad-list" style={{ marginTop: 8 }}>
+          <ItemList items={groups} onChange={onChange} make={blankElemGroup} addLabel="마크 추가"
+            title={(g: ArchElemGroup, i) => `마크 ${i + 1} — ${g.sub || g.title || '(이름 없음)'}`}
+            render={(g: ArchElemGroup, sg: (v: ArchElemGroup) => void) => (
+              <div className="ad-grid">
+                <Field label="마크 그림">
+                  <div className="ad-row">
+                    <KSelect options={icons} value={g.icon} onChange={v => sg({ ...g, icon: v })} minWidth={180} />
+                    {g.icon !== 'none' && <span className="ad-icprev" dangerouslySetInnerHTML={{ __html: iconSvg(g.icon) }} />}
+                  </div>
+                </Field>
+                <Field label="영문 이름 (마크 아래 · 큰 제목)"><KInput value={g.title} onChange={e => sg({ ...g, title: e.target.value })} /></Field>
+                <Field label="한글 이름"><KInput value={g.sub} onChange={e => sg({ ...g, sub: e.target.value })} /></Field>
+                <Field label="소개" wide><KTextarea rows={3} value={g.body} onChange={e => sg({ ...g, body: e.target.value })} /></Field>
+                <div className="ad-field wide">
+                  <div className="ad-sub">원소 (칸을 누르면 아래에 설명)</div>
+                  <ItemList items={g.elements} onChange={elements => sg({ ...g, elements })} make={blankElement} addLabel="원소 추가"
+                    title={(x: ArchElement, i) => `${i + 1} — ${x.icon} ${x.en}${x.ko ? ` (${x.ko})` : ''}`}
+                    render={(x: ArchElement, sx: (v: ArchElement) => void) => (
+                      <div className="ad-grid">
+                        <Field label="그림 글자 (예: 🔥)"><KInput maxLength={4} value={x.icon} onChange={e => sx({ ...x, icon: e.target.value })} /></Field>
+                        <Field label="영문 이름 (예: PYRE)"><KInput value={x.en} onChange={e => sx({ ...x, en: e.target.value })} /></Field>
+                        <Field label="한글 이름 (예: 불)"><KInput value={x.ko} onChange={e => sx({ ...x, ko: e.target.value })} /></Field>
+                        <Field label="힘의 특징" wide><KTextarea rows={2} value={x.power} onChange={e => sx({ ...x, power: e.target.value })} /></Field>
+                        <Field label="폭주 징후 (빨강)" wide><KTextarea rows={2} value={x.overload} onChange={e => sx({ ...x, overload: e.target.value })} /></Field>
+                      </div>
+                    )} />
+                </div>
+              </div>
+            )} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function RanksEditor({ ranks, onChange }: { ranks: ArchRanks | null; onChange: (r: ArchRanks | null) => void }) {
   return (
     <div className="ad-field wide" style={{ marginTop: 14 }}>
@@ -452,9 +602,32 @@ function BlockEditor({ b, set }: { b: ArchBlock; set: (b: ArchBlock) => void }) 
       const setGrade = (grade: typeof g) => set({ ...b, grade, ranks: ranksOf(b) });
       return (
         <>
+          <div className="ad-field wide" style={{ marginBottom: 12 }}>
+            <span>보기</span>
+            <KSelect value={layoutOf(b)} onChange={v => set({ ...b, layout: v as 'switch' | 'grid' })} minWidth={260}
+              options={[{ value: 'switch', label: '한 상자 + 마크 전환 · 옆에 속성 상자' }, { value: 'grid', label: '카드 나란히 (예전)' }]} />
+          </div>
+          {layoutOf(b) === 'switch' && (
+            <div className="ad-field wide" style={{ marginBottom: 12 }}>
+              <span>소제목 (영문 · 한글 · 오른쪽 작은 글씨)</span>
+              {([['aw', '분류 상자 위'], ['el', '속성 상자 위'], ['rk', '직급 위']] as const).map(([k, lb]) => {
+                const hd = headsOf(b), h = hd[k];
+                const setH = (i: number, v: string) => set({ ...b, heads: { ...hd, [k]: h.map((x, j) => (j === i ? v : x)) as ArchSubHead } });
+                return (
+                  <div key={k} className="ad-row">
+                    <span className="ad-mini" style={{ flex: '0 0 84px', whiteSpace: 'nowrap' }}>{lb}</span>
+                    <KInput placeholder={DEFAULT_HEADS[k][0]} value={h[0]} onChange={e => setH(0, e.target.value)} />
+                    <KInput placeholder={DEFAULT_HEADS[k][1]} value={h[1]} onChange={e => setH(1, e.target.value)} />
+                    <KInput placeholder="(선택)" value={h[2]} onChange={e => setH(2, e.target.value)} />
+                  </div>
+                );
+              })}
+            </div>
+          )}
           <ItemList items={b.items} onChange={items => set({ ...b, items })} make={blankClass} addLabel="분류 추가"
             title={(c, i) => `${i + 1} — ${c.title || '(이름 없음)'}`}
             render={(c, sc) => <ClassEditor it={c} onChange={sc} />} />
+          {layoutOf(b) === 'switch' && <ElementalEditor groups={elementalOf(b)} onChange={elemental => set({ ...b, elemental })} />}
           <div className="ad-field wide" style={{ marginTop: 14 }}>
             <KCheck label="아래 등급 띠 넣기 (S A B C D …)" checked={!!g}
               onChange={v => setGrade(v ? (g ?? { letters: ['S', 'A', 'B', 'C', 'D'], on: 0, caption: 'CLASS RATING' }) : null)} />

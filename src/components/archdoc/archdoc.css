@@ -444,3 +444,65 @@ body:has(.arx)::before{display:none !important}
   .arx .am-card{padding:22px 18px 20px}
   .arx .am-card h3{font-size:22px;letter-spacing:.16em}
 }
+
+/* ── 분류 탭 · 한 상자 보기 (v2.0 사용자 요청) — 각성자(분류 마크 전환) | 속성 각성자(속성 마크 · 원소), 아래 직급 분류 ── */
+.arx .ar-subh{display:flex;align-items:center;gap:12px;margin:0 0 14px}
+.arx .ar-subh .bar{flex:0 0 3px;height:22px;background:var(--ac);box-shadow:0 0 10px var(--ac)}
+.arx .ar-subh b{display:block;font:400 12px/1 'Jost',sans-serif;letter-spacing:.36em;color:#fff;white-space:nowrap}
+.arx .ar-subh small{display:block;margin-top:6px;font:400 10px/1 'Noto Sans KR',sans-serif;letter-spacing:.2em;color:var(--mu)}
+.arx .ar-subh i{flex:1;height:1px;background:linear-gradient(90deg,var(--ln2),transparent)}
+.arx .ar-subh em{font:normal 400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.22em;color:var(--dim);white-space:nowrap}
+.arx .ar-cls2{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:stretch}
+.arx .ar-cls2.one{grid-template-columns:1fr}
+.arx .ar-cls2-col{display:flex;flex-direction:column;min-width:0}
+.arx .ar-cls2-col > .ar-sw{flex:1}
+.arx .ar-cls2 + .ar-subh,.arx .ar-cls2 ~ .ar-subh,.arx .ar-grade + .ar-subh{margin-top:34px}
+.arx .ar-sw{padding:20px 24px 24px;overflow:hidden}
+.arx .ar-sw > .bg{position:absolute;right:-8px;bottom:-22px;font:600 92px/1 'Saira Semi Condensed',sans-serif;color:transparent;-webkit-text-stroke:1px rgba(190,208,228,.07);pointer-events:none}
+/* 마크 — 누른 마크는 밝게 · 선을 굵게 · 빛 + 밑줄 (v2.0 사용자 요청) */
+.arx .ar-marks{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:14px;margin-bottom:18px;border-bottom:1px solid var(--ln)}
+.arx .ar-marks button{display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 12px 9px;border:0;border-bottom:2px solid transparent;background:none;cursor:pointer;color:#5d6876;transition:color .2s,background .2s,border-color .2s}
+.arx .ar-marks .mk{display:block;width:34px;height:34px;transition:filter .2s,transform .2s}
+.arx .ar-marks .mk svg{display:block;width:100%;height:100%}
+.arx .ar-marks em{font:normal 400 9.5px/1 'Jost',sans-serif;letter-spacing:.24em;margin-right:-.24em;white-space:nowrap}
+.arx .ar-marks button:hover{color:#aeb9c5}
+.arx .ar-marks button.on{color:#fff;background:linear-gradient(180deg,transparent,rgba(var(--acr),.1));border-bottom-color:var(--ac)}
+.arx .ar-marks button.on .mk{filter:drop-shadow(0 0 6px rgba(var(--acr),.85));transform:scale(1.06)}
+.arx .ar-marks button.on .mk svg *{stroke-width:1.7}
+.arx .ar-marks button.on .mk svg [stroke-width="2.2"]{stroke-width:2.8}
+.arx .ar-marks button.on em{font-weight:500;color:var(--ac)}
+.arx .ar-sw-body{position:relative;z-index:1;animation:arIn .3s ease both}
+.arx .ar-sw-body > b{display:block;font:400 17px/1.2 'Jost',sans-serif;letter-spacing:.38em;color:#fff}
+.arx .ar-sw-body > small{display:block;margin-top:9px;font:400 10.5px/1 'Noto Sans KR',sans-serif;letter-spacing:.2em;color:var(--mu)}
+.arx .ar-sw-body > p{margin-top:14px;font:300 12.5px/1.85 'Noto Sans KR',sans-serif;color:#a9b4c0;word-break:keep-all}
+.arx .ar-sw-body > p.pend{font-family:'JetBrains Mono','Noto Sans KR',monospace;font-size:10px;letter-spacing:.2em;color:var(--dim)}
+.arx .ar-sw .ar-more-btn{position:absolute;right:0;top:-4px;z-index:2;display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 10px 0 12px;
+  border:1px solid rgba(var(--acr),.4);background:rgba(13,18,25,.7);cursor:pointer;font:500 11px/1 'Noto Sans KR',sans-serif;letter-spacing:.02em;color:#dfe6ee;transition:border-color .2s,box-shadow .2s,color .2s}
+.arx .ar-sw .ar-more-btn i{font:normal 400 12px/1 'JetBrains Mono',monospace;color:var(--ac);transition:transform .25s}
+.arx .ar-sw .ar-more-btn:hover{border-color:rgba(var(--acr),.75);color:#fff;box-shadow:0 0 18px -5px rgba(var(--acr),.6)}
+.arx .ar-sw .ar-more-btn:hover i{transform:translateX(2px)}
+/* 원소 칸 */
+.arx .ar-els{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.arx .ar-els button{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:58px;padding:9px 8px 8px;border:1px solid var(--ln2);background:rgba(255,255,255,.02);cursor:pointer;color:var(--mu);transition:border-color .2s,color .2s,box-shadow .2s}
+.arx .ar-els button span{font-size:18px;line-height:1}
+.arx .ar-els button em{font:normal 400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.18em}
+.arx .ar-els button:hover{color:#fff;border-color:rgba(var(--acr),.45)}
+.arx .ar-els button.on{color:#fff;border-color:rgba(var(--acr),.7);background:rgba(var(--acr),.08);box-shadow:0 0 16px -4px rgba(var(--acr),.6)}
+.arx .ar-el{margin-top:12px;padding:14px 16px;border:1px solid var(--ln);border-left:1px solid var(--ac);background:linear-gradient(90deg,rgba(var(--acr),.06),transparent 70%);animation:arIn .3s ease both}
+.arx .ar-el-h{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.arx .ar-el-h b{font:400 13px/1 'Jost',sans-serif;letter-spacing:.32em;color:#fff}
+.arx .ar-el-h small{font:400 10.5px/1 'Noto Sans KR',sans-serif;letter-spacing:.16em;color:var(--mu)}
+.arx .ar-el dl{display:grid;gap:10px;margin:0}
+.arx .ar-el dt{margin-bottom:5px;font:400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.22em;color:var(--mu)}
+.arx .ar-el .rd dt{color:#ff6f78}
+.arx .ar-el dd{margin:0;font:300 12px/1.75 'Noto Sans KR',sans-serif;color:#c3ccd6;word-break:keep-all}
+@media (max-width:820px){
+  .arx .ar-cls2{grid-template-columns:1fr;gap:28px}
+}
+@media (max-width:560px){
+  .arx .ar-sw{padding:18px 18px 20px}
+  .arx .ar-marks button{padding:8px 8px 9px}
+  .arx .ar-marks em{font-size:8.5px;letter-spacing:.14em;margin-right:-.14em}
+  .arx .ar-subh em{display:none}
+  .arx .ar-sw .ar-more-btn{position:static;margin-bottom:14px}
+}
