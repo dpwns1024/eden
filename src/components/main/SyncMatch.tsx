@@ -7,8 +7,8 @@
  *     화면은 붉은 경보로, 동기화율은 0으로 떨어진다.
  *  3) 재배정 — 갈 곳 잃은 이브(오른쪽 · 모바일은 아래에 고정)에게 익명 가이드들이 차례로 붙지만 낮은 동기화율로
  *     MATCH FAILED와 함께 튕겨 나간다. 점점 빨라지고 겹친다. 실패할 때마다 화면이 튄다.
- *  4) 발견 — 에덴이 들어오면 푸른 신호로 바뀌고 동기화율이 98.7%까지.
- *  5) 매칭 성공 — 곧바로 두 사람의 기밀 파일 페이지(/eveden)로. SKIP도 그 페이지로.
+ *  4) 발견 — 에덴이 들어오고 동기화율이 98.7%까지 오른다 (그동안은 붉은 경보 그대로).
+ *  5) 매칭 성공 — 98.7%가 되는 순간 푸른 신호로 바뀌고, 곧바로 두 사람의 기밀 파일 페이지(/eveden)로. SKIP도 그 페이지로.
  * 이브 · 에덴 · 아담 정보는 lib/pairChars.ts — 익명 요원들은 모두 GUIDE.
  * 프로필 창에는 한 줄 소개(대사)를 넣지 않는다 — 이름과 프로필 칸 두 개만.
  */
@@ -176,7 +176,9 @@ export function SyncMatch({ open, onClose }: { open: boolean; onClose: () => voi
         const k = Math.min(1, (now - t0) / dur);
         const e = 1 - Math.pow(1 - k, 3);
         const jitter = k < 1 && shake ? rand(-shake, shake) : 0;
-        setMeter({ v: Math.max(0, Math.min(100, from + (to - from) * e + jitter)), st: k < 1 ? 'run' : st, label: k < 1 ? undefined : label });
+        // 떨려도 목표값을 넘지 않게 (98.7%를 지나 99.0%가 찍히지 않도록)
+        const lo = Math.min(from, to), hi = Math.max(from, to);
+        setMeter({ v: Math.max(lo, Math.min(hi, from + (to - from) * e + jitter)), st: k < 1 ? 'run' : st, label: k < 1 ? undefined : label });
         if (k < 1) raf.current = requestAnimationFrame(step);
       };
       raf.current = requestAnimationFrame(step);
@@ -234,7 +236,7 @@ export function SyncMatch({ open, onClose }: { open: boolean; onClose: () => voi
       });
     }
 
-    // 4) 발견 — 푸른 신호로 바뀌고, 에덴이 들어와 98.7%까지
+    // 4) 발견 — 에덴이 들어와 98.7%까지 (아직 붉은 경보)
     const tC = t + 300;
     at(tC, () => {
       setFlash(f => f + 1); setJolt(n => n + 1);
@@ -243,9 +245,10 @@ export function SyncMatch({ open, onClose }: { open: boolean; onClose: () => voi
       add({ kind: 'eden', slot: 'l', st: 'in', x: 0, y: 0, r: 0, ex: -140 });
     });
     at(tC + 450, () => count(0, FINAL, 1700, 'ok', 'MATCHED.', .6));
-    // 5) 매칭 성공 — 번쩍이고 곧바로 기밀 파일로
-    at(tC + 2500, () => { setFlash(f => f + 1); setJolt(n => n + 1); setPhase('open'); setMsg('ACCESSING PAIR FILE'); });
-    at(tC + 3000, () => router.push(PAIR_FILE_HREF));
+    // 5) 매칭 성공 — 98.7%가 되는 순간 번쩍이며 푸른 신호로, 곧바로 기밀 파일로
+    at(tC + 2150, () => { setFlash(f => f + 1); setJolt(n => n + 1); setPhase('open'); setMsg('PAIR MATCHED — 98.7%'); });
+    at(tC + 2750, () => { setAlarm(n => n + 1); setMsg('ACCESSING PAIR FILE'); });
+    at(tC + 3250, () => router.push(PAIR_FILE_HREF));
     return stop;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -270,7 +273,9 @@ export function SyncMatch({ open, onClose }: { open: boolean; onClose: () => voi
     found: 'SIGNAL ACQUIRED > SYNCHRONIZING...',
     open: 'ACCESS GRANTED > OPENING PAIR FILE...',
   };
-  const blue = phase === 'paired' || phase === 'found' || phase === 'open';
+  const blue = phase === 'paired' || phase === 'open';
+  // 좋은 소식(페어 · 발견 · 매칭)은 NOTICE, 나머지는 ATTENTION
+  const notice = blue || phase === 'found';
   const meterText = meter.label ?? (meter.st === 'fail' ? 'REJECTED.' : meter.st === 'ok' ? 'MATCHED.' : meter.st === 'idle' ? 'NO LINK.' : 'ANALYZING.');
 
   return createPortal(
@@ -286,7 +291,7 @@ export function SyncMatch({ open, onClose }: { open: boolean; onClose: () => voi
         <p>
           {phase === 'paired' ? `PARTNER ${adam.code} · LINKED`
             : phase === 'lost' ? `PARTNER ${adam.code} · K.I.A.`
-              : `ATTEMPT ${String(tries).padStart(4, '0')}   ${blue ? 'MATCH 0001' : `FAILED ${String(tries).padStart(4, '0')}`}`}
+              : `ATTEMPT ${String(tries).padStart(4, '0')}   ${notice ? 'MATCH 0001' : `FAILED ${String(tries).padStart(4, '0')}`}`}
         </p>
       </div>
       <button type="button" className="sm-x" onClick={openFile}>SKIP »</button>
@@ -295,7 +300,7 @@ export function SyncMatch({ open, onClose }: { open: boolean; onClose: () => voi
         {/* 가운데 경보 — 실패할 때마다 다시 깜빡인다 */}
         <div className={`sm-alarm${blue ? ' ok' : ''}`} key={`${phase}${alarm}`}>
           <Warn />
-          <small>{blue ? 'NOTICE' : 'ATTENTION'}</small>
+          <small>{notice ? 'NOTICE' : 'ATTENTION'}</small>
           <b>{msg}</b>
         </div>
         <div className={`sm-meter ${meter.st}`}>
