@@ -133,9 +133,8 @@ function Marks({ items, on, setOn, label }: {
   );
 }
 
-/** 분류를 한 상자에 — 마크를 누르면 그 분류 설명 (v2.0 사용자 요청) */
-function ClassSwitch({ items }: { items: ArchClass[] }) {
-  const [on, setOn] = useState(0);
+/** 분류를 한 상자에 — 마크를 누르면 그 분류 설명 (v2.0 사용자 요청). 고른 분류는 옆 속성 상자와 함께 쓴다 */
+function ClassSwitch({ items, on, setOn, linked }: { items: ArchClass[]; on: number; setOn: (i: number) => void; linked: boolean }) {
   const cur = items[Math.min(on, items.length - 1)];
   if (!cur) return null;
   const more = moreOf(cur);
@@ -152,40 +151,65 @@ function ClassSwitch({ items }: { items: ArchClass[] }) {
   );
 }
 
-/** 속성 상자 — 마크(속성 센티넬 · 속성 가이드)로 전환, 원소 칸을 누르면 아래에 힘의 특징 · 폭주 징후 */
-function ElemBox({ groups }: { groups: ArchElemGroup[] }) {
-  const [on, setOn] = useState(0);
+const ELEM_SLOTS = 6;
+/** 속성 상자 — 왼쪽 분류 상자에서 고른 분류의 속성(센티넬 → 속성 센티넬, 가이드 → 속성 가이드)을 보여 준다.
+ *  원소는 여섯 칸 — 아직 적지 않은 칸은 「기록 준비 중」. 원소 칸을 누르면 아래에 힘의 특징 · 폭주 징후 */
+function ElemBox({ group, from }: { group: ArchElemGroup; from: string }) {
   const [el, setEl] = useState(0);
-  const cur = groups[Math.min(on, groups.length - 1)];
-  if (!cur) return null;
-  const e: ArchElement | undefined = cur.elements[Math.min(el, cur.elements.length - 1)];
+  useEffect(() => { setEl(0); }, [group.id]);
+  const e: ArchElement | undefined = group.elements[Math.min(el, group.elements.length - 1)];
+  const slots = Math.max(ELEM_SLOTS, group.elements.length);
   return (
     <div className="ar-pn ar-sw ar-elbox">
-      <Marks items={groups.map(g => ({ id: g.id, icon: g.icon, name: g.title }))} on={on} setOn={i => { setOn(i); setEl(0); }} label="속성" />
-      <div className="ar-sw-body" key={cur.id}>
-        <b>{cur.title}</b>{cur.sub && <small>{cur.sub}</small>}
-        {cur.body ? <p>{cur.body}</p> : <p className="pend">기록 준비 중</p>}
-        {cur.elements.length > 0 && (
-          <>
-            <div className="ar-els" role="tablist" aria-label="원소">
-              {cur.elements.map((x, i) => (
-                <button key={x.id} type="button" role="tab" aria-selected={x === e} className={x === e ? 'on' : undefined} onClick={() => setEl(i)}>
-                  <span>{x.icon || '·'}</span><em>{x.en}</em>
-                </button>
-              ))}
-            </div>
-            {e && (
-              <div className="ar-el" key={e.id}>
-                <div className="ar-el-h"><b>{e.en}</b>{e.ko && <small>{e.ko}</small>}</div>
-                <dl>
-                  {e.power && <div><dt>POWER · 힘의 특징</dt><dd>{e.power}</dd></div>}
-                  {e.overload && <div className="rd"><dt>OVERLOAD · 폭주 징후</dt><dd>{e.overload}</dd></div>}
-                </dl>
-              </div>
-            )}
-          </>
-        )}
+      <div className="ar-elbox-k"><span><i />LINKED · {from}</span><span>{group.elements.length} / {slots} ELEMENTS</span></div>
+      <div className="ar-sw-body" key={group.id}>
+        <b>{group.title}</b>{group.sub && <small>{group.sub}</small>}
+        {group.body ? <p>{group.body}</p> : <p className="pend">기록 준비 중</p>}
+        <div className="ar-els" role="tablist" aria-label="원소">
+          {Array.from({ length: slots }, (_, i) => {
+            const x = group.elements[i];
+            return x ? (
+              <button key={x.id} type="button" role="tab" aria-selected={x === e} className={x === e ? 'on' : undefined} onClick={() => setEl(i)}>
+                <span>{x.icon || '·'}</span><em>{x.en}</em>
+              </button>
+            ) : (
+              <button key={`p${i}`} type="button" className="pend" disabled aria-label="기록 준비 중"><span>·</span><em>{String(i + 1).padStart(2, '0')}</em></button>
+            );
+          })}
+        </div>
+        {e ? (
+          <div className="ar-el" key={e.id}>
+            <div className="ar-el-h"><b>{e.en}</b>{e.ko && <small>{e.ko}</small>}</div>
+            <dl>
+              {e.power && <div><dt>POWER · 힘의 특징</dt><dd>{e.power}</dd></div>}
+              {e.overload && <div className="rd"><dt>OVERLOAD · 폭주 징후</dt><dd>{e.overload}</dd></div>}
+            </dl>
+          </div>
+        ) : <div className="ar-el pend">원소 기록 준비 중</div>}
       </div>
+    </div>
+  );
+}
+
+/** 각성자 | 속성 각성자 — 왼쪽에서 고른 분류에 맞는 속성이 오른쪽에 (같은 마크 그림끼리, 없으면 같은 순서) */
+function ClassPair({ items, groups, hd }: { items: ArchClass[]; groups: ArchElemGroup[] | null; hd: ReturnType<typeof headsOf> }) {
+  const [on, setOn] = useState(0);
+  const cur = items[Math.min(on, items.length - 1)];
+  const gi = cur && groups ? groups.findIndex(g => iconKeyOf(g.icon) === iconKeyOf(cur.icon)) : -1;
+  const group = groups && groups.length ? groups[gi >= 0 ? gi : Math.min(on, groups.length - 1)] : null;
+  return (
+    <div className={`ar-cls2${group ? '' : ' one'}`}>
+      {items.length > 0 && (
+        <div className="ar-cls2-col">
+          <SubHead h={hd.aw} />
+          <div className={`ar-sw-wrap${group ? ' linked' : ''}`}>
+            <ClassSwitch items={items} on={on} setOn={setOn} linked={!!group} />
+            {/* 옆 속성 상자로 이어지는 선 (PC) — 상자 밖에 그려야 잘리지 않는다 */}
+            {group && <span className="ar-link" aria-hidden="true"><i /><b /><i /></span>}
+          </div>
+        </div>
+      )}
+      {group && <div className="ar-cls2-col wide"><SubHead h={hd.el} /><ElemBox group={group} from={cur?.title ?? ''} /></div>}
     </div>
   );
 }
@@ -240,10 +264,7 @@ function BlockView({ b }: { b: ArchBlock }) {
         const hd = headsOf(b), els = elementalOf(b);
         return (
           <>
-            <div className={`ar-cls2${els ? '' : ' one'}`}>
-              {b.items.length > 0 && <div className="ar-cls2-col"><SubHead h={hd.aw} /><ClassSwitch items={b.items} /></div>}
-              {els && els.length > 0 && <div className="ar-cls2-col"><SubHead h={hd.el} /><ElemBox groups={els} /></div>}
-            </div>
+            <ClassPair items={b.items} groups={els} hd={hd} />
             {gradeOf(b) && gradeOf(b)!.letters.length > 0 && (
               <div className="ar-pn ar-grade">
                 {gradeOf(b)!.letters.map((l, i) => <span key={i} className={i === gradeOf(b)!.on ? 's' : undefined}>{l}</span>)}

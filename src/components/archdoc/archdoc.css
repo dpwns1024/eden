@@ -452,8 +452,9 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-subh small{display:block;margin-top:6px;font:400 10px/1 'Noto Sans KR',sans-serif;letter-spacing:.2em;color:var(--mu)}
 .arx .ar-subh i{flex:1;height:1px;background:linear-gradient(90deg,var(--ln2),transparent)}
 .arx .ar-subh em{font:normal 400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.22em;color:var(--dim);white-space:nowrap}
-.arx .ar-cls2{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:stretch}
-.arx .ar-cls2.one{grid-template-columns:1fr}
+.arx .ar-cls2{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:stretch}   /* 각성자 상자는 예전 분류 카드와 같은 폭(3칸 중 1칸), 속성 상자는 나머지 2칸 */
+.arx .ar-cls2-col.wide{grid-column:span 2}
+.arx .ar-cls2.one .ar-cls2-col{grid-column:1 / -1}
 .arx .ar-cls2-col{display:flex;flex-direction:column;min-width:0}
 .arx .ar-cls2-col > .ar-sw{flex:1}
 .arx .ar-cls2 + .ar-subh,.arx .ar-cls2 ~ .ar-subh,.arx .ar-grade + .ar-subh{margin-top:34px}
@@ -498,6 +499,9 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-el dd{margin:0;font:300 12px/1.75 'Noto Sans KR',sans-serif;color:#c3ccd6;word-break:keep-all}
 @media (max-width:820px){
   .arx .ar-cls2{grid-template-columns:1fr;gap:28px}
+  .arx .ar-cls2-col.wide{grid-column:auto}
+  .arx .ar-sw-wrap > .ar-link{display:none}
+  .arx .ar-sw-wrap.linked > .ar-sw{border-right-color:var(--ln)}
 }
 @media (max-width:560px){
   .arx .ar-sw{padding:18px 18px 20px}
@@ -506,3 +510,22 @@ body:has(.arx)::before{display:none !important}
   .arx .ar-subh em{display:none}
   .arx .ar-sw .ar-more-btn{position:static;margin-bottom:14px}
 }
+/* 각성자 → 속성 각성자 잇는 선 — 두 상자 사이(18px)를 가로지르고, 가운데 마름모가 빛난다 */
+.arx .ar-sw-wrap{position:relative;flex:1;display:flex;flex-direction:column}
+.arx .ar-sw-wrap > .ar-sw{flex:1}
+.arx .ar-sw-wrap.linked > .ar-sw{border-right-color:rgba(var(--acr),.35)}
+.arx .ar-sw-wrap > .ar-link{position:absolute;z-index:3;top:62px;right:-19px;width:20px;height:9px;display:flex;align-items:center;pointer-events:none}
+.arx .ar-link i{flex:1;height:1px;background:var(--ac);box-shadow:0 0 6px var(--ac)}
+.arx .ar-link b{flex:0 0 7px;height:7px;margin:0 -1px;transform:rotate(45deg);border:1px solid var(--ac);background:#0b1017;box-shadow:0 0 8px rgba(var(--acr),.8)}
+.arx .ar-cls2-col.wide > .ar-sw{border-left-color:rgba(var(--acr),.35)}
+.arx .ar-cls2-col.wide > .ar-sw::before{border-color:rgba(var(--acr),.8)}
+/* 속성 상자 머리 줄 — 어느 분류와 이어졌는지 */
+.arx .ar-elbox-k{display:flex;justify-content:space-between;gap:10px;padding-bottom:12px;margin-bottom:18px;border-bottom:1px solid var(--ln);font:400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--mu)}
+.arx .ar-elbox-k span:first-child{color:var(--ac)}
+.arx .ar-elbox-k i{display:inline-block;width:6px;height:6px;margin-right:8px;vertical-align:0;border-radius:50%;background:var(--ac);box-shadow:0 0 8px var(--ac);animation:arBlink 2.5s ease-in-out infinite}
+.arx .ar-els{display:grid;grid-template-columns:repeat(6,minmax(0,1fr))}
+.arx .ar-els button.pend{cursor:default;opacity:.4;border-style:dashed}
+.arx .ar-els button.pend:hover{color:var(--mu);border-color:var(--ln2)}
+.arx .ar-el.pend{font:400 9.5px/1.6 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em;color:var(--dim)}
+@media (max-width:560px){ .arx .ar-els{grid-template-columns:repeat(3,minmax(0,1fr))} .arx .ar-elbox-k span:last-child{display:none} }
+@media (max-width:820px){ .arx .ar-sw-wrap > .ar-link{display:none} .arx .ar-sw-wrap.linked > .ar-sw{border-right-color:var(--ln)} }
