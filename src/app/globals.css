@@ -577,17 +577,22 @@ html.ui-arch .page-arch .re-content a,.mng-box.arch-modal .re-content a{color:va
 /* 인용구 — 통신 스타일 시안 E1 · SIGNAL RAIL (v2.0 사용자 확정)
    앞에 인용구 색으로 채운 「COMM」 딱지, 딱지 아래로 가는 색 선이 대사 끝까지 내려온다(줄이 늘면 선만 길어진다).
    색은 글쓰기에서 고른 인용구 색(--qc) — 딱지는 그 색을 밝게(--qt), 글자는 흰색 그대로 */
+/* 인용구 한 줄 높이(px) — 딱지(9px 글씨)에서도 인용구 줄 높이로 위치를 잡도록 길이로 등록해 px로 물려준다 */
+@property --qlh{syntax:'<length>';inherits:true;initial-value:21px}
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote,.mng-box.arch-modal .re-content blockquote{
-  --qx:var(--qc,#8fb0d8);--qt:color-mix(in srgb,var(--qx) 55%,#fff);position:relative;margin:18px 0;padding:4px 4px 4px 62px;border:0;
+  --qx:var(--qc,#8fb0d8);--qt:color-mix(in srgb,var(--qx) 55%,#fff);--qlh:1.6em;position:relative;margin:18px 0;padding:4px 4px 4px 62px;border:0;
   font-size:.93em;line-height:1.6; /* 본문보다 조금 작게 — 발췌 이미지(14px / 본문 15px)와 같은 비율 (v2.0 사용자 요청) */
   width:-webkit-fit-content;width:fit-content;max-width:100%;box-sizing:border-box; /* 글자 길이만큼만 (v2.0 사용자 요청) */
   background:none;color:#f4f6f8;font-weight:400} /* 글자는 흰색으로 통일 — 색은 딱지·선에만 (v2.0 사용자 요청) */
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote::before,.mng-box.arch-modal .re-content blockquote::before{
-  content:'COMM';position:absolute;left:0;top:8px;padding:3px 6px 3px 7px;pointer-events:none;box-sizing:border-box;max-width:54px;
+  /* 높이 15px 딱지를 첫 줄 한가운데에(위 여백 4px — 발췌 카드는 비율대로 바뀐 값(--qpt, ExcerptMaker) + 줄 높이 절반, 한글 글자 중심이 줄 가운데보다 살짝 위라 .25px 올림) · 폭은 이름 길이와 상관없이 47px 고정(아래 색 선이 늘 딱지 가운데) ·
+     글자는 가운데 — 자간 끝 여백만큼 왼쪽 안쪽 여백, 대문자가 위로 뜨는 만큼 위 여백을 조금 더 */
+  content:'COMM';position:absolute;left:0;top:calc(var(--qpt,4px) + (var(--qlh) - 15px) / 2 - .25px);width:47px;height:15px;padding:4px 0 2px .2em;
+  pointer-events:none;box-sizing:border-box;text-align:center;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;   /* 딱지 글자 = 인용구 색의 캐릭터 이름 (components/shell/QuoteNameSync.tsx) */
   font:500 9px/1 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em;color:#05070a;background:var(--qt);box-shadow:0 0 10px -2px var(--qx)}
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote::after,.mng-box.arch-modal .re-content blockquote::after{
-  content:'';position:absolute;left:20px;top:26px;bottom:6px;width:1px;pointer-events:none;
+  content:'';position:absolute;left:23px;top:calc(var(--qpt,4px) + (var(--qlh) + 21px) / 2);bottom:6px;width:1px;pointer-events:none;   /* 딱지 가운데(47px의 절반) · 딱지 아래 3px부터 */
   background:linear-gradient(var(--qx),color-mix(in srgb,var(--qx) 15%,transparent))}
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote p,.mng-box.arch-modal .re-content blockquote p{margin:0;color:inherit}
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote p + p,.mng-box.arch-modal .re-content blockquote p + p{margin-top:6px}
@@ -2986,7 +2991,7 @@ html.ui-arch .page-memo2 .mn-cat{border-radius:0;border-color:rgba(var(--a-acr),
 /* 인용구 딱지 아래 색 선도 같은 까닭으로 배경으로 (위 · 아래에 같이 붙인 ::after는 여러 줄에서 길이가 어긋난다).
    「COMM」 딱지(::before)는 왼쪽 위에 붙어 있어 그대로 둔다 */
 html.ui-arch .excerpt-card .ex-body blockquote{background:
-  linear-gradient(var(--qx),color-mix(in srgb,var(--qx) 15%,transparent)) 20px 26px/1px calc(100% - 32px) no-repeat}
+  linear-gradient(var(--qx),color-mix(in srgb,var(--qx) 15%,transparent)) 23px calc(var(--qpt,4px) + (var(--qlh) + 21px) / 2)/1px calc(100% - (var(--qpt,4px) + (var(--qlh) + 21px) / 2) - 6px) no-repeat}
 html.ui-arch .excerpt-card .ex-body blockquote::after{content:none}
 .excerpt-card .ex-body{font-size:15px;line-height:1.95;color:#c3ccd6;font-weight:300;word-break:normal;overflow-wrap:anywhere}
 .excerpt-card .ex-body p{margin:0 0 .9em}

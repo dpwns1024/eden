@@ -125,6 +125,8 @@ export function ExcerptMaker() {
         set('font-size', px(cs.fontSize));
         set('line-height', cs.lineHeight.endsWith('px') ? px(cs.lineHeight) : 'normal');
       }
+      // 인용구 딱지 · 색 선은 위 여백 기준으로 자리를 잡는다 (globals.css --qpt) — 비율대로 바뀐 위 여백을 알려 준다
+      if (o.matches('blockquote')) c.style.setProperty('--qpt', px(cs.paddingTop));
       const before = getComputedStyle(o, '::before').content;
       if (!before || before === 'none' || before === 'normal') c.setAttribute('data-ex-nobefore', '');
     };
