@@ -105,6 +105,35 @@ export function ExcerptMaker() {
     // 보이는 글자가 없는가 — 공백 · 줄바꿈 없는 공백 · 폭 없는 글자 · ㅤ(한글 채움) · 점자 빈칸 · 전각 공백
     const INVISIBLE = /[\s\u00a0\u180e\u200b-\u200f\u2028\u2029\u2060\ufeff\u115f\u1160\u3164\u2800\u3000\uffa0]/g;
     const blankText = (e: Element) => !(e.textContent ?? '').replace(INVISIBLE, '');
+    /* 화면 모양 따라 하기 (v2.0 — 숨은 줄이 어떤 꼴이든) — 복제본의 칸마다 화면에서 실제로 그려진
+       표시 방식 · 여백 · 안쪽 여백 · 줄바꿈 규칙을 카드 비율로 옮긴다. 글씨 크기 · 줄 간격은 카드에서 통일하되
+       (붙여 넣은 글의 제각각 크기 정리), 화면에서 아주 작게 그려진 글씨(숨은 줄)는 작게 그대로 둔다.
+       화면에 없는 빈 줄 표시(::before 공백)는 카드에서도 붙이지 않는다 */
+    const px = (v: string) => `${((parseFloat(v) || 0) * scale).toFixed(2)}px`;
+    const copyLayout = (o: Element, c: HTMLElement) => {
+      if (o.matches(MEDIA)) return;
+      const cs = getComputedStyle(o);
+      const set = (k: string, v: string) => c.style.setProperty(k, v, 'important');
+      set('display', cs.display);
+      set('white-space', cs.whiteSpace);
+      for (const side of ['top', 'right', 'bottom', 'left']) {
+        set(`margin-${side}`, px(cs.getPropertyValue(`margin-${side}`)));
+        set(`padding-${side}`, px(cs.getPropertyValue(`padding-${side}`)));
+      }
+      const fs = parseFloat(cs.fontSize);
+      if (fs && fs < pageFont * 0.6) {
+        set('font-size', px(cs.fontSize));
+        set('line-height', cs.lineHeight.endsWith('px') ? px(cs.lineHeight) : 'normal');
+      }
+      const before = getComputedStyle(o, '::before').content;
+      if (!before || before === 'none' || before === 'normal') c.setAttribute('data-ex-nobefore', '');
+    };
+    const copyTree = (o: Element, c: HTMLElement) => {
+      const os = [o, ...Array.from(o.querySelectorAll('*'))];
+      const cs = [c, ...Array.from(c.querySelectorAll<HTMLElement>('*'))];
+      if (os.length !== cs.length) return;
+      os.forEach((x, i) => copyLayout(x, cs[i]));
+    };
     let prevBottom: number | null = null;
     els.forEach(e => {
       const r = e.getBoundingClientRect();
@@ -112,6 +141,7 @@ export function ExcerptMaker() {
       if (!isMedia && r.height < line * 0.5) return;   // 화면에서 안 보이는 칸
       const c = e.cloneNode(true) as HTMLElement;
       c.classList.remove('ex-picked');
+      copyTree(e, c);
       // 보이는 글자가 없는 빈 줄은 화면에서의 높이 그대로 — 글씨 크기를 통일해도 커지지 않게
       const pin = (el: HTMLElement, h: number) => {
         el.style.setProperty('height', `${(h * scale).toFixed(1)}px`, 'important');
@@ -161,9 +191,10 @@ export function ExcerptMaker() {
        ① 붙여 넣을 때 따라온 글자 크기·글꼴 지정을 지우고
        ② 아이폰 사파리의 「글자 자동 확대」를 끈다 — 넓은 칸의 글씨만 키워서 폭이 좁은(짧은) 인용구만 작아 보였다 */
     body.querySelectorAll<HTMLElement>('*').forEach(el => {
-      el.style.removeProperty('font-size');
+      // 화면 따라 하기에서 일부러 넣은 값(!important)은 남긴다 — 붙여 넣을 때 따라온 지정만 지운다
+      if (el.style.getPropertyPriority('font-size') !== 'important') el.style.removeProperty('font-size');
+      if (el.style.getPropertyPriority('line-height') !== 'important') el.style.removeProperty('line-height');
       el.style.removeProperty('font-family');
-      el.style.removeProperty('line-height');
       if (el.tagName === 'FONT') { el.removeAttribute('size'); el.removeAttribute('face'); }
     });
     [card, body].forEach(el => { el.style.setProperty('-webkit-text-size-adjust', '100%'); el.style.setProperty('text-size-adjust', '100%'); });
@@ -190,6 +221,17 @@ export function ExcerptMaker() {
       card.remove();
       setBusy(false);
     }
+  };
+
+  const copyHtml = async () => {
+    const html = pickedBlocks(pick).map(e => {
+      const c = e.cloneNode(true) as Element;
+      c.classList.remove('ex-picked');
+      if (!c.getAttribute('class')) c.removeAttribute('class');
+      return c.outerHTML;
+    }).join('\n');
+    try { await navigator.clipboard.writeText(html); toast('고른 부분의 HTML을 복사했습니다'); }
+    catch { toast('복사하지 못했습니다'); }
   };
 
   const save = () => {
@@ -223,6 +265,8 @@ export function ExcerptMaker() {
         <div className="excerpt-bar">
           <span>{!pick ? '시작 문단을 누르세요' : !pick.done ? '끝 문단을 누르세요 (한 칸이면 바로 만들기)' : `${pickedBlocks(pick).length}칸 선택됨`}</span>
           {pick && <button type="button" onClick={() => setPick(null)}>다시</button>}
+          {/* 고른 칸의 HTML을 복사 — 발췌 모양이 화면과 다를 때 원인을 찾으려고 (관리자 전용 막대) */}
+          {pick && <button type="button" onClick={() => void copyHtml()}>HTML 복사</button>}
           {pick && <button type="button" className="go" disabled={busy} onClick={() => void make()}>{busy ? '만드는 중…' : '이미지 만들기'}</button>}
           <button type="button" onClick={() => setMode(false)}>끄기</button>
         </div>

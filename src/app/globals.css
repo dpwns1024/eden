@@ -575,7 +575,8 @@ html.ui-arch .page-arch .re-sep,.mng-box.arch-modal .re-sep{background:var(--a-l
 html.ui-arch .page-arch .re-content,.mng-box.arch-modal .re-content{color:var(--a-tx)}
 html.ui-arch .page-arch .re-content a,.mng-box.arch-modal .re-content a{color:var(--a-ac)}
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote,.mng-box.arch-modal .re-content blockquote{
-  --qx:var(--qc,#8fb0d8);position:relative;margin:18px 0;padding:12px 18px;border:0;
+  --qx:var(--qc,#8fb0d8);position:relative;margin:18px 0;padding:9px 15px;border:0;
+  font-size:.93em;line-height:1.6; /* 본문보다 조금 작게 — 발췌 이미지(14px / 본문 15px)와 같은 비율 (v2.0 사용자 요청) */
   width:-webkit-fit-content;width:fit-content;max-width:100%;box-sizing:border-box; /* 글자 길이만큼만 — 짧은 대사 오른쪽이 비지 않게, 좌우 여백 동일 (v2.0 사용자 요청) */
   background:color-mix(in srgb,var(--qx) 10%,transparent);color:#f4f6f8;font-weight:400} /* 글자는 흰색으로 통일 — 색은 바탕·꺾쇠에만 (v2.0 사용자 요청) */
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote::before,html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote::after,
@@ -2971,6 +2972,7 @@ html.ui-arch .page-memo2 .mn-cat{border-radius:0;border-color:rgba(var(--a-acr),
 .excerpt-card .ex-body p{margin:0 0 .9em}
 .excerpt-card .ex-body p:last-child{margin-bottom:0}
 .excerpt-card .ex-body p:empty::before{content:'\00a0'}
+.excerpt-card .ex-body [data-ex-nobefore]::before{content:none !important}   /* 화면에서 빈 줄 표시가 없던 칸 (ExcerptMaker 화면 따라 하기) */
 .excerpt-card .ex-body :is(strong,b,h1,h2,h3){color:#fff}
 .excerpt-card .ex-body img{display:block;max-width:100%;height:auto;margin:12px auto}
 .excerpt-card .ex-foot{margin-top:16px;text-align:right;font:400 11px/1.5 'Noto Sans KR','JetBrains Mono',sans-serif;letter-spacing:.06em;color:#6f7b89}   /* 글 제목 그대로 (대소문자 유지) · 한글 제목이 벌어져 보이지 않게 자간은 좁게 */
