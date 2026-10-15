@@ -107,7 +107,9 @@ function AgentPhoto({ src, alt }: { src: string; alt: string }) {
 /** 증명사진 카드 — 누르면 상세 프로필 창 */
 function AgentCard({ a, onOpen }: { a: ArchAgent; onOpen: () => void }) {
   return (
-    <button type="button" className="ar-ag" onClick={onOpen} aria-label={`${a.name} 상세 프로필`}
+    // <button>은 아이폰 사파리가 회색 기본 바탕 · 세로 가운데 정렬을 덧입혀 사진 위가 비었다 (v2.0 사용자 제보) — 일반 상자 + 버튼 역할로
+    <div role="button" tabIndex={0} className="ar-ag" onClick={onOpen} aria-label={`${a.name} 상세 프로필`}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(); } }}
       style={ELEM_COLOR[a.element] ? { '--ec': ELEM_COLOR[a.element] } as React.CSSProperties : undefined}>
       <span className="ph"><AgentPhoto src={a.photo} alt={a.name} /></span>
       <span className="tx">
@@ -115,7 +117,7 @@ function AgentCard({ a, onOpen }: { a: ArchAgent; onOpen: () => void }) {
         {a.en && <small>{a.en}</small>}
         <ElemBadge el={a.element} />
       </span>
-    </button>
+    </div>
   );
 }
 /** 상세 프로필 창 — 위에 사진 · 이름 · 무리 · 원소, 아래에 관리자가 HTML로 쓴 내용 */
