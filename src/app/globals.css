@@ -587,7 +587,7 @@ html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote,.mng-box.a
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote::before,.mng-box.arch-modal .re-content blockquote::before{
   /* 높이 15px 딱지를 첫 줄 한가운데에(위 여백 4px — 발췌 카드는 비율대로 바뀐 값(--qpt, ExcerptMaker) + 줄 높이 절반, 한글 글자 중심이 줄 가운데보다 살짝 위라 .25px 올림) · 폭은 이름 길이와 상관없이 47px 고정(아래 색 선이 늘 딱지 가운데) ·
      글자는 가운데 — 자간 끝 여백만큼 왼쪽 안쪽 여백, 대문자가 위로 뜨는 만큼 위 여백을 조금 더 */
-  content:'COMM';position:absolute;left:0;top:calc(var(--qpt,4px) + (var(--qlh) - 15px) / 2 - .25px);width:47px;height:15px;padding:4px 0 2px .2em;
+  content:'COMM';position:absolute;left:0;top:calc(var(--qpt,4px) + (var(--qlh) - 15px) / 2 - .25px);width:47px;height:15px;padding:3.75px 0 2.25px .2em;
   pointer-events:none;box-sizing:border-box;text-align:center;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;   /* 딱지 글자 = 인용구 색의 캐릭터 이름 (components/shell/QuoteNameSync.tsx) */
   font:500 9px/1 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em;color:#05070a;background:var(--qt);box-shadow:0 0 10px -2px var(--qx)}
@@ -2993,6 +2993,7 @@ html.ui-arch .page-memo2 .mn-cat{border-radius:0;border-color:rgba(var(--a-acr),
 html.ui-arch .excerpt-card .ex-body blockquote{background:
   linear-gradient(var(--qx),color-mix(in srgb,var(--qx) 15%,transparent)) 23px calc(var(--qpt,4px) + (var(--qlh) + 21px) / 2)/1px calc(100% - (var(--qpt,4px) + (var(--qlh) + 21px) / 2) - 6px) no-repeat}
 html.ui-arch .excerpt-card .ex-body blockquote::after{content:none}
+html.ui-arch .excerpt-card .ex-body blockquote::before{box-shadow:none}   /* 딱지 번짐 — 폰에서 찍으면 오른쪽에 덩어리로 남는다 */
 .excerpt-card .ex-body{font-size:15px;line-height:1.95;color:#c3ccd6;font-weight:300;word-break:normal;overflow-wrap:anywhere}
 .excerpt-card .ex-body p{margin:0 0 .9em}
 .excerpt-card .ex-body p:last-child{margin-bottom:0}

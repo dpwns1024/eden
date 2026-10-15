@@ -24,6 +24,7 @@ export interface RelFormValue {
   catchphrase: string;
   kind: 'pair' | 'multi';
   visibility: Visibility;
+  classified?: boolean;      // 기밀 (v2.0 — lib/classified.ts)
   fontId: string;
   bodyFontId: string;
   arts: string[];            // 첫 장 = 대표 = 리스트 썸네일 원본
@@ -177,7 +178,9 @@ export function RelForm({ initial, auId, myChars, memberNames, existingIds, onSa
   // 페이지 주소 /rels/{slug} — 신규는 비우면 자동(id). 수정에서도 바꿀 수 있다 (v2.0 사용자 요청)
   const [slug, setSlug] = useState(initial?.slug ?? '');
   const [catchphrase, setCatchphrase] = useState(auObj ? auObj.catchphrase : (initial?.catchphrase ?? ''));
-  const [visibility, setVisibility] = useState<Visibility>(initial?.visibility ?? 'public');
+  // 공개범위 + 기밀(v2.0) — 기밀은 저장할 때 private + classified로 나뉜다 (lib/classified.ts)
+  const [visibility, setVisibility] = useState<Visibility | 'classified'>(
+    initial?.classified && initial.visibility === 'private' ? 'classified' : initial?.visibility ?? 'public');
   // 뱃지 글자 (v2.0 사용자 요청 — CP/NCP 고르기 대신 직접 쓴다). 새 자관은 예전 기본값대로 「CP」
   const [cpText, setCpText] = useState(initial ? cpLabelFor(initial, auObj) : 'CP');
   const [fontId, setFontId] = useState(initial?.fontId ?? 'serif');
@@ -315,7 +318,8 @@ export function RelForm({ initial, auId, myChars, memberNames, existingIds, onSa
       slug: slug.trim() || undefined,
       name: name.trim().toUpperCase(),
       catchphrase: catchphrase.trim(),
-      kind, visibility, fontId, bodyFontId,
+      kind, visibility: visibility === 'classified' ? 'private' : visibility, classified: visibility === 'classified' || undefined,
+      fontId, bodyFontId,
       arts: artIds,
       thumbCrop,
       listCrop,
@@ -831,11 +835,12 @@ export function RelForm({ initial, auId, myChars, memberNames, existingIds, onSa
                 )}
               </div>
             )}
-            <KSelect value={visibility} onChange={v => setVisibility(v as Visibility)}
+            <KSelect value={visibility} onChange={v => setVisibility(v as Visibility | 'classified')}
               options={[
                 { value: 'public', label: '전체공개' },
                 { value: 'member', label: '멤버공개' },
                 { value: 'private', label: '나만보기' },
+                { value: 'classified', label: '기밀 (관리자만 · 목록엔 잠긴 카드)' },
               ]} />
           </div>
         </div>

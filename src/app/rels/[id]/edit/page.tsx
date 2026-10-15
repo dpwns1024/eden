@@ -49,7 +49,7 @@ function RelEditInner() {
           setRels(rels.map(r => (r.id === rel.id ? {
             ...r,
             name: v.name, kind: v.kind,
-            fontId: v.fontId, bodyFontId: v.bodyFontId, visibility: v.visibility,
+            fontId: v.fontId, bodyFontId: v.bodyFontId, visibility: v.visibility, classified: v.classified,
             // 헤더는 AU 편집이면 그 AU에만 저장 — base 헤더는 유지 (v1.9 AU별 헤더 분리)
             ...(auObj ? {} : { headerImgId: v.headerImgId, headerCrop: v.headerCrop, slug: v.slug }),
             // 페이지 테마 — AU 편집이면 그 AU에만 (base 테마는 유지, v1.9)

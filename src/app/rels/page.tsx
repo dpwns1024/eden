@@ -13,6 +13,8 @@ import { useMainStore } from '@/lib/mainStore';
 import { useCardSort, mergeOrder } from '@/lib/cardSort';
 import { useBoardSkin } from '@/lib/boardSkin';
 import { cpLabelFor } from '@/lib/relqStore';
+import { useClassified, mergeStubs, isStub } from '@/lib/classified';
+import { AccessDenied } from '@/components/ui/AccessDenied';
 
 export default function RelsPage() {
   const router = useRouter();
@@ -36,8 +38,12 @@ export default function RelsPage() {
   const visible = rels
     .filter(r => isAdmin || r.visibility !== 'private');
 
-  // 편집모드 카드 드래그 정렬 (v1.9)
-  const sort = useCardSort(visible, next => setRels(mergeOrder(rels, next)), editOn && isAdmin);
+  // 카드 드래그 정렬 — 관리자는 편집모드가 아니어도 끌어서 옮긴다 (v2.0 사용자 요청 · 평소엔 표시 없이)
+  const sort = useCardSort(visible, next => setRels(mergeOrder(rels, next)), isAdmin, !editOn);
+  // 기밀 자관 (v2.0 · lib/classified.ts) — 관리자 아닌 사람에겐 목록에 잠긴 카드만, 누르면 접근 거부 창
+  const cls = useClassified();
+  const [denied, setDenied] = useState<string | null>(null);
+  const shown = isAdmin ? visible : mergeStubs(visible, cls.rels);
 
   return (
     <section className="page page-arch">
@@ -55,9 +61,26 @@ export default function RelsPage() {
         /* MISSION BANNER (v2.0 사용자 선택 E) — 그림을 가로로 크게 깔고 왼쪽에 이름·정보, 오른쪽 아래 큰 번호.
            카드형과 같은 동작: 클릭 열람 · 멤버공개 안내 · 나만보기 흐리게 · 편집모드 드래그 정렬 */
         <div className="rel-bns">
-          {visible.map((r, i) => {
+          {shown.map((r, i) => {
+            if (isStub(r)) return (
+              <div key={r.id} className="rel-bn is-classified" onClick={() => setDenied(r.name)}>
+                <div className="bn-art">
+                  <CroppedBlobImg fileRef={r.img} crop={narrow ? r.cropM : r.crop} ph={r.ph ?? ''} label="" />
+                </div>
+                <span className="cls-tag">CLASSIFIED</span>
+                <div className="bn-tx">
+                  <b>{r.name}</b>
+                  <div className="bn-m">
+                    {r.cp && <em>{r.cp}</em>}
+                    {(r.members ?? []).map((m, k) => <span key={k}><i style={{ background: m.color }} />{m.name}</span>)}
+                  </div>
+                  <span className="bn-lock cls">ACCESS RESTRICTED</span>
+                </div>
+                <span className="bn-no">{String(i + 1).padStart(3, '0')}</span>
+              </div>
+            );
             const memberLocked = r.visibility === 'member' && !user;
-            const priv = r.visibility === 'private';
+            const priv = r.visibility === 'private' && !r.classified;
             const sp = sort(i) as { style?: React.CSSProperties };
             // 상세 배너와 같은 그림·위치(첫 일러 + 상세에서 잡은 위치), 없으면 리스트 썸네일
             const art = r.arts?.[0] ?? r.thumbId;
@@ -68,7 +91,7 @@ export default function RelsPage() {
             const cp = cpLabelFor(r);
             const no = String(i + 1).padStart(3, '0');
             return (
-              <div key={r.id} className="rel-bn" {...sort(i)}
+              <div key={r.id} className={`rel-bn${r.classified ? ' is-classified' : ''}`} {...sort(i)}
                 style={{ ...(priv ? { opacity: .45 } : undefined), ...sp.style }}
                 onClick={() => {
                   if (editOn) return;
@@ -78,6 +101,7 @@ export default function RelsPage() {
                 <div className="bn-art">
                   <CroppedBlobImg fileRef={art} crop={narrow ? cropM : crop} ph={r.thumbClass} label="" />
                 </div>
+                {r.classified && <span className="cls-tag">CLASSIFIED</span>}
                 <div className="bn-tx">
                   <b>
                     {r.name}
@@ -100,12 +124,27 @@ export default function RelsPage() {
         </div>
       ) : (
       <div className="g3 rels-grid">
-        {visible.map((r, i) => {
+        {shown.map((r, i) => {
+          if (isStub(r)) return (
+            <div key={r.id} className="rel-card is-classified" onClick={() => setDenied(r.name)}>
+              <div className="thumb" style={{ position: 'relative' }}>
+                <span className="cls-tag">CLASSIFIED</span>
+                <CroppedBlobImg fileRef={r.thumb} crop={r.thumbCrop} ph={r.ph ?? ''} label="" />
+              </div>
+              <div className="nm">
+                <b>{r.name}</b>
+                <span>접근 권한 없음</span>
+                {(r.members ?? []).length > 0 && (
+                  <div className="who">{(r.members ?? []).map((m, k) => <i key={k} style={{ background: m.color }} />)}</div>
+                )}
+              </div>
+            </div>
+          );
           const memberLocked = r.visibility === 'member' && !user;
-          const priv = r.visibility === 'private';
+          const priv = r.visibility === 'private' && !r.classified;
           const sp = sort(i) as { style?: React.CSSProperties };
           return (
-            <div key={r.id} className="rel-card" {...sort(i)}
+            <div key={r.id} className={`rel-card${r.classified ? ' is-classified' : ''}`} {...sort(i)}
               style={{ ...(priv ? { opacity: .45 } : undefined), ...sp.style }}
               onClick={() => {
                 if (editOn) return;
@@ -113,6 +152,7 @@ export default function RelsPage() {
                 router.push(relPath(r));
               }}>
               <div className="thumb" style={{ position: 'relative' }}>
+                {r.classified && <span className="cls-tag">CLASSIFIED</span>}
                 <CroppedBlobImg fileRef={r.thumbId} crop={r.thumbCrop} ph={r.thumbClass}
                   label={priv ? '나만보기' : memberLocked ? '멤버공개' : '4:3'} />
               </div>
@@ -139,6 +179,7 @@ export default function RelsPage() {
         })}
       </div>
       )}
+      {denied !== null && <AccessDenied kind="rels" name={denied} onClose={() => setDenied(null)} />}
     </section>
   );
 }
