@@ -76,7 +76,7 @@
 @keyframes bdSpin{from{transform:rotate(-40deg)}to{transform:rotate(320deg)}}
 .bgm-d .bd-dial:hover{border-color:rgba(var(--d-acr),.5)}
 .bgm-d.folded{width:auto}
-.bgm-d.folded .bd-dial{display:block;margin:9px}
+.bgm-d.folded .bd-dial{display:block;margin:7px}   /* 바깥 눈금 고리(7px) 끝 = 화면 끝에서 20px — 맨 위로 버튼 · 펼친 카드와 오른쪽 선이 맞는다 */
 .bgm-d.folded .bd-card,.bgm-d.folded .bd-list{display:none}
 
 /* 모바일 — 오른쪽 아래 다이얼, 누르면 화면 아래에 카드(목록은 그 위로) */
