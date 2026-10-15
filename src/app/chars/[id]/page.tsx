@@ -6,6 +6,8 @@
 import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
+import { useClassified, findStub } from '@/lib/classified';
+import { AccessDenied } from '@/components/ui/AccessDenied';
 import { useLocalList } from '@/lib/postStore';
 import { Character, CHAR_SEED, charGrant, charWithAu, chipBorder, Relation, REL_SEED , findByKey, charPath } from '@/lib/charStore';
 import { sanitizeHtml } from '@/lib/sanitize';
@@ -23,7 +25,8 @@ import { CenterGlyph } from '@/components/ui/CenterGlyph';
 function CharDetailInner() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, ready: authReady } = useAuth();
+  const cls = useClassified();
   const [chars, setChars, loaded] = useLocalList<Character>('ohome.chars.v1', CHAR_SEED);
   const [rels] = useLocalList<Relation>('ohome.rels.v1', REL_SEED);
   const { familyOf } = useFonts();
@@ -127,6 +130,11 @@ function CharDetailInner() {
   );
 
   if (!loaded) return <section className="page" />;
+  // 기밀 (v2.0 · lib/classified.ts) — 관리자가 아니면 주소로 들어와도 붉은 접근 거부 화면.
+  // 관리자 아닌 사람은 기밀 문서를 받지 못하므로(서버 규칙) 목록용 기록(id·별명)으로 알아본다
+  if (authReady && !isAdmin && ((ch && ch.classified) || (!ch && findStub(cls.chars, id)))) {
+    return <AccessDenied kind="chars" name={(ch?.name) ?? findStub(cls.chars, id)?.name} backHref="/profile" />;
+  }
   if (!ch || !eff) {
     return (
       <section className="page page-arch page-chars">

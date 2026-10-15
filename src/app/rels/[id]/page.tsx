@@ -7,6 +7,8 @@ import { createPortal } from 'react-dom';
 import { useParams, useRouter } from 'next/navigation';
 import { logPath } from '@/lib/logPath';
 import { useAuth } from '@/lib/auth';
+import { useClassified, findStub } from '@/lib/classified';
+import { AccessDenied } from '@/components/ui/AccessDenied';
 import { useTheme } from '@/lib/ThemeProvider';
 import { useLocalList, newId } from '@/lib/postStore';
 import {
@@ -266,7 +268,8 @@ function EmptyCard({ isAdmin, onAdd }: { isAdmin: boolean; onAdd: () => void }) 
 export default function RelDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, ready: authReady } = useAuth();
+  const cls = useClassified();
   const toast = useToast();
   const { familyOf } = useFonts();
   const [rels, setRels, loaded] = useLocalList<Relation>('ohome.rels.v1', REL_SEED);
@@ -563,6 +566,11 @@ export default function RelDetailPage() {
     [rooms, rel, user]);
 
   if (!loaded) return <section className="page page-arch" />;
+  // 기밀 (v2.0 · lib/classified.ts) — 관리자가 아니면 주소로 들어와도 붉은 접근 거부 화면.
+  // 관리자 아닌 사람은 기밀 문서를 받지 못하므로(서버 규칙) 목록용 기록(id·별명)으로 알아본다
+  if (authReady && !isAdmin && ((rel && rel.classified) || (!rel && findStub(cls.rels, id)))) {
+    return <AccessDenied kind="rels" name={(rel?.name) ?? findStub(cls.rels, id)?.name} backHref="/pairing" />;
+  }
   if (!rel || (rel.visibility === 'private' && !isAdmin) || (rel.visibility === 'member' && !user)) {
     return (
       <section className="page page-arch">

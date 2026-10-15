@@ -51,7 +51,9 @@ export function CharEditForm({ initial, onSave, onCancel, auMode, existingIds }:
   const [sub, setSub] = useState(initial?.sub ?? '');
   const [color, setColor] = useState(initial?.color ?? '#5d636d');
   const [themeMode, setThemeMode] = useState<'default' | 'custom'>(initial?.themeMode ?? 'default');
-  const [visibility, setVisibility] = useState<Visibility>(initial?.visibility ?? 'public');
+  // 공개범위 + 기밀(v2.0) — 기밀은 저장할 때 private + classified로 나뉜다 (lib/classified.ts)
+  const [visibility, setVisibility] = useState<Visibility | 'classified'>(
+    initial?.classified && initial.visibility === 'private' ? 'classified' : initial?.visibility ?? 'public');
   const [fontId, setFontId] = useState(initial?.fontId ?? 'serif');
   const [nameSize, setNameSize] = useState(initial?.nameSize ?? 38);   // 상세 큰 이름 크기 (v2.0)
   const [bodyFontId, setBodyFontId] = useState(initial?.bodyFontId ?? 'default');
@@ -106,7 +108,8 @@ export function CharEditForm({ initial, onSave, onCancel, auMode, existingIds }:
       specs: specs.filter(s => s.label.trim()).map(({ label, value }) => ({ label: label.trim(), value })),
       tabs,   // 제목이 비어도 유지 — 필터로 사라지던 버그 수정 (v1.9 사용자 지적)
       basicHtml,
-      visibility,
+      visibility: visibility === 'classified' ? 'private' : visibility,
+      classified: visibility === 'classified' || undefined,
       fontId,
       nameSize,
       bodyFontId,
@@ -311,11 +314,12 @@ export function CharEditForm({ initial, onSave, onCancel, auMode, existingIds }:
             </div>
             {/* 공개범위는 base 소관 — AU 편집에선 숨김 (v1.9) */}
             {!auMode && (
-              <KSelect value={visibility} onChange={v => setVisibility(v as Visibility)}
+              <KSelect value={visibility} onChange={v => setVisibility(v as Visibility | 'classified')}
                 options={[
                   { value: 'public', label: '전체공개' },
                   { value: 'member', label: '멤버공개' },
                   { value: 'private', label: '나만보기' },
+                  { value: 'classified', label: '기밀 (관리자만 · 목록엔 잠긴 카드)' },
                 ]} />
             )}
             <KSelect value={fontId} onChange={setFontId}

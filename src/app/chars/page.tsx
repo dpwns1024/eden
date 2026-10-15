@@ -1,7 +1,7 @@
 'use client';
 // EditableDesc 주입
 // 캐릭터 리스트 (4.4) — 한 줄 5개 · 3:4 썸네일(크롭 반영) · 전용 폰트 · ＋ ADD CHARACTER
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useLocalList } from '@/lib/postStore';
@@ -15,6 +15,8 @@ import { useToast } from '@/components/ui/Toast';
 import { EditableDesc, PageTitle } from '@/components/ui/PageText';
 import { useMainStore } from '@/lib/mainStore';
 import { useCardSort, mergeOrder } from '@/lib/cardSort';
+import { useClassified, mergeStubs, isStub } from '@/lib/classified';
+import { AccessDenied } from '@/components/ui/AccessDenied';
 
 function CharsInner() {
   const router = useRouter();
@@ -48,8 +50,12 @@ function CharsInner() {
     .filter(c => c.own)
     .filter(c => isAdmin || c.visibility === 'public');
 
-  // 편집모드 카드 드래그 정렬 (v1.9)
-  const sort = useCardSort(visible, next => setChars(mergeOrder(chars, next)), editOn && isAdmin);
+  // 카드 드래그 정렬 — 관리자는 편집모드가 아니어도 끌어서 옮긴다 (v2.0 사용자 요청 · 평소엔 표시 없이)
+  const sort = useCardSort(visible, next => setChars(mergeOrder(chars, next)), isAdmin, !editOn);
+  // 기밀 캐릭터 (v2.0 · lib/classified.ts) — 관리자 아닌 사람에겐 목록에 잠긴 카드만, 누르면 접근 거부 창
+  const cls = useClassified();
+  const [denied, setDenied] = useState<string | null>(null);
+  const shown = isAdmin ? visible : mergeStubs(visible, filterSection(cls.chars, sec.id));
 
   return (
     <section className="page page-arch page-chars">
@@ -64,14 +70,27 @@ function CharsInner() {
         )}
       </div>
       <div className="g5 chars-grid">
-        {visible.map((c, i) => {
-          const priv = c.visibility === 'private';
+        {shown.map((c, i) => {
+          if (isStub(c)) return (
+            <div key={c.id} className="char-card is-classified" onClick={() => setDenied(c.name)}>
+              <div className="thumb" style={{ position: 'relative' }}>
+                <span className="cls-tag">CLASSIFIED</span>
+                <CroppedBlobImg fileRef={c.img} crop={c.crop} ph={c.ph ?? ''} label="" />
+              </div>
+              <div className="nm">
+                <b style={{ minWidth: 0, flex: 1 }}><FitText>{c.name}</FitText></b>
+                <i style={{ background: c.color }} />
+              </div>
+            </div>
+          );
+          const priv = c.visibility === 'private' && !c.classified;
           const sp = sort(i) as { style?: React.CSSProperties };
           return (
-            <div key={c.id} className="char-card" {...sort(i)}
+            <div key={c.id} className={`char-card${c.classified ? ' is-classified' : ''}`} {...sort(i)}
               style={{ ...(priv ? { opacity: .45 } : undefined), ...sp.style }}
               onClick={() => { if (!editOn) router.push(charPath(c)); }}>
               <div className="thumb" style={{ position: 'relative' }}>
+                {c.classified && <span className="cls-tag">CLASSIFIED</span>}
                 <CroppedBlobImg fileRef={c.arts?.[0] ?? c.thumbId} crop={c.thumbCrop} ph={c.thumbClass}
                   label={priv ? '비공개' : '3:4'} />
               </div>
@@ -84,12 +103,13 @@ function CharsInner() {
             </div>
           );
         })}
-        {visible.length === 0 && (
+        {shown.length === 0 && (
           <p style={{ gridColumn: '1/-1', textAlign: 'center', color: 'var(--page-desc)', fontSize: 13, padding: 40 }}>
             표시할 캐릭터가 없습니다
           </p>
         )}
       </div>
+      {denied !== null && <AccessDenied kind="chars" name={denied} onClose={() => setDenied(null)} />}
     </section>
   );
 }

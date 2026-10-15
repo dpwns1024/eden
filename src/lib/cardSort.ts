@@ -5,7 +5,9 @@
 // 필터/검색으로 부분 표시 중이면 보이는 순서를 앞으로 두고 나머지를 뒤에 붙인다.
 import { useRef, useState, type DragEvent, type CSSProperties } from 'react';
 
-export function useCardSort<T>(shown: T[], save: (nextShown: T[]) => void, enabled: boolean) {
+/** quiet (v2.0) — 편집모드가 아니어도 관리자는 끌어서 옮길 수 있게: 평소엔 점선·손 모양 없이 그대로 보이고
+ *  끌고 있는 카드만 흐려진다. 클릭(열기)은 그대로 */
+export function useCardSort<T>(shown: T[], save: (nextShown: T[]) => void, enabled: boolean, quiet = false) {
   const dragIdx = useRef<number | null>(null);
   const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
 
@@ -35,7 +37,10 @@ export function useCardSort<T>(shown: T[], save: (nextShown: T[]) => void, enabl
       },
       onDrop: (e: DragEvent) => { e.preventDefault(); end(); },
       onDragEnd: end,
-      style: {
+      style: quiet ? {
+        opacity: draggingIdx === i ? 0.35 : undefined,
+        transition: 'opacity .12s',
+      } as CSSProperties : {
         cursor: 'var(--cur-grab,grab)',
         outline: draggingIdx === i ? '2px solid var(--accent)' : '1.5px dashed rgba(201,106,115,.55)',
         outlineOffset: 3,

@@ -20,6 +20,7 @@ import { SecurityMigrate } from '@/components/shell/SecurityMigrate';
 import { LetterSpacingFix } from '@/components/shell/LetterSpacingFix';
 import { BoardSkinSync } from '@/components/shell/BoardSkinSync';
 import { QuoteNameSync } from '@/components/shell/QuoteNameSync';
+import { ClassifiedSync } from '@/components/shell/ClassifiedSync';
 import { SetupGate } from '@/components/shell/SetupGate';
 import { DocTitle } from '@/components/shell/DocTitle';
 import { DocIcon } from '@/components/shell/DocIcon';
@@ -96,6 +97,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         <LetterSpacingFix />
                         <BoardSkinSync />
                         <QuoteNameSync />
+                        <ClassifiedSync />
                         <DocTitle />
                         <DocIcon />
                         <SettingSync />
