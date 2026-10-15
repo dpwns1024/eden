@@ -3173,7 +3173,7 @@ function BgmPane() {
         </div>
       </div>
       <div className="set-row">
-        <div className="l"><b>플레이어 디자인</b><small>ARCH — 각진 어두운 패널 · 금속 디스크 · 마름모 볼륨 (모든 페이지 공통)</small></div>
+        <div className="l"><b>플레이어 디자인</b><small>ARCH — 주파수 다이얼 · 채널 목록 · 은빛 곡 이름 · 볼륨 손잡이 (모든 페이지 공통)</small></div>
         <div className="mini-seg">
           <button className={(state.settings.skin ?? 'default') === 'default' ? 'on' : ''} onClick={() => setSettings({ skin: 'default' })}>기본</button>
           <button className={state.settings.skin === 'arch' ? 'on' : ''} onClick={() => setSettings({ skin: 'arch' })}>ARCH</button>
