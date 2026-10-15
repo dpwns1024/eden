@@ -11,7 +11,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArchDoc, ArchBlock, ArchCard, ArchClass, ArchFact, ArchMore, ArchRank, ArchRanks, ICONS, iconSvg, iconKeyOf, blankBlock, blankCard, blankClass,
   BLOCK_LABEL, moreOf, ranksOf, gradeOf, blankRank,
-  layoutOf, elementalOf, headsOf, blankElemGroup, blankElement, DEFAULT_HEADS,
+  layoutOf, elementalOf, headsOf, blankElemGroup, blankElement, DEFAULT_HEADS, ELEM_ICON_KEYS,
   type ArchElemGroup, type ArchElement, type ArchSubHead,
 } from '@/lib/archDocStore';
 import { newId } from '@/lib/postStore';
@@ -152,6 +152,12 @@ function ClassSwitch({ items, on, setOn, linked }: { items: ArchClass[]; on: num
 }
 
 const ELEM_SLOTS = 6;
+/** 원소 칸 그림 — 원소 마크(el-*)면 그림, 아니면 적은 글자(예전 이모지) 그대로 */
+function ElemIcon({ icon }: { icon: string }) {
+  return ICONS[icon]
+    ? <span className="mk" dangerouslySetInnerHTML={{ __html: ICONS[icon].svg }} />
+    : <span>{icon || '·'}</span>;
+}
 /** 속성 상자 — 왼쪽 분류 상자에서 고른 분류의 속성(센티넬 → 속성 센티넬, 가이드 → 속성 가이드)을 보여 준다.
  *  원소는 여섯 칸 — 아직 적지 않은 칸은 「기록 준비 중」. 원소 칸을 누르면 아래에 힘의 특징 · 폭주 징후 */
 function ElemBox({ group, from }: { group: ArchElemGroup; from: string }) {
@@ -170,7 +176,7 @@ function ElemBox({ group, from }: { group: ArchElemGroup; from: string }) {
             const x = group.elements[i];
             return x ? (
               <button key={x.id} type="button" role="tab" aria-selected={x === e} className={x === e ? 'on' : undefined} onClick={() => setEl(i)}>
-                <span>{x.icon || '·'}</span><em>{x.en}</em>
+                <ElemIcon icon={x.icon} /><em>{x.en}</em>
               </button>
             ) : (
               <button key={`p${i}`} type="button" className="pend" disabled aria-label="기록 준비 중"><span>·</span><em>{String(i + 1).padStart(2, '0')}</em></button>
@@ -179,7 +185,7 @@ function ElemBox({ group, from }: { group: ArchElemGroup; from: string }) {
         </div>
         {e ? (
           <div className="ar-el" key={e.id}>
-            <div className="ar-el-h"><b>{e.en}</b>{e.ko && <small>{e.ko}</small>}</div>
+            <div className="ar-el-h">{ICONS[e.icon] && <span className="mk" dangerouslySetInnerHTML={{ __html: ICONS[e.icon].svg }} />}<b>{e.en}</b>{e.ko && <small>{e.ko}</small>}</div>
             <dl>
               {e.power && <div><dt>POWER · 힘의 특징</dt><dd>{e.power}</dd></div>}
               {e.overload && <div className="rd"><dt>OVERLOAD · 폭주 징후</dt><dd>{e.overload}</dd></div>}
@@ -459,10 +465,19 @@ function ElementalEditor({ groups, onChange }: { groups: ArchElemGroup[] | null;
                 <div className="ad-field wide">
                   <div className="ad-sub">원소 (칸을 누르면 아래에 설명)</div>
                   <ItemList items={g.elements} onChange={elements => sg({ ...g, elements })} make={blankElement} addLabel="원소 추가"
-                    title={(x: ArchElement, i) => `${i + 1} — ${x.icon} ${x.en}${x.ko ? ` (${x.ko})` : ''}`}
+                    title={(x: ArchElement, i) => `${i + 1} — ${ICONS[x.icon] ? '' : `${x.icon} `}${x.en}${x.ko ? ` (${x.ko})` : ''}`}
                     render={(x: ArchElement, sx: (v: ArchElement) => void) => (
                       <div className="ad-grid">
-                        <Field label="그림 글자 (예: 🔥)"><KInput maxLength={4} value={x.icon} onChange={e => sx({ ...x, icon: e.target.value })} /></Field>
+                        <Field label="마크">
+                          <div className="ad-row">
+                            <KSelect minWidth={150} value={ICONS[x.icon] ? x.icon : '__text'}
+                              onChange={v => sx({ ...x, icon: v === '__text' ? '' : v })}
+                              options={[...ELEM_ICON_KEYS.map(k => ({ value: k, label: ICONS[k].label })), { value: '__text', label: '직접 입력 (글자 · 이모지)' }]} />
+                            {ICONS[x.icon]
+                              ? <span className="ad-icprev" dangerouslySetInnerHTML={{ __html: ICONS[x.icon].svg }} />
+                              : <KInput maxLength={4} placeholder="예: 🔥" value={x.icon} onChange={e => sx({ ...x, icon: e.target.value })} />}
+                          </div>
+                        </Field>
                         <Field label="영문 이름 (예: PYRE)"><KInput value={x.en} onChange={e => sx({ ...x, en: e.target.value })} /></Field>
                         <Field label="한글 이름 (예: 불)"><KInput value={x.ko} onChange={e => sx({ ...x, ko: e.target.value })} /></Field>
                         <Field label="힘의 특징" wide><KTextarea rows={2} value={x.power} onChange={e => sx({ ...x, power: e.target.value })} /></Field>
