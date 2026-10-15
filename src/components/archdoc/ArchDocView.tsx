@@ -165,6 +165,8 @@ function ElemBox({ group, from }: { group: ArchElemGroup; from: string }) {
   useEffect(() => { setEl(0); }, [group.id]);
   const e: ArchElement | undefined = group.elements[Math.min(el, group.elements.length - 1)];
   const slots = Math.max(ELEM_SLOTS, group.elements.length);
+  // 속성 가이드는 폭주하지 않는다 — 두 번째 칸은 「힘의 역할」(같은 글씨색) (v2.0 사용자 요청)
+  const role = iconKeyOf(group.icon) === 'guide';
   return (
     <div className="ar-pn ar-sw ar-elbox">
       <div className="ar-elbox-k"><span><i />LINKED · {from}</span><span>{group.elements.length} / {slots} ELEMENTS</span></div>
@@ -189,7 +191,9 @@ function ElemBox({ group, from }: { group: ArchElemGroup; from: string }) {
             <div className="ar-el-h">{ICONS[e.icon] && <span className="mk" dangerouslySetInnerHTML={{ __html: ICONS[e.icon].svg }} />}<b>{e.en}</b>{e.ko && <small>{e.ko}</small>}</div>
             <dl>
               {e.power && <div><dt>POWER · 힘의 특징</dt><dd>{e.power}</dd></div>}
-              {e.overload && <div className="rd"><dt>OVERLOAD · 폭주 징후</dt><dd>{e.overload}</dd></div>}
+              {e.overload && (role
+                ? <div><dt>ROLE · 힘의 역할</dt><dd>{e.overload}</dd></div>
+                : <div className="rd"><dt>OVERLOAD · 폭주 징후</dt><dd>{e.overload}</dd></div>)}
             </dl>
           </div>
         ) : <div className="ar-el pend">원소 기록 준비 중</div>}
@@ -484,7 +488,7 @@ function ElementalEditor({ groups, onChange }: { groups: ArchElemGroup[] | null;
                         <Field label="영문 이름 (예: PYRE)"><KInput value={x.en} onChange={e => sx({ ...x, en: e.target.value })} /></Field>
                         <Field label="한글 이름 (예: 불)"><KInput value={x.ko} onChange={e => sx({ ...x, ko: e.target.value })} /></Field>
                         <Field label="힘의 특징" wide><KTextarea rows={2} value={x.power} onChange={e => sx({ ...x, power: e.target.value })} /></Field>
-                        <Field label="폭주 징후 (빨강)" wide><KTextarea rows={2} value={x.overload} onChange={e => sx({ ...x, overload: e.target.value })} /></Field>
+                        <Field label={iconKeyOf(g.icon) === 'guide' ? '힘의 역할' : '폭주 징후 (빨강)'} wide><KTextarea rows={2} value={x.overload} onChange={e => sx({ ...x, overload: e.target.value })} /></Field>
                       </div>
                     )} />
                 </div>
