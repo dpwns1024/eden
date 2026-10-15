@@ -209,7 +209,13 @@ export function ExcerptMaker() {
     try {
       const { toPng } = await import('html-to-image');
       // 화면 밖 위치(left:-30000px)는 찍을 때 빼야 한다 — 그대로 두면 그림 밖에 그려져 하얗게 나온다
-      const opts = { pixelRatio: 2, cacheBust: false, imagePlaceholder: BLANK,
+      /* 높이는 옮기지 않는다 (v2.0 사용자 제보 — 엔터 친 곳이 없는데 문단 사이가 한 줄 벌어졌다).
+         html-to-image는 찍을 때 글씨를 0.1px 줄이면서(15 → 14.9px) 칸마다 높이는 화면 밖 카드에서 잰 값으로 고정한다 —
+         마지막 줄이 짧은 문단은 글씨가 줄면 한 줄이 줄어드는데, 고정된 높이만큼 빈 줄이 남아 엔터처럼 보였다.
+         높이 계열만 빼면 찍는 순간의 글씨에 맞춰 높이가 다시 정해진다 */
+      const FREE = new Set(['height', 'block-size', 'min-block-size', 'max-block-size']);
+      const includeStyleProperties = Array.from(getComputedStyle(document.documentElement)).filter(n => !FREE.has(n));
+      const opts = { pixelRatio: 2, cacheBust: false, imagePlaceholder: BLANK, includeStyleProperties,
         style: { position: 'static', left: '0', top: '0', margin: '0' } as Partial<CSSStyleDeclaration> };
       let url: string;
       try { url = await toPng(card, opts); }
