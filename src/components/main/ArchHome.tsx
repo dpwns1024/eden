@@ -217,7 +217,8 @@ export function ArchHome() {
             <p className="ar-tag">ARCANE RESPONSE CONTROL HUB</p>
             <div className="ar-div"><i /><Mark /><i /></div>
             <h1 className="ar-h1">우리는 인류의 <b>유일한 방패</b>이자,<br />평범한 세상에는 속할 수 없는 <b>이방인</b>이다.</h1>
-            <p className="ar-h-en">THE SOLE SHIELD OF HUMANITY — STRANGERS TO THE ORDINARY WORLD</p>
+            {/* 폰에선 STRANGERS 앞에서 줄을 나누고, 가운데 가로줄(—) 대신 두 줄을 잇는 세로 줄 (v2.0 사용자 요청 · archHome.css) */}
+            <p className="ar-h-en"><span>THE SOLE SHIELD OF HUMANITY</span><i className="ar-en-sep" aria-hidden="true"> — </i><span>STRANGERS TO THE ORDINARY WORLD</span></p>
             <div className="ar-cta">
               <Link className="ar-btn p" href={ABOUT_HREF} onClick={openAbout}>ABOUT ARCH<span>→</span></Link>
               {/* 오류 난 것처럼 ABOUT ARCH? ↔ LOST EDEN이 오락가락하는 버튼 — 누르면 가이드 매칭 연출 → 이브 × 에덴 기밀 파일 */}
