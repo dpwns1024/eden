@@ -12,7 +12,7 @@ import {
   ArchDoc, ArchBlock, ArchCard, ArchClass, ArchFact, ArchMore, ArchRank, ArchRanks, ICONS, iconSvg, iconKeyOf, blankBlock, blankCard, blankClass,
   BLOCK_LABEL, moreOf, ranksOf, gradeOf, blankRank,
   layoutOf, elementalOf, headsOf, blankElemGroup, blankElement, DEFAULT_HEADS, ELEM_ICON_KEYS, ELEM_COLOR,
-  type ArchElemGroup, type ArchElement, type ArchSubHead,
+  type ArchElemGroup, type ArchElement, type ArchSubHead, type ArchAgent, type ArchAgentGroup, blankAgent, blankAgentGroup,
 } from '@/lib/archDocStore';
 import { newId } from '@/lib/postStore';
 import { sanitizeHtml } from '@/lib/sanitize';
@@ -23,6 +23,7 @@ import { KInput, KTextarea, KCheck, KSelect } from '@/components/ui/Kit';
 import { RichEditor } from '@/components/ui/RichEditor';
 import { useToast } from '@/components/ui/Toast';
 import { AegisMap } from './AegisMap';
+import { ColorField } from '@/components/ui/ColorField';
 import { AEGIS_SPOTS, type ArchMapNode } from '@/lib/aegisMap';
 import './archdoc.css';
 
@@ -84,6 +85,77 @@ function ImageView({ src, caption }: { src: string; caption: string }) {
       {url && <img src={url} alt={caption} />}
       {caption && <figcaption>{caption}</figcaption>}
     </figure>
+  );
+}
+
+/* ───────────── 요원 명부 (AGENTS 탭 · v2.0 사용자 요청) ───────────── */
+const ELEM_KO: Record<string, string> = { 'el-water': '물', 'el-fire': '불', 'el-grass': '풀', 'el-thunder': '번개', 'el-wind': '바람', 'el-ice': '얼음' };
+/** 원소 딱지 — 원소 색 바탕 + 원소 마크 */
+function ElemBadge({ el }: { el: string }) {
+  if (!ELEM_KO[el]) return null;
+  return (
+    <span className="ar-ag-el" style={{ '--ec': ELEM_COLOR[el] } as React.CSSProperties}>
+      <i dangerouslySetInnerHTML={{ __html: ICONS[el]?.svg ?? '' }} />{ELEM_KO[el]} 속성
+    </span>
+  );
+}
+function AgentPhoto({ src, alt }: { src: string; alt: string }) {
+  const url = useBlobUrl(src);
+  // eslint-disable-next-line @next/next/no-img-element
+  return url ? <img src={url} alt={alt} /> : <span className="ar-ag-noimg">NO IMAGE</span>;
+}
+/** 증명사진 카드 — 누르면 상세 프로필 창 */
+function AgentCard({ a, onOpen }: { a: ArchAgent; onOpen: () => void }) {
+  return (
+    <button type="button" className="ar-ag" onClick={onOpen} aria-label={`${a.name} 상세 프로필`}
+      style={ELEM_COLOR[a.element] ? { '--ec': ELEM_COLOR[a.element] } as React.CSSProperties : undefined}>
+      <span className="ph"><AgentPhoto src={a.photo} alt={a.name} /></span>
+      <span className="tx">
+        <b>{a.name}</b>
+        {a.en && <small>{a.en}</small>}
+        <ElemBadge el={a.element} />
+      </span>
+    </button>
+  );
+}
+/** 상세 프로필 창 — 위에 사진 · 이름 · 무리 · 원소, 아래에 관리자가 HTML로 쓴 내용 */
+function AgentModal({ a, g, onClose }: { a: ArchAgent | null; g: ArchAgentGroup | null; onClose: () => void }) {
+  return (
+    <Modal open={!!a} onClose={onClose} className="ar-more-modal ar-ag-modal">
+      {a && g && (
+        <div className="ar-ag-pf">
+          <div className="ar-ag-pf-h" style={{ '--gc': g.color } as React.CSSProperties}>
+            <span className="ph"><AgentPhoto src={a.photo} alt={a.name} /></span>
+            <div className="nm">
+              <small>{g.title}{g.cls && <em>{g.cls}</em>}</small>
+              <b>{a.name}</b>
+              {a.en && <span className="en">{a.en}</span>}
+              <ElemBadge el={a.element} />
+            </div>
+          </div>
+          {a.html.trim()
+            ? <div className="ar-ag-pf-b" dangerouslySetInnerHTML={{ __html: stripScripts(a.html) }} />
+            : <div className="ar-ag-pf-b pend">PROFILE · 기록 준비 중</div>}
+          <div className="ar-more-foot"><button type="button" className="ar-more-close" onClick={onClose}>CLOSE</button></div>
+        </div>
+      )}
+    </Modal>
+  );
+}
+function RosterView({ groups }: { groups: ArchAgentGroup[] }) {
+  const [open, setOpen] = useState<{ g: ArchAgentGroup; a: ArchAgent } | null>(null);
+  return (
+    <div className="ar-roster">
+      {groups.map(g => (
+        <section key={g.id} className="ar-ag-grp" style={{ '--gc': g.color } as React.CSSProperties}>
+          <div className="ar-ag-gh"><b>{g.title}</b>{g.cls && <em>{g.cls}</em>}</div>
+          <div className="ar-ag-list">
+            {g.agents.map(a => <AgentCard key={a.id} a={a} onOpen={() => setOpen({ g, a })} />)}
+          </div>
+        </section>
+      ))}
+      <AgentModal a={open?.a ?? null} g={open?.g ?? null} onClose={() => setOpen(null)} />
+    </div>
   );
 }
 
@@ -320,6 +392,8 @@ function BlockView({ b }: { b: ArchBlock }) {
       return b.src ? <ImageView src={b.src} caption={b.caption} /> : <Pending label="자료 준비 중" />;
     case 'map':
       return b.nodes.length ? <AegisMap nodes={b.nodes} caption={b.caption} /> : <Pending label="자료 준비 중" />;
+    case 'roster':
+      return b.groups.some(g => g.agents.length) ? <RosterView groups={b.groups} /> : <Pending label="명부 준비 중" />;
     case 'html':
       return <div className="ar-rawhtml" dangerouslySetInnerHTML={{ __html: stripScripts(b.html) }} />;
   }
@@ -583,6 +657,63 @@ function ImageEditor({ b, set }: { b: Extract<ArchBlock, { type: 'image' }>; set
   );
 }
 
+/** 요원 명부 편집 — 무리(이름 · 등급 · 색) → 요원(사진 · 이름 · 원소 · 상세 HTML) */
+function AgentPhotoField({ a, set }: { a: ArchAgent; set: (v: ArchAgent) => void }) {
+  const toast = useToast();
+  const [busy, setBusy] = useState(false);
+  const url = useBlobUrl(a.photo);
+  const pick = async (f?: File) => {
+    if (!f) return;
+    setBusy(true);
+    try { set({ ...a, photo: await putBlob(f) }); } catch (e) { toast(`올리지 못했습니다 — ${e instanceof Error ? e.message : ''}`); }
+    setBusy(false);
+  };
+  return (
+    <div className="ad-field">
+      <span>증명사진 (세로 3:4)</span>
+      <div className="ad-row">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {url && <img src={url} alt="" style={{ width: 48, height: 64, objectFit: 'cover', border: '1px solid rgba(190,208,228,.2)' }} />}
+        <label className="btn btn-ghost">{busy ? '올리는 중…' : url ? '사진 바꾸기' : '사진 올리기'}
+          <input type="file" accept="image/*" hidden onChange={e => { void pick(e.target.files?.[0]); e.target.value = ''; }} />
+        </label>
+        {url && <button type="button" className="btn btn-ghost" onClick={() => set({ ...a, photo: '' })}>빼기</button>}
+      </div>
+    </div>
+  );
+}
+function RosterEditor({ b, set }: { b: Extract<ArchBlock, { type: 'roster' }>; set: (b: ArchBlock) => void }) {
+  const elOpts = [{ value: '', label: '무속성 (딱지 없음)' }, ...ELEM_ICON_KEYS.map(k => ({ value: k, label: ICONS[k].label }))];
+  return (
+    <ItemList items={b.groups} onChange={groups => set({ ...b, groups })} make={blankAgentGroup} addLabel="무리 추가"
+      title={(g: ArchAgentGroup) => `${g.title || '(이름 없음)'} — ${g.agents.length}명`}
+      render={(g: ArchAgentGroup, sg: (v: ArchAgentGroup) => void) => (
+        <div className="ad-grid">
+          <Field label="무리 이름 (예: VANGUARD 1팀)"><KInput value={g.title} onChange={e => sg({ ...g, title: e.target.value })} /></Field>
+          <Field label="오른쪽 등급 (예: S-CLASS)"><KInput value={g.cls} onChange={e => sg({ ...g, cls: e.target.value })} /></Field>
+          <Field label="무리 색 (밑줄 · 등급 글씨)"><ColorField value={g.color} onChange={color => sg({ ...g, color })} /></Field>
+          <div className="ad-field wide">
+            <div className="ad-sub">요원</div>
+            <ItemList items={g.agents} onChange={agents => sg({ ...g, agents })} make={blankAgent} addLabel="요원 추가"
+              title={(a: ArchAgent, i) => `${i + 1} — ${a.name || '(이름 없음)'}${ELEM_KO[a.element] ? ` · ${ELEM_KO[a.element]}` : ''}`}
+              render={(a: ArchAgent, sa: (v: ArchAgent) => void) => (
+                <div className="ad-grid">
+                  <AgentPhotoField a={a} set={sa} />
+                  <Field label="원소"><KSelect minWidth={160} value={a.element} onChange={v => sa({ ...a, element: v })} options={elOpts} /></Field>
+                  <Field label="이름"><KInput value={a.name} onChange={e => sa({ ...a, name: e.target.value })} /></Field>
+                  <Field label="이름 아래 작은 글씨 (선택 · 예: CODE S-0001)"><KInput value={a.en ?? ''} onChange={e => sa({ ...a, en: e.target.value })} /></Field>
+                  <Field label="상세 프로필 (HTML — 사진을 누르면 뜨는 창)" wide>
+                    <KTextarea rows={10} value={a.html} onChange={e => sa({ ...a, html: e.target.value })}
+                      placeholder={'<p>나이 · 키 · 소속 같은 정보를 HTML로 자유롭게</p>'} style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12 }} />
+                  </Field>
+                </div>
+              )} />
+          </div>
+        </div>
+      )} />
+  );
+}
+
 const SPOT_OPTS = Object.entries(AEGIS_SPOTS).map(([value, s]) => ({ value, label: s.label }));
 const blankNode = (): ArchMapNode => ({ id: newId(), code: '', en: 'FACILITY', name: '', zone: '', spot: 'sdiv', body: '', quote: null });
 
@@ -694,6 +825,8 @@ function BlockEditor({ b, set }: { b: ArchBlock; set: (b: ArchBlock) => void }) 
       return <ImageEditor b={b} set={set} />;
     case 'map':
       return <MapEditor b={b} set={set} />;
+    case 'roster':
+      return <RosterEditor b={b} set={set} />;
     case 'html':
       return (
         <KTextarea value={b.html} onChange={e => set({ ...b, html: e.target.value })}

@@ -66,6 +66,23 @@ export interface ArchElemGroup {
   body: string;                        // 소개
   elements: ArchElement[];
 }
+/** 요원 명부 (v2.0 사용자 요청 — AGENTS 탭) — 무리(ARCH-PRIMA · VANGUARD …)마다 증명사진 카드,
+ *  사진을 누르면 HTML로 쓴 상세 프로필 창 */
+export interface ArchAgent {
+  id: string;
+  name: string;                        // 카드 이름 (예: 해일)
+  en?: string;                         // 영문 이름 · 코드 (선택)
+  photo: string;                       // 증명사진 (blob 참조)
+  element: string;                     // 원소 마크 키(el-*) · 비우면 무속성
+  html: string;                        // 상세 프로필 (HTML — 관리자 작성)
+}
+export interface ArchAgentGroup {
+  id: string;
+  title: string;                       // ARCH-PRIMA · VANGUARD 1팀
+  cls: string;                         // 오른쪽 등급 글씨 (SS-CLASS)
+  color: string;                       // 무리 색 (밑줄 · 등급 글씨)
+  agents: ArchAgent[];
+}
 /** 분류 탭 소제목 — [영문, 한글, 오른쪽 작은 글씨] */
 export type ArchSubHead = [string, string, string];
 export interface ArchClassHeads { aw: ArchSubHead; el: ArchSubHead; rk: ArchSubHead }
@@ -86,7 +103,9 @@ export type ArchBlock =
   | { id: string; type: 'image'; src: string; caption: string }
   /** 아이기스 단면 지도 (MAP 탭) — 그림은 코드, 시설 설명은 nodes */
   | { id: string; type: 'map'; caption: string; nodes: ArchMapNode[] }
-  | { id: string; type: 'html'; html: string };
+  | { id: string; type: 'html'; html: string }
+  /** 요원 명부 (AGENTS 탭) */
+  | { id: string; type: 'roster'; groups: ArchAgentGroup[] };
 export interface ArchTab { id: string; label: string; blocks: ArchBlock[] }
 export interface ArchDoc {
   title: string;
@@ -281,6 +300,8 @@ export function useArchDocs(): [Record<string, ArchDoc>, (id: string, doc: ArchD
 }
 
 /* ── 빈 칸 만들기 ── */
+export const blankAgent = (): ArchAgent => ({ id: newId(), name: '이름', en: '', photo: '', element: '', html: '' });
+export const blankAgentGroup = (): ArchAgentGroup => ({ id: newId(), title: 'ARCH-PRIMA', cls: 'SS-CLASS', color: '#b8d8ff', agents: [blankAgent()] });
 export const blankCard = (): ArchCard => ({ id: newId(), kL: 'SECTION', kR: '', title: 'TITLE', sub: '', body: '', radar: null, quote: null, facts: [] });
 export const blankClass = (): ArchClass => ({ id: newId(), icon: 'diamond', title: 'NAME', sub: '', body: '', letter: '' });
 export function blankBlock(type: ArchBlock['type'], num = ''): ArchBlock {
@@ -292,11 +313,12 @@ export function blankBlock(type: ArchBlock['type'], num = ''): ArchBlock {
     case 'text': return { id, type, html: '' };
     case 'image': return { id, type, src: '', caption: '' };
     case 'map': return { id, type, caption: '', nodes: cloneAegisNodes() };
+    case 'roster': return { id, type, groups: [blankAgentGroup()] };
     default: return { id, type: 'html', html: '' };
   }
 }
 export const BLOCK_LABEL: Record<ArchBlock['type'], string> = {
-  head: '섹션 제목', cards: '정보 카드', classes: '분류 카드', text: '글', image: '이미지', map: '지도', html: 'HTML',
+  head: '섹션 제목', cards: '정보 카드', classes: '분류 카드', text: '글', image: '이미지', map: '지도', roster: '요원 명부', html: 'HTML',
 };
 
 /* ── ARCH 소개 HTML → 탭 문서 ── */
