@@ -156,7 +156,7 @@ export function ArchHome() {
   const { list } = useSections();
   const aboutName = list('page').find(s => s.id === MAIN_SEC)?.name ?? 'ARCH';
   const [leaving, setLeaving] = useState(false);
-  // ABOUT EVEDEN — 가이드 매칭 연출 (SyncMatch)
+  // LOST EDEN — 가이드 매칭 연출 (SyncMatch)
   const [matching, setMatching] = useState(false);
   const closeMatch = useCallback(() => setMatching(false), []);
   // 한 번 소개 화면에 갔다 오면 히어로의 등장 연출(로고가 그려지는 2~3초)은 건너뛴다
@@ -220,11 +220,11 @@ export function ArchHome() {
             <p className="ar-h-en">THE SOLE SHIELD OF HUMANITY — STRANGERS TO THE ORDINARY WORLD</p>
             <div className="ar-cta">
               <Link className="ar-btn p" href={ABOUT_HREF} onClick={openAbout}>ABOUT ARCH<span>→</span></Link>
-              {/* 오류 난 것처럼 ABOUT ARCH? ↔ ABOUT EVEDEN이 오락가락하는 버튼 — 누르면 가이드 매칭 연출 (에덴 · 이브 소개는 그 뒤에 붙일 예정) */}
-              <button type="button" className="ar-btn p ah-glitch" aria-label="ABOUT EVEDEN" onClick={() => setMatching(true)}>
+              {/* 오류 난 것처럼 ABOUT ARCH? ↔ LOST EDEN이 오락가락하는 버튼 — 누르면 가이드 매칭 연출 → 이브 × 에덴 기밀 파일 */}
+              <button type="button" className="ar-btn p ah-glitch" aria-label="LOST EDEN" onClick={() => setMatching(true)}>
                 <em className="gl-w" aria-hidden="true">
                   <b className="gl-a" data-t="ABOUT ARCH?">ABOUT ARCH?</b>
-                  <b className="gl-e" data-t="ABOUT EVEDEN">ABOUT EVEDEN</b>
+                  <b className="gl-e" data-t="LOST EDEN">LOST EDEN</b>
                 </em>
                 <span>→</span>
               </button>
