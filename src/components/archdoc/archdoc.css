@@ -582,7 +582,14 @@ body:has(.arx)::before{display:none !important}
 .ar-ag-el i svg [stroke-width="2.2"]{stroke-opacity:1}
 @media (max-width:560px){
   .arx .ar-roster{gap:30px}
-  .arx .ar-ag-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  /* 폰 — 한 줄 세 장으로 작게 (v2.0 사용자 요청) */
+  .arx .ar-ag-list{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .arx .ar-ag .tx{left:7px;right:7px;bottom:7px;gap:4px}
+  .arx .ar-ag .tx b{font-size:12px;letter-spacing:.02em}
+  .arx .ar-ag .tx small{font-size:7px;letter-spacing:.12em;margin-top:-2px}
+  .arx .ar-ag .ar-ag-el{height:16px;gap:3px;padding:0 6px 0 4px;font-size:9px}
+  .arx .ar-ag .ar-ag-el i{width:10px;height:10px}
+  .arx .ar-ag::before,.arx .ar-ag::after{width:7px;height:7px}
   .arx .ar-ag-gh b{font-size:14px;letter-spacing:.24em}
 }
 /* 상세 프로필 창 (portal — .arx 밖) */
