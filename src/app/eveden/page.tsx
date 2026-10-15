@@ -69,17 +69,17 @@ export default function PairFilePage() {
         <header className="pf-head">
           <div className="pf-ttl">
             <small>PAIR DOSSIER <i>//</i> FILE NO. EV-ED-0987</small>
-            <h1>{eve.name}<em>×</em>{eden.name}</h1>
-            <p>SENTINEL — GUIDE PAIR <i>·</i> SYNC RATE {SYNC}% <i>·</i> STATUS <b>ACTIVE</b></p>
+            <h1>{eden.name}<em>×</em>{eve.name}</h1>
+            <p>GUIDE — SENTINEL PAIR <i>·</i> SYNC RATE {SYNC}% <i>·</i> STATUS <b>ACTIVE</b></p>
           </div>
           <div className="pf-stamp"><b>CLASSIFIED</b><span>LEVEL 4 · EYES ONLY</span></div>
         </header>
 
-        {/* 페어 요약 */}
+        {/* 페어 요약 — 매칭 연출과 같게 이브는 오른쪽(모바일은 아래), 에덴은 왼쪽 */}
         <section className="pf-pair">
-          <div className="pf-who l" style={{ '--c': eve.color } as React.CSSProperties}>
-            <Photo p={eve} className="sm" />
-            <div><small>{eve.role}</small><b>{eve.name}</b><span>{eve.code}</span></div>
+          <div className="pf-who l" style={{ '--c': eden.color } as React.CSSProperties}>
+            <Photo p={eden} className="sm" />
+            <div><small>{eden.role}</small><b>{eden.name}</b><span>{eden.code}</span></div>
           </div>
           <div className="pf-sync">
             <small>SYNC RATE</small>
@@ -87,9 +87,9 @@ export default function PairFilePage() {
             <span className="pf-bar"><i style={{ width: `${SYNC}%` }} /></span>
             <span className="pf-ok">SYNCHRONIZED</span>
           </div>
-          <div className="pf-who r" style={{ '--c': eden.color } as React.CSSProperties}>
-            <div><small>{eden.role}</small><b>{eden.name}</b><span>{eden.code}</span></div>
-            <Photo p={eden} className="sm" />
+          <div className="pf-who r" style={{ '--c': eve.color } as React.CSSProperties}>
+            <div><small>{eve.role}</small><b>{eve.name}</b><span>{eve.code}</span></div>
+            <Photo p={eve} className="sm" />
           </div>
         </section>
         <dl className="pf-meta">
@@ -104,8 +104,8 @@ export default function PairFilePage() {
         <section className="pf-sec">
           <h2 className="pf-sh"><span>01</span><b>SUBJECT FILES<small>대상자 기록</small></b><i /></h2>
           <div className="pf-subjects">
-            <Dossier p={eve} n="A" />
             <Dossier p={eden} n="B" />
+            <Dossier p={eve} n="A" />
           </div>
         </section>
 

@@ -1,11 +1,12 @@
 /* 가이드 매칭 연출 (components/main/SyncMatch.tsx) — 참고 영상의 붉은 경보 화면을 따랐다.
  * 붉은 단색 · 빛 번짐 · 칠한 띠(어두운 글씨) · 테두리만 그린 상자 · 화면 네 귀퉁이 꺾쇠 · 브라운관 결 · 색 번짐 글리치.
- * 아담과 페어 중(.sm-paired) · 에덴을 찾은 뒤(.sm-found · .sm-open)는 같은 화면이 푸른 신호색 — 색은 --hud 하나로 돌린다.
+ * 아담과 페어 중(.sm-paired) · 에덴과 98.7%로 매칭된 뒤(.sm-open)는 같은 화면이 푸른 신호색 — 색은 --hud 하나로 돌린다.
+ * 에덴을 찾고 동기화율이 오르는 동안(.sm-found)은 아직 붉은 경보 그대로.
  * body 바로 아래에 뜨는 화면이라 ARCH 색은 여기서 다시 정한다. */
 .sm-root{--hud:#ff3d3d;--hudr:255,61,61;--ink:#2a0205;--hi:#ffd9d6;
   position:fixed;inset:0;z-index:400;overflow:hidden;color:var(--hud);background:#070102;
   font:500 12px/1.5 'Saira Semi Condensed','Jost','Noto Sans KR',sans-serif;font-variant-numeric:tabular-nums;animation:smIn .3s ease both}
-.sm-paired,.sm-found,.sm-open{--hud:#b8d8ff;--hudr:184,216,255;--ink:#04101d;--hi:#ffffff}
+.sm-paired,.sm-open{--hud:#b8d8ff;--hudr:184,216,255;--ink:#04101d;--hi:#ffffff}
 .sm-root *{box-sizing:border-box;margin:0;padding:0}
 @keyframes smIn{from{opacity:0}to{opacity:1}}
 
@@ -14,7 +15,7 @@
 .sm-bg.red{background:radial-gradient(ellipse 75% 65% at 50% 40%,rgba(170,14,18,.6),rgba(80,4,8,.8) 45%,#0b0102 88%),
   radial-gradient(circle at 20% 70%,rgba(255,40,40,.08),transparent 30%),radial-gradient(circle at 80% 25%,rgba(255,40,40,.07),transparent 26%),#0b0102}
 .sm-bg.blue{opacity:0;background:radial-gradient(ellipse 75% 65% at 50% 42%,rgba(46,90,150,.5),rgba(8,20,38,.85) 48%,#020509 88%),#020509}
-.sm-paired .sm-bg.blue,.sm-found .sm-bg.blue,.sm-open .sm-bg.blue{opacity:1}
+.sm-paired .sm-bg.blue,.sm-open .sm-bg.blue{opacity:1}
 /* 브라운관 결 — 픽셀 격자 · 주사선 · 가장자리 그늘, 아주 약하게 깜빡 */
 .sm-root::after{content:'';position:absolute;inset:0;z-index:7;pointer-events:none;
   background:repeating-linear-gradient(0deg,rgba(0,0,0,.3) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px);
@@ -57,7 +58,7 @@
 /* 간략 프로필 창 — 테두리만 · 위 칠한 띠 · 아래 상태 상자 */
 .sm-win{position:relative;width:236px;color:var(--hud);background:linear-gradient(180deg,rgba(var(--hudr),.07),rgba(var(--hudr),.02)),rgba(14,1,3,.78);border:1.5px solid var(--hud);
   box-shadow:0 0 14px rgba(var(--hudr),.4),inset 0 0 22px rgba(var(--hudr),.1);transform:rotate(var(--r))}
-.sm-paired .sm-win,.sm-found .sm-win,.sm-open .sm-win{background:linear-gradient(180deg,rgba(var(--hudr),.07),rgba(var(--hudr),.02)),rgba(2,8,16,.8)}
+.sm-paired .sm-win,.sm-open .sm-win{background:linear-gradient(180deg,rgba(var(--hudr),.07),rgba(var(--hudr),.02)),rgba(2,8,16,.8)}
 .slot .sm-win{width:276px}
 .sm-wh{display:flex;justify-content:space-between;align-items:center;gap:8px;height:22px;padding:0 8px;background:var(--hud);color:var(--ink);font:700 10px/1 'Saira Semi Condensed','Jost',sans-serif;letter-spacing:.2em;white-space:nowrap}
 .sm-wb{display:grid;grid-template-columns:56px minmax(0,1fr);gap:11px;padding:10px 10px 8px}
@@ -67,8 +68,8 @@
 .sm-ph img{width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.25) brightness(.9);transition:filter .6s}
 /* 붉은(푸른) 한 색으로 물든 사진 */
 .sm-ph::after{content:'';position:absolute;inset:0;background:var(--hud);mix-blend-mode:multiply;opacity:.92;pointer-events:none;transition:opacity .6s}
-.sm-paired .sm-ph img,.sm-found .sm-ph img,.sm-open .sm-ph img{filter:none}
-.sm-paired .sm-ph::after,.sm-found .sm-ph::after,.sm-open .sm-ph::after{opacity:0}
+.sm-paired .sm-ph img,.sm-open .sm-ph img{filter:none}
+.sm-paired .sm-ph::after,.sm-open .sm-ph::after{opacity:0}
 .sm-noimg{display:grid;place-items:center;text-align:center;font:600 8px/1.5 'Saira Semi Condensed',sans-serif;letter-spacing:.2em}
 .sm-bars{color:var(--hud)}
 .sm-bars::after{display:none}
@@ -91,7 +92,7 @@
 /* 창의 상태 — 줄무늬로 그려지며 뜸 · 실패(떨림) · 꺼짐(한 줄로 접힘) · 튕겨 나감 */
 .sm-win.in{animation:smPop .32s steps(4,end) both}
 .sm-win.in::after{content:'';position:absolute;inset:-3px;z-index:3;pointer-events:none;background:repeating-linear-gradient(90deg,#0d0102 0 3px,transparent 3px 7px);animation:smStripe .42s steps(3,end) forwards}
-.sm-paired .sm-win.in::after,.sm-found .sm-win.in::after{background:repeating-linear-gradient(90deg,#020509 0 3px,transparent 3px 7px)}
+.sm-paired .sm-win.in::after{background:repeating-linear-gradient(90deg,#020509 0 3px,transparent 3px 7px)}
 @keyframes smStripe{0%{opacity:1}40%{opacity:.85;background-position:3px 0}75%{opacity:.4;background-position:-2px 0}100%{opacity:0}}
 @keyframes smPop{
   0%{opacity:0;transform:rotate(var(--r)) translateX(-12px) scaleY(.2)}
@@ -128,13 +129,13 @@
 /* 동기화율 */
 .sm-meter{position:absolute;left:50%;top:50%;z-index:3;width:220px;padding:16px 0;transform:translate(-50%,-50%);text-align:center;
   background:radial-gradient(closest-side,rgba(10,1,2,.92),rgba(10,1,2,.55) 70%,transparent)}
-.sm-paired .sm-meter,.sm-found .sm-meter,.sm-open .sm-meter{background:radial-gradient(closest-side,rgba(2,6,12,.92),rgba(2,6,12,.55) 70%,transparent)}
+.sm-paired .sm-meter,.sm-open .sm-meter{background:radial-gradient(closest-side,rgba(2,6,12,.92),rgba(2,6,12,.55) 70%,transparent)}
 .sm-meter small{display:block;font:700 10px/1 'Saira Semi Condensed',sans-serif;letter-spacing:.3em}
 .sm-meter b{display:block;margin-top:6px;font:300 56px/1 'Saira Semi Condensed','Jost',sans-serif;color:var(--hi);text-shadow:0 0 18px rgba(var(--hudr),.9)}
 .sm-meter b em{font-size:.4em;font-style:normal;margin-left:3px;color:var(--hud)}
 .sm-bar{display:block;height:8px;margin:12px 20px 12px;background:repeating-linear-gradient(90deg,rgba(var(--hudr),.18) 0 6px,transparent 6px 8px)}
 .sm-bar i{display:block;height:100%;background:repeating-linear-gradient(90deg,var(--hud) 0 6px,transparent 6px 8px);filter:drop-shadow(0 0 4px rgba(var(--hudr),.9));transition:width .22s}
-.sm-found .sm-bar i{transition:none}
+.sm-found .sm-bar i,.sm-open .sm-bar i{transition:none}
 .sm-ms{display:inline-block;padding:4px 12px 3px 16px;border:1.5px solid var(--hud);font:700 12px/1 'Saira Semi Condensed',sans-serif;letter-spacing:.4em;text-shadow:0 0 6px rgba(var(--hudr),.7)}
 .sm-meter.fail b{animation:smBlink .16s steps(2) 3}
 .sm-meter.fail .sm-ms{background:var(--hud);color:var(--ink);text-shadow:none}
