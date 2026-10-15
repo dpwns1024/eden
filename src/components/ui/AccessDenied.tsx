@@ -7,6 +7,7 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
+import { useMenuSettings, menuLabelOf } from '@/lib/menuStore';
 import './accessDenied.css';
 
 interface Props {
@@ -16,9 +17,12 @@ interface Props {
   backHref?: string;        // 페이지일 때 돌아갈 목록
 }
 
-const CODE = { chars: 'PERSONNEL FILE', rels: 'PAIR FILE' } as const;
+// FILE 칸 = 그 목록의 메뉴 이름 (v2.0 사용자 요청 — 「PROFILE」 · 「PAIRING」, 메뉴 이름을 바꾸면 따라간다)
+const MENU = { chars: { href: '/chars', def: 'PROFILE' }, rels: { href: '/rels', def: 'PAIRING' } } as const;
 
 function Win({ name, kind, onClose, backHref }: Props) {
+  const [ms] = useMenuSettings();
+  const file = (menuLabelOf(ms, MENU[kind].href) ?? MENU[kind].def).toUpperCase();
   return (
     <div className="ad-win" role="alertdialog" aria-modal={onClose ? true : undefined} aria-labelledby="ad-t">
       <i className="ad-c tl" /><i className="ad-c tr" /><i className="ad-c bl" /><i className="ad-c br" />
@@ -28,9 +32,9 @@ function Win({ name, kind, onClose, backHref }: Props) {
       </header>
       <p className="ad-ko">접근 권한이 없습니다</p>
       <dl className="ad-dl">
-        <div><dt>FILE</dt><dd>{CODE[kind]}{name ? <> · <em>{name}</em></> : null}</dd></div>
+        <div><dt>FILE</dt><dd>{file}{name ? <> · <em>{name}</em></> : null}</dd></div>
         <div><dt>CLEARANCE</dt><dd>INSUFFICIENT</dd></div>
-        <div><dt>ACCESS</dt><dd>ADMIN ONLY</dd></div>
+        <div><dt>ACCESS</dt><dd>ARCH-PRIMA</dd></div>   {/* 열람 범위 — 관리자 = ARCH-PRIMA (v2.0 사용자 요청) */}
       </dl>
       <p className="ad-log">&gt; REQUEST LOGGED · CONNECTION TERMINATED<i /></p>
       <div className="ad-act">
