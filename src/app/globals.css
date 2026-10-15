@@ -710,13 +710,15 @@ html.ui-arch .page-arch .arch-tabbar .tag.on{color:#fff;background:rgba(var(--a-
 html.ui-arch .page-arch .arch-tabbar .tag small{font:400 calc(10px*var(--fs,1)) 'JetBrains Mono',monospace;letter-spacing:.06em;color:var(--a-mu);opacity:1}
 html.ui-arch .page-arch .arch-tabbar .tag.on small{color:var(--a-ac)}
 html.ui-arch .page-arch .toolrow > .arch-tabbar{flex:0 1 auto}
+/* FIELD REPORT — 오른쪽 필터 상자 대신 목록 위 탭 줄로 (PC · 폰 모두, v2.0 사용자 요청 — JOURNAL 무드 필터와 같은 모양) */
+html.ui-arch .page-arch .trpg-layout.tabs{grid-template-columns:minmax(0,1fr);gap:14px}
+html.ui-arch .page-arch .trpg-layout.tabs > .tagside{order:-1;justify-self:start;max-width:100%;padding:6px}
+html.ui-arch .page-arch .trpg-layout.tabs > .tagside h4{display:none}
+html.ui-arch .page-arch .trpg-layout.tabs > .tagside .tag{justify-content:flex-start;border-left:0}
+html.ui-arch .page-arch .trpg-layout.tabs > .tagside .tag.on{border-left:0}
 @media (max-width:620px){
   html.ui-arch .page-arch .toolrow > .arch-tabbar{flex:1 1 100%}
-  /* FIELD REPORT — 폰에선 오른쪽 필터 상자를 목록 위 탭 줄로 */
-  html.ui-arch .page-arch .trpg-layout > .tagside{order:-1;padding:6px}
-  html.ui-arch .page-arch .trpg-layout > .tagside h4{display:none}
-  html.ui-arch .page-arch .trpg-layout > .tagside .tag{justify-content:flex-start;border-left:0}
-  html.ui-arch .page-arch .trpg-layout > .tagside .tag.on{border-left:0}
+  html.ui-arch .page-arch .trpg-layout.tabs > .tagside{justify-self:stretch}
 }
 html.ui-arch .page-arch .pager button{border-radius:0;background:rgba(5,8,12,.6);border:1px solid var(--a-ln2);color:#8592a0;font-family:'JetBrains Mono',monospace}
 html.ui-arch .page-arch .pager button:hover{color:#fff;border-color:rgba(190,208,228,.4)}

@@ -294,7 +294,7 @@ function TrpgPageInner() {
           {isAdmin && <button className="btn btn-dark" style={{ whiteSpace: 'nowrap' }} onClick={() => setAddOpen(true)}>＋ ADD LOG</button>}
         </div>
       </div>
-      <div className="trpg-layout">
+      <div className={`trpg-layout${arch ? ' tabs' : ''}`}>
         <div>
           {ticketView && arch && visible.length > 0
             ? (
@@ -354,8 +354,8 @@ function TrpgPageInner() {
               onApply={applyOrder} onClose={() => setOrdFor(null)} />
           )}
         </div>
-        {/* 폰(ARCH)에선 목록 위 탭 줄로 (globals.css .arch-tabbar) */}
-        <div className={`panel tagside${isMobile && arch ? ' arch-tabbar' : ''}`}>
+        {/* ARCH에선 PC · 폰 모두 목록 위 탭 줄로 — JOURNAL 무드 필터와 같은 모양 (v2.0 사용자 요청 · globals.css .arch-tabbar) */}
+        <div className={`panel tagside${arch ? ' arch-tabbar' : ''}`}>
           {/* ARCH에선 영어로 (v2.0 사용자 요청) */}
           <h4>{arch ? 'PAIRING FILTER' : '자관 필터'}</h4>
           <div className={`tag ${filter === 'all' ? 'on' : ''}`} onClick={() => setFilter('all')}>
