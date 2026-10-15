@@ -216,7 +216,8 @@ export function ExcerptMaker() {
       const FREE = new Set(['height', 'block-size', 'min-block-size', 'max-block-size']);
       const includeStyleProperties = Array.from(getComputedStyle(document.documentElement)).filter(n => !FREE.has(n));
       const opts = { pixelRatio: 2, cacheBust: false, imagePlaceholder: BLANK, includeStyleProperties,
-        style: { position: 'static', left: '0', top: '0', margin: '0' } as Partial<CSSStyleDeclaration> };
+        // 카드 높이만은 화면 밖에서 잰 값 그대로 — 그림 크기와 같아야 위아래 여백이 똑같이 나뉜다
+        style: { position: 'static', left: '0', top: '0', margin: '0', height: `${card.offsetHeight}px` } as Partial<CSSStyleDeclaration> };
       let url: string;
       try { url = await toPng(card, opts); }
       catch { url = await toPng(card, { ...opts, skipFonts: true }); }   // 글꼴을 못 받아 오면 글꼴 없이라도
@@ -227,17 +228,6 @@ export function ExcerptMaker() {
       card.remove();
       setBusy(false);
     }
-  };
-
-  const copyHtml = async () => {
-    const html = pickedBlocks(pick).map(e => {
-      const c = e.cloneNode(true) as Element;
-      c.classList.remove('ex-picked');
-      if (!c.getAttribute('class')) c.removeAttribute('class');
-      return c.outerHTML;
-    }).join('\n');
-    try { await navigator.clipboard.writeText(html); toast('고른 부분의 HTML을 복사했습니다'); }
-    catch { toast('복사하지 못했습니다'); }
   };
 
   const save = () => {
@@ -271,8 +261,6 @@ export function ExcerptMaker() {
         <div className="excerpt-bar">
           <span>{!pick ? '시작 문단을 누르세요' : !pick.done ? '끝 문단을 누르세요 (한 칸이면 바로 만들기)' : `${pickedBlocks(pick).length}칸 선택됨`}</span>
           {pick && <button type="button" onClick={() => setPick(null)}>다시</button>}
-          {/* 고른 칸의 HTML을 복사 — 발췌 모양이 화면과 다를 때 원인을 찾으려고 (관리자 전용 막대) */}
-          {pick && <button type="button" onClick={() => void copyHtml()}>HTML 복사</button>}
           {pick && <button type="button" className="go" disabled={busy} onClick={() => void make()}>{busy ? '만드는 중…' : '이미지 만들기'}</button>}
           <button type="button" onClick={() => setMode(false)}>끄기</button>
         </div>

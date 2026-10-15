@@ -2962,12 +2962,24 @@ html.ui-arch .page-memo2 .mn-cat{border-radius:0;border-color:rgba(var(--a-acr),
 /* ===== 발췌 이미지 (components/shell/ExcerptMaker.tsx — 관리자 전용) ===== */
 .excerpt-preview{display:block;max-width:100%;max-height:70vh;margin:0 auto;box-shadow:0 0 0 1px rgba(190,208,228,.14)}
 /* 화면 밖에서 찍는 카드 */
-.excerpt-card{position:fixed;left:-30000px;top:0;width:640px;box-sizing:border-box;padding:40px 40px 26px;background-size:cover;background-position:center;
+/* 위 · 아래 여백은 똑같이 40px — 아래 여백 칸(.ex-foot, 위아래 12px + 줄 16px) 가운데에 글 제목.
+   찍을 때 글씨가 조금 줄어 생기는 남는 높이는 세로 가운데 맞춤으로 위아래에 똑같이 나뉜다 (ExcerptMaker가 높이를 고정) */
+.excerpt-card{position:fixed;left:-30000px;top:0;width:640px;box-sizing:border-box;padding:40px 40px 0;display:flex;flex-direction:column;justify-content:center;background-size:cover;background-position:center;
   color:#c3ccd6;font-family:'Noto Sans KR',sans-serif}
-.excerpt-card .ex-frame{position:relative;padding:30px 32px;border:1px solid rgba(190,208,228,.14);background:rgba(13,18,25,.66)}
-.excerpt-card .ex-frame::before,.excerpt-card .ex-frame::after{content:'';position:absolute;width:10px;height:10px;border:solid rgba(220,230,240,.6)}
-.excerpt-card .ex-frame::before{left:-1px;top:-1px;border-width:1px 0 0 1px}
-.excerpt-card .ex-frame::after{right:-1px;bottom:-1px;border-width:0 1px 1px 0}
+/* 테두리 · 모서리 꺾쇠는 배경으로 그린다 — 찍을 때(html-to-image) 칸 높이를 고정하지 않으므로(ExcerptMaker),
+   아래 · 오른쪽에 붙인 가상 요소(::after)는 화면 밖에서 잰 위치에 남아 어긋났다. 배경은 칸 크기를 따라간다 */
+.excerpt-card .ex-frame{--cn:rgba(220,230,240,.6);--ln:rgba(190,208,228,.14);position:relative;padding:31px 33px;border:0;background:
+  linear-gradient(var(--cn),var(--cn)) 0 0/10px 1px no-repeat,linear-gradient(var(--cn),var(--cn)) 0 0/1px 10px no-repeat,
+  linear-gradient(var(--cn),var(--cn)) 100% 100%/10px 1px no-repeat,linear-gradient(var(--cn),var(--cn)) 100% 100%/1px 10px no-repeat,
+  linear-gradient(var(--ln),var(--ln)) 0 0/100% 1px no-repeat,linear-gradient(var(--ln),var(--ln)) 0 100%/100% 1px no-repeat,
+  linear-gradient(var(--ln),var(--ln)) 0 0/1px 100% no-repeat,linear-gradient(var(--ln),var(--ln)) 100% 0/1px 100% no-repeat,
+  rgba(13,18,25,.66)}
+/* 인용구 꺾쇠도 같은 까닭으로 배경으로 (여러 줄 인용구에서 아래 꺾쇠가 어긋나지 않게) */
+html.ui-arch .excerpt-card .ex-body blockquote{background:
+  linear-gradient(var(--qx),var(--qx)) 0 0/8px 1px no-repeat,linear-gradient(var(--qx),var(--qx)) 0 0/1px 8px no-repeat,
+  linear-gradient(var(--qx),var(--qx)) 100% 100%/8px 1px no-repeat,linear-gradient(var(--qx),var(--qx)) 100% 100%/1px 8px no-repeat,
+  color-mix(in srgb,var(--qx) 10%,transparent)}
+html.ui-arch .excerpt-card .ex-body blockquote::before,html.ui-arch .excerpt-card .ex-body blockquote::after{content:none}
 .excerpt-card .ex-body{font-size:15px;line-height:1.95;color:#c3ccd6;font-weight:300;word-break:normal;overflow-wrap:anywhere}
 .excerpt-card .ex-body p{margin:0 0 .9em}
 .excerpt-card .ex-body p:last-child{margin-bottom:0}
@@ -2975,7 +2987,7 @@ html.ui-arch .page-memo2 .mn-cat{border-radius:0;border-color:rgba(var(--a-acr),
 .excerpt-card .ex-body [data-ex-nobefore]::before{content:none !important}   /* 화면에서 빈 줄 표시가 없던 칸 (ExcerptMaker 화면 따라 하기) */
 .excerpt-card .ex-body :is(strong,b,h1,h2,h3){color:#fff}
 .excerpt-card .ex-body img{display:block;max-width:100%;height:auto;margin:12px auto}
-.excerpt-card .ex-foot{margin-top:16px;text-align:right;font:400 11px/1.5 'Noto Sans KR','JetBrains Mono',sans-serif;letter-spacing:.06em;color:#6f7b89}   /* 글 제목 그대로 (대소문자 유지) · 한글 제목이 벌어져 보이지 않게 자간은 좁게 */
+.excerpt-card .ex-foot{margin:0;padding:12px 0;text-align:right;font:400 11px/16px 'Noto Sans KR','JetBrains Mono',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.06em;color:#6f7b89}   /* 글 제목 그대로 (대소문자 유지) · 한글 제목이 벌어져 보이지 않게 자간은 좁게 */
 /* 발췌 — 붙여 넣은 글에 남은 글자 크기 지정(span style)을 무시하고 한 크기로 (인용구 글씨가 들쭉날쭉하던 것) */
 .excerpt-card .ex-body :is(p,span,li,blockquote,div,em,i,strong,b,a,font){font-size:15px !important;line-height:1.95 !important}
 /* 인용구 상자는 본문보다 조금 작게 (v2.0 사용자 요청) — 글씨 · 줄 간격 · 안쪽 여백을 줄인다 */
