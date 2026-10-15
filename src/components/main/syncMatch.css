@@ -1,11 +1,11 @@
 /* 가이드 매칭 연출 (components/main/SyncMatch.tsx) — 참고 영상의 붉은 경보 화면을 따랐다.
  * 붉은 단색 · 빛 번짐 · 칠한 띠(어두운 글씨) · 테두리만 그린 상자 · 화면 네 귀퉁이 꺾쇠 · 브라운관 결 · 색 번짐 글리치.
- * 에덴을 찾는 순간부터(.sm-found · .sm-open) 같은 화면이 푸른 신호색으로 바뀐다 — 색은 --hud 하나로 돌린다.
+ * 아담과 페어 중(.sm-paired) · 에덴을 찾은 뒤(.sm-found · .sm-open)는 같은 화면이 푸른 신호색 — 색은 --hud 하나로 돌린다.
  * body 바로 아래에 뜨는 화면이라 ARCH 색은 여기서 다시 정한다. */
 .sm-root{--hud:#ff3d3d;--hudr:255,61,61;--ink:#2a0205;--hi:#ffd9d6;
   position:fixed;inset:0;z-index:400;overflow:hidden;color:var(--hud);background:#070102;
   font:500 12px/1.5 'Saira Semi Condensed','Jost','Noto Sans KR',sans-serif;font-variant-numeric:tabular-nums;animation:smIn .3s ease both}
-.sm-found,.sm-open{--hud:#b8d8ff;--hudr:184,216,255;--ink:#04101d;--hi:#ffffff}
+.sm-paired,.sm-found,.sm-open{--hud:#b8d8ff;--hudr:184,216,255;--ink:#04101d;--hi:#ffffff}
 .sm-root *{box-sizing:border-box;margin:0;padding:0}
 @keyframes smIn{from{opacity:0}to{opacity:1}}
 
@@ -14,7 +14,7 @@
 .sm-bg.red{background:radial-gradient(ellipse 75% 65% at 50% 40%,rgba(170,14,18,.6),rgba(80,4,8,.8) 45%,#0b0102 88%),
   radial-gradient(circle at 20% 70%,rgba(255,40,40,.08),transparent 30%),radial-gradient(circle at 80% 25%,rgba(255,40,40,.07),transparent 26%),#0b0102}
 .sm-bg.blue{opacity:0;background:radial-gradient(ellipse 75% 65% at 50% 42%,rgba(46,90,150,.5),rgba(8,20,38,.85) 48%,#020509 88%),#020509}
-.sm-found .sm-bg.blue,.sm-open .sm-bg.blue{opacity:1}
+.sm-paired .sm-bg.blue,.sm-found .sm-bg.blue,.sm-open .sm-bg.blue{opacity:1}
 /* 브라운관 결 — 픽셀 격자 · 주사선 · 가장자리 그늘, 아주 약하게 깜빡 */
 .sm-root::after{content:'';position:absolute;inset:0;z-index:7;pointer-events:none;
   background:repeating-linear-gradient(0deg,rgba(0,0,0,.3) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px);
@@ -40,7 +40,7 @@
 
 /* 무대 */
 .sm-stage{position:absolute;z-index:2;left:0;right:0;top:96px;bottom:28px}
-.sm-lock .sm-stage::before,.sm-found .sm-stage::before,.sm-open .sm-stage::before{content:'';position:absolute;left:25%;right:25%;top:50%;height:1.5px;background:repeating-linear-gradient(90deg,rgba(var(--hudr),.55) 0 8px,transparent 8px 14px);filter:drop-shadow(0 0 4px rgba(var(--hudr),.8))}
+.sm-stage::before{content:'';position:absolute;left:25%;right:25%;top:50%;height:1.5px;background:repeating-linear-gradient(90deg,rgba(var(--hudr),.55) 0 8px,transparent 8px 14px);filter:drop-shadow(0 0 4px rgba(var(--hudr),.8))}
 .sm-pos{position:absolute;transform:translate(-50%,-50%)}
 .sm-pos.slot{z-index:2}
 .sm-pos.slot.l{left:25%;top:50%}
@@ -57,7 +57,7 @@
 /* 간략 프로필 창 — 테두리만 · 위 칠한 띠 · 아래 상태 상자 */
 .sm-win{position:relative;width:236px;color:var(--hud);background:linear-gradient(180deg,rgba(var(--hudr),.07),rgba(var(--hudr),.02)),rgba(14,1,3,.78);border:1.5px solid var(--hud);
   box-shadow:0 0 14px rgba(var(--hudr),.4),inset 0 0 22px rgba(var(--hudr),.1);transform:rotate(var(--r))}
-.sm-found .sm-win,.sm-open .sm-win{background:linear-gradient(180deg,rgba(var(--hudr),.07),rgba(var(--hudr),.02)),rgba(2,8,16,.8)}
+.sm-paired .sm-win,.sm-found .sm-win,.sm-open .sm-win{background:linear-gradient(180deg,rgba(var(--hudr),.07),rgba(var(--hudr),.02)),rgba(2,8,16,.8)}
 .slot .sm-win{width:276px}
 .sm-wh{display:flex;justify-content:space-between;align-items:center;gap:8px;height:22px;padding:0 8px;background:var(--hud);color:var(--ink);font:700 10px/1 'Saira Semi Condensed','Jost',sans-serif;letter-spacing:.2em;white-space:nowrap}
 .sm-wb{display:grid;grid-template-columns:56px minmax(0,1fr);gap:11px;padding:10px 10px 8px}
@@ -67,8 +67,8 @@
 .sm-ph img{width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.25) brightness(.9);transition:filter .6s}
 /* 붉은(푸른) 한 색으로 물든 사진 */
 .sm-ph::after{content:'';position:absolute;inset:0;background:var(--hud);mix-blend-mode:multiply;opacity:.92;pointer-events:none;transition:opacity .6s}
-.sm-found .sm-ph img,.sm-open .sm-ph img{filter:none}
-.sm-found .sm-ph::after,.sm-open .sm-ph::after{opacity:0}
+.sm-paired .sm-ph img,.sm-found .sm-ph img,.sm-open .sm-ph img{filter:none}
+.sm-paired .sm-ph::after,.sm-found .sm-ph::after,.sm-open .sm-ph::after{opacity:0}
 .sm-noimg{display:grid;place-items:center;text-align:center;font:600 8px/1.5 'Saira Semi Condensed',sans-serif;letter-spacing:.2em}
 .sm-bars{color:var(--hud)}
 .sm-bars::after{display:none}
@@ -91,7 +91,7 @@
 /* 창의 상태 — 줄무늬로 그려지며 뜸 · 실패(떨림) · 꺼짐(한 줄로 접힘) · 튕겨 나감 */
 .sm-win.in{animation:smPop .32s steps(4,end) both}
 .sm-win.in::after{content:'';position:absolute;inset:-3px;z-index:3;pointer-events:none;background:repeating-linear-gradient(90deg,#0d0102 0 3px,transparent 3px 7px);animation:smStripe .42s steps(3,end) forwards}
-.sm-found .sm-win.in::after{background:repeating-linear-gradient(90deg,#020509 0 3px,transparent 3px 7px)}
+.sm-paired .sm-win.in::after,.sm-found .sm-win.in::after{background:repeating-linear-gradient(90deg,#020509 0 3px,transparent 3px 7px)}
 @keyframes smStripe{0%{opacity:1}40%{opacity:.85;background-position:3px 0}75%{opacity:.4;background-position:-2px 0}100%{opacity:0}}
 @keyframes smPop{
   0%{opacity:0;transform:rotate(var(--r)) translateX(-12px) scaleY(.2)}
@@ -108,12 +108,26 @@
 .sm-win.out{animation:smOut .2s steps(3) forwards}
 @keyframes smOut{to{opacity:0;transform:rotate(var(--r)) scale(1.15,.03)}}
 .sm-win.fly{transform:translate(var(--fx),var(--fy)) rotate(var(--fr));opacity:0;filter:blur(1.5px);transition:transform .7s cubic-bezier(.3,.55,.35,1),opacity .7s ease-in,filter .7s}
-.sm-found .slot .sm-win,.sm-open .slot .sm-win{box-shadow:0 0 34px rgba(var(--hudr),.6),inset 0 0 22px rgba(var(--hudr),.14)}
+.sm-paired .slot .sm-win,.sm-found .slot .sm-win,.sm-open .slot .sm-win{box-shadow:0 0 34px rgba(var(--hudr),.6),inset 0 0 22px rgba(var(--hudr),.14)}
+
+/* 아담 — 신호가 끊기면(lost) 깜빡이며 사진이 잡음으로 덮이고, 순직(kia)하면 기록이 지워진 채 점선 상자로 남았다가 꺼진다 */
+.sm-win.lost{border-style:dashed;animation:smFlick .6s steps(6) infinite}
+@keyframes smFlick{0%,100%{opacity:1;transform:rotate(var(--r))}17%{opacity:.3;transform:rotate(var(--r)) translateX(-5px)}33%{opacity:1}50%{opacity:.55;transform:rotate(var(--r)) translateX(4px)}67%{opacity:1}83%{opacity:.4}}
+.sm-win.lost .sm-ph::before,.sm-win.kia .sm-ph::before{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(var(--hudr),.45) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(255,255,255,.12) 0 1px,transparent 1px 4px);animation:smNoise .14s steps(2) infinite}
+@keyframes smNoise{50%{background-position:0 2px,3px 0}}
+.sm-win.lost .sm-ph img{filter:grayscale(1) contrast(1.6) brightness(.55)}
+.sm-win.kia{border-style:dashed;box-shadow:0 0 10px rgba(var(--hudr),.25);opacity:.9}
+.sm-win.kia .sm-ph img{opacity:.06}
+.sm-win.kia .sm-wh{background:transparent;color:var(--hud);border-bottom:1px dashed var(--hud)}
+.sm-win.kia .sm-wi strong{font-size:15px;letter-spacing:.08em;color:var(--hud)}
+.sm-win.kia dd{opacity:.7}
+.sm-stamp.kia{left:16%;right:16%;padding:7px 0 6px;background:rgba(8,0,2,.88);color:var(--hud);border:2px solid var(--hud);font-size:19px;letter-spacing:.32em;transform:translateY(-50%) rotate(-6deg)}
 
 /* 동기화율 */
 .sm-meter{position:absolute;left:50%;top:50%;z-index:3;width:220px;padding:16px 0;transform:translate(-50%,-50%);text-align:center;
   background:radial-gradient(closest-side,rgba(10,1,2,.92),rgba(10,1,2,.55) 70%,transparent)}
-.sm-found .sm-meter,.sm-open .sm-meter{background:radial-gradient(closest-side,rgba(2,6,12,.92),rgba(2,6,12,.55) 70%,transparent)}
+.sm-paired .sm-meter,.sm-found .sm-meter,.sm-open .sm-meter{background:radial-gradient(closest-side,rgba(2,6,12,.92),rgba(2,6,12,.55) 70%,transparent)}
 .sm-meter small{display:block;font:700 10px/1 'Saira Semi Condensed',sans-serif;letter-spacing:.3em}
 .sm-meter b{display:block;margin-top:6px;font:300 56px/1 'Saira Semi Condensed','Jost',sans-serif;color:var(--hi);text-shadow:0 0 18px rgba(var(--hudr),.9)}
 .sm-meter b em{font-size:.4em;font-style:normal;margin-left:3px;color:var(--hud)}
@@ -139,12 +153,11 @@
   .sm-term{left:40px;top:22px;max-width:calc(100% - 150px);font-size:9.5px;letter-spacing:.04em}
   .sm-x{right:40px;top:22px;height:28px;padding:0 10px;font-size:10px;letter-spacing:.24em}
   .sm-stage{top:84px;bottom:24px}
-  .sm-lock .sm-stage::before,.sm-found .sm-stage::before,.sm-open .sm-stage::before{left:50%;right:auto;top:22%;bottom:22%;width:1.5px;height:auto;background:repeating-linear-gradient(180deg,rgba(var(--hudr),.55) 0 8px,transparent 8px 14px)}
+  .sm-stage::before{left:50%;right:auto;top:22%;bottom:22%;width:1.5px;height:auto;background:repeating-linear-gradient(180deg,rgba(var(--hudr),.55) 0 8px,transparent 8px 14px)}
   .sm-pos.slot.l{left:50%;top:22%}
   .sm-pos.slot.r{left:50%;top:78%}
   /* 경보는 한 줄로 줄여 동기화율 바로 위에 */
   .sm-alarm{top:calc(50% - 96px);flex-direction:row;gap:8px}
-  .sm-scan .sm-alarm{top:50%}
   .sm-alarm svg{width:24px;height:21px}
   .sm-alarm small{display:none}
   .sm-alarm b{margin-top:0;padding:4px 12px;font-size:13px}
@@ -152,6 +165,7 @@
   .slot .sm-win{width:230px}
   .sm-wb{grid-template-columns:44px minmax(0,1fr);gap:9px;padding:8px 8px 7px}
   .slot .sm-wb{grid-template-columns:56px minmax(0,1fr)}
+  .slot .sm-wi dd{white-space:normal;line-height:1.25}   /* 가운데 고정 창은 긴 값(소속 등)을 두 줄로 */
   .sm-wi strong{font-size:15px;letter-spacing:.12em}
   .sm-wf{padding:0 8px 8px}
   .sm-wf span{font-size:9px;letter-spacing:.3em}

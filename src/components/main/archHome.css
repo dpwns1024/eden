@@ -156,7 +156,7 @@ body:has(.ah-main)::before{display:none !important}
   .arx:where(.ah-main) .ah-view,.arx:where(.ah-main) .ah-leave{animation:none !important}
 }
 .arx:where(.ah-main) .ah-defs{position:absolute;width:0;height:0;overflow:hidden}
-/* ── ABOUT ARCH? ↔ ABOUT EVEDEN — 신호가 튀듯 두 글자가 오락가락 (4.6초 주기) ──
+/* ── ABOUT ARCH? ↔ LOST EDEN — 신호가 튀듯 두 글자가 오락가락 (4.6초 주기) ──
  * 두 글자를 한 칸에 겹쳐 두고(폭은 긴 쪽에 맞춰 고정 — 바뀔 때 버튼이 출렁이지 않게) 보이는 쪽을 끊어서 바꾼다.
  * 바뀌는 순간에만 빨강 · 파랑으로 어긋난 조각(::before · ::after)이 번쩍인다. 움직임 줄이기 설정이면 ABOUT ARCH?만 */
 .arx:where(.ah-main) .ah-glitch .gl-w{display:grid;font-style:normal}
@@ -167,7 +167,7 @@ body:has(.ah-main)::before{display:none !important}
 .arx:where(.ah-main) .ah-glitch .gl-w b::before{color:var(--red);animation:ahmGlR 4.6s steps(1,end) infinite}
 .arx:where(.ah-main) .ah-glitch .gl-w b::after{color:var(--ac);animation:ahmGlB 4.6s steps(1,end) infinite}
 .arx:where(.ah-main) .ah-glitch:hover .gl-w b{color:#fff}
-/* 버튼 색도 글자와 같은 박자로 — ARCH?일 때는 왼쪽 버튼과 같은 푸른 버튼, EVEDEN일 때는 붉은 버튼 */
+/* 버튼 색도 글자와 같은 박자로 — ARCH?일 때는 왼쪽 버튼과 같은 푸른 버튼, LOST EDEN일 때는 붉은 버튼 */
 .arx:where(.ah-main) .ah-glitch{animation:ahmGlBtn 4.6s steps(1,end) infinite}
 .arx:where(.ah-main) .ah-glitch::before,.arx:where(.ah-main) .ah-glitch::after{animation:ahmGlCorner 4.6s steps(1,end) infinite}
 @keyframes ahmGlBtn{
