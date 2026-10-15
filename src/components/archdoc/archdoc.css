@@ -446,12 +446,12 @@ body:has(.arx)::before{display:none !important}
 }
 
 /* ── 분류 탭 · 한 상자 보기 (v2.0 사용자 요청) — 각성자(분류 마크 전환) | 속성 각성자(속성 마크 · 원소), 아래 직급 분류 ── */
-.arx .ar-subh{display:flex;align-items:center;gap:12px;margin:0 0 14px}
-.arx .ar-subh .bar{flex:0 0 3px;height:22px;background:var(--ac);box-shadow:0 0 10px var(--ac)}
+.arx .ar-subh{display:flex;align-items:flex-end;gap:12px;margin:0 0 14px}   /* 선은 한글 부제 줄에 — 섹션 제목(.ar-sh)과 같은 정렬 */
+.arx .ar-subh .bar{flex:0 0 3px;align-self:center;height:22px;background:var(--ac);box-shadow:0 0 10px var(--ac)}
 .arx .ar-subh b{display:block;font:400 12px/1 'Jost',sans-serif;letter-spacing:.36em;color:#fff;white-space:nowrap}
 .arx .ar-subh small{display:block;margin-top:6px;font:400 10px/1 'Noto Sans KR',sans-serif;letter-spacing:.2em;color:var(--mu)}
-.arx .ar-subh i{flex:1;height:1px;background:linear-gradient(90deg,var(--ln2),transparent)}
-.arx .ar-subh em{font:normal 400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.22em;color:var(--dim);white-space:nowrap}
+.arx .ar-subh i{flex:1;height:1px;margin-bottom:4px;background:linear-gradient(90deg,var(--ln2),transparent)}
+.arx .ar-subh em{margin-bottom:1px;font:normal 400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.22em;color:var(--dim);white-space:nowrap}
 .arx .ar-cls2{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:stretch}   /* 각성자 상자는 예전 분류 카드와 같은 폭(3칸 중 1칸), 속성 상자는 나머지 2칸 */
 .arx .ar-cls2-col.wide{grid-column:span 2}
 .arx .ar-cls2.one .ar-cls2-col{grid-column:1 / -1}
