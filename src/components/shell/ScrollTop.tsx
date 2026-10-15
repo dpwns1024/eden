@@ -15,7 +15,7 @@ export function ScrollTop() {
       raf = 0;
       setShow(window.scrollY > SHOW_AFTER);
       // 오른쪽 아래에 떠 있는 BGM 플레이어와 겹치면 그 위로
-      const bgm = document.querySelector('.bgm') as HTMLElement | null;
+      const bgm = document.querySelector('.bgm, .bgm-d') as HTMLElement | null;
       const r = bgm && bgm.offsetWidth ? bgm.getBoundingClientRect() : null;
       const overlaps = !!r && r.right > window.innerWidth - 80 && r.bottom > window.innerHeight - 90;
       setLift(overlaps && r ? Math.max(0, window.innerHeight - r.top + 10) : 0);
