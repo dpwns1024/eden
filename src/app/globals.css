@@ -584,15 +584,35 @@ html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote,.mng-box.a
   font-size:.93em;line-height:1.6; /* 본문보다 조금 작게 — 발췌 이미지(14px / 본문 15px)와 같은 비율 (v2.0 사용자 요청) */
   width:-webkit-fit-content;width:fit-content;max-width:100%;box-sizing:border-box; /* 글자 길이만큼만 (v2.0 사용자 요청) */
   background:none;color:#f4f6f8;font-weight:400} /* 글자는 흰색으로 통일 — 색은 딱지·선에만 (v2.0 사용자 요청) */
-html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote::before,.mng-box.arch-modal .re-content blockquote::before{
-  /* 높이 15px 딱지를 첫 줄 한가운데에(위 여백 4px — 발췌 카드는 비율대로 바뀐 값(--qpt, ExcerptMaker) + 줄 높이 절반, 한글 글자 중심이 줄 가운데보다 살짝 위라 .25px 올림) · 폭은 이름 길이와 상관없이 47px 고정(아래 색 선이 늘 딱지 가운데) ·
-     글자는 가운데 — 자간 끝 여백만큼 왼쪽 안쪽 여백, 대문자가 위로 뜨는 만큼 위 여백을 조금 더 */
-  content:'COMM';position:absolute;left:0;top:calc(var(--qpt,4px) + (var(--qlh) - 15px) / 2 - .25px);width:47px;height:15px;padding:3.75px 0 2.25px .2em;
+/* 딱지 — 첫 문단 첫 줄 안에 넣어 **글자 기준선**에 맞춘다 (v2.0 사용자 제보 — 기기마다 위아래가 어긋남).
+   본문 기본 글꼴(Pretendard)은 웹 글꼴로 받지 않아 기기마다 다른 글꼴로 그려진다(윈도 맑은 고딕 · 아이폰/맥 애플 산돌고딕 · 안드로이드 본고딕 …).
+   글꼴마다 위아래 여백(ascent/descent)이 몇 px씩 달라 「줄 상자 가운데」 기준으로는 맞출 수 없었다 — 대신 한글 글자의 가운데는
+   어느 글꼴이든 기준선 위 약 .34em에 있어서, 기준선에 붙이면 글꼴이 바뀌어도 같이 따라간다.
+   overflow:hidden인 인라인 블록은 아래 끝이 기준선이 되므로, 딱지 가운데 = 기준선 - (vertical-align + 7.5px) = 기준선 - .34em */
+@property --qem{syntax:'<length>';inherits:true;initial-value:14px}
+html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote,.mng-box.arch-modal .re-content blockquote{--qem:1em;--qname:'COMM';isolation:isolate}
+html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote > p:first-child::before,.mng-box.arch-modal .re-content blockquote > p:first-child::before{
+  content:var(--qname);display:inline-block;box-sizing:border-box;width:47px;height:15px;
+  margin:0 calc(var(--qpl,62px) - 47px) 0 calc(-1 * var(--qpl,62px));padding:1px 0 0 .2em;   /* 왼쪽 안쪽 여백(--qpl, 발췌 카드는 비율대로 바뀐 값)만큼 앞으로 꺼내 글은 원래 자리에서 시작 ·
+     글자는 줄 높이 15px로 가운데 — JetBrains Mono 대문자가 .8px 위로 뜨는 만큼 위 여백 1px (배율 1 · 1.25 · 1.5 · 3에서 잼).
+     크롬은 글자 기준선을 px 단위로 맞추므로 소수 여백(.8px)이나 text-box 다듬기는 자리마다 1px씩 튀었다 — 정수로 */
+  vertical-align:calc(var(--qem) * .34 - 7.5px);overflow:hidden;
+  pointer-events:none;text-align:center;text-indent:0;
+  white-space:nowrap;text-overflow:ellipsis;text-transform:uppercase;   /* 딱지 글자 = 인용구 색의 캐릭터 이름 (components/shell/QuoteNameSync.tsx) */
+  font:500 9px/15px 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em;color:#05070a;background:var(--qt);box-shadow:0 0 10px -2px var(--qx)}
+/* 딱지 높이도 px 단위로 — 기준선이 px에 맞춰지므로 딱지까지 정수 거리면 인용구 위치와 상관없이 늘 같은 모양 (round() 되는 브라우저) */
+@supports (width:round(1.5px,1px)){
+  html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote > p:first-child::before,.mng-box.arch-modal .re-content blockquote > p:first-child::before{vertical-align:round(calc(var(--qem) * .34 - 7.5px),1px)}
+}
+/* 문단 없이 글자만 든 인용구(붙여 넣은 HTML 등) — 예전처럼 왼쪽 위에 */
+html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote:not(:has(> p:first-child))::before,.mng-box.arch-modal .re-content blockquote:not(:has(> p:first-child))::before{
+  content:var(--qname);position:absolute;left:0;top:calc(var(--qpt,4px) + (var(--qlh) - 15px) / 2);width:47px;height:15px;padding:1px 0 0 .2em;
   pointer-events:none;box-sizing:border-box;text-align:center;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;   /* 딱지 글자 = 인용구 색의 캐릭터 이름 (components/shell/QuoteNameSync.tsx) */
-  font:500 9px/1 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em;color:#05070a;background:var(--qt);box-shadow:0 0 10px -2px var(--qx)}
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;
+  font:500 9px/15px 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em;color:#05070a;background:var(--qt);box-shadow:0 0 10px -2px var(--qx)}
+/* 색 선 — 딱지 뒤에 깔아(z-index:-1, 인용구가 isolation으로 따로 쌓임) 딱지가 글꼴 따라 조금 내려가도 선이 딱지 위로 비치지 않게 */
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote::after,.mng-box.arch-modal .re-content blockquote::after{
-  content:'';position:absolute;left:23px;top:calc(var(--qpt,4px) + (var(--qlh) + 21px) / 2);bottom:6px;width:1px;pointer-events:none;   /* 딱지 가운데(47px의 절반) · 딱지 아래 3px부터 */
+  content:'';position:absolute;left:23px;top:calc(var(--qpt,4px) + var(--qlh) / 2 + 10px);bottom:6px;width:1px;pointer-events:none;z-index:-1;   /* 딱지 가운데(47px의 절반) · 딱지 아래 약 2.5px부터 */
   background:linear-gradient(var(--qx),color-mix(in srgb,var(--qx) 15%,transparent))}
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote p,.mng-box.arch-modal .re-content blockquote p{margin:0;color:inherit}
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote p + p,.mng-box.arch-modal .re-content blockquote p + p{margin-top:6px}
@@ -3000,9 +3020,9 @@ html.ui-arch .page-memo2 .mn-cat{border-radius:0;border-color:rgba(var(--a-acr),
 /* 인용구 딱지 아래 색 선도 같은 까닭으로 배경으로 (위 · 아래에 같이 붙인 ::after는 여러 줄에서 길이가 어긋난다).
    「COMM」 딱지(::before)는 왼쪽 위에 붙어 있어 그대로 둔다 */
 html.ui-arch .excerpt-card .ex-body blockquote{background:
-  linear-gradient(var(--qx),color-mix(in srgb,var(--qx) 15%,transparent)) 23px calc(var(--qpt,4px) + (var(--qlh) + 21px) / 2)/1px calc(100% - (var(--qpt,4px) + (var(--qlh) + 21px) / 2) - 6px) no-repeat}
+  linear-gradient(var(--qx),color-mix(in srgb,var(--qx) 15%,transparent)) 23px calc(var(--qpt,4px) + var(--qlh) / 2 + 10px)/1px calc(100% - (var(--qpt,4px) + var(--qlh) / 2 + 10px) - 6px) no-repeat}
 html.ui-arch .excerpt-card .ex-body blockquote::after{content:none}
-html.ui-arch .excerpt-card .ex-body blockquote::before{box-shadow:none}   /* 딱지 번짐 — 폰에서 찍으면 오른쪽에 덩어리로 남는다 */
+html.ui-arch .excerpt-card .ex-body blockquote::before,html.ui-arch .excerpt-card .ex-body blockquote > p:first-child::before{box-shadow:none}   /* 딱지 번짐 — 폰에서 찍으면 오른쪽에 덩어리로 남는다 */
 .excerpt-card .ex-body{font-size:15px;line-height:1.95;color:#c3ccd6;font-weight:300;word-break:normal;overflow-wrap:anywhere}
 .excerpt-card .ex-body p{margin:0 0 .9em}
 .excerpt-card .ex-body p:last-child{margin-bottom:0}
