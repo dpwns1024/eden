@@ -374,6 +374,9 @@ r(1);})();
 </scr${''}ipt><style>
 /* height:auto — 로그 문서가 html/body에 100%를 걸어 두면 내용과 무관하게 뷰포트만큼 커진다 */
 html,body{margin:0!important;padding:0!important;height:auto!important;min-height:0!important}
+/* 안쪽 스크롤 막대 숨김 — 스크롤은 그대로 되고 막대만 안 보이게 (v2.0 사용자 요청) */
+*{scrollbar-width:none!important;-ms-overflow-style:none!important}
+*::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
 </style>${isAdmin ? '' : GUARD_SNIPPET}`;
   /** 주입 위치 — <!DOCTYPE ...> 가 있으면 그 **바로 뒤**에, 없으면 doctype을 만들어 앞에.
    *  표준 모드를 지켜야 body 높이가 진짜 내용 높이가 된다 (위 주석 참조) */
