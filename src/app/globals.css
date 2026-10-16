@@ -2420,6 +2420,10 @@ html.ui-arch body:has(.page-arch) .ctx-menu .sep{background:rgba(190,208,228,.14
 .trpg-basic .list-item{min-width:0}
 @media (max-width:900px){.trpg-basic{grid-template-columns:1fr}}
 .log-plain{white-space:pre-wrap;font-size:calc(13px*var(--fs,1));line-height:1.8;color:#2c3037;font-family:var(--sans)}
+/* 리포트 글에 덧붙인 HTML 조각(위젯) — 글 본문 꾸밈(얇은 글씨·넓은 줄간격·굵은 글씨 줄바꿈·흰 굵은 글씨)이 새어 들지 않게
+   브라우저 기본값으로 돌린다. 위젯이 인라인으로 정한 값은 그대로 이긴다 (v2.0 사용자 제보) */
+html .log-rich > :is(div,section,table,figure,aside,article)[style]{font-weight:400;line-height:normal;word-break:normal;overflow-wrap:normal;letter-spacing:normal}
+html.ui-arch .page-arch .log-rich > [style] :is(b,strong),.log-rich > [style] :is(b,strong){display:inline;color:inherit;font-weight:700;margin:0}
 
 /* ---------- 게시판 공통 (4.2) ---------- */
 .toolrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;flex-wrap:wrap}

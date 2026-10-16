@@ -322,6 +322,10 @@ export default function TrpgDetailPage() {
   const body = bodyText ?? '';
   // 지정값이 있으면 그대로 — 직접 쓴 글이 태그처럼 보이는 문자 때문에 HTML로 오판되던 것 방지
   const html = showAsHtml({ bodyHtml: bd?.bodyHtml ?? l.bodyHtml }, body);
+  // 문서 껍데기·<style>·<script>가 없는 HTML 조각은 페이지 안에 그린다 (v2.0 사용자 제보) —
+  // 에디터로 쓴 글에 「직접 수정」으로 위젯 HTML을 덧붙이면 통째로 격리 틀(iframe)로 넘어가, 사이트 글 스타일을
+  // 못 받은 앞부분 글이 기본 검정 글씨로 어두운 바탕에 묻혔다. 조각의 꾸밈은 인라인 style이라 페이지 안에서도 그대로다
+  const fragment = html && !/<(!doctype|html|head|body|style|script|link|meta|iframe|frameset)\b/i.test(body);
   // 원본 파일도 분리 저장된 쪽 우선, 없으면 구버전 로그의 내장 값 (v2.0)
   const origFileId = bd?.originalFileId ?? l.originalFileId;
   const origName = bd?.originalName ?? l.originalName;
@@ -434,9 +438,9 @@ html,body{margin:0!important;padding:0!important;height:auto!important;min-heigh
             )}
           </>
         )}
-        {bd?.bodyRich && body ? (
+        {(bd?.bodyRich || fragment) && body ? (
           /* 사이트 에디터로 쓴 본문 — 다른 게시판 글처럼 페이지 안에 (v2.0 사용자 요청) */
-          <HtmlBody className="prose log-rich" html={body} exTitle={l.title} />
+          <HtmlBody className={`prose log-rich${bd?.bodyRich ? '' : ' log-frag'}`} html={body} exTitle={l.title} />
         ) : html ? (
           /* 원본 스타일·스크립트 유지 — 널 오리진 샌드박스라 사이트 데이터에는 접근 불가 (6.3 격리) */
           <LogFrame frameRef={frameRef} html={srcDoc} title={l.title} onFrameLoad={onFrameLoad} />
