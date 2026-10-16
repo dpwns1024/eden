@@ -2359,8 +2359,13 @@ html.ui-arch body:has(.page-arch) .ctx-menu .sep{background:rgba(190,208,228,.14
 /* 단일형 뷰어 */
 /* 배경 하드코딩(남색) 제거 — 투명 이미지가 패널(테마) 색 위에 그대로 놓이게.
    뷰어는 16:10 고정 프레임 — 이미지 크기가 바뀌어도 창 크기는 불변, 작은 이미지는 가운데 */
-.single-viewer{position:relative;border-radius:var(--radius);overflow:hidden;aspect-ratio:16/10}
-.single-viewer .nav{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;background:rgba(15,17,20,.45);color:#fff;display:grid;place-items:center;font-size:calc(15px*var(--fs,1));opacity:0;transition:.15s;z-index:2}
+.single-viewer{display:flex;justify-content:center}
+.single-viewer .sv-frame{position:relative;max-width:100%;border-radius:var(--radius);overflow:hidden}
+.single-viewer .sv-frame.is-ph{width:100%}
+.single-viewer .sv-img{display:block;max-width:100%;max-height:min(78vh,760px);width:auto;height:auto}
+.single-viewer .nav{position:absolute;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;background:rgba(15,17,20,.45);color:#fff;display:grid;place-items:center;font-size:calc(11px*var(--fs,1));opacity:0;transition:.15s;z-index:2}
+.single-viewer .nav.prev{left:8px}
+.single-viewer .nav.next{right:8px}
 .single-viewer:hover .nav{opacity:1}
 .single-viewer .nav:hover{background:rgba(15,17,20,.75)}
 .thumb-strip{display:flex;gap:8px;margin-top:10px;justify-content:center}
@@ -2882,7 +2887,7 @@ html.ui-arch .page-gallery .g-item .cover{background:rgba(5,7,10,.72)}
 /* 상세 */
 html.ui-arch .page-gallery-detail .g-title{font:300 calc(22px*var(--fs,1))/1.3 'Jost','Noto Sans KR',sans-serif !important;letter-spacing:.12em;color:#fff;flex-wrap:wrap}
 html.ui-arch .page-gallery-detail [style*="border-radius"]{border-radius:0 !important}
-html.ui-arch .page-gallery-detail .single-viewer{border-radius:0;background:#06080b;box-shadow:0 0 0 1px var(--a-ln)}
+html.ui-arch .page-gallery-detail .single-viewer .sv-frame{border-radius:0;background:#06080b;box-shadow:0 0 0 1px var(--a-ln)}
 html.ui-arch .page-gallery-detail .single-viewer .nav{border-radius:0;background:rgba(8,11,15,.72);border:1px solid var(--a-ln2);color:#c9d2dc;opacity:.85}
 html.ui-arch .page-gallery-detail .thumb-strip .t{border-radius:0;border:1px solid var(--a-ln)}
 html.ui-arch .page-gallery-detail .thumb-strip .t.on{border-color:var(--a-ac);box-shadow:0 0 12px -2px rgba(var(--a-acr),.6)}

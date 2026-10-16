@@ -98,12 +98,11 @@ export default function BackupDetailPage() {
   const Img = ({ im, ratio, natural }: { im: { url?: string; ph?: string }; ratio?: string; natural?: boolean }) => {
     const u = useBlobUrl(im.url);
     if (u) {
-      return <img src={u} alt="" style={natural
-        ? { maxWidth: '100%', maxHeight: '100%', display: 'block' }
-        : { maxWidth: '100%', height: 'auto', display: 'block', margin: '0 auto' }} />;
+      return natural ? <img src={u} alt="" className="sv-img" />
+        : <img src={u} alt="" style={{ maxWidth: '100%', height: 'auto', display: 'block', margin: '0 auto' }} />;
     }
     return <div className={`ph ${im.ph ?? ''}`}
-      style={natural ? { width: '100%', height: '100%' } : { aspectRatio: ratio ?? '16/10' }}><span>IMAGE</span></div>;
+      style={{ aspectRatio: natural ? '16/10' : ratio ?? '16/10', width: natural ? '100%' : undefined }}><span>IMAGE</span></div>;
   };
 
   return (
@@ -148,22 +147,21 @@ export default function BackupDetailPage() {
           </div>
         ) : (
           <>
+            {/* 틀이 사진 크기에 맞춰 줄어든다 — 고정 16:10 상자에 검은 여백이 생기던 것 (v2.0 사용자 요청) */}
             <div className="single-viewer">
-              <div style={{
-                position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: imgs[cur].url ? 'zoom-in' : undefined,
-              }}
+              <div className={`sv-frame ${imgs[cur].url ? '' : 'is-ph'}`}
+                style={{ cursor: imgs[cur].url ? 'zoom-in' : undefined }}
                 onClick={() => { if (imgs[cur].url) setLbOpen(true); }}>
                 <Img im={imgs[cur]} natural />
+                {imgs.length > 1 && (
+                  <>
+                    <button className="nav prev" aria-label="이전 사진"
+                      onClick={e => { e.stopPropagation(); setCur(c => (c - 1 + imgs.length) % imgs.length); }}>◁</button>
+                    <button className="nav next" aria-label="다음 사진"
+                      onClick={e => { e.stopPropagation(); setCur(c => (c + 1) % imgs.length); }}>▷</button>
+                  </>
+                )}
               </div>
-              {imgs.length > 1 && (
-                <>
-                  <button className="nav" style={{ left: 10 }}
-                    onClick={() => setCur(c => (c - 1 + imgs.length) % imgs.length)}>◁</button>
-                  <button className="nav" style={{ right: 10 }}
-                    onClick={() => setCur(c => (c + 1) % imgs.length)}>▷</button>
-                </>
-              )}
             </div>
             {imgs.length > 1 && (
               <div className="thumb-strip">
