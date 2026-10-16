@@ -26,7 +26,7 @@ export function QuoteNameSync() {
       const name = (c.name ?? '').trim();
       if (!c.own || !HEX.test(color) || !name || seen.has(color)) continue;   // 같은 색이면 앞 캐릭터
       seen.add(color);
-      rules.push(`${SCOPES.map(s => `${s}[data-tone="${color}" i]::before`).join(',')}{content:${cssStr(name)}}`);
+      rules.push(`${SCOPES.map(s => `${s}[data-tone="${color}" i]`).join(',')}{--qname:${cssStr(name)}}`);   // 딱지(globals.css)가 이 값을 글자로 쓴다
     }
     return rules.join('\n');
   }, [chars]);
