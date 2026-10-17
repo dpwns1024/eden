@@ -131,7 +131,6 @@ export default function TrpgDetailPage() {
     noText: '', slug: '', title: '', catchphrase: '', writer: '', withText: '',
     relId: 'none', date: '', visibility: 'public' as TrpgLog['visibility'], password: '',
     pwClear: false,      // 걸려 있던 열람 비밀번호 풀기 (서버 대조 방식은 지금 비밀번호를 보여 줄 수 없어 따로 둔다)
-    listHidden: false,   // 목록 표시 여부 (v2.0 — 접근권한과 별개)
   });
   // 본문 교체
   const [bodyMode, setBodyMode] = useState<'keep' | 'file' | 'text' | 'editor'>('keep');
@@ -212,7 +211,7 @@ export default function TrpgDetailPage() {
       relId: e.relId === 'none' ? undefined : e.relId,
       date: e.date || undefined,
       visibility: e.visibility, password, pwLock,
-      listHidden: e.listHidden,
+      listHidden: e.visibility === 'private',   // 목록 노출 = 나만보기가 아닌가 (목록 페이지 참고)
       ...thumbPatch,
       // 예전엔 본문이 이 문서에 있었다 — 저장할 때마다 확실히 비워서(구버전 잔재 정리),
       // 나만보기 로그가 목록엔 뜨면서 본문까지 같이 새어 나가는 일이 없게 한다 (v2.0)
@@ -401,7 +400,7 @@ html,body{margin:0!important;padding:0!important;height:auto!important;min-heigh
               noText: l.noText ?? '', slug: l.slug ?? '', title: l.title, catchphrase: l.catchphrase ?? '', writer: l.writer,
               withText: l.withText, relId: l.relId ?? 'none', date: l.date ?? '',
               // 서버 대조 방식은 비밀번호를 내려받지 않으므로 칸을 비워 두고 「바꿀 때만 입력」
-              visibility: l.visibility, password: logPwOnServer() ? '' : l.password ?? '', pwClear: false, listHidden: !!l.listHidden,
+              visibility: l.visibility, password: logPwOnServer() ? '' : l.password ?? '', pwClear: false,
             });
             // 본문·썸네일 교체 상태 초기화 (기본: 현재 것 유지)
             setBodyMode('keep'); setEFile(null); setEText(bodyText ?? '');
@@ -536,16 +535,6 @@ html,body{margin:0!important;padding:0!important;height:auto!important;min-heigh
                 onChange={v => setE(s => ({ ...s, pwClear: v, password: v ? '' : s.password }))} />
             </div>
           )}
-          {/* 목록 표시 — 접근권한과 별개 (v2.0 사용자 요청) */}
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'flex-end' }}>
-            <span className="cp-lb">목록</span>
-            <KSelect minWidth={140} value={e.listHidden ? 'hidden' : 'show'}
-              onChange={v => setE(s => ({ ...s, listHidden: v === 'hidden' }))}
-              options={[
-                { value: 'show', label: '목록에 표시' },
-                { value: 'hidden', label: '목록에서 숨기기' },
-              ]} />
-          </div>
 
           {/* 썸네일 교체 — 기본은 현재 썸네일 유지 */}
           <label className="k-label" style={{ margin: '4px 0 0' }}>썸네일</label>

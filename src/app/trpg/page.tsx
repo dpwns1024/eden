@@ -32,7 +32,14 @@ function TrpgPageInner() {
   const arch = useBoardSkin() === 'arch';   // ARCH 디자인이면 티켓 대신 단말기(TERMINAL)형 (v2.0 사용자 선택 D)
   const toast = useToast();
   const [site] = useSiteSettings(); // 티켓 하단 문구 = 로고 서브타이틀 (5.2 연동)
-  const [logsAll, setLogsAll] = useLocalList<TrpgLog>('ohome.trpg.v1', TRPG_SEED);
+  const [logsAll, setLogsAll, logsLoaded] = useLocalList<TrpgLog>('ohome.trpg.v1', TRPG_SEED);
+  // 예전 「목록에서 숨기기」 값 정리 (v2.0 — 그 칸을 없앴다). 이제 목록 노출은 나만보기 여부로만 정해지므로,
+  // 관리자 화면이 어긋난 글을 한 번 맞춰 저장한다 — 숨겨 뒀던 공개 글은 다시 목록에 뜨고, 나만보기 글은 방문자 질의에서 빠진다
+  useEffect(() => {
+    if (!isAdmin || !logsLoaded) return;
+    if (!logsAll.some(l => !!l.listHidden !== (l.visibility === 'private'))) return;
+    setLogsAll(logsAll.map(l => ({ ...l, listHidden: l.visibility === 'private' })));
+  }, [isAdmin, logsLoaded, logsAll, setLogsAll]);
   // 여러 개로 만든 섹션 (v2.0) — 주소의 ?s= 가 가리키는 것만 보여 준다
   const sec = useSectionParam('trpg');
   const logs = filterSection(logsAll, sec.id);
@@ -60,7 +67,6 @@ function TrpgPageInner() {
   const [nNo, setNNo] = useState('');          // № 자리 표시 텍스트 — 비우면 자동 № 0XX
   const [nSlug, setNSlug] = useState('');      // 주소 이름 — 비우면 번호 (/report/003)
   const [nVis, setNVis] = useState<'public' | 'member' | 'private'>('public'); // 접근권한
-  const [nListHidden, setNListHidden] = useState(false);   // 목록 표시 여부 (v2.0 — 접근권한과 별개)
   const [nPw, setNPw] = useState('');          // 열람 비밀번호 (선택)
   const [nTitle, setNTitle] = useState('');
   const [nCatch, setNCatch] = useState('');
@@ -91,14 +97,12 @@ function TrpgPageInner() {
     return m;
   }, [logs]);
 
-  // 목록에 뜰지는 오직 listHidden — 접근권한(visibility)은 "누가 열 수 있는지"만 정하고
-  // 목록에 나오는지는 정하지 않는다 (v2.0 사용자 확정: "나만보기여도 목록에는 표시돼야해").
+  // 목록에는 나만보기만 빼고 다 뜬다 — 나만보기는 관리자 목록에만 (v2.0 사용자 요청 · 「목록에서 숨기기」 칸은 없앴다).
+  // 서버도 같은 기준이다: 목록 문서의 listHidden을 「나만보기인가」로 저장해(metaOf) 방문자 질의에 아예 안 나온다.
   // 열 수 있는지는 상세 페이지가 다시 독립적으로 확인하므로, 목록에 뜬다고 내용이 새지 않는다
   const canOpen = (l: TrpgLog) => isAdmin || l.visibility === 'public' || (l.visibility === 'member' && !!user);
   const visible = logs
-    // 목록 숨김 — 관리자도 편집모드가 아니면 안 보인다(목록을 정리해 두는 용도라, v2.0 사용자 요청).
-    // 편집모드에서는 관리자에게만 예외로 보여 되돌릴 수 있게 한다
-    .filter(l => !l.listHidden || (isAdmin && editOn))
+    .filter(l => isAdmin || l.visibility !== 'private')
     .filter(l => filter === 'all' || (filter === 'none' ? !l.relId : l.relId === filter))
     .filter(l => !q || l.title.includes(q) || l.writer.includes(q) || l.withText.includes(q));
   // 정렬 기준은 저장된 순서 — 편집모드에서 드래그로 바꾼 순서가 그대로 목록에 반영된다 (v2.0).
@@ -206,7 +210,7 @@ function TrpgPageInner() {
       visibility: nVis,
       password: pw && !pwServer ? pw : undefined,
       pwLock: pwServer || undefined,
-      listHidden: nListHidden,
+      listHidden: nVis === 'private',   // 목록 노출 = 나만보기가 아닌가 (위 visible 참고)
       thumbId: nThumb ? await putBlob(nThumb) : undefined,
       thumbCrop: nThumb ? nThumbCrop : undefined,
       thumbColor: nThumb ? undefined : { c1: nC1, c2: nColorMode === 'grad' ? nC2 : undefined },
@@ -224,7 +228,7 @@ function TrpgPageInner() {
     setLogs([log, ...logs]);
     setBodies([...bodies, body]);
     setAddOpen(false);
-    setNNo(''); setNSlug(''); setNVis('public'); setNPw(''); setNListHidden(false); setNTitle(''); setNCatch(''); setNWriter(''); setNWith(''); setNBody(''); setNRich(''); setNFileName(''); setNDate(''); setNFile(null);
+    setNNo(''); setNSlug(''); setNVis('public'); setNPw(''); setNTitle(''); setNCatch(''); setNWriter(''); setNWith(''); setNBody(''); setNRich(''); setNFileName(''); setNDate(''); setNFile(null);
     setNThumb(null); setNThumbUrl(''); setNThumbCrop(undefined);
     toast(nFile ? '로그가 등록되었습니다 — 원본 파일도 보관됩니다' : '로그가 등록되었습니다');
   };
@@ -252,7 +256,7 @@ function TrpgPageInner() {
           {editOn && <span className="drag-h" style={{ marginRight: 8 }}>⠿</span>}
           {l.title}
         </div>
-        {editOn && l.listHidden && <span className="pill" style={{ marginTop: 4 }}>숨김</span>}
+        {isAdmin && l.visibility === 'private' && <span className="pill" style={{ marginTop: 4 }}>나만보기</span>}
         {l.catchphrase && <div className="sc-catch">{l.catchphrase}</div>}
         {!canOpen(l) && (
           <div className="row"><b>열람</b> {hasLogPw(l) ? '비밀번호 필요' : '권한 없음'}</div>
@@ -275,7 +279,7 @@ function TrpgPageInner() {
       <span className="fr-id">{editOn && <span className="drag-h" style={{ marginRight: 6 }}>⠿</span>}{termId(l)}</span>
       <span className="fr-tt">
         {l.title}
-        {editOn && l.listHidden && <em className="fr-st">[HIDDEN]</em>}
+        {isAdmin && l.visibility === 'private' && <em className="fr-st">[PRIVATE]</em>}
         {!canOpen(l) && <em className="fr-st lock">{hasLogPw(l) ? '[PASSWORD]' : '[RESTRICTED]'}</em>}
         {l.catchphrase && <small>{l.catchphrase}</small>}
       </span>
@@ -329,7 +333,7 @@ function TrpgPageInner() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <b>{l.title}</b>
-                      {editOn && l.listHidden && <span className="pill" style={{ marginLeft: 6 }}>숨김</span>}
+                      {isAdmin && l.visibility === 'private' && <span className="pill" style={{ marginLeft: 6 }}>나만보기</span>}
                       {!canOpen(l) && <span className="pill" style={{ marginLeft: 6 }}>{hasLogPw(l) ? '비밀번호 필요' : '비공개'}</span>}
                       <small>{[l.writer, l.withText].filter(Boolean).join(' · ')}{l.date ? ` · ${l.date.replace(/-/g, '.')}` : ''}</small>
                     </div>
@@ -413,15 +417,6 @@ function TrpgPageInner() {
                 { value: 'private', label: '나만보기' },
               ]} />
             <KInput placeholder="열람 비밀번호 (선택)" value={nPw} onChange={e => setNPw(e.target.value)} style={{ flex: 1 }} />
-          </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'flex-end' }}>
-            <span className="cp-lb">목록</span>
-            <KSelect minWidth={140} value={nListHidden ? 'hidden' : 'show'}
-              onChange={v => setNListHidden(v === 'hidden')}
-              options={[
-                { value: 'show', label: '목록에 표시' },
-                { value: 'hidden', label: '목록에서 숨기기' },
-              ]} />
           </div>
 
           <label className="k-label" style={{ margin: '4px 0 0' }}>썸네일 (선택)</label>
