@@ -3090,6 +3090,12 @@ html.ui-arch .excerpt-card{background:
 .excerpt-bar button.on{border-color:#8fb0d8;color:#fff;background:rgba(96,124,160,.2)}
 .excerpt-bar .ex-pos{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#8fb0d8}
 .excerpt-bar .ex-pos input{width:84px;accent-color:#8fb0d8}
+/* 사진 미리보기 — 막대 위에 떠서 실제 카드와 같은 비율로 잘린 모습을 보여 준다 */
+.excerpt-bar .ex-peek{position:absolute;left:0;bottom:calc(100% + 8px);overflow:hidden;background:#0a0d12;border:1px solid rgba(150,170,195,.4);box-shadow:0 8px 24px rgba(0,0,0,.45);touch-action:none;cursor:grab}
+.excerpt-bar .ex-peek:active{cursor:grabbing}
+.excerpt-bar .ex-peek-wide{width:264px;height:120px}
+.excerpt-bar .ex-peek-side{width:120px;height:160px}
+.excerpt-bar .ex-peek img{width:100%;height:100%;max-width:none;margin:0;object-fit:cover;display:block;pointer-events:none;user-select:none}
 /* 발췌 카드 — 아이폰 글자 자동 확대 끄기(칸 폭에 따라 글씨가 달라지던 것) */
 .excerpt-card,.excerpt-card *{-webkit-text-size-adjust:100% !important;text-size-adjust:100% !important}
 
