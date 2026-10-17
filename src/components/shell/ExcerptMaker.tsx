@@ -27,6 +27,91 @@ const stamp = () => {
   return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`;
 };
 
+/* ── 인용구 딱지는 찍은 뒤 캔버스로 직접 그린다 (v2.0 사용자 제보) ──
+   html-to-image는 그림 안에서 글을 다시 배치하는데, 기기마다 글자가 놓이는 높이가 화면과 반 px~1px씩 달라
+   (PC는 딱지가 처지고 폰은 뜸) 화면에서 맞춘 딱지가 발췌에서만 어긋났다. 웹 글꼴(JetBrains Mono)도 그림에 실리지 않아
+   PC에서는 딱지 글꼴이 바뀌었다. 그래서 카드에서는 딱지를 비워 두고, 찍힌 그림에서 대사 첫 줄 글자의 실제 위아래를 찾아
+   그 가운데에 딱지(번짐 · 글자 포함)를 그린다 — 기기와 상관없이 글자 기준으로 맞는다 */
+type QuoteTag = { x: number; y: number; w: number; first: number; label: string; bg: string; glow: string };
+const PR = 2;   // toPng pixelRatio
+
+/** 카드 안 인용구 딱지 자리 · 색 · 이름 (카드 왼쪽 위 기준 CSS px) */
+function collectTags(card: HTMLElement): QuoteTag[] {
+  const cr = card.getBoundingClientRect();
+  return Array.from(card.querySelectorAll<HTMLElement>('.ex-body blockquote')).flatMap(bq => {
+    const p = bq.querySelector<HTMLElement>(':scope > p:first-child');
+    if (!p) return [];
+    const ps = getComputedStyle(p, '::before');
+    const raw = ps.content;
+    if (!raw || raw === 'none' || raw === 'normal') return [];
+    const bs = getComputedStyle(bq);
+    const r = bq.getBoundingClientRect();
+    const lh = parseFloat(getComputedStyle(p).lineHeight) || 22;
+    const pt = parseFloat(bs.paddingTop) || 0;
+    return [{
+      x: r.left - cr.left, y: r.top - cr.top + pt, w: r.width, first: lh,
+      label: raw.replace(/^["']|["']$/g, '').toUpperCase(),
+      bg: ps.backgroundColor, glow: bs.getPropertyValue('--qx').trim() || '#8fb0d8',
+    }];
+  });
+}
+
+/** 찍힌 그림 위에 딱지를 그린다 */
+async function drawTags(url: string, tags: QuoteTag[]): Promise<string> {
+  if (!tags.length) return url;
+  const img = new Image();
+  img.src = url;
+  await img.decode();
+  const cv = document.createElement('canvas');
+  cv.width = img.naturalWidth; cv.height = img.naturalHeight;
+  const ctx = cv.getContext('2d');
+  if (!ctx) return url;
+  ctx.drawImage(img, 0, 0);
+  try { await document.fonts.load(`500 ${9 * PR}px "JetBrains Mono"`, 'EDEN'); } catch { /* 없으면 대체 글꼴 */ }
+  for (const t of tags) {
+    // 대사 첫 줄(딱지 오른쪽)에서 밝은 글자 픽셀이 있는 줄을 찾는다 — 쉼표 꼬리처럼 몇 점뿐인 줄은 뺀다
+    const x0 = Math.round((t.x + 62) * PR), x1 = Math.min(cv.width, Math.round((t.x + Math.min(t.w, 62 + 320)) * PR));
+    const y0 = Math.max(0, Math.round(t.y * PR)), y1 = Math.min(cv.height, Math.round((t.y + t.first) * PR));
+    let cy = (t.y + t.first / 2) * PR;   // 못 찾으면 줄 가운데
+    if (x1 > x0 && y1 > y0) {
+      const d = ctx.getImageData(x0, y0, x1 - x0, y1 - y0).data;
+      const rows: number[] = [];
+      for (let y = 0; y < y1 - y0; y++) {
+        let n = 0;
+        for (let x = 0; x < x1 - x0; x++) { const i = (y * (x1 - x0) + x) * 4; if (d[i] + d[i + 1] + d[i + 2] > 600) n++; }
+        rows.push(n);
+      }
+      const max = Math.max(...rows);
+      if (max > 0) {
+        const lim = Math.max(1, max * 0.06);
+        const top = rows.findIndex(n => n >= lim);
+        let bot = rows.length - 1; while (bot > top && rows[bot] < lim) bot--;
+        cy = y0 + (top + bot + 1) / 2;
+      }
+    }
+    const bw = 47 * PR, bh = 15 * PR, bx = Math.round(t.x * PR), by = Math.round(cy - bh / 2);
+    // 번짐 — 화면의 box-shadow(0 0 10px -2px)처럼: 2px 작은 상자에서 흐린 그림자
+    ctx.save();
+    ctx.shadowColor = t.glow; ctx.shadowBlur = 10 * PR; ctx.fillStyle = t.glow;
+    ctx.fillRect(bx + 2 * PR, by + 2 * PR, bw - 4 * PR, bh - 4 * PR);
+    ctx.restore();
+    ctx.fillStyle = t.bg && t.bg !== 'rgba(0, 0, 0, 0)' ? t.bg : '#c9d6e6';
+    ctx.fillRect(bx, by, bw, bh);
+    // 글자 — 자간 .2em, 상자 가운데(잉크 기준)
+    ctx.font = `500 ${9 * PR}px "JetBrains Mono", "Noto Sans KR", monospace`;
+    ctx.fillStyle = '#05070a'; ctx.textBaseline = 'alphabetic';
+    const sp = 1.8 * PR, room = bw - 6 * PR;
+    let chars = Array.from(t.label);
+    const width = (cs: string[]) => cs.reduce((a, c) => a + ctx.measureText(c).width, 0) + sp * Math.max(0, cs.length - 1);
+    if (width(chars) > room) { while (chars.length > 1 && width([...chars, '…']) > room) chars = chars.slice(0, -1); chars = [...chars, '…']; }
+    const m = ctx.measureText(chars.join(''));
+    const base = by + bh / 2 + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
+    let x = bx + (bw - width(chars)) / 2;
+    for (const c of chars) { ctx.fillText(c, x, base); x += ctx.measureText(c).width + sp; }
+  }
+  return cv.toDataURL('image/png');
+}
+
 export function ExcerptMaker() {
   const { isAdmin, ready } = useAuth();
   const toast = useToast();
@@ -220,9 +305,13 @@ export function ExcerptMaker() {
       const opts = { pixelRatio: 2, cacheBust: false, imagePlaceholder: BLANK, includeStyleProperties,
         // 카드 높이만은 화면 밖에서 잰 값 그대로 — 그림 크기와 같아야 위아래 여백이 똑같이 나뉜다
         style: { position: 'static', left: '0', top: '0', margin: '0', height: `${card.offsetHeight}px` } as Partial<CSSStyleDeclaration> };
+      // 딱지 자리 · 색을 읽어 두고 카드에서는 비운다 — 찍은 뒤 캔버스로 그린다 (위 drawTags)
+      const tags = collectTags(card);
+      card.classList.add('ex-tags-later');
       let url: string;
       try { url = await toPng(card, opts); }
       catch { url = await toPng(card, { ...opts, skipFonts: true }); }   // 글꼴을 못 받아 오면 글꼴 없이라도
+      try { url = await drawTags(url, tags); } catch { /* 못 그리면 딱지 없는 그림이라도 */ }
       setImg(url);
     } catch (e) {
       toast(`이미지를 만들지 못했습니다 — ${e instanceof Error ? e.message : '알 수 없는 오류'}`);
