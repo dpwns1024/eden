@@ -153,6 +153,18 @@ export function ExcerptMaker() {
   const [exPhoto, setExPhoto] = useState<string | null>(null);
   const [exPos, setExPos] = useState(30);
   const photoRef = useRef<HTMLInputElement>(null);
+  // 사진 미리보기 — 끌어서 위치 조절 (가로형은 위아래, 세로형은 좌우). 사진을 끄는 쪽으로 따라오게 반대로 더한다
+  const peekDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = e.currentTarget; const r = el.getBoundingClientRect();
+    const v = tpl === 'wide'; const start = v ? e.clientY : e.clientX; const base = exPos; const len = v ? r.height : r.width;
+    el.setPointerCapture(e.pointerId);
+    const move = (ev: PointerEvent) => {
+      const d = (v ? ev.clientY : ev.clientX) - start;
+      setExPos(Math.max(0, Math.min(100, Math.round(base - d / len * 100))));
+    };
+    const up = () => { el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up); };
+    el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+  };
   const onPhoto = async (f?: File) => {
     if (!f) return;
     try { setExPhoto(await shrinkImage(f)); setExPos(tpl === 'side' ? 50 : 30); }
@@ -415,6 +427,12 @@ export function ExcerptMaker() {
             <>
               <button type="button" className={exPhoto ? 'on' : ''} onClick={() => photoRef.current?.click()}>{exPhoto ? '사진 ✓' : '사진 고르기'}</button>
               <input ref={photoRef} type="file" accept="image/*" hidden onChange={e => { void onPhoto(e.target.files?.[0]); e.target.value = ''; }} />
+              {exPhoto && (
+                <div className={`ex-peek ex-peek-${tpl}`} title="끌어서 위치 조절" onPointerDown={peekDown}>
+                  <img src={exPhoto} alt="" draggable={false}
+                    style={{ objectPosition: tpl === 'wide' ? `50% ${exPos}%` : `${exPos}% 50%` }} />
+                </div>
+              )}
               {exPhoto && (
                 <label className="ex-pos" title={tpl === 'wide' ? '사진 위아래 위치' : '사진 좌우 위치'}>
                   {tpl === 'wide' ? '↕' : '↔'}
