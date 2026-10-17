@@ -3290,6 +3290,13 @@ html.ui-arch .page-prompt .pr-noimg span{color:var(--a-dim)}
 .pr-viewbody .pr-text{max-height:min(62vh,560px);overflow-y:auto;scrollbar-width:none;padding:14px 16px;border:1px solid var(--line);background:rgba(0,0,0,.03);
   font:400 calc(12.5px*var(--fs,1))/1.75 'JetBrains Mono','Noto Sans KR',monospace;color:var(--sub);white-space:pre-wrap;overflow-wrap:anywhere}
 .pr-viewbody .pr-text::-webkit-scrollbar{display:none}
+.pr-viewbody .pr-texts{display:flex;flex-direction:column;gap:10px;min-width:0}
+/* 참고 메모 — 프롬프트(복사되는 칸)와 구분되게 왼쪽 선 · 기본 글꼴 */
+.pr-viewbody .pr-note{padding:10px 14px;border-left:2px solid var(--line-dark);background:rgba(0,0,0,.02);font-size:calc(12.5px*var(--fs,1));line-height:1.7;color:var(--sub);white-space:pre-wrap;overflow-wrap:anywhere}
+.pr-viewbody .pr-note small{display:block;margin-bottom:4px;font:400 calc(9px*var(--fs,1))/1 'JetBrains Mono',monospace;letter-spacing:.2em;color:var(--faint)}
+.mng-box.arch-modal .pr-viewbody .pr-note{border-left-color:rgba(184,216,255,.45);background:rgba(184,216,255,.04);color:#aeb8c3}
+.mng-box.arch-modal .pr-viewbody .pr-note small{color:#6f7b89}
+.mng-box.pr-modal .pr-note-input{height:min(16vh,120px);font-family:'Noto Sans KR',sans-serif}
 .mng-box.arch-modal .pr-viewbody .pr-main{background:rgba(184,216,255,.04);box-shadow:0 0 0 1px rgba(190,208,228,.14)}
 .mng-box.arch-modal .pr-viewbody .pr-strip button.on,.mng-box.arch-modal .pr-viewbody .pr-strip button:hover{border-color:#b8d8ff}
 .mng-box.arch-modal .pr-viewbody .pr-text{border-color:rgba(190,208,228,.1);background:rgba(5,7,10,.5);color:#c3ccd6}
