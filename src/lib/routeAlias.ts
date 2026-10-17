@@ -5,6 +5,7 @@
  *   /page  → /arch      (HTML 페이지 · ARCH 소개)
  *   /chars → /profile   (캐릭터 · PROFILE)
  *   /rels  → /pairing   (자관 · PAIRING)
+ *   /gallery → /confirmed (갤러리 · CONFIRMED)
  *
  * next.config.ts가 요약 주소를 원래 페이지로 이어 주고(rewrite), 원래 주소로 들어오면 요약 주소로 바꿔 보낸다(redirect).
  * 화면 코드는 원래 주소 기준으로 판단하므로(메뉴 강조·페이지 제목·잠금·공개범위), 현재 주소는
