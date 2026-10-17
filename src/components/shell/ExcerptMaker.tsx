@@ -401,13 +401,18 @@ export function ExcerptMaker() {
       try { await document.fonts.ready; } catch { /* 못 기다려도 찍는다 */ }
       if (photoEl) {
         try { await photoEl.decode(); } catch { /* 못 읽어도 나머지는 찍는다 */ }
-        /* 세로형은 4:5로 고정 (v2.0 사용자 요청). 글이 넘치면 글씨를 줄이는 대신 카드를 통째로 넓힌다 —
-           글씨 · 딱지 · 여백 비율이 그대로라 그림에서는 글씨가 작아진 것과 같다. 아주 길면(폭 1600 넘게) 아래로 늘린다.
-           가로형은 폭 · 사진 띠 높이만 고정하고 높이는 글 길이대로 (빈 여백 없이) */
+        /* 세로형은 4:5에 가깝게, 아래 빈 여백 없이 (v2.0 사용자 요청). 글씨를 줄이는 대신 카드 폭을 찾는다 —
+           폭을 넓히면 글이 짧아지고(높이↓) 4:5 높이는 커지니, 둘이 만나는 폭을 반씩 좁혀 찾고 높이는 글 끝에 맞춘다.
+           글씨 · 딱지 · 여백 비율이 그대로라 그림에서는 글씨 크기만 달라 보인다. 아주 짧거나(폭 640) 아주 길면(폭 1600) 그 폭에서 글 길이대로.
+           가로형은 폭 · 사진 띠 높이만 고정하고 높이는 글 길이대로 */
         if (useTpl === 'side') {
-          let w = card.offsetWidth;
-          while (card.offsetHeight > w * 1.25 && w < 1600) { w += 40; card.style.width = `${w}px`; }
-          card.style.height = `${Math.max(card.offsetHeight, Math.round(w * 1.25))}px`;
+          const over = (w: number) => { card.style.width = `${w}px`; return card.offsetHeight - w * 1.25; };
+          let lo = 640, hi = 1600;
+          if (over(lo) <= 0) hi = lo;
+          else if (over(hi) < 0) {
+            while (hi - lo > 2) { const mid = Math.round((lo + hi) / 2); if (over(mid) > 0) lo = mid; else hi = mid; }
+          }
+          over(hi);
         }
         // 사진 칸 높이를 px로 박아 둔다 — 찍을 때 높이 계열은 옮기지 않아(아래 FREE) 가로형 사진 띠가 납작해졌다
         // 사진도 같이 — 높이를 안 옮기면 그림은 제 비율대로 줄어 칸 위쪽에만 남는다
