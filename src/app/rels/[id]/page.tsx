@@ -1499,10 +1499,12 @@ export default function RelDetailPage() {
           {relRooms.length > 0 ? relRooms.map(rm => (
             <div key={rm.id} className="dday-row" style={{ cursor: 'var(--cur-pointer,pointer)' }} onClick={() => router.push('/rp')}>
               <span>{rm.title}</span>
-              <b style={{ fontSize: 11, color: 'var(--faint)' }}>
-                {/* ARCH에선 교신 말투 (v2.0) */}
-                {rm.status === 'done' ? (rm.isPublic ? (arch ? 'DECLASSIFIED' : '완결 · 공개') : (arch ? 'CLOSED' : '완결')) : (arch ? 'LIVE' : '진행중')}
-              </b>
+              {/* 상태(진행중 · 완결)는 기본 디자인에서만 — ARCH에선 제목만 (v2.0 사용자 요청) */}
+              {!arch && (
+                <b style={{ fontSize: 11, color: 'var(--faint)' }}>
+                  {rm.status === 'done' ? (rm.isPublic ? '완결 · 공개' : '완결') : '진행중'}
+                </b>
+              )}
             </div>
           )) : (
             <p className="hint" style={{ margin: 0 }}>{arch ? '보관된 교신 기록이 없습니다 — NO SIGNAL' : '이 자관 기반으로 진행된 역극이 여기에 표시됩니다'}</p>
