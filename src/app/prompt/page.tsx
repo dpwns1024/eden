@@ -199,7 +199,7 @@ export default function PromptPage() {
               <div className="pr-text">{viewing.prompt}</div>
               {/* 참고 메모 — COPY에는 들어가지 않는다 */}
               {viewing.note && (
-                <div className="pr-note"><small>MEMO · 복사되지 않음</small>{viewing.note}</div>
+                <div className="pr-note"><small>MEMO</small>{viewing.note}</div>
               )}
             </div>
           </div>
@@ -231,7 +231,7 @@ export default function PromptPage() {
           </div>
           <textarea className="k-textarea pr-input" placeholder="프롬프트를 입력하세요" value={fPrompt} onChange={e => setFPrompt(e.target.value)} />
           {/* 참고 메모 (v2.0 사용자 요청) — 원문 창에서 프롬프트 아래에 보이고, COPY로는 복사되지 않는다 */}
-          <textarea className="k-textarea pr-input pr-note-input" placeholder="참고 메모 (선택) — 복사되지 않아요" value={fNote} onChange={e => setFNote(e.target.value)} />
+          <textarea className="k-textarea pr-input pr-note-input" placeholder="참고 메모 (선택)" value={fNote} onChange={e => setFNote(e.target.value)} />
         </div>
       </Modal>
       {del.element}
