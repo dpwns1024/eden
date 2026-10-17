@@ -1,6 +1,6 @@
 'use client';
 // EditableDesc 주입
-// 그림백업게시판 (4.11) — 갤러리/리스트 토글 · 로그/단일 뱃지 · 접기 썸네일 블러
+// 그림백업게시판 (4.11) — 그리드 보기 고정 · 말머리 탭 · 로그/단일 뱃지 · 접기 썸네일 블러 (v2.0 — 리스트 보기는 뺐다)
 import React, { Suspense, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
@@ -14,7 +14,6 @@ import { EditableDesc, PageTitle } from '@/components/ui/PageText';
 import { useBoardSettings, boardBadgeStyle } from '@/lib/boardStore';
 import { useMainStore } from '@/lib/mainStore';
 import { useCardSort, mergeOrder } from '@/lib/cardSort';
-import { useMenuSettings } from '@/lib/menuStore';
 
 const FOLD_LABEL = { spoiler: '스포일러', adult: '수위 주의' };
 
@@ -27,12 +26,8 @@ function BackupPageInner() {
   const posts = filterSection(postsAll, sec.id);
   const setPosts = sectionSetter(postsAll, sec.id, setPostsAll);
 
-  const [menuSet, , menuLoaded] = useMenuSettings();
-  const [view, setView] = useState<'gal' | 'list'>('gal');
-  const [viewInit, setViewInit] = useState(false);
-  useEffect(() => {
-    if (menuLoaded && !viewInit) { setView(menuSet.backupView); setViewInit(true); }
-  }, [menuLoaded, viewInit, menuSet.backupView]);
+  // 말머리 탭 (v2.0 사용자 요청 — FIELD REPORT 페어링 탭처럼). 'all' · 말머리 · '' (말머리 없음)
+  const [fCat, setFCat] = useState<string>('all');
 
   const { st: boardSet } = useBoardSettings();
 
@@ -75,37 +70,56 @@ function BackupPageInner() {
   const arch = useBoardSkin() === 'arch';   // ARCH 디자인 — 각진 카드·단말기 말투
   const [unveiled, setUnveiled] = useState<Record<string, boolean>>({});
 
-  const visible = posts
+  const readable = posts
     .filter(p => isAdmin || p.visibility === 'public' || (p.visibility === 'member' && user));
+  // 탭 — 목록에 나온 순서대로 말머리를 모은다. 말머리 없는 글이 있으면 끝에 ETC
+  const cats: string[] = [];
+  readable.forEach(p => { const c = p.category ?? ''; if (c && !cats.includes(c)) cats.push(c); });
+  const catCount = (c: string) => readable.filter(p => (p.category ?? '') === c).length;
+  const noCat = catCount('');
+  useEffect(() => { if (fCat !== 'all' && !catCount(fCat)) setFCat('all'); });   // 고른 말머리 글이 사라지면 전체로
+  const visible = fCat === 'all' ? readable : readable.filter(p => (p.category ?? '') === fCat);
 
   const sort = useCardSort(visible, next => setPosts(mergeOrder(posts, next)), editOn && isAdmin);
 
-  const PER = view === 'gal' ? 12 : 20;
+  const PER = 12;
   const [page, setPage] = useState(1);
   const pages = Math.max(1, Math.ceil(visible.length / PER));
   const cur = Math.min(page, pages);
   const start = (cur - 1) * PER;
   const paged = visible.slice(start, start + PER);
-  useEffect(() => { setPage(1); }, [view]);
+  useEffect(() => { setPage(1); }, [fCat]);
 
 
   return (
     <section className="page page-arch page-gallery">
       <div className="page-head">
         <PageTitle>{sec.id === 'main' ? 'GALLERY' : sec.name}</PageTitle>
-        <EditableDesc k="backup-desc" def="로그형(웹툰 스크롤) / 단일형(좌우 넘김) · 리스트/갤러리 보기 전환" />
+        <EditableDesc k="backup-desc" def="로그형(웹툰 스크롤) / 단일형(좌우 넘김) · 말머리별로 나눠 보기" />
       </div>
       <div className="toolrow">
-        <div className="seg">
-          <button className={view === 'gal' ? 'on' : ''} onClick={() => setView('gal')}>{arch ? 'GRID' : '갤러리'}</button>
-          <button className={view === 'list' ? 'on' : ''} onClick={() => setView('list')}>{arch ? 'LIST' : '리스트'}</button>
+        {/* 말머리 탭 — ARCH에선 목차 탭 줄 모양 (globals.css .arch-tabbar · JOURNAL · FIELD REPORT와 같은 모양) */}
+        <div className="tag-row arch-tabbar">
+          <div className={`tag ${fCat === 'all' ? 'on' : ''}`} onClick={() => setFCat('all')}>
+            {arch ? 'ALL' : '전체'} <small>{readable.length}</small>
+          </div>
+          {cats.map(c => (
+            <div key={c} className={`tag ${fCat === c ? 'on' : ''}`} onClick={() => setFCat(c)}>
+              {c} <small>{catCount(c)}</small>
+            </div>
+          ))}
+          {noCat > 0 && cats.length > 0 && (
+            <div className={`tag ${fCat === '' ? 'on' : ''}`} onClick={() => setFCat('')}>
+              {arch ? 'ETC' : '기타'} <small>{noCat}</small>
+            </div>
+          )}
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {user && <button className="btn btn-dark" onClick={() => router.push('/gallery/write' + secQuery('gallery', sec.id))}>✎ WRITE</button>}
         </div>
       </div>
 
-      <div className="g3" style={{ display: view === 'gal' && visible.length > 0 ? undefined : 'none' }}>
+      <div className="g3" style={{ display: visible.length > 0 ? undefined : 'none' }}>
           {paged.map((p, si) => {
             const i = start + si;
             const folded = p.fold && !unveiled[p.id];
@@ -139,25 +153,6 @@ function BackupPageInner() {
           })}
         </div>
 
-      <div className="panel flush" style={{ display: view === 'list' && visible.length > 0 ? undefined : 'none' }}>
-          {paged.map(p => (
-            <div key={p.id} className="list-item" onClick={() => router.push(`/gallery/${p.id}`)}>
-              <div className="th" style={{ position: 'relative' }}><CroppedBlobImg fileRef={p.images[0]} crop={p.thumbCrop} ph={p.phList[0] ?? 'cool'} /></div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                {/* 윗줄 말머리·태그, 아랫줄 제목 (v2.0 사용자 요청) */}
-                {(p.fold || p.category || (p.tags ?? []).length > 0) && (
-                  <small className="g-line">
-                    {p.fold
-                      ? <span className="pill red">접힘</span>
-                      : p.category && <span className="typ" style={getPrefixStyle(p.category)}>{p.category}</span>}
-                    {(p.tags ?? []).map(t => <i key={t} className="tag-in">#{t}</i>)}
-                  </small>
-                )}
-                <b>{p.title}</b>
-              </div>
-            </div>
-          ))}
-        </div>
       {visible.length === 0 && (
         <div className="panel" style={{ textAlign: 'center', padding: 44, fontSize: 13, color: 'var(--faint)' }}>
           게시물이 없습니다
