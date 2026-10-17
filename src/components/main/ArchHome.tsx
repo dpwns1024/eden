@@ -5,8 +5,9 @@
  * 메뉴는 이 자리에서 바로 그리고, 로그인 영역은 상단 바(TopBar)가 member 자리로 옮겨 그린다 (lib/htmlSlots.ts).
  *
  * ABOUT ARCH (v2.0 사용자 요청): ARCH 메뉴로 넘어가는 대신 메인 안에서 화면만 바뀐다 — 헤더는 그대로 두고
- * 히어로 자리에 ARCH 메뉴의 본문(기본 HTML 페이지 · 탭 문서)이 뜬다. 주소에 ?view=arch를 남겨
- * 브라우저 뒤로가기로 지금의 메인 화면으로 돌아온다.
+ * 히어로 자리에 ARCH 메뉴의 본문(기본 HTML 페이지 · 탭 문서)이 뜬다. 주소는 /arch (v2.0 사용자 요청 — 예전엔 /?view=arch,
+ * 옛 주소로 오면 /arch로 바꿔 준다) — 브라우저 뒤로가기로 지금의 메인 화면으로 돌아온다.
+ * /arch는 따로 된 페이지(app/arch/page.tsx)지만 같은 이 화면을 그리고, 상단 바 · 머리 · 푸터는 메인으로 다룬다(lib/routeAliasCore.ts).
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -20,8 +21,13 @@ import { ARCH_FONTS } from '@/lib/archFonts';
 import './archHome.css';
 
 
-/** ABOUT ARCH 화면의 주소 — 메인 그대로, 뒤에 표시만 붙인다 */
-const ABOUT_HREF = '/?view=arch';
+/** ABOUT ARCH 화면의 주소 */
+const ABOUT_HREF = '/arch';
+/* 메인 ↔ /arch는 서로 다른 페이지라 화면이 새로 그려진다 — 오간 표시를 이번 탭 동안 남겨 둔다 */
+const BACK_KEY = 'ohome.ah.back';      // 소개에 다녀왔다 → 히어로 등장 연출 건너뛰기
+const PUSHED_KEY = 'ohome.ah.pushed';  // 메인에서 눌러 넘어왔다 → 소개의 BACK은 브라우저 뒤로가기와 똑같이
+const ssGet = (k: string) => { try { return sessionStorage.getItem(k) === '1'; } catch { return false; } };
+const ssSet = (k: string, on: boolean) => { try { if (on) sessionStorage.setItem(k, '1'); else sessionStorage.removeItem(k); } catch { /* */ } };
 /** 히어로가 사라지는 시간(ms) — archHome.css의 .ah-leave와 맞춘다 */
 const LEAVE_MS = 260;
 
@@ -140,7 +146,7 @@ function HeroLogo() {
   );
 }
 
-export function ArchHome() {
+export function ArchHome({ about: aboutRoute = false }: { about?: boolean } = {}) {
   // 로그인 영역 자리 — 상단 바가 알림 · 프로필을 이 안으로 옮겨 그린다
   const memberRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -152,7 +158,9 @@ export function ArchHome() {
 
   // 지금 화면 — 메인(히어로) / ARCH 소개
   const router = useRouter();
-  const about = useSearchParams().get('view') === 'arch';
+  const oldAbout = useSearchParams().get('view') === 'arch';   // 옛 주소(/?view=arch)
+  const about = aboutRoute || oldAbout;
+  useEffect(() => { if (oldAbout && !aboutRoute) router.replace(ABOUT_HREF); }, [oldAbout, aboutRoute, router]);
   const { list } = useSections();
   const aboutName = list('page').find(s => s.id === MAIN_SEC)?.name ?? 'ARCH';
   const [leaving, setLeaving] = useState(false);
@@ -160,22 +168,23 @@ export function ArchHome() {
   const [matching, setMatching] = useState(false);
   const closeMatch = useCallback(() => setMatching(false), []);
   // 한 번 소개 화면에 갔다 오면 히어로의 등장 연출(로고가 그려지는 2~3초)은 건너뛴다
-  const [back, setBack] = useState(false);
-  const pushed = useRef(false);
+  const [back, setBack] = useState(() => ssGet(BACK_KEY));
   useEffect(() => {
     setLeaving(false);
-    if (about) setBack(true);
+    if (about) { setBack(true); ssSet(BACK_KEY, true); }
   }, [about]);
 
   const openAbout = (e: React.MouseEvent) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;   // 새 탭으로 열기는 그대로
     e.preventDefault();
     setLeaving(true);
-    window.setTimeout(() => { pushed.current = true; router.push(ABOUT_HREF); }, LEAVE_MS);
+    window.setTimeout(() => { ssSet(PUSHED_KEY, true); router.push(ABOUT_HREF); }, LEAVE_MS);
   };
   // 화면 안의 BACK — 여기서 넘어왔으면 브라우저 뒤로가기와 똑같이, 주소로 바로 들어왔으면 메인으로
   const closeAbout = () => {
-    if (pushed.current) router.back();
+    const pushed = ssGet(PUSHED_KEY);
+    ssSet(PUSHED_KEY, false);
+    if (pushed) router.back();
     else router.replace('/');
   };
 
