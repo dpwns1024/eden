@@ -9,7 +9,7 @@ import { useSectionParam, filterSection, sectionSetter } from '@/lib/sectionStor
 import { useLocalList } from '@/lib/postStore';
 import { DiaryPost, DIARY_SEED, Mood, MOOD_SEED } from '@/lib/diaryStore';
 import { renderBody } from '@/lib/sanitize';
-import { SearchBar, Pager } from '@/components/ui/Kit';
+import { Pager } from '@/components/ui/Kit';
 import { ConfirmModal } from '@/components/ui/Modal';
 import { Lightbox } from '@/components/ui/Lightbox';
 import { BlobImg } from '@/lib/blobStore';
@@ -97,7 +97,7 @@ function DiaryPageInner() {
   const [moods] = useLocalList<Mood>('ohome.moods.v1', MOOD_SEED);
   const [open, setOpen] = useState<string | null>(null);
   const [fMood, setFMood] = useState('all');
-  const [q, setQ] = useState('');
+  const [q] = useState('');   // 검색 칸은 없앴다 (v2.0 사용자 요청) — 걸러 내는 자리는 그대로 둔다
   const [page, setPage] = useState(1);
   const [delFor, setDelFor] = useState<DiaryPost | null>(null);
   const [lb, setLb] = useState<{ srcs: string[]; idx: number } | null>(null); // 이미지 뷰어 (v1.9)
@@ -160,7 +160,7 @@ function DiaryPageInner() {
         <EditableDesc k="diary-desc" def="무드 일기 — 클릭하면 그 자리에서 펼쳐집니다" />
       </div>
 
-      {/* 무드 필터 + 달 필터 표시 + 검색·WRITE — 필터 줄 오른쪽 정렬 (v1.9 사용자 요청).
+      {/* 무드 필터 + 달 필터 표시 + WRITE — 필터 줄 오른쪽 정렬 (v1.9 사용자 요청 · 검색 칸은 v2.0에 뺐다).
           그리드 밖(풀폭): 캘린더가 일기 패널과 같은 높이에서 시작 */}
       <div className="toolrow" style={{ marginBottom: 16 }}>
         {/* ARCH에선 목차 탭 줄 모양 (v2.0 사용자 요청 — globals.css .arch-tabbar) */}
@@ -181,7 +181,6 @@ function DiaryPageInner() {
           )}
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <SearchBar placeholder="제목 검색" onSearch={v => { setQ(v); setPage(1); }} />
           {isAdmin && <button className="btn btn-dark" onClick={() => router.push('/diary/write')}>＋ WRITE</button>}
         </div>
       </div>
