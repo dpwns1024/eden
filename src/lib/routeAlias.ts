@@ -2,7 +2,6 @@
 /**
  * 요약 주소 (v2.0 사용자 요청) — 주소창에 보이는 주소만 바꾼다. 페이지 폴더·메뉴 설정·저장 데이터는 원래 주소 그대로.
  *
- *   /page  → /arch      (HTML 페이지 · ARCH 소개)
  *   /chars → /profile   (캐릭터 · PROFILE)
  *   /rels  → /pairing   (자관 · PAIRING)
  *   /gallery → /confirmed (갤러리 · CONFIRMED)

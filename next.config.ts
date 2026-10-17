@@ -2,7 +2,6 @@ import type { NextConfig } from "next";
 
 /* 요약 주소 (v2.0) — 주소창에는 오른쪽 주소가 보인다. src/lib/routeAlias.ts의 ROUTE_ALIASES와 같게 유지 */
 const ROUTE_ALIASES: [canon: string, pub: string][] = [
-  ["/page", "/arch"],
   ["/chars", "/profile"],
   ["/rels", "/pairing"],
   ["/trpg", "/report"],
