@@ -8,6 +8,7 @@ const ROUTE_ALIASES: [canon: string, pub: string][] = [
   ["/trpg", "/report"],
   ["/rp", "/comms"],
   ["/diary", "/journal"],
+  ["/gallery", "/confirmed"],
 ];
 
 /* 기본 보안 헤더 (v2.0 보안 점검) — 내용 정책(CSP 전체)은 Firebase·유튜브 BGM·웹폰트·사용자 HTML이
