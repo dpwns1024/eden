@@ -3023,6 +3023,8 @@ html.ui-arch .excerpt-card .ex-body blockquote{background:
   linear-gradient(var(--qx),color-mix(in srgb,var(--qx) 15%,transparent)) 23px calc(var(--qpt,4px) + var(--qlh) / 2 + 10px)/1px calc(100% - (var(--qpt,4px) + var(--qlh) / 2 + 10px) - 6px) no-repeat}
 html.ui-arch .excerpt-card .ex-body blockquote::after{content:none}
 html.ui-arch .excerpt-card .ex-body blockquote::before,html.ui-arch .excerpt-card .ex-body blockquote > p:first-child::before{box-shadow:none}   /* 딱지 번짐 — 폰에서 찍으면 오른쪽에 덩어리로 남는다 */
+/* 딱지는 찍은 뒤 캔버스로 그린다(ExcerptMaker drawTags) — 자리만 남기고 비워 둔다 */
+html.ui-arch .excerpt-card.ex-tags-later .ex-body blockquote > p:first-child::before{background:transparent!important;color:transparent!important}
 .excerpt-card .ex-body{font-size:15px;line-height:1.95;color:#c3ccd6;font-weight:300;word-break:normal;overflow-wrap:anywhere}
 .excerpt-card .ex-body p{margin:0 0 .9em}
 .excerpt-card .ex-body p:last-child{margin-bottom:0}
