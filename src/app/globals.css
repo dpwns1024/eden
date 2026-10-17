@@ -3019,6 +3019,12 @@ html.ui-arch .page-memo2 .mn-cat{border-radius:0;border-color:rgba(var(--a-acr),
 
 /* ===== 발췌 이미지 (components/shell/ExcerptMaker.tsx — 관리자 전용) ===== */
 .excerpt-preview{display:block;max-width:100%;max-height:70vh;margin:0 auto;box-shadow:0 0 0 1px rgba(190,208,228,.14)}
+/* 결과 그림에서 사진 위치 고치기 — 그림은 캔버스, 아래 막대 */
+canvas.excerpt-preview.ex-live{cursor:grab}
+canvas.excerpt-preview.ex-live:active{cursor:grabbing}
+.ex-adj{display:flex;align-items:center;gap:10px;max-width:420px;margin:14px auto 0;color:#8fb0d8;font-size:13px}
+.ex-adj input{flex:1;min-width:0;accent-color:#8fb0d8}
+.ex-adj small{flex:0 0 auto;font-size:11px;color:#7d8894}
 /* 화면 밖에서 찍는 카드 */
 /* 위 · 아래 여백은 똑같이 40px — 아래 여백 칸(.ex-foot, 위아래 12px + 줄 16px) 가운데에 글 제목.
    찍을 때 글씨가 조금 줄어 생기는 남는 높이는 세로 가운데 맞춤으로 위아래에 똑같이 나뉜다 (ExcerptMaker가 높이를 고정) */

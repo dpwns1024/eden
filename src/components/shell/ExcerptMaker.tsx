@@ -118,6 +118,32 @@ async function drawTags(url: string, tags: QuoteTag[]): Promise<string> {
 type ExTpl = 'text' | 'wide' | 'side';
 const TPL_KEY = 'ohome.excerpt.tpl';
 const TPL_LABEL: Record<ExTpl, string> = { text: '글만', wide: '가로', side: '세로' };
+/* 다 만든 그림에서 사진 위치 고치기 (v2.0 사용자 요청 — 결과 화면을 보면서 조절).
+   찍은 그림(base)과 사진 칸 자리(rect, 그림 px)를 들고 있다가, 위치가 바뀌면 그 칸만 캔버스에 다시 그린다 —
+   카드를 다시 찍지 않아 끌면 바로 따라온다. 그리는 법은 CSS object-fit: cover + object-position과 같다 */
+type Shot = { base: HTMLImageElement; photo: HTMLImageElement; rect: { x: number; y: number; w: number; h: number }; tpl: ExTpl };
+const coverOf = (s: Shot) => {
+  const { w, h } = s.rect;
+  const k = Math.max(w / s.photo.naturalWidth, h / s.photo.naturalHeight);
+  return { dw: s.photo.naturalWidth * k, dh: s.photo.naturalHeight * k };
+};
+function drawShot(cv: HTMLCanvasElement, s: Shot, pos: number) {
+  if (cv.width !== s.base.naturalWidth) cv.width = s.base.naturalWidth;
+  if (cv.height !== s.base.naturalHeight) cv.height = s.base.naturalHeight;
+  const ctx = cv.getContext('2d');
+  if (!ctx) return;
+  ctx.drawImage(s.base, 0, 0);
+  // 칸 가장자리는 바깥쪽 정수로 — 반 픽셀 남은 옛 사진 테두리가 비치지 않게
+  const x = Math.floor(s.rect.x), y = Math.floor(s.rect.y);
+  const w = Math.ceil(s.rect.x + s.rect.w) - x, h = Math.ceil(s.rect.y + s.rect.h) - y;
+  const { dw, dh } = coverOf(s);
+  const px = s.tpl === 'wide' ? 50 : pos, py = s.tpl === 'wide' ? pos : 50;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+  ctx.fillStyle = '#0a0d12'; ctx.fillRect(x, y, w, h);
+  ctx.drawImage(s.photo, s.rect.x + (s.rect.w - dw) * px / 100, s.rect.y + (s.rect.h - dh) * py / 100, dw, dh);
+  ctx.restore();
+}
 /** 고른 사진을 긴 변 1600px 이하 JPEG로 — 큰 원본이 그대로 들어가 이미지 만들기가 느려지지 않게 */
 async function shrinkImage(file: File): Promise<string> {
   const url = URL.createObjectURL(file);
@@ -153,6 +179,31 @@ export function ExcerptMaker() {
   const [exPhoto, setExPhoto] = useState<string | null>(null);
   const [exPos, setExPos] = useState(30);
   const photoRef = useRef<HTMLInputElement>(null);
+  const [shot, setShot] = useState<Shot | null>(null);
+  const cvRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => { if (shot && cvRef.current) drawShot(cvRef.current, shot, exPos); }, [shot, exPos]);
+  // 결과 그림에서 사진 끌기 — 사진 칸 안에서 누를 때만. 손가락이 움직인 만큼 사진이 따라오게 남는 길이로 나눈다
+  const shotDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const cv = e.currentTarget; const s = shot;
+    if (!s) return;
+    const r = cv.getBoundingClientRect(); const k = cv.width / r.width;
+    const ix = (e.clientX - r.left) * k, iy = (e.clientY - r.top) * k;
+    if (ix < s.rect.x || ix > s.rect.x + s.rect.w || iy < s.rect.y || iy > s.rect.y + s.rect.h) return;
+    const v = s.tpl === 'wide'; const { dw, dh } = coverOf(s);
+    const room = v ? dh - s.rect.h : dw - s.rect.w;
+    if (room < 1) return;
+    const start = v ? e.clientY : e.clientX; const base = exPos;
+    cv.setPointerCapture(e.pointerId);
+    const move = (ev: PointerEvent) => {
+      const d = ((v ? ev.clientY : ev.clientX) - start) * k;
+      setExPos(Math.max(0, Math.min(100, Math.round((base - d / room * 100) * 10) / 10)));
+    };
+    const up = () => { cv.removeEventListener('pointermove', move); cv.removeEventListener('pointerup', up); cv.removeEventListener('pointercancel', up); };
+    cv.addEventListener('pointermove', move); cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  };
+  // 저장 · 공유할 그림 — 사진을 옮겼으면 캔버스에서 지금 모습으로
+  const outUrl = () => (shot && cvRef.current ? cvRef.current.toDataURL('image/png') : img);
+  const closeImg = () => { setImg(null); setShot(null); };
   // 사진 미리보기 — 끌어서 위치 조절 (가로형은 위아래, 세로형은 좌우). 사진을 끄는 쪽으로 따라오게 반대로 더한다
   const peekDown = (e: React.PointerEvent<HTMLDivElement>) => {
     const el = e.currentTarget; const r = el.getBoundingClientRect();
@@ -353,6 +404,8 @@ export function ExcerptMaker() {
     card.appendChild(frame);
     card.appendChild(foot);
     document.body.appendChild(card);
+    let photoRect: Shot['rect'] | null = null;
+    setShot(null);
     try {
       if (photoEl) {
         try { await photoEl.decode(); } catch { /* 못 읽어도 나머지는 찍는다 */ }
@@ -367,6 +420,8 @@ export function ExcerptMaker() {
         const bh = `${box.getBoundingClientRect().height}px`;
         box.style.height = bh;
         photoEl.style.height = bh;
+        const b = box.getBoundingClientRect(), c = card.getBoundingClientRect();
+        photoRect = { x: (b.left - c.left) * PR, y: (b.top - c.top) * PR, w: b.width * PR, h: b.height * PR };
       }
       const { toPng } = await import('html-to-image');
       // 화면 밖 위치(left:-30000px)는 찍을 때 빼야 한다 — 그대로 두면 그림 밖에 그려져 하얗게 나온다
@@ -376,7 +431,7 @@ export function ExcerptMaker() {
          높이 계열만 빼면 찍는 순간의 글씨에 맞춰 높이가 다시 정해진다 */
       const FREE = new Set(['height', 'block-size', 'min-block-size', 'max-block-size']);
       const includeStyleProperties = Array.from(getComputedStyle(document.documentElement)).filter(n => !FREE.has(n));
-      const opts = { pixelRatio: 2, cacheBust: false, imagePlaceholder: BLANK, includeStyleProperties,
+      const opts = { pixelRatio: PR, cacheBust: false, imagePlaceholder: BLANK, includeStyleProperties,
         // 카드 높이만은 화면 밖에서 잰 값 그대로 — 그림 크기와 같아야 위아래 여백이 똑같이 나뉜다
         style: { position: 'static', left: '0', top: '0', margin: '0', height: `${card.offsetHeight}px` } as Partial<CSSStyleDeclaration> };
       // 딱지 자리 · 색을 읽어 두고 카드에서는 비운다 — 찍은 뒤 캔버스로 그린다 (위 drawTags)
@@ -386,6 +441,12 @@ export function ExcerptMaker() {
       try { url = await toPng(card, opts); }
       catch { url = await toPng(card, { ...opts, skipFonts: true }); }   // 글꼴을 못 받아 오면 글꼴 없이라도
       try { url = await drawTags(url, tags); } catch { /* 못 그리면 딱지 없는 그림이라도 */ }
+      if (photoEl && photoRect) {
+        try {
+          const base = new Image(); base.src = url; await base.decode();
+          setShot({ base, photo: photoEl, rect: photoRect, tpl: useTpl });
+        } catch { /* 못 읽으면 고치기 없이 그림만 */ }
+      }
       setImg(url);
     } catch (e) {
       toast(`이미지를 만들지 못했습니다 — ${e instanceof Error ? e.message : '알 수 없는 오류'}`);
@@ -396,18 +457,20 @@ export function ExcerptMaker() {
   };
 
   const save = () => {
-    if (!img) return;
+    const url = outUrl();
+    if (!url) return;
     const a = document.createElement('a');
-    a.href = img;
+    a.href = url;
     a.download = `excerpt-${stamp()}.png`;
     document.body.appendChild(a);
     a.click();
     a.remove();
   };
   const share = async () => {
-    if (!img) return;
+    const url = outUrl();
+    if (!url) return;
     try {
-      const blob = await (await fetch(img)).blob();
+      const blob = await (await fetch(url)).blob();
       const file = new File([blob], `excerpt-${stamp()}.png`, { type: 'image/png' });
       if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file] });
       else save();
@@ -454,13 +517,23 @@ export function ExcerptMaker() {
           <button type="button" onClick={() => setMode(false)}>끄기</button>
         </div>
       )}
-      <Modal open={!!img} onClose={() => setImg(null)} title="발췌 이미지"
+      <Modal open={!!img} onClose={closeImg} title="발췌 이미지"
         actions={<>
-          <button className="btn btn-ghost" onClick={() => setImg(null)}>닫기</button>
+          <button className="btn btn-ghost" onClick={closeImg}>닫기</button>
           {typeof navigator !== 'undefined' && 'share' in navigator && <button className="btn btn-ghost" onClick={() => void share()}>공유</button>}
           <button className="btn btn-dark" onClick={save}>저장</button>
         </>}>
-        {img && <img src={img} alt="발췌 이미지" className="excerpt-preview" />}
+        {img && (shot
+          ? <canvas ref={cvRef} className="excerpt-preview ex-live" aria-label="발췌 이미지" onPointerDown={shotDown}
+              style={{ touchAction: shot.tpl === 'wide' ? 'none' : 'pan-y' }} />
+          : <img src={img} alt="발췌 이미지" className="excerpt-preview" />)}
+        {shot && (
+          <label className="ex-adj">
+            <span>{shot.tpl === 'wide' ? '↕' : '↔'}</span>
+            <input type="range" min={0} max={100} step={0.5} value={exPos} onChange={e => setExPos(Number(e.target.value))} />
+            <small>사진을 끌거나 막대로 옮기세요</small>
+          </label>
+        )}
       </Modal>
     </>
   );
