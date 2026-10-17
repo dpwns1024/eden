@@ -27,6 +27,7 @@ export interface PromptItem {
   kind: 'prompt';
   title: string;
   prompt: string;
+  note?: string;        // 참고 메모 — 원문 창에만 보이고 COPY에는 들어가지 않는다 (v2.0 사용자 요청)
   images: string[];     // 저장소 참조(공개 URL 또는 파일 id)
   date: string;         // YYYY-MM-DD
   authorId?: string;
@@ -114,10 +115,11 @@ export default function PromptPage() {
   const [editId, setEditId] = useState<string | null>(null);   // 'new' = 새 프롬프트
   const [fTitle, setFTitle] = useState('');
   const [fPrompt, setFPrompt] = useState('');
+  const [fNote, setFNote] = useState('');
   const [fImgs, setFImgs] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
-  const openNew = () => { setEditId('new'); setFTitle(''); setFPrompt(''); setFImgs([]); };
-  const openEdit = (p: PromptItem) => { setEditId(p.id); setFTitle(p.title); setFPrompt(p.prompt); setFImgs(p.images ?? []); };
+  const openNew = () => { setEditId('new'); setFTitle(''); setFPrompt(''); setFNote(''); setFImgs([]); };
+  const openEdit = (p: PromptItem) => { setEditId(p.id); setFTitle(p.title); setFPrompt(p.prompt); setFNote(p.note ?? ''); setFImgs(p.images ?? []); };
   const close = () => setEditId(null);
   const addFiles = async (files: FileList | null) => {
     if (!files?.length) return;
@@ -137,10 +139,11 @@ export default function PromptPage() {
     const prompt = fPrompt.trim();
     if (!prompt) { toast('프롬프트를 입력해 주세요'); return; }
     const title = fTitle.trim();
+    const note = fNote.trim() || undefined;
     if (editId === 'new') {
-      setItems([{ id: newId(), kind: 'prompt', title, prompt, images: fImgs, date: today(), authorId: user?.id }, ...items]);
+      setItems([{ id: newId(), kind: 'prompt', title, prompt, note, images: fImgs, date: today(), authorId: user?.id }, ...items]);
     } else {
-      setItems(items.map(p => (p.id === editId ? { ...p, title, prompt, images: fImgs } : p)));
+      setItems(items.map(p => (p.id === editId ? { ...p, title, prompt, note, images: fImgs } : p)));
     }
     close();
     toast('저장했습니다');
@@ -192,13 +195,19 @@ export default function PromptPage() {
         {viewing && (
           <div className={`pr-viewbody${viewing.images?.length ? '' : ' no-img'}`}>
             <PromptMedia key={viewing.id} imgs={viewing.images ?? []} />
-            <div className="pr-text">{viewing.prompt}</div>
+            <div className="pr-texts">
+              <div className="pr-text">{viewing.prompt}</div>
+              {/* 참고 메모 — COPY에는 들어가지 않는다 */}
+              {viewing.note && (
+                <div className="pr-note"><small>MEMO · 복사되지 않음</small>{viewing.note}</div>
+              )}
+            </div>
           </div>
         )}
       </Modal>
 
       {/* 쓰기 창 */}
-      <Modal open={editId !== null} onClose={close} small className="pr-modal pr-edit" dirty={!!fPrompt.trim() || fImgs.length > 0}
+      <Modal open={editId !== null} onClose={close} small className="pr-modal pr-edit" dirty={!!fPrompt.trim() || !!fNote.trim() || fImgs.length > 0}
         title={editId === 'new' ? 'NEW PROMPT' : 'EDIT PROMPT'}
         actions={<>
           <button className="btn btn-ghost" onClick={close}>CANCEL</button>
@@ -221,6 +230,8 @@ export default function PromptPage() {
             )}
           </div>
           <textarea className="k-textarea pr-input" placeholder="프롬프트를 입력하세요" value={fPrompt} onChange={e => setFPrompt(e.target.value)} />
+          {/* 참고 메모 (v2.0 사용자 요청) — 원문 창에서 프롬프트 아래에 보이고, COPY로는 복사되지 않는다 */}
+          <textarea className="k-textarea pr-input pr-note-input" placeholder="참고 메모 (선택) — 복사되지 않아요" value={fNote} onChange={e => setFNote(e.target.value)} />
         </div>
       </Modal>
       {del.element}
