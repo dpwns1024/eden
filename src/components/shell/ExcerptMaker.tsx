@@ -165,11 +165,11 @@ export function ExcerptMaker() {
   const on = ready && isAdmin;
   const [busy, setBusy] = useState(false);
   const [img, setImg] = useState<string | null>(null);
-  // 발췌 모드 (탭으로 시작·끝 문단 고르기)
+  // 발췌 모드 (탭으로 문단 고르기 — 누른 칸만, 다시 누르면 빼기)
   const [mode, setMode] = useState(false);
   const [hasRoots, setHasRoots] = useState(false);
-  // done — 끝 문단까지 골랐는가 (아니면 다음 누름이 끝 문단)
-  const [pick, setPick] = useState<{ root: Element; a: Element; b: Element; done: boolean } | null>(null);
+  // root — 고른 칸들이 든 본문, sel — 누른 칸들 (누른 순서, 만들 때는 글 순서로)
+  const [pick, setPick] = useState<{ root: Element; sel: Element[] } | null>(null);
   const pickRef = useRef(pick);
   pickRef.current = pick;
   // 템플릿 · 직접 고른 사진 · 사진 위치(가로형은 위아래, 세로형은 좌우 — 0~100%)
@@ -219,13 +219,10 @@ export function ExcerptMaker() {
     return () => window.clearInterval(t);
   }, [on]);
 
-  /** 본문(root) 바로 아래 칸들 중 a~b 사이 (순서 무관) */
-  const pickedBlocks = (p: { root: Element; a: Element; b: Element; done?: boolean } | null): Element[] => {
+  /** 본문(root) 바로 아래 칸들 중 누른 칸만, 글 순서대로 (v2.0 사용자 요청 — 시작~끝 사이 전부가 아니라 고른 문단만) */
+  const pickedBlocks = (p: { root: Element; sel: Element[] } | null): Element[] => {
     if (!p) return [];
-    const kids = Array.from(p.root.children);
-    const i = kids.indexOf(p.a), j = kids.indexOf(p.b);
-    if (i < 0 || j < 0) return [];
-    return kids.slice(Math.min(i, j), Math.max(i, j) + 1);
+    return Array.from(p.root.children).filter(k => p.sel.includes(k));
   };
   // 고른 칸 표시
   useEffect(() => {
@@ -233,7 +230,7 @@ export function ExcerptMaker() {
     els.forEach(e => e.classList.add('ex-picked'));
     return () => els.forEach(e => e.classList.remove('ex-picked'));
   }, [pick]);
-  // 모드 중 본문 누르기 → 첫 번째는 시작, 두 번째는 끝, 그다음은 새 시작
+  // 모드 중 본문 누르기 → 누른 칸을 넣고, 이미 고른 칸이면 뺀다 (다른 글 본문을 누르면 거기서 새로)
   useEffect(() => {
     if (!mode) { setPick(null); return; }
     document.documentElement.classList.add('ex-mode');
@@ -248,7 +245,9 @@ export function ExcerptMaker() {
       e.preventDefault(); e.stopPropagation();   // 링크·그림 확대 대신 고르기
       // 상태 갱신 함수 안에서 다른 값을 바꾸면 개발 모드의 두 번 실행에 꼬인다 — 지금 값을 보고 한 번에 정한다
       const prev = pickRef.current;
-      setPick(prev && !prev.done && prev.root === root ? { ...prev, b: blk, done: true } : { root, a: blk, b: blk, done: false });
+      if (!prev || prev.root !== root) { setPick({ root, sel: [blk] }); return; }
+      const sel = prev.sel.includes(blk) ? prev.sel.filter(x => x !== blk) : [...prev.sel, blk];
+      setPick(sel.length ? { root, sel } : null);
     };
     document.addEventListener('click', onClick, true);
     return () => { document.removeEventListener('click', onClick, true); document.documentElement.classList.remove('ex-mode'); };
@@ -305,7 +304,7 @@ export function ExcerptMaker() {
       if (os.length !== cs.length) return;
       os.forEach((x, i) => copyLayout(x, cs[i]));
     };
-    let prevBottom: number | null = null;
+    let prevEl: Element | null = null, prevBottom = 0;
     els.forEach(e => {
       const r = e.getBoundingClientRect();
       const isMedia = media(e);
@@ -331,10 +330,26 @@ export function ExcerptMaker() {
           else if (blankText(o)) pin(cs[i], h);
         });
       }
-      const gap = prevBottom === null ? 0 : Math.max(0, r.top - prevBottom) * scale;
+      /* 앞 칸과의 간격 — 바로 이어진 칸(사이에 안 보이는 칸만 있음)이면 화면에서 잰 그대로,
+         사이를 건너뛰고 고른 칸이면 이 칸 바로 위 칸과의 간격(원래 문단 간격)을 쓴다 */
+      let gapPx = 0;
+      if (prevEl) {
+        let next = true;
+        for (let k = prevEl.nextElementSibling; k && k !== e; k = k.nextElementSibling) {
+          if (media(k) || k.getBoundingClientRect().height >= line * 0.5) { next = false; break; }
+        }
+        if (next) gapPx = r.top - prevBottom;
+        else {
+          let k = e.previousElementSibling;
+          while (k && !k.getClientRects().length) k = k.previousElementSibling;
+          gapPx = k ? r.top - k.getBoundingClientRect().bottom : 0;
+        }
+      }
+      const gap = Math.max(0, gapPx) * scale;
       c.style.setProperty('margin-top', `${gap.toFixed(1)}px`, 'important');
       c.style.setProperty('margin-bottom', '0', 'important');
       frag.appendChild(c);
+      prevEl = e;
       prevBottom = r.bottom;
     });
     if (!frag.childNodes.length) return;
@@ -487,7 +502,7 @@ export function ExcerptMaker() {
       )}
       {mode && (
         <div className="excerpt-bar">
-          <span>{!pick ? '시작 문단을 누르세요' : !pick.done ? '끝 문단을 누르세요 (한 칸이면 바로 만들기)' : `${pickedBlocks(pick).length}칸 선택됨`}</span>
+          <span>{!pick ? '발췌할 문단을 누르세요' : `${pickedBlocks(pick).length}칸 선택됨 · 다시 누르면 빠져요`}</span>
           {/* 템플릿 (v2.0 사용자 요청) — 글만 · 가로(위 사진) · 세로(왼쪽 사진) */}
           <span className="ex-tpls" role="group" aria-label="발췌 템플릿">
             {(['text', 'wide', 'side'] as ExTpl[]).map(t => (
