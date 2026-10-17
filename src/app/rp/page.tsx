@@ -33,7 +33,7 @@ const fmtHM = (iso: string) => {
 };
 
 export default function RpPage() {
-  const { user, isAdmin, ready } = useAuth();
+  const { user, isAdmin } = useAuth();
   const toast = useToast();
   const del = useConfirmDelete();
   /* ARCH 디자인이면 교신(COMMS) 말투로 (v2.0 사용자 요청) — 방→채널, 진행중→LIVE, 완결→CLOSED,
@@ -47,12 +47,13 @@ export default function RpPage() {
   const [chars] = useLocalList<Character>('ohome.chars.v1', CHAR_SEED);
   const [rels] = useLocalList<Relation>('ohome.rels.v1', REL_SEED);
   const [selId, setSelId] = useState<string | null>(null);
-  const [fStatus, setFStatus] = useState<'all' | 'ongoing' | 'done'>('ongoing');
-  /* 진행중(LIVE) 탭은 관리자에게만 (v2.0 사용자 요청) — 손님은 비밀번호를 넣어도 진행중 방엔 못 들어가니
-     탭을 둘 이유가 없다. 관리자가 아니면 처음 보는 탭을 전체로 */
-  useEffect(() => { if (ready && !isAdmin && fStatus === 'ongoing') setFStatus('all'); }, [ready, isAdmin, fStatus]);
+  /* 페어링별 탭 (v2.0 사용자 요청 — 상태(LIVE · ALL · CLOSED) 대신 FIELD REPORT처럼 페어링으로 나눈다).
+     'all' · 페어링 id · 'none'(페어링 없는 채널) */
+  const [fRel, setFRel] = useState<string>('all');
   const [mListOpen, setMListOpen] = useState(false);
   const [mFocus, setMFocus] = useState(false);
+  const [renameOpen, setRenameOpen] = useState(false);   // 채널 이름 고치기 (v2.0)
+  const [renameText, setRenameText] = useState('');
 
   // 로그인 상태면 본인 참여 방 + (관리자면 전체), 비로그인이면 공개된 방 목록 표시
   const allMine = useMemo(() => {
@@ -63,10 +64,19 @@ export default function RpPage() {
       .localeCompare(rpLastDate(a, messagesFor(msgRows, a.id, a.messages))));
   }, [rooms, user, isAdmin, msgRows, rels, chars]);
 
-  const myRooms = useMemo(() => allMine.filter(r => fStatus === 'all' || r.status === fStatus), [allMine, fStatus]);
+  const relKey = (r: RpRoom) => (r.relId && rels.some(x => x.id === r.relId) ? r.relId : 'none');
+  const myRooms = useMemo(() => allMine.filter(r => fRel === 'all' || relKey(r) === fRel),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [allMine, fRel, rels]);
   const sel = myRooms.find(r => r.id === selId) ?? myRooms[0];
-  const cntS = (s: 'all' | 'ongoing' | 'done') =>
-    allMine.filter(r => s === 'all' || r.status === s).length;
+  const relCounts = useMemo(() => {
+    const m: Record<string, number> = {};
+    allMine.forEach(r => { const k = relKey(r); m[k] = (m[k] ?? 0) + 1; });
+    return m;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allMine, rels]);
+  // 고른 탭의 채널이 사라지면(지움 · 페어링 변경) 전체로
+  useEffect(() => { if (fRel !== 'all' && !relCounts[fRel]) setFRel('all'); }, [fRel, relCounts]);
 
   const rel = rels.find(r => r.id === sel?.relId);
   const auCharKey = sel?.relId && sel?.auId && sel.auId !== 'base' ? `${sel.relId}:${sel.auId}` : null;
@@ -290,10 +300,13 @@ ${rows}
     const isPair = rel.kind === 'pair' || rel.members.length === 2;
     return isPair && names.length ? names.join(' · ') : rel.name;
   };
-  const roomSub = (r: RpRoom) => [
+  // ARCH에선 상태(CLOSED · 기밀 해제 등)를 빼고 참여 캐릭터만 (v2.0 사용자 요청) — 상태는 채팅 머리의 표시로 본다
+  const roomSub = (r: RpRoom) => (arch ? roomLabel(r) : [
     roomLabel(r),
-    r.status === 'done' ? (r.isPublic ? cw('CLOSED · 기밀 해제', '완결 · 공개 전환됨') : cw('CLOSED', '완결')) : cw('LIVE', '진행중'),
-  ].join(' · ');
+    r.status === 'done' ? (r.isPublic ? '완결 · 공개 전환됨' : '완결') : '진행중',
+  ].join(' · '));
+  // 두 사람 교신이면 말풍선 아래 시각을 뺀다 (v2.0 사용자 요청) — 셋 이상 오가는 방은 순서 확인용으로 남긴다
+  const twoParty = (r: RpRoom) => new Set(msgsOf(r).filter(m => m.kind !== 'desc').map(m => m.charId ?? m.authorId)).size <= 2;
 
   const speakerLabel = speaker === 'desc' ? cw('상황 서술 (DESC)', '지문 (DESC)') : (rpChars.find(c => c.id === speaker)?.name ?? '');
   const speakerChar = rpChars.find(c => c.id === speaker);
@@ -305,7 +318,7 @@ ${rows}
         <EditableDesc k="rp-desc" def={cw('실시간 교신 · 참여 요원에게만 채널 노출 · 캐릭터를 골라 송신', '실시간 채팅형 · 참여자에게만 존재 노출 · 캐릭터 선택 발화')} />
       </div>
 
-      <div className={`rp-layout ${mListOpen ? 'mopen' : ''}`}>
+      <div className={`rp-layout ${mListOpen ? 'mopen' : ''}${arch ? ' tabs' : ''}`}>
         <button type="button" className="rp-mfold" onClick={() => setMListOpen(o => !o)}>
           <b>{sel ? sel.title : cw('채널 목록', '방 목록')}</b>
           <small>{cw('CHANNELS', 'MY ROOMS')} {myRooms.length} {mListOpen ? '▴' : '▾'}</small>
@@ -323,7 +336,8 @@ ${rows}
             {myRooms.map(r => (
               <div key={r.id} className={`rp-room ${sel?.id === r.id ? 'on' : ''}`}
                 onClick={() => { setSelId(r.id); setMListOpen(false); }}>
-                <b>{r.title} {rpHasNew(r, user?.id ?? '', msgsOf(r)) && sel?.id !== r.id && <span className="new">N</span>}</b>
+                {/* 새 송신 표시(N)는 ARCH에선 뺀다 (v2.0 사용자 요청) */}
+                <b>{r.title} {!arch && rpHasNew(r, user?.id ?? '', msgsOf(r)) && sel?.id !== r.id && <span className="new">N</span>}</b>
                 <small>{roomSub(r)}</small>
               </div>
             ))}
@@ -331,7 +345,7 @@ ${rows}
               <p className="hint" style={{ padding: '10px 6px 0' }}>
                 {!user
                   ? cw('기밀 해제된 교신 기록이 없습니다', '공개된 역극 방이 없습니다')
-                  : (fStatus === 'all' ? cw('참여 중인 채널이 없습니다', '참여 중인 방이 없습니다') : cw('해당 상태의 채널이 없습니다', '이 상태의 방이 없습니다'))}
+                  : (fRel === 'all' ? cw('참여 중인 채널이 없습니다', '참여 중인 방이 없습니다') : cw('이 페어링의 채널이 없습니다', '이 자관의 방이 없습니다'))}
               </p>
             )}
           </div>
@@ -367,6 +381,11 @@ ${rows}
                       <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 10.5 }}
                         onClick={exportHtml}>EXPORT</button>
                     </>
+                  )}
+                  {/* 채널 이름 고치기 (v2.0 사용자 요청 — 만든 뒤엔 바꿀 수 없었다) */}
+                  {canManage && (
+                    <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 10.5 }}
+                      onClick={() => { setRenameText(sel.title); setRenameOpen(true); }}>RENAME</button>
                   )}
                   {canManage && (
                     <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 10.5 }}
@@ -407,7 +426,7 @@ ${rows}
                       <div>
                         <div className="who">{name}</div>
                         <div className="bub">{m.text}</div>
-                        <div style={{ fontSize: 9, color: 'var(--faint)', marginTop: 3 }}>{fmtHM(m.date)}</div>
+                        {!twoParty(sel) && <div style={{ fontSize: 9, color: 'var(--faint)', marginTop: 3 }}>{fmtHM(m.date)}</div>}
                       </div>
                       {(mine || canManage) && (
                         <span className="m-act">
@@ -466,22 +485,40 @@ ${rows}
           )}
         </div>
 
-        {/* 우측 상태 필터 — 모바일에선 비회원에게 숨김 (v2.0 사용자 요청 — 비회원은 완결 채널만 보여 고를 게 없다) */}
-        <div className={`panel tagside${user ? '' : ' m-guest-hide'}`} style={{ padding: 16, alignSelf: 'start' }}>
-          <h4>{cw('STATUS', '상태')}</h4>
-          {isAdmin && (
-            <div className={`tag ${fStatus === 'ongoing' ? 'on' : ''}`} onClick={() => setFStatus('ongoing')}>
-              {cw('LIVE', '진행중')} <small>{cntS('ongoing')}</small>
+        {/* 페어링 필터 (v2.0 사용자 요청 — 상태 대신 페어링별 · FIELD REPORT와 같은 모양).
+            ARCH에선 PC · 폰 모두 위 탭 줄(globals.css .rp-layout.tabs · .arch-tabbar), 기본 디자인은 오른쪽 상자 */}
+        <div className={`panel tagside${arch ? ' arch-tabbar' : ''}`} style={arch ? undefined : { padding: 16, alignSelf: 'start' }}>
+          <h4>{cw('PAIRING FILTER', '자관 필터')}</h4>
+          <div className={`tag ${fRel === 'all' ? 'on' : ''}`} onClick={() => setFRel('all')}>
+            {cw('ALL', '전체')} <small>{allMine.length}</small>
+          </div>
+          {rels.filter(r => relCounts[r.id]).map(r => (
+            <div key={r.id} className={`tag ${fRel === r.id ? 'on' : ''}`} onClick={() => setFRel(r.id)}>
+              {r.name} <small>{relCounts[r.id]}</small>
+            </div>
+          ))}
+          {relCounts['none'] > 0 && (
+            <div className={`tag ${fRel === 'none' ? 'on' : ''}`} onClick={() => setFRel('none')}>
+              {cw('ONE-SHOT', '단발')} <small>{relCounts['none']}</small>
             </div>
           )}
-          <div className={`tag ${fStatus === 'all' ? 'on' : ''}`} onClick={() => setFStatus('all')}>
-            {cw('ALL', '전체')} <small>{cntS('all')}</small>
-          </div>
-          <div className={`tag ${fStatus === 'done' ? 'on' : ''}`} onClick={() => setFStatus('done')}>
-            {cw('CLOSED', '완결')} <small>{cntS('done')}</small>
-          </div>
         </div>
       </div>
+
+      {/* 채널 이름 고치기 (v2.0 사용자 요청) */}
+      <Modal open={renameOpen} onClose={() => setRenameOpen(false)} small title={cw('채널 이름 변경', '방 이름 변경')}
+        actions={<>
+          <button className="btn btn-ghost" onClick={() => setRenameOpen(false)}>CANCEL</button>
+          <button className="btn btn-dark" onClick={() => {
+            const t = renameText.trim();
+            if (!t) { toast(cw('채널 이름을 입력하세요', '방 이름을 입력하세요')); return; }
+            patchRoom({ title: t });
+            setRenameOpen(false);
+          }}>SAVE</button>
+        </>}>
+        <KInput value={renameText} onChange={e => setRenameText(e.target.value)} autoFocus
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); const t = renameText.trim(); if (t) { patchRoom({ title: t }); setRenameOpen(false); } } }} />
+      </Modal>
 
       {/* 방 개설 모달 */}
       {user && (

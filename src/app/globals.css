@@ -747,6 +747,17 @@ html.ui-arch .page-arch .trpg-layout.tabs > .tagside{order:-1;justify-self:start
 html.ui-arch .page-arch .trpg-layout.tabs > .tagside h4{display:none}
 html.ui-arch .page-arch .trpg-layout.tabs > .tagside .tag{justify-content:flex-start;border-left:0}
 html.ui-arch .page-arch .trpg-layout.tabs > .tagside .tag.on{border-left:0}
+/* COMMS ARCHIVE — 오른쪽 상태 상자(LIVE · ALL · CLOSED) 대신 위 페어링 탭 줄 (v2.0 사용자 요청 · FIELD REPORT와 같은 모양) */
+html.ui-arch .page-arch .rp-layout.tabs{grid-template-columns:280px minmax(0,1fr);grid-template-rows:auto 600px;height:auto;row-gap:14px}
+html.ui-arch .page-arch .rp-layout.tabs > .tagside{grid-column:1/-1;grid-row:1;justify-self:start;align-self:start;max-width:100%;padding:6px}
+html.ui-arch .page-arch .rp-layout.tabs > .tagside h4{display:none}
+html.ui-arch .page-arch .rp-layout.tabs > .tagside .tag{justify-content:flex-start;border-left:0}
+html.ui-arch .page-arch .rp-layout.tabs > .tagside .tag.on{border-left:0}
+@media (max-width:1080px){html.ui-arch .page-arch .rp-layout.tabs{grid-template-columns:220px minmax(0,1fr)}}
+@media (max-width:620px){
+  html.ui-arch .page-arch .rp-layout.tabs{display:flex}
+  html.ui-arch .page-arch .rp-layout.tabs > .tagside{order:-1;align-self:stretch}   /* 폰에선 접힘 바 위 · 목록을 펼치지 않아도 보인다 */
+}
 @media (max-width:620px){
   html.ui-arch .page-arch .toolrow > .arch-tabbar{flex:1 1 100%}
   html.ui-arch .page-arch .trpg-layout.tabs > .tagside{justify-self:stretch}
@@ -1264,6 +1275,10 @@ html.ui-arch .tip-pop,html.ui-arch .tip-pop.dd{background:rgba(8,11,15,.96);colo
   .rp-layout.mopen > .tagside{display:block}
   .rp-layout.mopen > .tagside.m-guest-hide{display:none}
   .rp-chat{order:3;height:64vh}
+  /* 채팅 머리 — 버튼(RENAME 등)이 늘어 제목이 한 글자씩 세로로 밀렸다 (v2.0) → 제목 한 줄, 버튼은 아래 줄로 */
+  .rp-head{flex-wrap:wrap;row-gap:10px}
+  .rp-head > div:first-child{flex:1 1 100%;min-width:0}
+  .rp-head > div:last-child{flex-wrap:wrap}
   /* 입력창 포커스 — 페이지 제목·접힘 바 없이 역극 영역만 (v1.9) */
   .page.rp-focus .page-head{display:none}
   .page.rp-focus .rp-mfold{display:none}
