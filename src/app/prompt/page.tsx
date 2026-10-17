@@ -6,18 +6,19 @@
  * 다시 붙여넣지 않아도 된다. 스티커 메모(/memo)·메모 게시판은 kind로 걸러 보고, 저장할 땐 서로의 항목을
  * 그대로 둔다. 공개범위·비밀번호는 이 메뉴(/prompt)의 설정을 따른다 (lib/visFloor.ts).
  *
- * 리스트: 왼쪽에 세로 사진 크게(여러 장이면 아래 작은 사진으로 바꿔 보기) · 오른쪽에 제목 · 프롬프트 전문 · COPY (v2.0 사용자 요청).
- * 관리자는 ⠿ 손잡이를 끌어 순서를 바꾼다(검색 중에는 끔).
+ * 목록: 프로필 카드처럼 대표 사진 + 제목 · COPY만 (v2.0 사용자 요청 — 검색 칸은 없앴다).
+ * 사진을 누르면 프롬프트 원문 창(사진 여러 장 넘겨 보기 · COPY · EDIT/DEL)이 뜬다.
+ * 관리자는 카드를 끌어 순서를 바꾼다(편집모드 없이 — 캐릭터 목록과 같은 방식).
  * 사진은 올릴 때 메타데이터를 지운 사본으로 저장된다(putBlob → lib/imageClean.ts) — 프롬프트는 글로 따로 적는다.
  */
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useLocalList, newId } from '@/lib/postStore';
 import { MEMO_SEED } from '@/lib/memoStore';
 import { useBlobUrl, putBlob } from '@/lib/blobStore';
 import { Modal, useConfirmDelete } from '@/components/ui/Modal';
 import { KInput, Pager } from '@/components/ui/Kit';
-import { DragList } from '@/components/ui/DragList';
+import { useCardSort } from '@/lib/cardSort';
 import { PageTitle, EditableDesc } from '@/components/ui/PageText';
 import { useToast } from '@/components/ui/Toast';
 
@@ -34,7 +35,7 @@ type AnyMemo = { id: string; kind?: string; [k: string]: unknown };
 const isPrompt = (m: AnyMemo): m is AnyMemo & PromptItem => m.kind === 'prompt';
 
 const MAX_IMG = 6;
-const PER = 10;
+const PER = 12;
 const fmt = (d: string) => (d || '').slice(0, 10).replace(/-/g, '.');
 const today = () => {
   const n = new Date();
@@ -47,42 +48,40 @@ function Img({ src, className }: { src?: string; className?: string }) {
   return url ? <img src={url} alt="" className={className} draggable={false} /> : <div className={`pr-ph ${className ?? ''}`} />;
 }
 
-/** 한 줄 — 왼쪽 세로 사진(여러 장이면 아래 작은 사진으로 바꿔 보기) · 오른쪽 제목 · 프롬프트 · COPY */
-function PromptRow({ p, drag, canEdit, onCopy, onEdit, onDel }: {
-  p: PromptItem; drag: boolean; canEdit: boolean;
-  onCopy: () => void; onEdit: () => void; onDel: () => void;
+/** 카드 — 대표 사진(3:4) + 제목 · COPY (프로필 카드 모양) */
+function PromptCard({ p, onOpen, onCopy, sortProps }: {
+  p: PromptItem; onOpen: () => void; onCopy: () => void; sortProps: Record<string, unknown>;
 }) {
-  const imgs = p.images ?? [];
+  return (
+    <div className="char-card pr-card" {...sortProps}>
+      <div className="thumb" role="button" tabIndex={0} aria-label={`${p.title || '프롬프트'} 원문 보기`} onClick={onOpen}
+        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(); } }}>
+        {p.images?.[0] ? <Img src={p.images[0]} /> : <div className="pr-ph pr-noimg"><span>NO IMAGE</span></div>}
+      </div>
+      <div className="nm">
+        {p.title ? <b className="pr-title">{p.title}</b> : <b className="pr-title pr-untitled">UNTITLED</b>}
+        <button type="button" className="pr-copy" onClick={e => { e.stopPropagation(); onCopy(); }}>COPY</button>
+      </div>
+    </div>
+  );
+}
+
+/** 원문 창 안 사진 — 여러 장이면 아래 작은 사진으로 바꿔 보기 */
+function PromptMedia({ imgs }: { imgs: string[] }) {
   const [cur, setCur] = useState(0);
   const at = Math.min(cur, Math.max(0, imgs.length - 1));
+  if (!imgs.length) return null;
   return (
-    <article className={`panel pr-row${imgs.length ? '' : ' no-img'}`}>
-      {imgs.length > 0 && (
-        <div className="pr-media">
-          <span className="pr-main"><Img src={imgs[at]} /></span>
-          {imgs.length > 1 && (
-            <span className="pr-strip">
-              {imgs.map((src, i) => (
-                <button key={i} type="button" className={i === at ? 'on' : ''} onClick={() => setCur(i)} aria-label={`사진 ${i + 1}`}><Img src={src} /></button>
-              ))}
-            </span>
-          )}
-        </div>
+    <div className="pr-media">
+      <span className="pr-main"><Img src={imgs[at]} /></span>
+      {imgs.length > 1 && (
+        <span className="pr-strip">
+          {imgs.map((src, i) => (
+            <button key={i} type="button" className={i === at ? 'on' : ''} onClick={() => setCur(i)} aria-label={`사진 ${i + 1}`}><Img src={src} /></button>
+          ))}
+        </span>
       )}
-      <div className="pr-body">
-        <div className="pr-head">
-          {drag && <span className="drag-h pr-drag" title="끌어서 순서 바꾸기">⠿</span>}
-          {p.title ? <b className="pr-title">{p.title}</b> : <span className="pr-title pr-untitled">UNTITLED</span>}
-          <span className="pr-dt">{fmt(p.date)}</span>
-        </div>
-        <div className="pr-text">{p.prompt}</div>
-        <div className="pr-foot">
-          {canEdit && <button type="button" className="pr-mini" onClick={onEdit}>EDIT</button>}
-          {canEdit && <button type="button" className="pr-mini" onClick={onDel}>DEL</button>}
-          <button type="button" className="pr-copy" onClick={onCopy}>COPY</button>
-        </div>
-      </div>
-    </article>
+    </div>
   );
 }
 
@@ -96,16 +95,19 @@ export default function PromptPage() {
   const setItems = (next: PromptItem[]) => setAll([...(next as unknown as AnyMemo[]), ...all.filter(m => !isPrompt(m))]);
   const canEdit = (p: PromptItem) => isAdmin || (!!user && p.authorId === user.id);
 
-  const [q, setQ] = useState('');
-  const ql = q.trim().toLowerCase();
-  const shown = items.filter(p => !ql || p.title.toLowerCase().includes(ql) || p.prompt.toLowerCase().includes(ql));
+  const shown = items;
   const [page, setPage] = useState(1);
-  useEffect(() => { setPage(1); }, [ql]);
   const pages = Math.max(1, Math.ceil(shown.length / PER));
   const pg = Math.min(page, pages);
   const pageItems = shown.slice((pg - 1) * PER, pg * PER);
-  // 순서 바꾸기 — 관리자, 검색 중이 아닐 때 (걸러 낸 목록에서 바꾸면 전체 순서가 어긋난다)
-  const canSort = isAdmin && !ql;
+  // 순서 바꾸기 — 관리자는 카드를 끌어서 (이 쪽의 순서만 바꿔 전체 목록에 다시 끼운다)
+  const sort = useCardSort(pageItems, next => {
+    const start = (pg - 1) * PER;
+    setItems([...items.slice(0, start), ...next, ...items.slice(start + next.length)]);
+  }, isAdmin, true);
+  // 원문 창
+  const [viewId, setViewId] = useState<string | null>(null);
+  const viewing = viewId ? items.find(p => p.id === viewId) ?? null : null;
 
 
   // 쓰기 창
@@ -160,36 +162,40 @@ export default function PromptPage() {
       <div className="toolrow pr-tool">
         <div className="pr-left">
           <span className="pr-count">TOTAL {shown.length}</span>
-          <label className="pr-search">
-            <span aria-hidden="true">⌕</span>
-            <input type="search" value={q} placeholder="제목 · 프롬프트 검색" onChange={e => setQ(e.target.value)} />
-            {q && <button type="button" aria-label="지우기" onClick={() => setQ('')}>✕</button>}
-          </label>
         </div>
         {user && <button className="btn btn-dark" onClick={openNew}>＋ NEW PROMPT</button>}
       </div>
 
       {pageItems.length > 0 ? (
         <>
-          <div className="pr-list">
-            <DragList items={pageItems} keyOf={p => p.id} disabled={!canSort}
-              onReorder={next => {
-                // 이 쪽의 순서만 바꿔 전체 목록에 다시 끼운다
-                const start = (pg - 1) * PER;
-                setItems([...items.slice(0, start), ...next, ...items.slice(start + next.length)]);
-              }}
-              render={p => (
-                <PromptRow p={p} drag={canSort} canEdit={canEdit(p)} onCopy={() => copy(p.prompt)} onEdit={() => openEdit(p)}
-                  onDel={() => del.ask('이 프롬프트를 삭제하시겠습니까?', () => setItems(items.filter(x => x.id !== p.id)))} />
-              )} />
+          <div className="pr-grid">
+            {pageItems.map((p, i) => (
+              <PromptCard key={p.id} p={p} sortProps={sort(i)} onOpen={() => setViewId(p.id)} onCopy={() => copy(p.prompt)} />
+            ))}
           </div>
           <Pager page={pg} total={pages} block={8} onChange={setPage} />
         </>
       ) : (
         <div className="panel" style={{ textAlign: 'center', padding: 44, fontSize: 13, color: 'var(--faint)' }}>
-          {ql ? `「${q.trim()}」 — 찾은 프롬프트가 없습니다` : '등록된 프롬프트가 없습니다'}
+          등록된 프롬프트가 없습니다
         </div>
       )}
+
+      {/* 원문 창 — 사진을 누르면 (v2.0 사용자 요청) */}
+      <Modal open={!!viewing} onClose={() => setViewId(null)} className="pr-modal pr-view"
+        title={viewing?.title || 'UNTITLED'}
+        actions={viewing ? <>
+          {canEdit(viewing) && <button className="btn btn-ghost" onClick={() => { const v = viewing; setViewId(null); openEdit(v); }}>EDIT</button>}
+          {canEdit(viewing) && <button className="btn btn-ghost" onClick={() => { const v = viewing; del.ask('이 프롬프트를 삭제하시겠습니까?', () => { setItems(items.filter(x => x.id !== v.id)); setViewId(null); }); }}>DEL</button>}
+          <button className="btn btn-dark" onClick={() => copy(viewing.prompt)}>COPY</button>
+        </> : null}>
+        {viewing && (
+          <div className={`pr-viewbody${viewing.images?.length ? '' : ' no-img'}`}>
+            <PromptMedia key={viewing.id} imgs={viewing.images ?? []} />
+            <div className="pr-text">{viewing.prompt}</div>
+          </div>
+        )}
+      </Modal>
 
       {/* 쓰기 창 */}
       <Modal open={editId !== null} onClose={close} small className="pr-modal pr-edit" dirty={!!fPrompt.trim() || fImgs.length > 0}
