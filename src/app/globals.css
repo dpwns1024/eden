@@ -3084,7 +3084,7 @@ html.ui-arch .excerpt-card{background:
   repeating-linear-gradient(0deg,rgba(190,208,228,.025) 0 1px,transparent 1px 128px),#05070a;
   box-shadow:inset 0 0 140px 24px rgba(0,0,0,.6)}
 /* 발췌 템플릿 (v2.0 사용자 요청 · ExcerptMaker) — 가로: 글 위에 사진 띠 / 세로: 왼쪽 세로 사진 + 오른쪽 글 */
-.excerpt-card:is(.ex-tpl-wide,.ex-tpl-side){width:800px}   /* 사진 템플릿 폭 고정 — 세로형은 4:5 (높이는 ExcerptMaker가 맞춘다), 가로형 높이는 글 길이대로 */
+.excerpt-card:is(.ex-tpl-wide,.ex-tpl-side){width:800px}   /* 사진 템플릿 — 가로형은 폭 고정 · 높이는 글 길이대로, 세로형은 4:5에 가까운 폭을 ExcerptMaker가 찾는다 */
 .excerpt-card.ex-tpl-side .ex-frame{flex:1 1 auto}
 .excerpt-card .ex-hero{position:relative;aspect-ratio:3.4/1;margin:0 0 28px;overflow:hidden;box-shadow:0 0 0 1px rgba(190,208,228,.16)}
 .excerpt-card .ex-hero img,.excerpt-card .ex-side img{position:absolute;inset:0;width:100%;height:100%;max-width:none;margin:0;object-fit:cover;display:block}
