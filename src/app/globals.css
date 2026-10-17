@@ -593,9 +593,9 @@ html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote,.mng-box.a
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote,.mng-box.arch-modal .re-content blockquote{--qem:1em;--qname:'COMM';isolation:isolate}
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote > p:first-child::before,.mng-box.arch-modal .re-content blockquote > p:first-child::before{
   content:var(--qname);display:inline-block;box-sizing:border-box;width:47px;height:15px;
-  margin:0 calc(var(--qpl,62px) - 47px) 0 calc(-1 * var(--qpl,62px));padding:1px 0 0 .2em;   /* 왼쪽 안쪽 여백(--qpl, 발췌 카드는 비율대로 바뀐 값)만큼 앞으로 꺼내 글은 원래 자리에서 시작 ·
-     글자는 줄 높이 15px로 가운데 — JetBrains Mono 대문자가 .8px 위로 뜨는 만큼 위 여백 1px (배율 1 · 1.25 · 1.5 · 3에서 잼).
-     크롬은 글자 기준선을 px 단위로 맞추므로 소수 여백(.8px)이나 text-box 다듬기는 자리마다 1px씩 튀었다 — 정수로 */
+  margin:0 calc(var(--qpl,62px) - 47px) 0 calc(-1 * var(--qpl,62px));padding:var(--qlp,1px) 0 0 .2em;   /* 왼쪽 안쪽 여백(--qpl, 발췌 카드는 비율대로 바뀐 값)만큼 앞으로 꺼내 글은 원래 자리에서 시작 ·
+     글자는 줄 높이 15px + 위 여백 --qlp(기기에서 실제 배치로 잰 값, QuoteNameSync — 못 재면 1px).
+     크롬은 글자 기준선을 px 단위로 맞추므로 소수 여백이나 text-box 다듬기는 자리마다 1px씩 튀었다 — 정수로 */
   vertical-align:calc(var(--qem) * var(--qhc,.34) - 7.5px);overflow:hidden;   /* --qhc: 실제 글꼴에서 잰 한글 가운데 높이 (QuoteNameSync) */
   pointer-events:none;text-align:center;text-indent:0;
   white-space:nowrap;text-overflow:ellipsis;text-transform:uppercase;   /* 딱지 글자 = 인용구 색의 캐릭터 이름 (components/shell/QuoteNameSync.tsx) */
@@ -606,7 +606,7 @@ html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote > p:first-
 }
 /* 문단 없이 글자만 든 인용구(붙여 넣은 HTML 등) — 예전처럼 왼쪽 위에 */
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote:not(:has(> p:first-child))::before,.mng-box.arch-modal .re-content blockquote:not(:has(> p:first-child))::before{
-  content:var(--qname);position:absolute;left:0;top:calc(var(--qpt,4px) + (var(--qlh) - 15px) / 2);width:47px;height:15px;padding:1px 0 0 .2em;
+  content:var(--qname);position:absolute;left:0;top:calc(var(--qpt,4px) + (var(--qlh) - 15px) / 2);width:47px;height:15px;padding:var(--qlp,1px) 0 0 .2em;
   pointer-events:none;box-sizing:border-box;text-align:center;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;
   font:500 9px/15px 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em;color:#05070a;background:var(--qt);box-shadow:0 0 10px -2px var(--qx)}

@@ -41,8 +41,35 @@ export function QuoteNameSync() {
       key = k;
       document.documentElement.style.setProperty('--qhc', hc.toFixed(3));
     };
-    const later = () => { window.clearTimeout(t); t = window.setTimeout(measure, 150); };
-    const onFonts = () => { key = ''; later(); };   // 웹 글꼴이 늦게 붙으면 다시
+    /* 딱지 안 글자(EDEN)도 같은 식으로 — 줄 높이 15px 안에서 기준선이 어디 오는지는 브라우저 · 운영체제마다 반올림이 달라
+       (윈도 150%에서 1~1.5px 처졌다 — v2.0 사용자 제보) 실제 배치로 재고, 대문자 가운데 높이는 캔버스로 재서 위 여백(--qlp)을 정한다.
+       크롬은 기준선을 px 단위로 맞추므로 여백도 정수 px로 */
+    let labelDone = false;
+    const measureLabel = () => {
+      // 딱지 글꼴이 붙은 뒤에만 — document.fonts.check는 같은 글꼴을 두 번 불러온 페이지(폰)에서 늘 거짓이라 직접 본다
+      if (labelDone || ![...(document.fonts ?? [])].some(f => f.family.includes('JetBrains Mono') && f.status === 'loaded')) return;
+      const ctx = document.createElement('canvas').getContext('2d');
+      if (!ctx) return;
+      const probe = document.createElement('span');
+      probe.style.cssText = 'position:absolute;left:-9999px;top:0;display:block;height:15px;padding:0;margin:0;border:0;'
+        + "font:500 9px/15px 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em;white-space:nowrap;visibility:hidden";
+      probe.textContent = 'EDEN';
+      const mark = document.createElement('i');
+      mark.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline';
+      probe.appendChild(mark);
+      document.body.appendChild(probe);
+      const base = mark.getBoundingClientRect().top - probe.getBoundingClientRect().top;   // 상자 위에서 기준선까지
+      probe.remove();
+      ctx.font = "500 90px 'JetBrains Mono','Noto Sans KR',monospace";
+      const m = ctx.measureText('EDEN');
+      const capMid = (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 20;   // 9px 글씨에서 기준선 위 대문자 가운데
+      const pad = Math.round(7.5 - (base - capMid));
+      if (!(base > 0 && base < 15) || pad < -2 || pad > 4) return;
+      labelDone = true;
+      document.documentElement.style.setProperty('--qlp', `${pad}px`);
+    };
+    const later = () => { window.clearTimeout(t); t = window.setTimeout(() => { measure(); measureLabel(); }, 150); };
+    const onFonts = () => { key = ''; labelDone = false; later(); };   // 웹 글꼴이 늦게 붙으면 다시
     later();
     const mo = new MutationObserver(later);   // 글 · 페이지가 바뀌어 인용구가 새로 뜨면
     mo.observe(document.body, { childList: true, subtree: true });

@@ -5,7 +5,7 @@ import { BOARD_UI_KEY, boardSkin } from '@/lib/boardSkin';
 import { onSettingChange } from '@/lib/settingStore';
 
 const FONT_ID = 'ui-arch-fonts';
-const FONT_URL = 'https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap';
+const FONT_URL = 'https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap';   // 인용구 딱지가 500
 
 export function BoardSkinSync() {
   useEffect(() => {
