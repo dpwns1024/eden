@@ -112,6 +112,27 @@ async function drawTags(url: string, tags: QuoteTag[]): Promise<string> {
   return cv.toDataURL('image/png');
 }
 
+/* ── 발췌 템플릿 (v2.0 사용자 요청) ──
+   글만(지금 모양) · 가로(글 위에 사진 띠) · 세로(왼쪽 세로 사진 + 오른쪽 글). 사진은 그때그때 직접 고른다 —
+   저장소에 올리지 않고 이 브라우저 안에서만 줄여(긴 변 1600px) 카드에 넣는다 */
+type ExTpl = 'text' | 'wide' | 'side';
+const TPL_KEY = 'ohome.excerpt.tpl';
+const TPL_LABEL: Record<ExTpl, string> = { text: '글만', wide: '가로', side: '세로' };
+/** 고른 사진을 긴 변 1600px 이하 JPEG로 — 큰 원본이 그대로 들어가 이미지 만들기가 느려지지 않게 */
+async function shrinkImage(file: File): Promise<string> {
+  const url = URL.createObjectURL(file);
+  try {
+    const im = new Image();
+    im.src = url;
+    await im.decode();
+    const k = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight));
+    const cv = document.createElement('canvas');
+    cv.width = Math.round(im.naturalWidth * k); cv.height = Math.round(im.naturalHeight * k);
+    cv.getContext('2d')?.drawImage(im, 0, 0, cv.width, cv.height);
+    return cv.toDataURL('image/jpeg', 0.9);
+  } finally { URL.revokeObjectURL(url); }
+}
+
 export function ExcerptMaker() {
   const { isAdmin, ready } = useAuth();
   const toast = useToast();
@@ -125,6 +146,18 @@ export function ExcerptMaker() {
   const [pick, setPick] = useState<{ root: Element; a: Element; b: Element; done: boolean } | null>(null);
   const pickRef = useRef(pick);
   pickRef.current = pick;
+  // 템플릿 · 직접 고른 사진 · 사진 위치(가로형은 위아래, 세로형은 좌우 — 0~100%)
+  const [tpl, setTplState] = useState<ExTpl>('text');
+  useEffect(() => { try { const v = localStorage.getItem(TPL_KEY); if (v === 'wide' || v === 'side') setTplState(v); } catch { /* */ } }, []);
+  const setTpl = (v: ExTpl) => { setTplState(v); try { localStorage.setItem(TPL_KEY, v); } catch { /* */ } };
+  const [exPhoto, setExPhoto] = useState<string | null>(null);
+  const [exPos, setExPos] = useState(30);
+  const photoRef = useRef<HTMLInputElement>(null);
+  const onPhoto = async (f?: File) => {
+    if (!f) return;
+    try { setExPhoto(await shrinkImage(f)); setExPos(tpl === 'side' ? 50 : 30); }
+    catch { toast('사진을 읽지 못했습니다'); }
+  };
 
   // 이 페이지에 고를 수 있는 본문이 있는가 — 있을 때만 ✂ 버튼을 보인다
   useEffect(() => {
@@ -269,6 +302,21 @@ export function ExcerptMaker() {
     }
     const frame = document.createElement('div');
     frame.className = 'ex-frame';
+    // 템플릿 — 사진을 안 골랐으면 글만으로
+    const useTpl: ExTpl = tpl !== 'text' && exPhoto ? tpl : 'text';
+    if (tpl !== 'text' && !exPhoto) toast('사진을 고르지 않아 글만으로 만듭니다');
+    let photoEl: HTMLImageElement | null = null;
+    if (useTpl !== 'text') {
+      card.classList.add(`ex-tpl-${useTpl}`);
+      const box = document.createElement('div');
+      box.className = useTpl === 'wide' ? 'ex-hero' : 'ex-side';
+      photoEl = document.createElement('img');
+      photoEl.src = exPhoto!;
+      photoEl.alt = '';
+      photoEl.style.objectPosition = useTpl === 'wide' ? `50% ${exPos}%` : `${exPos}% 50%`;
+      box.appendChild(photoEl);
+      frame.appendChild(box);
+    }
     const body = document.createElement('div');
     body.className = 'post-body ex-body';
     body.appendChild(frag);
@@ -294,6 +342,12 @@ export function ExcerptMaker() {
     card.appendChild(foot);
     document.body.appendChild(card);
     try {
+      if (photoEl) {
+        try { await photoEl.decode(); } catch { /* 못 읽어도 나머지는 찍는다 */ }
+        // 사진 칸 높이를 px로 박아 둔다 — 찍을 때 높이 계열은 옮기지 않아(아래 FREE) 가로형 사진 띠가 납작해졌다
+        const box = photoEl.parentElement as HTMLElement;
+        box.style.height = `${box.getBoundingClientRect().height}px`;
+      }
       const { toPng } = await import('html-to-image');
       // 화면 밖 위치(left:-30000px)는 찍을 때 빼야 한다 — 그대로 두면 그림 밖에 그려져 하얗게 나온다
       /* 높이는 옮기지 않는다 (v2.0 사용자 제보 — 엔터 친 곳이 없는데 문단 사이가 한 줄 벌어졌다).
@@ -351,6 +405,24 @@ export function ExcerptMaker() {
       {mode && (
         <div className="excerpt-bar">
           <span>{!pick ? '시작 문단을 누르세요' : !pick.done ? '끝 문단을 누르세요 (한 칸이면 바로 만들기)' : `${pickedBlocks(pick).length}칸 선택됨`}</span>
+          {/* 템플릿 (v2.0 사용자 요청) — 글만 · 가로(위 사진) · 세로(왼쪽 사진) */}
+          <span className="ex-tpls" role="group" aria-label="발췌 템플릿">
+            {(['text', 'wide', 'side'] as ExTpl[]).map(t => (
+              <button key={t} type="button" className={tpl === t ? 'on' : ''} onClick={() => setTpl(t)}>{TPL_LABEL[t]}</button>
+            ))}
+          </span>
+          {tpl !== 'text' && (
+            <>
+              <button type="button" className={exPhoto ? 'on' : ''} onClick={() => photoRef.current?.click()}>{exPhoto ? '사진 ✓' : '사진 고르기'}</button>
+              <input ref={photoRef} type="file" accept="image/*" hidden onChange={e => { void onPhoto(e.target.files?.[0]); e.target.value = ''; }} />
+              {exPhoto && (
+                <label className="ex-pos" title={tpl === 'wide' ? '사진 위아래 위치' : '사진 좌우 위치'}>
+                  {tpl === 'wide' ? '↕' : '↔'}
+                  <input type="range" min={0} max={100} value={exPos} onChange={e => setExPos(Number(e.target.value))} />
+                </label>
+              )}
+            </>
+          )}
           {pick && <button type="button" onClick={() => setPick(null)}>다시</button>}
           {pick && <button type="button" className="go" disabled={busy} onClick={() => void make()}>{busy ? '만드는 중…' : '이미지 만들기'}</button>}
           <button type="button" onClick={() => setMode(false)}>끄기</button>
