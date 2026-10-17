@@ -204,18 +204,6 @@ export function ExcerptMaker() {
   // 저장 · 공유할 그림 — 사진을 옮겼으면 캔버스에서 지금 모습으로
   const outUrl = () => (shot && cvRef.current ? cvRef.current.toDataURL('image/png') : img);
   const closeImg = () => { setImg(null); setShot(null); };
-  // 사진 미리보기 — 끌어서 위치 조절 (가로형은 위아래, 세로형은 좌우). 사진을 끄는 쪽으로 따라오게 반대로 더한다
-  const peekDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    const el = e.currentTarget; const r = el.getBoundingClientRect();
-    const v = tpl === 'wide'; const start = v ? e.clientY : e.clientX; const base = exPos; const len = v ? r.height : r.width;
-    el.setPointerCapture(e.pointerId);
-    const move = (ev: PointerEvent) => {
-      const d = (v ? ev.clientY : ev.clientX) - start;
-      setExPos(Math.max(0, Math.min(100, Math.round(base - d / len * 100))));
-    };
-    const up = () => { el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up); };
-    el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
-  };
   const onPhoto = async (f?: File) => {
     if (!f) return;
     try { setExPhoto(await shrinkImage(f)); setExPos(tpl === 'side' ? 50 : 30); }
@@ -407,13 +395,20 @@ export function ExcerptMaker() {
     let photoRect: Shot['rect'] | null = null;
     setShot(null);
     try {
+      /* 글꼴이 다 온 뒤에 잰다 — 카드 글씨(Noto Sans KR 300)가 아직 안 왔으면 대체 글꼴로 줄이 늘어난 채 재어,
+         찍을 때(글꼴을 넣어 그린다) 칸 높이 · 딱지 · 사진 자리가 어긋났다 (처음 만들 때만 가끔) */
+      void card.offsetHeight;
+      try { await document.fonts.ready; } catch { /* 못 기다려도 찍는다 */ }
       if (photoEl) {
         try { await photoEl.decode(); } catch { /* 못 읽어도 나머지는 찍는다 */ }
-        /* 사진 템플릿은 4:5로 고정 (v2.0 사용자 요청). 글이 넘치면 글씨를 줄이는 대신 카드를 통째로 넓힌다 —
-           글씨 · 딱지 · 여백 비율이 그대로라 그림에서는 글씨가 작아진 것과 같다. 아주 길면(폭 1600 넘게) 아래로 늘린다 */
-        let w = card.offsetWidth;
-        while (card.offsetHeight > w * 1.25 && w < 1600) { w += 40; card.style.width = `${w}px`; }
-        card.style.height = `${Math.max(card.offsetHeight, Math.round(w * 1.25))}px`;
+        /* 세로형은 4:5로 고정 (v2.0 사용자 요청). 글이 넘치면 글씨를 줄이는 대신 카드를 통째로 넓힌다 —
+           글씨 · 딱지 · 여백 비율이 그대로라 그림에서는 글씨가 작아진 것과 같다. 아주 길면(폭 1600 넘게) 아래로 늘린다.
+           가로형은 폭 · 사진 띠 높이만 고정하고 높이는 글 길이대로 (빈 여백 없이) */
+        if (useTpl === 'side') {
+          let w = card.offsetWidth;
+          while (card.offsetHeight > w * 1.25 && w < 1600) { w += 40; card.style.width = `${w}px`; }
+          card.style.height = `${Math.max(card.offsetHeight, Math.round(w * 1.25))}px`;
+        }
         // 사진 칸 높이를 px로 박아 둔다 — 찍을 때 높이 계열은 옮기지 않아(아래 FREE) 가로형 사진 띠가 납작해졌다
         // 사진도 같이 — 높이를 안 옮기면 그림은 제 비율대로 줄어 칸 위쪽에만 남는다
         const box = photoEl.parentElement as HTMLElement;
@@ -498,18 +493,6 @@ export function ExcerptMaker() {
             <>
               <button type="button" className={exPhoto ? 'on' : ''} onClick={() => photoRef.current?.click()}>{exPhoto ? '사진 ✓' : '사진 고르기'}</button>
               <input ref={photoRef} type="file" accept="image/*" hidden onChange={e => { void onPhoto(e.target.files?.[0]); e.target.value = ''; }} />
-              {exPhoto && (
-                <div className={`ex-peek ex-peek-${tpl}`} title="끌어서 위치 조절" onPointerDown={peekDown}>
-                  <img src={exPhoto} alt="" draggable={false}
-                    style={{ objectPosition: tpl === 'wide' ? `50% ${exPos}%` : `${exPos}% 50%` }} />
-                </div>
-              )}
-              {exPhoto && (
-                <label className="ex-pos" title={tpl === 'wide' ? '사진 위아래 위치' : '사진 좌우 위치'}>
-                  {tpl === 'wide' ? '↕' : '↔'}
-                  <input type="range" min={0} max={100} value={exPos} onChange={e => setExPos(Number(e.target.value))} />
-                </label>
-              )}
             </>
           )}
           {pick && <button type="button" onClick={() => setPick(null)}>다시</button>}
@@ -527,13 +510,7 @@ export function ExcerptMaker() {
           ? <canvas ref={cvRef} className="excerpt-preview ex-live" aria-label="발췌 이미지" onPointerDown={shotDown}
               style={{ touchAction: shot.tpl === 'wide' ? 'none' : 'pan-y' }} />
           : <img src={img} alt="발췌 이미지" className="excerpt-preview" />)}
-        {shot && (
-          <label className="ex-adj">
-            <span>{shot.tpl === 'wide' ? '↕' : '↔'}</span>
-            <input type="range" min={0} max={100} step={0.5} value={exPos} onChange={e => setExPos(Number(e.target.value))} />
-            <small>사진을 끌거나 막대로 옮기세요</small>
-          </label>
-        )}
+        {shot && <p className="ex-adj">사진을 끌어서 위치를 옮길 수 있어요</p>}
       </Modal>
     </>
   );
