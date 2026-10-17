@@ -36,7 +36,7 @@ type AnyMemo = { id: string; kind?: string; [k: string]: unknown };
 const isPrompt = (m: AnyMemo): m is AnyMemo & PromptItem => m.kind === 'prompt';
 
 const MAX_IMG = 6;
-const PER = 12;
+const PER = 18;   // PC 한 줄 6개 × 3줄
 const fmt = (d: string) => (d || '').slice(0, 10).replace(/-/g, '.');
 const today = () => {
   const n = new Date();
