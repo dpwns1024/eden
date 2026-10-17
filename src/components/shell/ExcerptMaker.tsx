@@ -356,9 +356,17 @@ export function ExcerptMaker() {
     try {
       if (photoEl) {
         try { await photoEl.decode(); } catch { /* 못 읽어도 나머지는 찍는다 */ }
+        /* 사진 템플릿은 4:5로 고정 (v2.0 사용자 요청). 글이 넘치면 글씨를 줄이는 대신 카드를 통째로 넓힌다 —
+           글씨 · 딱지 · 여백 비율이 그대로라 그림에서는 글씨가 작아진 것과 같다. 아주 길면(폭 1600 넘게) 아래로 늘린다 */
+        let w = card.offsetWidth;
+        while (card.offsetHeight > w * 1.25 && w < 1600) { w += 40; card.style.width = `${w}px`; }
+        card.style.height = `${Math.max(card.offsetHeight, Math.round(w * 1.25))}px`;
         // 사진 칸 높이를 px로 박아 둔다 — 찍을 때 높이 계열은 옮기지 않아(아래 FREE) 가로형 사진 띠가 납작해졌다
+        // 사진도 같이 — 높이를 안 옮기면 그림은 제 비율대로 줄어 칸 위쪽에만 남는다
         const box = photoEl.parentElement as HTMLElement;
-        box.style.height = `${box.getBoundingClientRect().height}px`;
+        const bh = `${box.getBoundingClientRect().height}px`;
+        box.style.height = bh;
+        photoEl.style.height = bh;
       }
       const { toPng } = await import('html-to-image');
       // 화면 밖 위치(left:-30000px)는 찍을 때 빼야 한다 — 그대로 두면 그림 밖에 그려져 하얗게 나온다
