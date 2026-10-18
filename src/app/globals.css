@@ -3060,6 +3060,9 @@ html.ui-arch .excerpt-card.ex-tags-later .ex-body blockquote > p:first-child::be
 .excerpt-card .ex-body [data-ex-nobefore]::before{content:none !important}   /* 화면에서 빈 줄 표시가 없던 칸 (ExcerptMaker 화면 따라 하기) */
 .excerpt-card .ex-body :is(strong,b,h1,h2,h3){color:#fff}
 .excerpt-card .ex-body img{display:block;max-width:100%;height:auto;margin:12px auto}
+/* HTML로 넣은 칸(고정 폭 · 넓은 표 등)이 카드보다 넓으면 틀 밖으로 삐져나왔다 (v2.0 사용자 제보) — 카드 안에서는 담긴 칸 폭을 넘지 않게 */
+.excerpt-card .ex-body *{max-width:100%;box-sizing:border-box}
+.excerpt-card .ex-body{overflow-wrap:anywhere;min-width:0}
 .excerpt-card .ex-foot{margin:0;padding:12px 0;text-align:right;font:400 11px/16px var(--sans-base);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.06em;color:#6f7b89}   /* 글 제목 그대로 (대소문자 유지) · 한글 제목이 벌어져 보이지 않게 자간은 좁게 */
 /* 발췌 — 붙여 넣은 글에 남은 글자 크기 지정(span style)을 무시하고 한 크기로 (인용구 글씨가 들쭉날쭉하던 것) */
 .excerpt-card .ex-body :is(p,span,li,blockquote,div,em,i,strong,b,a,font){font-size:15px !important;line-height:1.5 !important}
