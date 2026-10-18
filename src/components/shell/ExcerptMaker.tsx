@@ -2,7 +2,7 @@
 /**
  * 발췌 이미지 만들기 (v2.0 사용자 요청 — 관리자 전용, 시험판).
  *
- * 발췌 모드 — 왼쪽 아래 ✂ 버튼으로 켜고, 시작 문단 → 끝 문단을 차례로 누르면 그 사이가 통째로 골라진다.
+ * 발췌 모드 — 왼쪽 아래 ✂ 버튼으로 켜고, 넣을 문단을 하나씩 누른다 (다시 누르면 빠진다 — 누른 칸만 들어간다).
  * 문단·이미지·인용구·구분선이 각각 한 칸이다. PC·모바일 같은 방식 (드래그로 고르기는 없앴다 — 사용자 요청).
  * 고른 부분은 홈페이지 배경 위 카드에 다시 그려 PNG로 만든다 → 미리보기 창에서 저장·공유.
  * 카드 아래 글씨는 그 글의 제목 — 본문 칸(또는 그 바깥)의 data-ex-title (없으면 페이지 제목).
@@ -68,26 +68,54 @@ async function drawTags(url: string, tags: QuoteTag[]): Promise<string> {
   if (!ctx) return url;
   ctx.drawImage(img, 0, 0);
   try { await document.fonts.load(`500 ${9 * PR}px "JetBrains Mono"`, 'EDEN'); } catch { /* 없으면 대체 글꼴 */ }
-  for (const t of tags) {
-    // 대사 첫 줄(딱지 오른쪽)에서 밝은 글자 픽셀이 있는 줄을 찾는다 — 쉼표 꼬리처럼 몇 점뿐인 줄은 뺀다
-    const x0 = Math.round((t.x + 62) * PR), x1 = Math.min(cv.width, Math.round((t.x + Math.min(t.w, 62 + 320)) * PR));
-    const y0 = Math.max(0, Math.round(t.y * PR)), y1 = Math.min(cv.height, Math.round((t.y + t.first) * PR));
-    let cy = (t.y + t.first / 2) * PR;   // 못 찾으면 줄 가운데
-    if (x1 > x0 && y1 > y0) {
-      const d = ctx.getImageData(x0, y0, x1 - x0, y1 - y0).data;
+  /* 대사 첫 줄을 찍힌 그림에서 찾는다 (v2.0 사용자 제보 — 딱지가 위아래로 어긋남).
+     html-to-image는 찍을 때 글씨를 0.1px 줄여(15 → 14.9px) 문단 줄바꿈이 화면 밖 카드와 한 줄씩 달라질 수 있다 —
+     카드에서 잰 자리만 믿으면 딱지가 그만큼 밀렸다. 그래서 그림에서 「대사 줄」을 직접 찾는다:
+     대사 글자는 흰색(본문 회색보다 밝다)이고, 딱지 칸(왼쪽 50px)은 비어 있다 — 본문 줄은 왼쪽 끝부터 글자가 차 있다.
+     줄 사이가 짧게 이어지는 대사 줄 묶음 = 인용구 하나, 그 첫 줄 가운데에 딱지를 놓는다 */
+  const W = cv.width, H = cv.height;
+  const all = ctx.getImageData(0, 0, W, H).data;
+  const lum = (x: number, y: number) => { const i = (y * W + x) * 4; return all[i] + all[i + 1] + all[i + 2]; };
+  const zx0 = Math.round(tags[0].x * PR), zx1 = Math.round((tags[0].x + 50) * PR);
+  const tx0 = Math.round((tags[0].x + 62) * PR), tx1 = Math.min(W, Math.round((tags[0].x + 62 + 320) * PR));
+  const kind: number[] = [];   // 0 빈 줄 · 1 대사 글자 · 2 본문 글자
+  for (let y = 0; y < H; y++) {
+    let z = 0, wht = 0;
+    for (let x = zx0; x < zx1; x++) if (lum(x, y) > 500) z++;
+    if (z > 3 * PR) { kind.push(2); continue; }   // 딱지 칸에 글자 — 본문 줄 (아래 세로선 한 줄은 빼고)
+    for (let x = tx0; x < tx1; x++) if (lum(x, y) > 690) wht++;
+    kind.push(wht > 0 ? 1 : 0);
+  }
+  const quoteLine = tags[0].first * PR;   // 대사 한 줄 높이 (그림 px)
+  const firsts: { top: number; bot: number }[] = [];
+  let lastBot = -1e9, sawBody = false;
+  for (let y = 0; y < H; y++) {
+    if (kind[y] === 2) { sawBody = true; continue; }
+    if (kind[y] !== 1) continue;
+    const top = y; while (y + 1 < H && kind[y + 1] === 1) y++;
+    // 같은 인용구의 다음 줄이면 넘긴다 — 본문 없이 한 줄 높이 안에서 이어질 때
+    if (!sawBody && top - lastBot < quoteLine * 0.8) { lastBot = y; continue; }
+    firsts.push({ top, bot: y }); lastBot = y; sawBody = false;
+  }
+  // 첫 줄 아래쪽에 붙은 같은 줄 조각(쉼표 꼬리 등)까지 한 줄로 — 줄 높이의 절반 안의 대사 글자를 합친다
+  for (const f of firsts) { for (let y = f.bot + 1; y < Math.min(H, f.top + quoteLine * 0.6); y++) if (kind[y] === 1) f.bot = y; }
+  const byOrder = firsts.length === tags.length;
+  tags.forEach((t, k) => {
+    const want = (t.y + t.first / 2) * PR;   // 카드에서 잰 자리 (못 찾으면 이 자리)
+    let hit = byOrder ? firsts[k] : undefined;
+    if (!hit) {
+      let best = 60 * PR;
+      for (const f of firsts) { const dd = Math.abs((f.top + f.bot) / 2 - want); if (dd < best) { best = dd; hit = f; } }
+    }
+    let cy = want;
+    if (hit) {
+      // 쉼표 꼬리처럼 몇 점뿐인 줄은 빼고 글자 몸통의 위아래로
       const rows: number[] = [];
-      for (let y = 0; y < y1 - y0; y++) {
-        let n = 0;
-        for (let x = 0; x < x1 - x0; x++) { const i = (y * (x1 - x0) + x) * 4; if (d[i] + d[i + 1] + d[i + 2] > 600) n++; }
-        rows.push(n);
-      }
-      const max = Math.max(...rows);
-      if (max > 0) {
-        const lim = Math.max(1, max * 0.06);
-        const top = rows.findIndex(n => n >= lim);
-        let bot = rows.length - 1; while (bot > top && rows[bot] < lim) bot--;
-        cy = y0 + (top + bot + 1) / 2;
-      }
+      for (let y = hit.top; y <= hit.bot; y++) { let n = 0; for (let x = tx0; x < tx1; x++) if (lum(x, y) > 690) n++; rows.push(n); }
+      const lim = Math.max(1, Math.max(...rows) * 0.06);
+      const a = rows.findIndex(n => n >= lim);
+      let b = rows.length - 1; while (b > a && rows[b] < lim) b--;
+      cy = hit.top + (a + b + 1) / 2;
     }
     const bw = 47 * PR, bh = 15 * PR, bx = Math.round(t.x * PR), by = Math.round(cy - bh / 2);
     // 번짐 — 화면의 box-shadow(0 0 10px -2px)처럼: 2px 작은 상자에서 흐린 그림자
@@ -108,7 +136,7 @@ async function drawTags(url: string, tags: QuoteTag[]): Promise<string> {
     const base = by + bh / 2 + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
     let x = bx + (bw - width(chars)) / 2;
     for (const c of chars) { ctx.fillText(c, x, base); x += ctx.measureText(c).width + sp; }
-  }
+  });
   return cv.toDataURL('image/png');
 }
 
@@ -448,7 +476,9 @@ export function ExcerptMaker() {
       const includeStyleProperties = Array.from(getComputedStyle(document.documentElement)).filter(n => !FREE.has(n));
       const opts = { pixelRatio: PR, cacheBust: false, imagePlaceholder: BLANK, includeStyleProperties,
         // 카드 높이만은 화면 밖에서 잰 값 그대로 — 그림 크기와 같아야 위아래 여백이 똑같이 나뉜다
-        style: { position: 'static', left: '0', top: '0', margin: '0', height: `${card.offsetHeight}px` } as Partial<CSSStyleDeclaration> };
+        style: { position: 'static', left: '0', top: '0', margin: '0', height: `${card.offsetHeight}px`,
+          // 사진 템플릿은 위에 붙여 찍는다 — 가운데 맞춤이면 줄바꿈이 한 줄 달라질 때 사진 칸이 내려가, 결과 화면에서 사진을 다시 그리는 자리(photoRect)와 어긋난다
+          ...(photoEl ? { justifyContent: 'flex-start' } : {}) } as Partial<CSSStyleDeclaration> };
       // 딱지 자리 · 색을 읽어 두고 카드에서는 비운다 — 찍은 뒤 캔버스로 그린다 (위 drawTags)
       const tags = collectTags(card);
       card.classList.add('ex-tags-later');

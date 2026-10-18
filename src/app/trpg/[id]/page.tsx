@@ -417,7 +417,7 @@ html,body{margin:0!important;padding:0!important;height:auto!important;min-heigh
       </div>
 
       {/* 본문만 폭 제한 — 헤더는 풀폭 위치 유지 */}
-      <div className="panel" style={{ padding: 24, maxWidth: 1000, margin: '0 auto' }}>
+      <div className="panel tl-read" style={{ padding: 24, maxWidth: 1000, margin: '0 auto' }}>
         {arch ? (
           /* ARCH — 캐릭터·페어 이름과 같은 강철 그라데이션. 한글은 얇은 명조 대신 고딕(Noto Sans KR)이 그라데이션을 또렷하게 받는다 */
           <>

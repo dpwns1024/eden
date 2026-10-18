@@ -58,6 +58,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{
           __html: `(function(){try{var m=JSON.parse(localStorage.getItem('ohome.themeCss.v1'));if(m){var s=document.documentElement.style;for(var k in m)s.setProperty(k,m[k]);}}catch(e){}})();`,
         }} />
+        {/* 본문 글꼴 Pretendard — 기기 글꼴(맑은 고딕 · 애플 산돌고딕 …)마다 굵기 · 폭이 달라 보이던 것을 홈에서 직접 내려 맞춘다
+            (v2.0 사용자 요청). 쓰는 글자가 든 조각만 받는다(dynamic subset) */}
+        <link rel="stylesheet" href="/fonts/pretendard/pretendard.css" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+KR:wght@500;700&display=swap"
