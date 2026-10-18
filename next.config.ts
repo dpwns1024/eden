@@ -26,7 +26,11 @@ const nextConfig: NextConfig = {
   // 응답에 「Next.js로 만든 사이트」라고 적지 않는다
   poweredByHeader: false,
   async headers() {
-    return [{ source: "/:path*", headers: SECURITY_HEADERS }];
+    return [
+      { source: "/:path*", headers: SECURITY_HEADERS },
+      // 본문 글꼴(Pretendard) 파일은 바뀌지 않는다 — 한 번 받으면 오래 쓴다
+      { source: "/fonts/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
+    ];
   },
   // 요약 주소로 오면 원래 페이지를 보여 준다 (주소창은 요약 주소 그대로)
   async rewrites() {

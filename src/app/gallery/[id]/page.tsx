@@ -128,7 +128,7 @@ export default function BackupDetailPage() {
           {(p.tags ?? []).map(t => <i key={t} className="tag-in g-tag">#{t}</i>)}
         </h2>
         {p.desc && (
-          <div className="post-body" data-ex-title={p.title} style={{ fontSize: 12.5, margin: '0 0 16px' }}
+          <div className="post-body" data-ex-title={p.title} style={{ margin: '0 0 16px' }}
             dangerouslySetInnerHTML={{ __html: sanitizeHtml(p.desc) }} />
         )}
 
