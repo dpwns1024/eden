@@ -306,7 +306,7 @@ export function ExcerptMaker() {
        (붙여 넣은 글의 제각각 크기 정리), 화면에서 아주 작게 그려진 글씨(숨은 줄)는 작게 그대로 둔다.
        화면에 없는 빈 줄 표시(::before 공백)는 카드에서도 붙이지 않는다 */
     const px = (v: string) => `${((parseFloat(v) || 0) * scale).toFixed(2)}px`;
-    const copyLayout = (o: Element, c: HTMLElement) => {
+    const copyLayout = (o: Element, c: HTMLElement, keep = false) => {
       if (o.matches(MEDIA)) return;
       const cs = getComputedStyle(o);
       const set = (k: string, v: string) => c.style.setProperty(k, v, 'important');
@@ -317,7 +317,7 @@ export function ExcerptMaker() {
         set(`padding-${side}`, px(cs.getPropertyValue(`padding-${side}`)));
       }
       const fs = parseFloat(cs.fontSize);
-      if (fs && fs < pageFont * 0.6) {
+      if (fs && (keep || fs < pageFont * 0.6)) {   // keep — HTML로 꾸민 상자: 글씨 크기를 통일하지 않고 화면 그대로 (작은 라벨이 커지던 것)
         set('font-size', px(cs.fontSize));
         set('line-height', cs.lineHeight.endsWith('px') ? px(cs.lineHeight) : 'normal');
       }
@@ -326,11 +326,11 @@ export function ExcerptMaker() {
       const before = getComputedStyle(o, '::before').content;
       if (!before || before === 'none' || before === 'normal') c.setAttribute('data-ex-nobefore', '');
     };
-    const copyTree = (o: Element, c: HTMLElement) => {
+    const copyTree = (o: Element, c: HTMLElement, keep = false) => {
       const os = [o, ...Array.from(o.querySelectorAll('*'))];
       const cs = [c, ...Array.from(c.querySelectorAll<HTMLElement>('*'))];
       if (os.length !== cs.length) return;
-      os.forEach((x, i) => copyLayout(x, cs[i]));
+      os.forEach((x, i) => copyLayout(x, cs[i], keep));
     };
     let prevEl: Element | null = null, prevBottom = 0;
     els.forEach(e => {
@@ -339,7 +339,7 @@ export function ExcerptMaker() {
       if (!isMedia && r.height < line * 0.5) return;   // 화면에서 안 보이는 칸
       const c = e.cloneNode(true) as HTMLElement;
       c.classList.remove('ex-picked');
-      copyTree(e, c);
+      copyTree(e, c, e.matches(':is(div,section,table,figure,aside,article)[style]'));
       // 보이는 글자가 없는 빈 줄은 화면에서의 높이 그대로 — 글씨 크기를 통일해도 커지지 않게
       const pin = (el: HTMLElement, h: number) => {
         el.style.setProperty('height', `${(h * scale).toFixed(1)}px`, 'important');
@@ -442,6 +442,18 @@ export function ExcerptMaker() {
          찍을 때(글꼴을 넣어 그린다) 칸 높이 · 딱지 · 사진 자리가 어긋났다 (처음 만들 때만 가끔) */
       void card.offsetHeight;
       try { await document.fonts.ready; } catch { /* 못 기다려도 찍는다 */ }
+      /* 틀 밖으로 나가는 칸 줄이기 (v2.0 사용자 제보 — HTML로 넣은 상자가 오른쪽으로 삐져나옴).
+         카드는 화면 본문보다 좁아, 화면 폭에 맞춰 둔 고정 폭 · 왼쪽 들여쓰기(margin)가 있는 칸은 max-width만으로는 안 막혔다 —
+         배치된 뒤 실제로 본문 오른쪽 끝을 넘는 칸의 폭을 남은 만큼으로 줄인다 (바깥 칸부터 차례로) */
+      const lim = body.getBoundingClientRect().right;
+      body.querySelectorAll<HTMLElement>('*').forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.width > 0 && r.right > lim + 0.5) {
+          el.style.setProperty('width', `${Math.max(0, lim - r.left).toFixed(1)}px`, 'important');
+          el.style.setProperty('max-width', 'none', 'important');
+          el.style.setProperty('min-width', '0', 'important');
+        }
+      });
       if (photoEl) {
         try { await photoEl.decode(); } catch { /* 못 읽어도 나머지는 찍는다 */ }
         /* 세로형은 4:5에 가깝게, 아래 빈 여백 없이 (v2.0 사용자 요청). 글씨를 줄이는 대신 카드 폭을 찾는다 —
