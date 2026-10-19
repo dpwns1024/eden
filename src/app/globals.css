@@ -3102,6 +3102,20 @@ html.ui-arch .excerpt-card{background:
 .excerpt-card .ex-hero img,.excerpt-card .ex-side img{position:absolute;inset:0;width:100%;height:100%;max-width:none;margin:0;object-fit:cover;display:block}
 .excerpt-card.ex-tpl-side .ex-frame{display:grid;grid-template-columns:34% minmax(0,1fr);column-gap:28px;align-items:start}
 .excerpt-card .ex-side{position:relative;align-self:stretch;overflow:hidden;box-shadow:0 0 0 1px rgba(190,208,228,.16)}   /* 칸 높이를 꽉 채우는 세로 띠 */
+/* 발췌 디자인 (v2.0 사용자 요청 — ARCH 시안) — 헤더: 제목 · 정보줄 · 빛나는 밑줄 / HUD: 좌표 · 신호 막대 · 왼쪽 눈금자 · 오른쪽 아래 제목 */
+.excerpt-card .ex-dh{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;grid-column:1/-1;font:400 10px/1.4 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.2em;color:#6f7b89}
+.excerpt-card.ex-d-report .ex-dh{padding:4px 0 14px;margin:0 0 0;border-bottom:1px solid rgba(190,208,228,.14)}
+.excerpt-card .ex-dh-t{font:400 24px/1.3 var(--sans-base);letter-spacing:0;color:#e8eef5;min-width:0}
+.excerpt-card .ex-dh-t small{display:block;margin-top:6px;font:400 10.5px/1.4 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.2em;color:#6f7b89}
+.excerpt-card .ex-dh-r{flex:0 0 auto;white-space:nowrap}
+.excerpt-card .ex-dh-ul{display:block;grid-column:1/-1;width:120px;height:1px;margin:-1px 0 24px;background:#8fb0d8;box-shadow:0 0 8px #8fb0d8}
+.excerpt-card.ex-d-hud .ex-frame{padding-left:52px}
+.excerpt-card.ex-d-hud .ex-dh{margin:0 0 22px}
+.excerpt-card.ex-d-hud .ex-dh b{font-weight:400;color:#8fb0d8}
+.excerpt-card.ex-d-hud .ex-dh-r i{display:inline-block;width:3px;margin-left:2px;background:#8fb0d8;vertical-align:bottom}
+.excerpt-card .ex-rule{position:absolute;left:20px;top:28px;bottom:28px;width:10px;background:repeating-linear-gradient(180deg,rgba(190,208,228,.35) 0 1px,transparent 1px 12px);border-left:1px solid rgba(190,208,228,.25)}
+.excerpt-card .ex-df{grid-column:1/-1;margin:20px 0 0;text-align:right;font:400 10px/1.4 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.2em;color:#6f7b89}
+.excerpt-card:is(.ex-d-report,.ex-d-hud) .ex-foot:empty{padding:0;height:40px}
 .excerpt-bar .ex-tpls{flex:0 0 auto;display:inline-flex;gap:0}
 .excerpt-bar .ex-tpls button{border-radius:0;margin-left:-1px}
 .excerpt-bar button.on{border-color:#8fb0d8;color:#fff;background:rgba(96,124,160,.2)}
