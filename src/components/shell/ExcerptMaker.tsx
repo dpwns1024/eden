@@ -146,6 +146,10 @@ async function drawTags(url: string, tags: QuoteTag[]): Promise<string> {
 type ExTpl = 'text' | 'wide' | 'side';
 const TPL_KEY = 'ohome.excerpt.tpl';
 const TPL_LABEL: Record<ExTpl, string> = { text: '글만', wide: '가로', side: '세로' };
+/* 디자인 (v2.0 사용자 요청 — ARCH 시안 A · D) — 기본 · 리포트 헤더(위에 제목 · 정보줄 · 빛나는 밑줄) · HUD(왼쪽 눈금자 · 좌표 · 신호 막대) */
+type ExDesign = 'base' | 'report' | 'hud';
+const DESIGN_KEY = 'ohome.excerpt.design';
+const DESIGN_LABEL: Record<ExDesign, string> = { base: '기본', report: '헤더', hud: 'HUD' };
 /* 다 만든 그림에서 사진 위치 고치기 (v2.0 사용자 요청 — 결과 화면을 보면서 조절).
    찍은 그림(base)과 사진 칸 자리(rect, 그림 px)를 들고 있다가, 위치가 바뀌면 그 칸만 캔버스에 다시 그린다 —
    카드를 다시 찍지 않아 끌면 바로 따라온다. 그리는 법은 CSS object-fit: cover + object-position과 같다 */
@@ -204,6 +208,9 @@ export function ExcerptMaker() {
   const [tpl, setTplState] = useState<ExTpl>('text');
   useEffect(() => { try { const v = localStorage.getItem(TPL_KEY); if (v === 'wide' || v === 'side') setTplState(v); } catch { /* */ } }, []);
   const setTpl = (v: ExTpl) => { setTplState(v); try { localStorage.setItem(TPL_KEY, v); } catch { /* */ } };
+  const [design, setDesignState] = useState<ExDesign>('base');
+  useEffect(() => { try { const v = localStorage.getItem(DESIGN_KEY); if (v === 'report' || v === 'hud') setDesignState(v); } catch { /* */ } }, []);
+  const setDesign = (v: ExDesign) => { setDesignState(v); try { localStorage.setItem(DESIGN_KEY, v); } catch { /* */ } };
   const [exPhoto, setExPhoto] = useState<string | null>(null);
   const [exPos, setExPos] = useState(30);
   const photoRef = useRef<HTMLInputElement>(null);
@@ -431,7 +438,33 @@ export function ExcerptMaker() {
     foot.className = 'ex-foot';
     // 글 제목 (v2.0 사용자 요청 — 홈 제목 대신). 본문 칸에 적어 둔 data-ex-title, 없으면 페이지 제목
     foot.textContent = pick?.root.closest('[data-ex-title]')?.getAttribute('data-ex-title')?.trim() || document.title || '';
-    frame.appendChild(body);
+    // 디자인 머리 · 꼬리 — 글 제목은 머리(헤더) · 오른쪽 아래(HUD)로 옮기고 카드 아래 제목은 뺀다
+    if (design !== 'base') {
+      card.classList.add(`ex-d-${design}`);
+      const title = foot.textContent || '';
+      const info = (pick?.root.closest('.page')?.querySelector('.page-head p')?.textContent || '').trim();
+      const el = (tag: string, cls: string, text = '') => { const e = document.createElement(tag); e.className = cls; e.textContent = text; return e; };
+      const head = el('div', 'ex-dh');
+      if (design === 'report') {
+        const l = el('div', 'ex-dh-t', title);
+        if (info) l.appendChild(el('small', '', info.toUpperCase()));
+        head.append(l, el('span', 'ex-dh-r', 'ARCH // EXCERPT'));
+        frame.insertBefore(head, frame.firstChild);
+        frame.insertBefore(el('i', 'ex-dh-ul'), head.nextSibling);
+      } else {
+        const sig = el('span', 'ex-dh-r', 'LINK ');
+        [4, 7, 10, 13].forEach((h, k) => { const b = el('i', ''); b.style.height = `${h}px`; if (k === 3) b.style.opacity = '.3'; sig.appendChild(b); });
+        const l = el('span', 'ex-dh-l', 'N 37°33′ · E 126°58′ · SIGNAL ');
+        l.appendChild(el('b', '', 'MASKED'));
+        head.append(l, sig);
+        frame.insertBefore(head, frame.firstChild);
+        frame.appendChild(el('i', 'ex-rule'));
+        const hex = Math.floor(Math.random() * 0xffff).toString(16).toUpperCase().padStart(4, '0');
+        frame.appendChild(el('div', 'ex-df', `${title} · SESSION 0x${hex}`));
+      }
+      foot.textContent = '';
+    }
+    frame.insertBefore(body, frame.querySelector(':scope > .ex-df'));
     card.appendChild(frame);
     card.appendChild(foot);
     document.body.appendChild(card);
@@ -445,15 +478,24 @@ export function ExcerptMaker() {
       /* 틀 밖으로 나가는 칸 줄이기 (v2.0 사용자 제보 — HTML로 넣은 상자가 오른쪽으로 삐져나옴).
          카드는 화면 본문보다 좁아, 화면 폭에 맞춰 둔 고정 폭 · 왼쪽 들여쓰기(margin)가 있는 칸은 max-width만으로는 안 막혔다 —
          배치된 뒤 실제로 본문 오른쪽 끝을 넘는 칸의 폭을 남은 만큼으로 줄인다 (바깥 칸부터 차례로) */
-      const lim = body.getBoundingClientRect().right;
-      body.querySelectorAll<HTMLElement>('*').forEach(el => {
-        const r = el.getBoundingClientRect();
-        if (r.width > 0 && r.right > lim + 0.5) {
-          el.style.setProperty('width', `${Math.max(0, lim - r.left).toFixed(1)}px`, 'important');
-          el.style.setProperty('max-width', 'none', 'important');
-          el.style.setProperty('min-width', '0', 'important');
-        }
-      });
+      // 카드 폭이 바뀌면(세로형 4:5 맞추기) 다시 — 지난번에 줄인 폭은 먼저 풀고
+      const clampWide = () => {
+        body.querySelectorAll<HTMLElement>('[data-ex-clamp]').forEach(el => {
+          el.removeAttribute('data-ex-clamp');
+          ['width', 'max-width', 'min-width'].forEach(k => el.style.removeProperty(k));
+        });
+        const lim = body.getBoundingClientRect().right;
+        body.querySelectorAll<HTMLElement>('*').forEach(el => {
+          const r = el.getBoundingClientRect();
+          if (r.width > 0 && r.right > lim + 0.5) {
+            el.setAttribute('data-ex-clamp', '');
+            el.style.setProperty('width', `${Math.max(0, lim - r.left).toFixed(1)}px`, 'important');
+            el.style.setProperty('max-width', 'none', 'important');
+            el.style.setProperty('min-width', '0', 'important');
+          }
+        });
+      };
+      clampWide();
       if (photoEl) {
         try { await photoEl.decode(); } catch { /* 못 읽어도 나머지는 찍는다 */ }
         /* 세로형은 4:5에 가깝게, 아래 빈 여백 없이 (v2.0 사용자 요청). 글씨를 줄이는 대신 카드 폭을 찾는다 —
@@ -461,7 +503,7 @@ export function ExcerptMaker() {
            글씨 · 딱지 · 여백 비율이 그대로라 그림에서는 글씨 크기만 달라 보인다. 아주 짧거나(폭 640) 아주 길면(폭 1600) 그 폭에서 글 길이대로.
            가로형은 폭 · 사진 띠 높이만 고정하고 높이는 글 길이대로 */
         if (useTpl === 'side') {
-          const over = (w: number) => { card.style.width = `${w}px`; return card.offsetHeight - w * 1.25; };
+          const over = (w: number) => { card.style.width = `${w}px`; clampWide(); return card.offsetHeight - w * 1.25; };
           let lo = 640, hi = 1600;
           if (over(lo) <= 0) hi = lo;
           else if (over(hi) < 0) {
@@ -549,6 +591,11 @@ export function ExcerptMaker() {
           <span className="ex-tpls" role="group" aria-label="발췌 템플릿">
             {(['text', 'wide', 'side'] as ExTpl[]).map(t => (
               <button key={t} type="button" className={tpl === t ? 'on' : ''} onClick={() => setTpl(t)}>{TPL_LABEL[t]}</button>
+            ))}
+          </span>
+          <span className="ex-tpls" role="group" aria-label="발췌 디자인">
+            {(['base', 'report', 'hud'] as ExDesign[]).map(d => (
+              <button key={d} type="button" className={design === d ? 'on' : ''} onClick={() => setDesign(d)}>{DESIGN_LABEL[d]}</button>
             ))}
           </span>
           {tpl !== 'text' && (
