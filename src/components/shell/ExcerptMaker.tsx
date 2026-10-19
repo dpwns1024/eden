@@ -39,14 +39,14 @@ const PR = 2;   // toPng pixelRatio
 function collectTags(card: HTMLElement): QuoteTag[] {
   const cr = card.getBoundingClientRect();
   return Array.from(card.querySelectorAll<HTMLElement>('.ex-body blockquote')).flatMap(bq => {
+    // 딱지는 첫 문단 앞(::before) — 문단 없이 글만 든 인용구(HTML로 넣은 상자 등)는 인용구 자체 앞에 붙는다
     const p = bq.querySelector<HTMLElement>(':scope > p:first-child');
-    if (!p) return [];
-    const ps = getComputedStyle(p, '::before');
+    const ps = getComputedStyle(p ?? bq, '::before');
     const raw = ps.content;
     if (!raw || raw === 'none' || raw === 'normal') return [];
     const bs = getComputedStyle(bq);
     const r = bq.getBoundingClientRect();
-    const lh = parseFloat(getComputedStyle(p).lineHeight) || 22;
+    const lh = parseFloat(getComputedStyle(p ?? bq).lineHeight) || 22;
     const pt = parseFloat(bs.paddingTop) || 0;
     return [{
       x: r.left - cr.left, y: r.top - cr.top + pt, w: r.width, first: lh,
@@ -68,54 +68,32 @@ async function drawTags(url: string, tags: QuoteTag[]): Promise<string> {
   if (!ctx) return url;
   ctx.drawImage(img, 0, 0);
   try { await document.fonts.load(`500 ${9 * PR}px "JetBrains Mono"`, 'EDEN'); } catch { /* 없으면 대체 글꼴 */ }
-  /* 대사 첫 줄을 찍힌 그림에서 찾는다 (v2.0 사용자 제보 — 딱지가 위아래로 어긋남).
-     html-to-image는 찍을 때 글씨를 0.1px 줄여(15 → 14.9px) 문단 줄바꿈이 화면 밖 카드와 한 줄씩 달라질 수 있다 —
-     카드에서 잰 자리만 믿으면 딱지가 그만큼 밀렸다. 그래서 그림에서 「대사 줄」을 직접 찾는다:
-     대사 글자는 흰색(본문 회색보다 밝다)이고, 딱지 칸(왼쪽 50px)은 비어 있다 — 본문 줄은 왼쪽 끝부터 글자가 차 있다.
-     줄 사이가 짧게 이어지는 대사 줄 묶음 = 인용구 하나, 그 첫 줄 가운데에 딱지를 놓는다 */
+  /* 대사 첫 줄 글자의 실제 위아래를 찍힌 그림에서 찾아 그 가운데에 딱지를 놓는다 — 딱지마다 자기 자리에서
+     (HTML 상자 안 인용구는 들여쓰기만큼 x가 다르다). 찍을 때 글씨 크기를 그대로 두므로(아래 make) 줄바꿈이 카드와 같아
+     카드에서 잰 첫 줄 칸 안에서만 찾으면 된다 */
   const W = cv.width, H = cv.height;
-  const all = ctx.getImageData(0, 0, W, H).data;
-  const lum = (x: number, y: number) => { const i = (y * W + x) * 4; return all[i] + all[i + 1] + all[i + 2]; };
-  const zx0 = Math.round(tags[0].x * PR), zx1 = Math.round((tags[0].x + 50) * PR);
-  const tx0 = Math.round((tags[0].x + 62) * PR), tx1 = Math.min(W, Math.round((tags[0].x + 62 + 320) * PR));
-  const kind: number[] = [];   // 0 빈 줄 · 1 대사 글자 · 2 본문 글자
-  for (let y = 0; y < H; y++) {
-    let z = 0, wht = 0;
-    for (let x = zx0; x < zx1; x++) if (lum(x, y) > 500) z++;
-    if (z > 3 * PR) { kind.push(2); continue; }   // 딱지 칸에 글자 — 본문 줄 (아래 세로선 한 줄은 빼고)
-    for (let x = tx0; x < tx1; x++) if (lum(x, y) > 690) wht++;
-    kind.push(wht > 0 ? 1 : 0);
-  }
-  const quoteLine = tags[0].first * PR;   // 대사 한 줄 높이 (그림 px)
-  const firsts: { top: number; bot: number }[] = [];
-  let lastBot = -1e9, sawBody = false;
-  for (let y = 0; y < H; y++) {
-    if (kind[y] === 2) { sawBody = true; continue; }
-    if (kind[y] !== 1) continue;
-    const top = y; while (y + 1 < H && kind[y + 1] === 1) y++;
-    // 같은 인용구의 다음 줄이면 넘긴다 — 본문 없이 한 줄 높이 안에서 이어질 때
-    if (!sawBody && top - lastBot < quoteLine * 0.8) { lastBot = y; continue; }
-    firsts.push({ top, bot: y }); lastBot = y; sawBody = false;
-  }
-  // 첫 줄 아래쪽에 붙은 같은 줄 조각(쉼표 꼬리 등)까지 한 줄로 — 줄 높이의 절반 안의 대사 글자를 합친다
-  for (const f of firsts) { for (let y = f.bot + 1; y < Math.min(H, f.top + quoteLine * 0.6); y++) if (kind[y] === 1) f.bot = y; }
-  const byOrder = firsts.length === tags.length;
-  tags.forEach((t, k) => {
-    const want = (t.y + t.first / 2) * PR;   // 카드에서 잰 자리 (못 찾으면 이 자리)
-    let hit = byOrder ? firsts[k] : undefined;
-    if (!hit) {
-      let best = 60 * PR;
-      for (const f of firsts) { const dd = Math.abs((f.top + f.bot) / 2 - want); if (dd < best) { best = dd; hit = f; } }
-    }
-    let cy = want;
-    if (hit) {
-      // 쉼표 꼬리처럼 몇 점뿐인 줄은 빼고 글자 몸통의 위아래로
+  tags.forEach(t => {
+    const x0 = Math.round((t.x + 62) * PR), x1 = Math.min(W, Math.round((t.x + Math.min(t.w, 62 + 320)) * PR));
+    const y0 = Math.max(0, Math.round((t.y - 3) * PR)), y1 = Math.min(H, Math.round((t.y + t.first + 3) * PR));
+    let cy = (t.y + t.first / 2) * PR;
+    if (x1 > x0 && y1 > y0) {
+      const d = ctx.getImageData(x0, y0, x1 - x0, y1 - y0).data;
       const rows: number[] = [];
-      for (let y = hit.top; y <= hit.bot; y++) { let n = 0; for (let x = tx0; x < tx1; x++) if (lum(x, y) > 690) n++; rows.push(n); }
-      const lim = Math.max(1, Math.max(...rows) * 0.06);
-      const a = rows.findIndex(n => n >= lim);
-      let b = rows.length - 1; while (b > a && rows[b] < lim) b--;
-      cy = hit.top + (a + b + 1) / 2;
+      for (let y = 0; y < y1 - y0; y++) {
+        let n = 0;
+        for (let x = 0; x < x1 - x0; x++) { const k = (y * (x1 - x0) + x) * 4; if (d[k] + d[k + 1] + d[k + 2] > 600) n++; }
+        rows.push(n);
+      }
+      const max = Math.max(...rows);
+      if (max > 0) {
+        // 쉼표 꼬리처럼 몇 점뿐인 줄은 빼고, 가장 굵은 줄이 든 글자 덩어리 하나만 (위아래 줄 끝이 칸에 걸려도)
+        const lim = Math.max(1, max * 0.06);
+        const peak = rows.indexOf(max);
+        let a = peak, b = peak;
+        while (a > 0 && rows[a - 1] >= lim) a--;
+        while (b < rows.length - 1 && rows[b + 1] >= lim) b++;
+        cy = y0 + (a + b + 1) / 2;
+      }
     }
     const bw = 47 * PR, bh = 15 * PR, bx = Math.round(t.x * PR), by = Math.round(cy - bh / 2);
     // 번짐 — 화면의 box-shadow(0 0 10px -2px)처럼: 2px 작은 상자에서 흐린 그림자
@@ -146,10 +124,11 @@ async function drawTags(url: string, tags: QuoteTag[]): Promise<string> {
 type ExTpl = 'text' | 'wide' | 'side';
 const TPL_KEY = 'ohome.excerpt.tpl';
 const TPL_LABEL: Record<ExTpl, string> = { text: '글만', wide: '가로', side: '세로' };
-/* 디자인 (v2.0 사용자 요청 — ARCH 시안 A · D) — 기본 · 리포트 헤더(위에 제목 · 정보줄 · 빛나는 밑줄) · HUD(왼쪽 눈금자 · 좌표 · 신호 막대) */
-type ExDesign = 'base' | 'report' | 'hud';
+/* 디자인 (v2.0 사용자 요청 — ARCH 시안 A · D) — 기본 · 헤더(위에 제목 · 정보줄 · 빛나는 밑줄) ·
+   HUD(왼쪽 눈금자 · 오른쪽 아래 제목과 세션 번호) · HUD+제목(HUD 위에 제목과 그 옆 정보줄) */
+type ExDesign = 'base' | 'report' | 'hud' | 'hudt';
 const DESIGN_KEY = 'ohome.excerpt.design';
-const DESIGN_LABEL: Record<ExDesign, string> = { base: '기본', report: '헤더', hud: 'HUD' };
+const DESIGN_LABEL: Record<ExDesign, string> = { base: '기본', report: '헤더', hud: 'HUD', hudt: 'HUD+제목' };
 /* 다 만든 그림에서 사진 위치 고치기 (v2.0 사용자 요청 — 결과 화면을 보면서 조절).
    찍은 그림(base)과 사진 칸 자리(rect, 그림 px)를 들고 있다가, 위치가 바뀌면 그 칸만 캔버스에 다시 그린다 —
    카드를 다시 찍지 않아 끌면 바로 따라온다. 그리는 법은 CSS object-fit: cover + object-position과 같다 */
@@ -209,7 +188,7 @@ export function ExcerptMaker() {
   useEffect(() => { try { const v = localStorage.getItem(TPL_KEY); if (v === 'wide' || v === 'side') setTplState(v); } catch { /* */ } }, []);
   const setTpl = (v: ExTpl) => { setTplState(v); try { localStorage.setItem(TPL_KEY, v); } catch { /* */ } };
   const [design, setDesignState] = useState<ExDesign>('base');
-  useEffect(() => { try { const v = localStorage.getItem(DESIGN_KEY); if (v === 'report' || v === 'hud') setDesignState(v); } catch { /* */ } }, []);
+  useEffect(() => { try { const v = localStorage.getItem(DESIGN_KEY); if (v === 'report' || v === 'hud' || v === 'hudt') setDesignState(v); } catch { /* */ } }, []);
   const setDesign = (v: ExDesign) => { setDesignState(v); try { localStorage.setItem(DESIGN_KEY, v); } catch { /* */ } };
   const [exPhoto, setExPhoto] = useState<string | null>(null);
   const [exPos, setExPos] = useState(30);
@@ -452,15 +431,17 @@ export function ExcerptMaker() {
         frame.insertBefore(head, frame.firstChild);
         frame.insertBefore(el('i', 'ex-dh-ul'), head.nextSibling);
       } else {
-        const sig = el('span', 'ex-dh-r', 'LINK ');
-        [4, 7, 10, 13].forEach((h, k) => { const b = el('i', ''); b.style.height = `${h}px`; if (k === 3) b.style.opacity = '.3'; sig.appendChild(b); });
-        const l = el('span', 'ex-dh-l', 'N 37°33′ · E 126°58′ · SIGNAL ');
-        l.appendChild(el('b', '', 'MASKED'));
-        head.append(l, sig);
-        frame.insertBefore(head, frame.firstChild);
+        // HUD — 좌표 줄은 빼고(사용자 요청) 눈금자 · 오른쪽 아래 제목만. HUD+제목은 위에 제목과 그 옆 정보줄
+        card.classList.add('ex-d-hud');
+        if (design === 'hudt') {
+          const t = el('div', 'ex-dh-t', title);
+          if (info) t.appendChild(el('small', '', info.toUpperCase()));
+          head.appendChild(t);
+          frame.insertBefore(head, frame.firstChild);
+        }
         frame.appendChild(el('i', 'ex-rule'));
         const hex = Math.floor(Math.random() * 0xffff).toString(16).toUpperCase().padStart(4, '0');
-        frame.appendChild(el('div', 'ex-df', `${title} · SESSION 0x${hex}`));
+        frame.appendChild(el('div', 'ex-df', design === 'hudt' ? `SESSION 0x${hex}` : `${title} · SESSION 0x${hex}`));
       }
       foot.textContent = '';
     }
@@ -526,7 +507,12 @@ export function ExcerptMaker() {
          html-to-image는 찍을 때 글씨를 0.1px 줄이면서(15 → 14.9px) 칸마다 높이는 화면 밖 카드에서 잰 값으로 고정한다 —
          마지막 줄이 짧은 문단은 글씨가 줄면 한 줄이 줄어드는데, 고정된 높이만큼 빈 줄이 남아 엔터처럼 보였다.
          높이 계열만 빼면 찍는 순간의 글씨에 맞춰 높이가 다시 정해진다 */
-      const FREE = new Set(['height', 'block-size', 'min-block-size', 'max-block-size']);
+      /* 글씨 크기도 옮기지 않는다 (v2.0 사용자 제보 — 딱지 · 줄바꿈이 어긋남). html-to-image는 옮길 때 글씨를 내림해 0.1px 줄여
+         (15 → 14.9px) 줄바꿈이 카드와 달라졌다 — 칸마다 지금 글씨 크기를 직접 박아 두고(!important) 옮기는 목록에서 뺀다 */
+      [card, ...Array.from(card.querySelectorAll<HTMLElement>('*'))].forEach(el => {
+        el.style.setProperty('font-size', getComputedStyle(el).fontSize, 'important');
+      });
+      const FREE = new Set(['height', 'block-size', 'min-block-size', 'max-block-size', 'font-size']);
       const includeStyleProperties = Array.from(getComputedStyle(document.documentElement)).filter(n => !FREE.has(n));
       const opts = { pixelRatio: PR, cacheBust: false, imagePlaceholder: BLANK, includeStyleProperties,
         // 카드 높이만은 화면 밖에서 잰 값 그대로 — 그림 크기와 같아야 위아래 여백이 똑같이 나뉜다
@@ -594,7 +580,7 @@ export function ExcerptMaker() {
             ))}
           </span>
           <span className="ex-tpls" role="group" aria-label="발췌 디자인">
-            {(['base', 'report', 'hud'] as ExDesign[]).map(d => (
+            {(['base', 'report', 'hud', 'hudt'] as ExDesign[]).map(d => (
               <button key={d} type="button" className={design === d ? 'on' : ''} onClick={() => setDesign(d)}>{DESIGN_LABEL[d]}</button>
             ))}
           </span>
