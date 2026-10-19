@@ -3052,7 +3052,9 @@ html.ui-arch .excerpt-card .ex-body blockquote{background:
 html.ui-arch .excerpt-card .ex-body blockquote::after{content:none}
 html.ui-arch .excerpt-card .ex-body blockquote::before,html.ui-arch .excerpt-card .ex-body blockquote > p:first-child::before{box-shadow:none}   /* 딱지 번짐 — 폰에서 찍으면 오른쪽에 덩어리로 남는다 */
 /* 딱지는 찍은 뒤 캔버스로 그린다(ExcerptMaker drawTags) — 자리만 남기고 비워 둔다 */
-html.ui-arch .excerpt-card.ex-tags-later .ex-body blockquote > p:first-child::before{background:transparent!important;color:transparent!important}
+html.ui-arch .excerpt-card.ex-tags-later .ex-body blockquote > p:first-child::before{background:transparent!important;color:transparent!important;box-shadow:none!important}
+/* 문단 없는 인용구의 딱지(따로 떠 있는 칸)는 아예 뺀다 — 찍을 때 글자 칸처럼 자리를 차지해 대사가 한 줄 밀렸다 */
+html.ui-arch .excerpt-card.ex-tags-later .ex-body blockquote:not(:has(> p:first-child))::before{content:none!important}
 .excerpt-card .ex-body{font-size:15px;line-height:1.5;color:#c3ccd6;font-weight:300;word-break:normal;overflow-wrap:anywhere}
 .excerpt-card .ex-body p{margin:0 0 .9em}
 .excerpt-card .ex-body p:last-child{margin-bottom:0}
@@ -3103,19 +3105,23 @@ html.ui-arch .excerpt-card{background:
 .excerpt-card.ex-tpl-side .ex-frame{display:grid;grid-template-columns:34% minmax(0,1fr);column-gap:28px;align-items:start}
 .excerpt-card .ex-side{position:relative;align-self:stretch;overflow:hidden;box-shadow:0 0 0 1px rgba(190,208,228,.16)}   /* 칸 높이를 꽉 채우는 세로 띠 */
 /* 발췌 디자인 (v2.0 사용자 요청 — ARCH 시안) — 헤더: 제목 · 정보줄 · 빛나는 밑줄 / HUD: 좌표 · 신호 막대 · 왼쪽 눈금자 · 오른쪽 아래 제목 */
-.excerpt-card .ex-dh{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;grid-column:1/-1;font:400 10px/1.4 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.2em;color:#6f7b89}
+.excerpt-card .ex-dh{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;grid-column:1/-1;font:400 10px/1.4 'JetBrains Mono',var(--sans-base);letter-spacing:.2em;color:#6f7b89}
 .excerpt-card.ex-d-report .ex-dh{padding:4px 0 14px;margin:0 0 0;border-bottom:1px solid rgba(190,208,228,.14)}
 .excerpt-card .ex-dh-t{font:400 24px/1.3 var(--sans-base);letter-spacing:0;color:#e8eef5;min-width:0}
-.excerpt-card .ex-dh-t small{display:block;margin-top:6px;font:400 10.5px/1.4 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.2em;color:#6f7b89}
+.excerpt-card .ex-dh-t small{display:block;margin-top:6px;font:400 10.5px/1.4 'JetBrains Mono',var(--sans-base);letter-spacing:.2em;color:#6f7b89}
 .excerpt-card .ex-dh-r{flex:0 0 auto;white-space:nowrap}
 .excerpt-card .ex-dh-ul{display:block;grid-column:1/-1;width:120px;height:1px;margin:-1px 0 24px;background:#8fb0d8;box-shadow:0 0 8px #8fb0d8}
 .excerpt-card.ex-d-hud .ex-frame{padding-left:52px}
-.excerpt-card.ex-d-hud .ex-dh{margin:0 0 22px}
+.excerpt-card.ex-d-hud .ex-dh{margin:0 0 22px;padding:0 0 14px;border-bottom:1px solid rgba(190,208,228,.14)}
+.excerpt-card.ex-d-hud .ex-dh-t{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 14px}
+.excerpt-card.ex-d-hud .ex-dh-t small{margin:0}
 .excerpt-card.ex-d-hud .ex-dh b{font-weight:400;color:#8fb0d8}
 .excerpt-card.ex-d-hud .ex-dh-r i{display:inline-block;width:3px;margin-left:2px;background:#8fb0d8;vertical-align:bottom}
 .excerpt-card .ex-rule{position:absolute;left:20px;top:28px;bottom:28px;width:10px;background:repeating-linear-gradient(180deg,rgba(190,208,228,.35) 0 1px,transparent 1px 12px);border-left:1px solid rgba(190,208,228,.25)}
-.excerpt-card .ex-df{grid-column:1/-1;margin:20px 0 0;text-align:right;font:400 10px/1.4 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.2em;color:#6f7b89}
-.excerpt-card:is(.ex-d-report,.ex-d-hud) .ex-foot:empty{padding:0;height:40px}
+.excerpt-card .ex-df{grid-column:1/-1;margin:20px 0 0;text-align:right;font:400 10px/1.4 'JetBrains Mono',var(--sans-base);letter-spacing:.2em;color:#6f7b89}
+/* 디자인 카드는 아래 제목 줄 대신 여백 40px — 빈 줄에 높이를 주면 찍을 때 높이가 안 옮겨져 아래만 좁아졌다 */
+.excerpt-card:is(.ex-d-report,.ex-d-hud){padding-bottom:40px}
+.excerpt-card:is(.ex-d-report,.ex-d-hud) .ex-foot:empty{display:none}
 .excerpt-bar .ex-tpls{flex:0 0 auto;display:inline-flex;gap:0}
 .excerpt-bar .ex-tpls button{border-radius:0;margin-left:-1px}
 .excerpt-bar button.on{border-color:#8fb0d8;color:#fff;background:rgba(96,124,160,.2)}
