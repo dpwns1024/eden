@@ -3368,3 +3368,50 @@ html.ui-arch .page-prompt .pr-noimg span{color:var(--a-dim)}
   .pr-viewbody .pr-text{max-height:none;font-size:calc(11px*var(--fs,1));line-height:1.65;padding:10px 11px}
 }
 .mng-box.pr-modal{width:min(560px,94vw)}
+
+/* ===== 접은글 · 박스칸 (RichEditor Fold · Box — v2.0 사용자 요청) =====
+   본문을 그리는 곳 어디서든(.prose · .post-body · 에디터) 같은 모양 — 속성(data-fold · data-box)으로 찾는다. 색은 --fx(고른 색, 없으면 강조색) */
+/* 접은글 — 시안 A 「신호 막대」: 위아래 선 사이 한 줄 [FOLD 딱지][제목……][OPEN ⌄], 누르면 아래로 본문 */
+details[data-fold]{--fx0:var(--fx,#8fb0d8);margin:18px 0;border-top:1px solid color-mix(in srgb,var(--fx0) 30%,transparent);border-bottom:1px solid color-mix(in srgb,var(--fx0) 30%,transparent)}
+details[data-fold] > summary{display:flex;align-items:center;gap:12px;min-height:44px;padding:6px 4px;list-style:none;cursor:var(--cur-pointer,pointer);color:inherit;font-weight:400}
+details[data-fold] > summary::-webkit-details-marker{display:none}
+details[data-fold] > summary::before{content:'FOLD';flex:0 0 auto;font:500 10px/1 'JetBrains Mono','Pretendard Variable',monospace;letter-spacing:.2em;color:#05070a;
+  background:color-mix(in srgb,var(--fx0) 55%,#fff);padding:3px 7px 3px 9px;box-shadow:0 0 10px -2px var(--fx0)}
+details[data-fold] > summary::after{content:'OPEN';flex:0 0 auto;margin-left:auto;padding-right:18px;font:400 10px/1 'JetBrains Mono',monospace;letter-spacing:.2em;opacity:.6;
+  background:no-repeat right center/12px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5 6 7.5 9 4.5' fill='none' stroke='%238fb0d8' stroke-width='1.4'/%3E%3C/svg%3E")}
+details[data-fold][open] > summary::after{content:'CLOSE';background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 7.5 6 4.5 9 7.5' fill='none' stroke='%238fb0d8' stroke-width='1.4'/%3E%3C/svg%3E")}
+details[data-fold] > [data-fold-body]{padding:2px 4px 16px 66px}   /* 본문은 제목 글자 자리에 맞춰 (딱지 폭 + 사이) */
+details[data-fold] > [data-fold-body] > :first-child{margin-top:0}
+details[data-fold] > [data-fold-body] > :last-child{margin-bottom:0}
+@media (max-width:620px){ details[data-fold] > [data-fold-body]{padding-left:4px} }
+/* 박스칸 — 꺾쇠(frame) · 딱지 머리(tag) · 단색 띠(band). 선 · 꺾쇠는 배경으로 그린다(발췌 이미지에서도 칸 크기를 따라가게) */
+[data-box]{--fx0:var(--fx,#8fb0d8);position:relative;margin:18px 0;box-sizing:border-box}
+[data-box] > :first-child{margin-top:0}
+[data-box] > :last-child{margin-bottom:0}
+[data-box="frame"]{--cn:color-mix(in srgb,var(--fx0) 45%,#e6eef6);--ln:color-mix(in srgb,var(--fx0) 24%,transparent);padding:20px 22px;background:
+  linear-gradient(var(--cn),var(--cn)) 0 0/10px 1px no-repeat,linear-gradient(var(--cn),var(--cn)) 0 0/1px 10px no-repeat,
+  linear-gradient(var(--cn),var(--cn)) 100% 100%/10px 1px no-repeat,linear-gradient(var(--cn),var(--cn)) 100% 100%/1px 10px no-repeat,
+  linear-gradient(var(--ln),var(--ln)) 0 0/100% 1px no-repeat,linear-gradient(var(--ln),var(--ln)) 0 100%/100% 1px no-repeat,
+  linear-gradient(var(--ln),var(--ln)) 0 0/1px 100% no-repeat,linear-gradient(var(--ln),var(--ln)) 100% 0/1px 100% no-repeat,
+  color-mix(in srgb,var(--fx0) 5%,transparent)}
+[data-box="tag"]{--ln:color-mix(in srgb,var(--fx0) 35%,transparent);padding:52px 18px 16px;border:1px solid var(--ln);
+  background:linear-gradient(var(--ln),var(--ln)) 0 36px/100% 1px no-repeat,color-mix(in srgb,var(--fx0) 6%,transparent)}
+[data-box="tag"]::before{content:attr(data-label);position:absolute;left:16px;top:10px;max-width:calc(100% - 32px);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+  font:500 9px/15px 'JetBrains Mono','Pretendard Variable',monospace;letter-spacing:.2em;color:#05070a;background:color-mix(in srgb,var(--fx0) 55%,#fff);padding:0 7px 0 9px;box-shadow:0 0 10px -2px var(--fx0)}
+[data-box="band"]{padding:14px 18px 14px 20px;background:linear-gradient(var(--fx0),var(--fx0)) 0 0/2px 100% no-repeat,color-mix(in srgb,var(--fx0) 8%,transparent)}
+/* 에디터 안 — 접은글은 늘 펼쳐 두고 점선으로 표시, OPEN 표시 대신 안내 */
+.re-content details[data-fold]{border:1px dashed color-mix(in srgb,var(--fx0) 45%,transparent);padding:0 8px}
+.re-content details[data-fold] > summary{cursor:text}
+.re-content details[data-fold] > summary::after{content:'접은글 — 저장하면 닫힌 채로';background:none;padding:0;letter-spacing:0;font-family:inherit}
+.re-content details[data-fold] > [data-fold-body]{padding-left:4px}
+/* 에디터 — 박스 · 접은글 설정 줄 */
+.re-ctx{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 8px;border-bottom:1px solid var(--line)}
+.re-ctx-h{font-size:12px;color:var(--sub);margin:0 2px 0 6px}
+.re-ctx-h:first-child{margin-left:0}
+.re-ctx-in{width:110px;padding:5px 8px;border:1px solid var(--line);background:transparent;color:inherit;font:500 11px/1.2 'JetBrains Mono',monospace;letter-spacing:.14em}
+.mng-box.arch-modal .re-ctx,html.ui-arch .page-arch .re-ctx{border-bottom-color:rgba(190,208,228,.22);background:rgba(13,18,25,.6)}
+.mng-box.arch-modal .re-ctx-in,html.ui-arch .page-arch .re-ctx-in{border-color:rgba(190,208,228,.22);border-radius:0}
+/* 발췌 이미지 — 접은글은 열린 채로 찍고(ExcerptMaker) OPEN/CLOSE 표시는 빼며, 딱지 번짐은 기기마다 달라 뺀다 */
+.excerpt-card details[data-fold] > summary::after{display:none}
+.excerpt-card :is(details[data-fold] > summary,[data-box="tag"])::before{box-shadow:none}
+html.ui-arch details[data-fold] > summary{color:#f4f6f8}   /* ARCH — 제목은 흰 글씨 (시안 A) */
