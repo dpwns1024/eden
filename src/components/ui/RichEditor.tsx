@@ -1,7 +1,8 @@
 'use client';
 // 리치 텍스트 에디터 (TipTap) — 프로필 탭 등 HTML 콘텐츠 작성용
 import React, { useEffect, useRef, useState } from 'react';
-import { useEditor, EditorContent, Mark, mergeAttributes } from '@tiptap/react';
+import { useEditor, useEditorState, EditorContent, Mark, Node, mergeAttributes } from '@tiptap/react';
+import { TextSelection } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Blockquote from '@tiptap/extension-blockquote';
@@ -24,6 +25,87 @@ const ToneQuote = Blockquote.extend({
     };
   },
 });
+
+const HEX = /^#[0-9a-f]{3,8}$/i;
+/** 접은글 · 박스칸 색 — data-tone에 적고 CSS 변수(--fx)로 넘긴다 (globals.css [data-fold] · [data-box]) */
+const toneAttr = {
+  default: null,
+  parseHTML: (el: HTMLElement) => el.getAttribute('data-tone'),
+  renderHTML: (a: Record<string, unknown>) => (a.tone && HEX.test(String(a.tone)) ? { 'data-tone': a.tone, style: `--fx:${a.tone}` } : {}),
+};
+
+/* 접은글 (v2.0 사용자 요청 — 시안 A 신호 막대). 저장은 <details data-fold><summary>제목</summary><div data-fold-body>…</div></details> —
+   브라우저가 스스로 열고 닫아, 본문을 그리는 곳 어디서든 스크립트 없이 접힌다. 기본은 닫힘.
+   에디터 안에서는 늘 펼쳐 둔다(open) — 저장할 때 open을 지워 닫힌 채로 남긴다 (아래 stripOpen) */
+const Fold = Node.create({
+  name: 'fold',
+  group: 'block',
+  content: 'foldTitle foldBody',
+  defining: true,
+  addAttributes() { return { tone: toneAttr }; },
+  parseHTML() { return [{ tag: 'details[data-fold]' }]; },
+  renderHTML({ HTMLAttributes }) { return ['details', mergeAttributes(HTMLAttributes, { 'data-fold': '', open: '' }), 0]; },
+});
+const FoldTitle = Node.create({
+  name: 'foldTitle',
+  content: 'inline*',
+  defining: true,
+  parseHTML() { return [{ tag: 'details[data-fold] > summary' }]; },
+  renderHTML() { return ['summary', 0]; },
+  addKeyboardShortcuts() {
+    return {
+      // 제목 맨 앞에서 지우기 — 앞 문단과 합쳐지며 앞 글이 통째로 지워졌다. 아무것도 하지 않는다
+      Backspace: ({ editor }) => {
+        const { empty, $from } = editor.state.selection;
+        return empty && $from.parent.type.name === 'foldTitle' && $from.parentOffset === 0;
+      },
+      // 제목에서 엔터 — 줄을 나누지 않고 접힌 본문 첫 줄로
+      Enter: ({ editor }) => {
+        const { $from } = editor.state.selection;
+        if ($from.parent.type.name !== 'foldTitle') return false;
+        const pos = $from.after() + 2;
+        if (pos > editor.state.doc.content.size) return false;
+        editor.view.dispatch(editor.state.tr.setSelection(TextSelection.near(editor.state.doc.resolve(pos))));
+        return true;
+      },
+    };
+  },
+});
+const FoldBody = Node.create({
+  name: 'foldBody',
+  content: 'block+',
+  defining: true,
+  parseHTML() { return [{ tag: 'details[data-fold] > div[data-fold-body]' }]; },
+  renderHTML() { return ['div', { 'data-fold-body': '' }, 0]; },
+});
+/* 박스칸 (v2.0 사용자 요청 — 시안 세 가지 모두): 꺾쇠(frame) · 딱지 머리(tag, 딱지 글자 data-label) · 단색 띠(band), 색은 고른 대로 */
+type BoxShape = 'frame' | 'tag' | 'band';
+const BOX_LABEL: Record<BoxShape, string> = { frame: '꺾쇠', tag: '딱지', band: '띠' };
+const Box = Node.create({
+  name: 'box',
+  group: 'block',
+  content: 'block+',
+  defining: true,
+  addAttributes() {
+    return {
+      shape: {
+        default: 'frame',
+        parseHTML: el => { const v = el.getAttribute('data-box'); return v === 'tag' || v === 'band' ? v : 'frame'; },
+        renderHTML: a => ({ 'data-box': a.shape }),
+      },
+      label: {
+        default: 'MEMO',
+        parseHTML: el => el.getAttribute('data-label') || 'MEMO',
+        renderHTML: a => (a.shape === 'tag' ? { 'data-label': String(a.label || 'MEMO') } : {}),
+      },
+      tone: toneAttr,
+    };
+  },
+  parseHTML() { return [{ tag: 'div[data-box]' }]; },
+  renderHTML({ HTMLAttributes }) { return ['div', HTMLAttributes, 0]; },
+});
+/** 에디터에서 늘 펼쳐 둔 접은글을 저장할 때는 닫힌 채로 */
+const stripOpen = (html: string) => html.replace(/(<details\b[^>]*?) open=""/g, '$1');
 
 // 외부 패키지 설치 없이 작동하는 자체 글자 색상 마크
 const TextColor = Mark.create({
@@ -88,17 +170,33 @@ export function RichEditor({ value, onChange, placeholder }: {
       ToneQuote,
       Image,
       TextColor,
+      Fold, FoldTitle, FoldBody, Box,
     ],
     content: value || '<p></p>',
     immediatelyRender: false,
     editorProps: {
       attributes: { class: 're-content prose' },
+      // 에디터 안에서 접은글 제목을 눌러도 접히지 않게 (글을 고치려고 누르는 것)
+      handleDOMEvents: {
+        click: (_v, e) => { if ((e.target as Element | null)?.closest?.('summary')) e.preventDefault(); return false; },
+      },
     },
-    onUpdate: ({ editor: e }) => onChange(e.getHTML()),
+    onUpdate: ({ editor: e }) => onChange(stripOpen(e.getHTML())),
+  });
+  // 커서가 박스 · 접은글 안이면 그 설정 줄을 띄운다 (커서만 옮겨도 다시 그리게)
+  const ctx = useEditorState({
+    editor,
+    selector: ({ editor: e }) => e ? {
+      box: e.isActive('box'), fold: e.isActive('fold'),
+      shape: (e.getAttributes('box').shape as BoxShape | undefined) ?? 'frame',
+      label: (e.getAttributes('box').label as string | undefined) ?? 'MEMO',
+      boxTone: (e.getAttributes('box').tone as string | null) ?? null,
+      foldTone: (e.getAttributes('fold').tone as string | null) ?? null,
+    } : null,
   });
 
   useEffect(() => {
-    if (editor && value !== editor.getHTML() && !editor.isFocused) {
+    if (editor && value !== stripOpen(editor.getHTML()) && !editor.isFocused) {
       editor.commands.setContent(value || '<p></p>', { emitUpdate: false });
     }
   }, [value, editor]);
@@ -126,6 +224,42 @@ export function RichEditor({ value, onChange, placeholder }: {
     setQuoteOpen(false);
   };
   const curTone = (editor.getAttributes('blockquote').tone as string | null) ?? null;
+
+  /* 접은글 · 박스칸 넣기 — 박스는 고른 문단을 감싸고, 못 감싸면 빈 박스를 넣는다. 뒤에 빈 줄을 두어 밖으로 나가 쓸 수 있게 */
+  const insertFold = () => {
+    editor.chain().focus().insertContent([
+      { type: 'fold', content: [
+        { type: 'foldTitle', content: [{ type: 'text', text: '접은 글' }] },
+        { type: 'foldBody', content: [{ type: 'paragraph' }] },
+      ] },
+      { type: 'paragraph' },
+    ]).run();
+  };
+  const insertBox = () => {
+    if (editor.isActive('box')) return;
+    if (!editor.chain().focus().wrapIn('box').run()) {
+      editor.chain().focus().insertContent([{ type: 'box', content: [{ type: 'paragraph' }] }, { type: 'paragraph' }]).run();
+    }
+  };
+  const setBox = (a: Record<string, unknown>) => editor.chain().focus().updateAttributes('box', a).run();
+  const setFoldTone = (tone: string | null) => editor.chain().focus().updateAttributes('fold', { tone }).run();
+  /** 색 고르기 — 기본(사이트 강조색) · 내 캐릭터 대표색 · 직접 (인용구 색과 같은 후보) */
+  const tonePicker = (cur: string | null, set: (t: string | null) => void) => (
+    <>
+      <button type="button" className={`re-qchip${!cur ? ' on' : ''}`} onMouseDown={e => e.preventDefault()} onClick={() => set(null)}>
+        <i className="re-qtone" />기본
+      </button>
+      {toneChips.map(c => (
+        <button key={c.name + c.color} type="button" className={`re-qchip${cur === c.color ? ' on' : ''}`}
+          onMouseDown={e => e.preventDefault()} onClick={() => set(c.color)}>
+          <i className="re-qtone" style={{ background: c.color }} />{c.name}
+        </button>
+      ))}
+      <label className="re-qchip">
+        <input type="color" value={cur ?? '#8fb0d8'} onChange={e => set(e.target.value)} />직접
+      </label>
+    </>
+  );
 
   const handleColorChange = (color: string) => {
     setCurrentColor(color);
@@ -167,6 +301,8 @@ export function RichEditor({ value, onChange, placeholder }: {
         <TBtn title="인용구 색" label={<span className="re-qtone" style={{ background: curTone ?? undefined }} />}
           on={quoteOpen} onClick={() => setQuoteOpen(o => !o)} />
         <TBtn title="구분선" label="—" onClick={() => editor.chain().focus().setHorizontalRule().run()} />
+        <TBtn title="접은글" label="접기" on={!!ctx?.fold} onClick={insertFold} />
+        <TBtn title="박스칸 (고른 문단을 감싼다)" label="박스" on={!!ctx?.box} onClick={insertBox} />
         <span className="re-sep" />
         <TBtn title={busy ? '올리는 중…' : '이미지 올리기'} label={busy ? '⏳' : '🖼'}
           onClick={() => { if (!busy) fileRef.current?.click(); }} />
@@ -179,6 +315,31 @@ export function RichEditor({ value, onChange, placeholder }: {
           <TBtn title="다시 실행" label="↷" onClick={() => editor.chain().focus().redo().run()} />
         </span>
       </div>
+
+      {/* 커서가 박스칸 · 접은글 안일 때 — 모양 · 딱지 글자 · 색 */}
+      {ctx?.box && (
+        <div className="re-ctx">
+          <span className="re-ctx-h">박스</span>
+          {(['frame', 'tag', 'band'] as BoxShape[]).map(k => (
+            <button key={k} type="button" className={`re-qchip${ctx.shape === k ? ' on' : ''}`}
+              onMouseDown={e => e.preventDefault()} onClick={() => setBox({ shape: k })}>{BOX_LABEL[k]}</button>
+          ))}
+          {ctx.shape === 'tag' && (
+            <input className="re-ctx-in" value={ctx.label} maxLength={24} aria-label="딱지 글자"
+              onChange={e => editor.chain().updateAttributes('box', { label: e.target.value.toUpperCase() }).run()} />
+          )}
+          <span className="re-ctx-h">색</span>
+          {tonePicker(ctx.boxTone, t => setBox({ tone: t }))}
+          <button type="button" className="re-qchip" onMouseDown={e => e.preventDefault()}
+            onClick={() => editor.chain().focus().lift('box').run()}>박스 풀기</button>
+        </div>
+      )}
+      {ctx?.fold && !ctx.box && (
+        <div className="re-ctx">
+          <span className="re-ctx-h">접은글 색</span>
+          {tonePicker(ctx.foldTone, setFoldTone)}
+        </div>
+      )}
 
       {/* 인용구 색 고르기 — 기본(사이트 강조색) · 내 캐릭터 대표색 · 직접 */}
       {quoteOpen && (

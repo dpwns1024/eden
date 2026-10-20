@@ -365,6 +365,11 @@ export function ExcerptMaker() {
       if (os.length !== cs.length) return;
       os.forEach((x, i) => copyLayout(x, cs[i]));
     };
+    /* 접은글은 펼친 모양으로 찍는다 (v2.0 사용자 요청) — 닫힌 채면 안쪽 칸 높이가 0이라 아래 「안 보이는 칸 빼기」에 다 빠진다.
+       잠깐 펼쳐서 재고 복제한 뒤 다시 닫는다 */
+    const shut = els.flatMap(e => [e, ...Array.from(e.querySelectorAll('details'))])
+      .filter((d): d is HTMLDetailsElement => d instanceof HTMLDetailsElement && !d.open);
+    shut.forEach(d => { d.open = true; });
     let prevEl: Element | null = null, prevBottom = 0;
     els.forEach(e => {
       const r = e.getBoundingClientRect();
@@ -374,7 +379,7 @@ export function ExcerptMaker() {
       c.classList.remove('ex-picked');
       /* HTML로 꾸민 상자(로그 툴 등)는 화면을 따라 하지 않고 적힌 꾸밈(인라인 style) 그대로 카드에서 다시 그린다 (v2.0 사용자 요청 —
          같은 문단이면 PC · 폰 똑같이). 화면에서 잰 값은 기기마다 달라(폰 본문 14px · 화면 폭) 옮기면 줄바꿈이 달라졌다 */
-      const keep = e.matches(':is(div,section,table,figure,aside,article)[style]');
+      const keep = e.matches(':is(div,section,table,figure,aside,article)[style]:not([data-box])');   // 박스칸(색만 style)은 보통 글처럼
       if (keep) c.setAttribute('data-ex-keep', '');
       else copyTree(e, c);
       // 보이는 글자가 없는 빈 줄은 화면에서의 높이 그대로 — 글씨 크기를 통일해도 커지지 않게
@@ -417,6 +422,7 @@ export function ExcerptMaker() {
       prevEl = e;
       prevBottom = r.bottom;
     });
+    shut.forEach(d => { d.open = false; });
     if (!frag.childNodes.length) return;
     setBusy(true);
     // 화면 밖 카드 — ARCH 글 모양(.page-arch .post-body)을 그대로 빌려 쓴다
