@@ -209,11 +209,11 @@ async function drawTags(url: string, tags: QuoteTag[], glows: Glow[] = [], boxTa
 type ExTpl = 'text' | 'wide' | 'side';
 const TPL_KEY = 'ohome.excerpt.tpl';
 const TPL_LABEL: Record<ExTpl, string> = { text: '글만', wide: '가로', side: '세로' };
-/* 디자인 (v2.0 사용자 요청 — ARCH 시안 A · D) — 기본 · 헤더(위에 제목 · 정보줄 · 빛나는 밑줄) ·
-   HUD(왼쪽 눈금자 · 오른쪽 아래 제목과 세션 번호) · HUD+제목(HUD 위에 제목과 그 옆 정보줄) */
-type ExDesign = 'base' | 'report' | 'hud' | 'hudt';
+/* 디자인 (v2.0 사용자 요청 — ARCH 시안 D) — 기본 · HUD(위 줄에 제목 · SIGNAL 자관) · HUD+제목(큰 제목과 그 옆 정보줄).
+   헤더 디자인은 뺐다(사용자 요청) — 예전에 골라 둔 값이면 기본으로 */
+type ExDesign = 'base' | 'hud' | 'hudt';
 const DESIGN_KEY = 'ohome.excerpt.design';
-const DESIGN_LABEL: Record<ExDesign, string> = { base: '기본', report: '헤더', hud: 'HUD', hudt: 'HUD+제목' };
+const DESIGN_LABEL: Record<ExDesign, string> = { base: '기본', hud: 'HUD', hudt: 'HUD+제목' };
 /* 다 만든 그림에서 사진 위치 고치기 (v2.0 사용자 요청 — 결과 화면을 보면서 조절).
    찍은 그림(base)과 사진 칸 자리(rect, 그림 px)를 들고 있다가, 위치가 바뀌면 그 칸만 캔버스에 다시 그린다 —
    카드를 다시 찍지 않아 끌면 바로 따라온다. 그리는 법은 CSS object-fit: cover + object-position과 같다 */
@@ -273,7 +273,7 @@ export function ExcerptMaker() {
   useEffect(() => { try { const v = localStorage.getItem(TPL_KEY); if (v === 'wide' || v === 'side') setTplState(v); } catch { /* */ } }, []);
   const setTpl = (v: ExTpl) => { setTplState(v); try { localStorage.setItem(TPL_KEY, v); } catch { /* */ } };
   const [design, setDesignState] = useState<ExDesign>('base');
-  useEffect(() => { try { const v = localStorage.getItem(DESIGN_KEY); if (v === 'report' || v === 'hud' || v === 'hudt') setDesignState(v); } catch { /* */ } }, []);
+  useEffect(() => { try { const v = localStorage.getItem(DESIGN_KEY); if (v === 'hud' || v === 'hudt') setDesignState(v); } catch { /* */ } }, []);
   const setDesign = (v: ExDesign) => { setDesignState(v); try { localStorage.setItem(DESIGN_KEY, v); } catch { /* */ } };
   const [exPhoto, setExPhoto] = useState<string | null>(null);
   const [exPos, setExPos] = useState(30);
@@ -529,20 +529,14 @@ export function ExcerptMaker() {
     foot.className = 'ex-foot';
     // 글 제목 (v2.0 사용자 요청 — 홈 제목 대신). 본문 칸에 적어 둔 data-ex-title, 없으면 페이지 제목
     foot.textContent = pick?.root.closest('[data-ex-title]')?.getAttribute('data-ex-title')?.trim() || document.title || '';
-    // 디자인 머리 · 꼬리 — 글 제목은 머리(헤더) · 오른쪽 아래(HUD)로 옮기고 카드 아래 제목은 뺀다
+    // 디자인 머리 — 글 제목은 머리로 옮기고 카드 아래 제목은 뺀다
     if (design !== 'base') {
       card.classList.add(`ex-d-${design}`);
       const title = foot.textContent || '';
       const info = (pick?.root.closest('.page')?.querySelector('.page-head p')?.textContent || '').trim();
       const el = (tag: string, cls: string, text = '') => { const e = document.createElement(tag); e.className = cls; e.textContent = text; return e; };
       const head = el('div', 'ex-dh');
-      if (design === 'report') {
-        const l = el('div', 'ex-dh-t', title);
-        if (info) l.appendChild(el('small', '', info.toUpperCase()));
-        head.append(l, el('span', 'ex-dh-r', 'ARCH // EXCERPT'));
-        frame.insertBefore(head, frame.firstChild);
-        frame.insertBefore(el('i', 'ex-dh-ul'), head.nextSibling);
-      } else {
+      {
         /* HUD (v2.0 사용자 요청) — 위 줄: 왼쪽은 좌표 대신 글 제목(같은 글씨) · SIGNAL 뒤에는 이 글의 자관(없으면 MASKED).
            HUD+제목은 큰 제목과 그 옆 정보줄. 둘 다 아래에 경계선 · LINK 신호 막대와 아래 글자(제목 · 세션 번호)는 없다 */
         card.classList.add('ex-d-hud');
@@ -727,7 +721,7 @@ export function ExcerptMaker() {
             ))}
           </span>
           <span className="ex-tpls" role="group" aria-label="발췌 디자인">
-            {(['base', 'report', 'hud', 'hudt'] as ExDesign[]).map(d => (
+            {(['base', 'hud', 'hudt'] as ExDesign[]).map(d => (
               <button key={d} type="button" className={design === d ? 'on' : ''} onClick={() => setDesign(d)}>{DESIGN_LABEL[d]}</button>
             ))}
           </span>
