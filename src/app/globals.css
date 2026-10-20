@@ -3402,10 +3402,13 @@ details[data-fold][open] > summary::after{content:'CLOSE';background-image:url("
 /* 딱지 머리 — 머리줄 [딱지][딱지 옆 글] 아래 선, 그 아래 본문. 머리줄은 진짜 칸(data-box-head, RichEditor가 그린다) —
    가상 요소로는 딱지 옆에 글을 둘 수 없었고 발췌에서 어긋났다 */
 [data-box="tag"]{--ln:color-mix(in srgb,var(--fx0) 35%,transparent);padding:0;border:1px solid var(--ln);background:color-mix(in srgb,var(--fx0) 6%,transparent)}
-[data-box="tag"] > [data-box-head]{display:flex;align-items:center;gap:10px;min-height:15px;padding:10px 16px;border-bottom:1px solid var(--ln);overflow:hidden}
-[data-box="tag"] > [data-box-head] > [data-box-tag]{flex:0 0 auto;white-space:nowrap;font:500 9px/15px 'JetBrains Mono','Pretendard Variable',monospace;letter-spacing:.2em;color:#05070a;
-  background:color-mix(in srgb,var(--fx0) 55%,#fff);padding:0 7px 0 9px;box-shadow:0 0 10px -2px var(--fx0)}
-[data-box="tag"] > [data-box-head] > [data-box-note]{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:400 10px/15px 'JetBrains Mono','Pretendard Variable',monospace;letter-spacing:.2em;color:#8592a0}
+[data-box="tag"] > [data-box-head]{display:flex;align-items:center;gap:10px;min-height:15px;padding:10px 18px;border-bottom:1px solid var(--ln);overflow:hidden}
+/* 딱지 — 인용구 딱지와 같은 방식으로 글자 위아래를 맞춘다: 높이 15px 안에 위 여백 --qlp(기기에서 잰 값, QuoteNameSync) */
+[data-box="tag"] > [data-box-head] > [data-box-tag]{flex:0 0 auto;box-sizing:border-box;height:15px;overflow:hidden;white-space:nowrap;font:500 9px/15px 'JetBrains Mono','Pretendard Variable',monospace;letter-spacing:.2em;color:#05070a;
+  background:color-mix(in srgb,var(--fx0) 55%,#fff);padding:var(--qlp,1px) 7px 0 9px;box-shadow:0 0 10px -2px var(--fx0)}
+[data-box="tag"] > [data-box-head] > [data-box-note]{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:400 10px/15px 'JetBrains Mono','Pretendard Variable',monospace;letter-spacing:.2em;color:#8592a0}
+/* 한글 딱지 · 딱지 옆 글은 자간 좁게, 본문 글꼴로 (고정폭 자간 · 빈칸이면 띄어쓰기가 넓었다 — RichEditor가 ko 표시) — 위 두 규칙보다 뒤에 둔다(같은 무게) */
+[data-box="tag"] > [data-box-head] > :is([data-box-tag="ko"],[data-box-note="ko"]){letter-spacing:.04em;font-family:'Pretendard Variable','Pretendard',sans-serif}
 [data-box="tag"] > [data-box-body]{padding:16px 18px}
 /* 머리줄 칸이 생기기 전에 저장된 딱지 박스 — 예전처럼 가상 요소 딱지(다시 저장하면 새 모양) */
 [data-box="tag"]:not(:has(> [data-box-head])){padding:52px 18px 16px;background:linear-gradient(var(--ln),var(--ln)) 0 36px/100% 1px no-repeat,color-mix(in srgb,var(--fx0) 6%,transparent)}

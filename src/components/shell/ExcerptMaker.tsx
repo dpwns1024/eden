@@ -420,6 +420,10 @@ export function ExcerptMaker() {
       [c, ...Array.from(c.querySelectorAll<HTMLElement>('*'))].forEach(x => {
         const tag = (cls: string, text: string) => { const t = document.createElement('span'); t.className = cls; t.textContent = text; x.prepend(t); };
         if (x.matches('details[data-fold] > summary')) tag('ex-foldtag', x.parentElement?.getAttribute('data-label') || 'FOLD');
+        // 예전에 저장돼 한글 표시(ko)가 없는 박스 딱지 · 딱지 옆 글도 자간 좁게
+        if (x.matches('[data-box-head] > :is([data-box-tag],[data-box-note])') && /[\u3130-\u318f\uac00-\ud7af]/.test(x.textContent ?? '')) {
+          x.setAttribute(x.hasAttribute('data-box-tag') ? 'data-box-tag' : 'data-box-note', 'ko');
+        }
       });
       const gap = Math.max(0, gapPx) * scale;
       c.style.setProperty('margin-top', `${gap.toFixed(1)}px`, 'important');

@@ -35,6 +35,8 @@ const toneAttr = {
   renderHTML: (a: Record<string, unknown>) => (a.tone && HEX.test(String(a.tone)) ? { 'data-tone': a.tone, style: `--fx:${a.tone}` } : {}),
 };
 
+/** 한글이 든 딱지 · 딱지 옆 글 — 자간을 좁게(globals.css ko) */
+const HANGUL = /[\u1100-\u11ff\u3130-\u318f\uac00-\ud7af]/;
 /** 딱지 글자 — 대문자, 따옴표 · 역슬래시 · 줄바꿈은 뺀다 (CSS 문자열 --fl에 그대로 들어간다) */
 const cleanLabel = (v: unknown, def: string) => String(v ?? '').replace(/["\\\n\r]/g, '').trim().toUpperCase().slice(0, 24) || def;
 /** 에디터 안에서만 쓰는 모양 — 저장(renderHTML)과 달리 평범한 div로 그린다 */
@@ -134,8 +136,9 @@ const Box = Node.create({
   renderHTML({ node, HTMLAttributes }) {
     if (node.attrs.shape !== 'tag') return ['div', HTMLAttributes, 0];
     const head = String(node.attrs.head ?? '').trim();
-    const row: DOMOutputSpec[] = [['span', { 'data-box-tag': '' }, cleanLabel(node.attrs.label, 'MEMO')]];
-    if (head) row.push(['span', { 'data-box-note': '' }, head]);
+    const label = cleanLabel(node.attrs.label, 'MEMO');
+    const row: DOMOutputSpec[] = [['span', { 'data-box-tag': HANGUL.test(label) ? 'ko' : '' }, label]];
+    if (head) row.push(['span', { 'data-box-note': HANGUL.test(head) ? 'ko' : '' }, head]);
     return ['div', HTMLAttributes, ['div', { 'data-box-head': '', contenteditable: 'false' }, ...row], ['div', { 'data-box-body': '' }, 0]];
   },
 });
