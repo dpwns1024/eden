@@ -3116,14 +3116,20 @@ html.ui-arch .excerpt-card{background:
 .excerpt-card .ex-dh-r{flex:0 0 auto;white-space:nowrap}
 .excerpt-card .ex-dh-ul{display:block;grid-column:1/-1;width:120px;height:1px;margin:-1px 0 24px;background:#8fb0d8;box-shadow:0 0 8px #8fb0d8}
 .excerpt-card.ex-d-hud .ex-frame{padding-left:52px}
-.excerpt-card.ex-d-hud .ex-dh{margin:0 0 22px;align-items:center}
-.excerpt-card.ex-d-hudt .ex-dh{padding:0 0 14px;border-bottom:1px solid rgba(190,208,228,.14);align-items:flex-end}
-.excerpt-card.ex-d-hud .ex-dh-l{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}   /* 제목 · SIGNAL 자관 — 길면 말줄임 */
+/* HUD 머리 아래 경계선 — 선 위아래 간격이 **눈에 보이는 글자 기준으로** 같게 (v2.0 사용자 요청).
+   선 위: 안쪽 여백 18px + 머리 줄 아래 끝에서 글자 아래 끝까지(HUD ≈3.5px · HUD+제목 ≈6px — 실제로 찍어서 잼)
+   선 아래: 바깥 여백 + 본문 첫 줄 위 끝에서 글자 위 끝까지(15px · 행간 1.5 ≈3.5px) — 그만큼 바깥 여백을 줄인다.
+   사진 템플릿은 선 바로 아래 사진이 붙으므로 글자 몫 없이 선 위 간격 그대로 */
+.excerpt-card.ex-d-hud .ex-dh{margin:0 0 18px;padding:0 0 18px;border-bottom:1px solid rgba(190,208,228,.14);align-items:center}
+.excerpt-card.ex-d-hudt .ex-dh{margin-bottom:19px;align-items:flex-end}
+.excerpt-card.ex-d-hud:is(.ex-tpl-wide,.ex-tpl-side) .ex-dh{margin-bottom:21.5px}
+.excerpt-card.ex-d-hudt:is(.ex-tpl-wide,.ex-tpl-side) .ex-dh{margin-bottom:24px}
+/* 제목 · SIGNAL 자관 — 줄을 꽉 채워 둔다(글자 폭만큼이면 찍을 때 조금만 넓어져도 말줄임으로 잘렸다), 정말 길 때만 말줄임 */
+.excerpt-card.ex-d-hud .ex-dh-l{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .excerpt-card.ex-d-hud .ex-dh-t{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 14px}
 .excerpt-card.ex-d-hud .ex-dh-t small{margin:0}
 .excerpt-card.ex-d-hud .ex-dh b{font-weight:400;color:#8fb0d8}
-.excerpt-card.ex-d-hud .ex-dh-r i{display:inline-block;width:3px;margin-left:2px;background:#8fb0d8;vertical-align:bottom}
-.excerpt-card .ex-rule{position:absolute;left:20px;top:28px;bottom:28px;width:10px;background:repeating-linear-gradient(180deg,rgba(190,208,228,.35) 0 1px,transparent 1px 12px);border-left:1px solid rgba(190,208,228,.25)}
+.excerpt-card .ex-rule{position:absolute;left:20px;top:28px;bottom:28px;width:10px;background:repeating-linear-gradient(180deg,rgba(190,208,228,.35) 0 1px,transparent 1px 12px)}   /* 눈금만 — 세로줄은 뺐다 (v2.0 사용자 요청) */
 /* 디자인 카드는 아래 제목 줄 대신 여백 40px — 빈 줄에 높이를 주면 찍을 때 높이가 안 옮겨져 아래만 좁아졌다 */
 .excerpt-card:is(.ex-d-report,.ex-d-hud){padding-bottom:40px}
 .excerpt-card:is(.ex-d-report,.ex-d-hud) .ex-foot:empty{display:none}

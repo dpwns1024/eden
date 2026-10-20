@@ -490,20 +490,18 @@ export function ExcerptMaker() {
         frame.insertBefore(head, frame.firstChild);
         frame.insertBefore(el('i', 'ex-dh-ul'), head.nextSibling);
       } else {
-        /* HUD (v2.0 사용자 요청) — 위 줄: 왼쪽은 좌표 대신 글 제목(같은 글씨) · SIGNAL 뒤에는 이 글의 자관(없으면 MASKED),
-           오른쪽은 LINK 신호 막대. HUD+제목은 큰 제목과 정보줄 오른쪽에 LINK 신호 막대. 아래 글자(제목 · 세션 번호)는 없다 */
+        /* HUD (v2.0 사용자 요청) — 위 줄: 왼쪽은 좌표 대신 글 제목(같은 글씨) · SIGNAL 뒤에는 이 글의 자관(없으면 MASKED).
+           HUD+제목은 큰 제목과 그 옆 정보줄. 둘 다 아래에 경계선 · LINK 신호 막대와 아래 글자(제목 · 세션 번호)는 없다 */
         card.classList.add('ex-d-hud');
-        const sig = el('span', 'ex-dh-r', 'LINK ');
-        [4, 7, 10, 13].forEach((h, k) => { const b = el('i', ''); b.style.height = `${h}px`; if (k === 3) b.style.opacity = '.3'; sig.appendChild(b); });
         if (design === 'hudt') {
           const t = el('div', 'ex-dh-t', title);
           if (info) t.appendChild(el('small', '', info.toUpperCase()));
-          head.append(t, sig);
+          head.append(t);
         } else {
           const rel = pick?.root.closest('[data-ex-rel]')?.getAttribute('data-ex-rel')?.trim() || 'MASKED';
           const l = el('span', 'ex-dh-l', title ? `${title} · SIGNAL ` : 'SIGNAL ');
           l.appendChild(el('b', '', rel));
-          head.append(l, sig);
+          head.append(l);
         }
         frame.insertBefore(head, frame.firstChild);
         frame.appendChild(el('i', 'ex-rule'));
@@ -521,6 +519,20 @@ export function ExcerptMaker() {
          찍을 때(글꼴을 넣어 그린다) 칸 높이 · 딱지 · 사진 자리가 어긋났다 (처음 만들 때만 가끔) */
       void card.offsetHeight;
       try { await document.fonts.ready; } catch { /* 못 기다려도 찍는다 */ }
+      /* HUD+제목 — 제목과 정보줄을 글자 아래 끝으로 맞춘다 (v2.0 사용자 요청). 기준선에 맞추면 한글 제목은 기준선 밑으로 조금 내려와
+         정보줄(영문 대문자)이 떠 보였다 — 두 글자가 기준선 밑으로 내려오는 길이를 실제 글꼴로 재서 그 차이만큼 정보줄을 내린다 */
+      const hsm = card.querySelector<HTMLElement>('.ex-d-hudt .ex-dh-t > small');
+      const hctx = hsm && document.createElement('canvas').getContext('2d');
+      if (hsm && hctx) {
+        const ink = (e: HTMLElement, text: string) => {
+          const cs = getComputedStyle(e);
+          hctx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+          return hctx.measureText(text).actualBoundingBoxDescent;
+        };
+        const tEl = hsm.parentElement as HTMLElement;
+        const d = ink(tEl, tEl.firstChild?.textContent ?? '') - ink(hsm, hsm.textContent ?? '');
+        if (d > 0) { hsm.style.position = 'relative'; hsm.style.top = `${d.toFixed(1)}px`; }
+      }
       /* 틀 밖으로 나가는 칸 줄이기 (v2.0 사용자 제보 — HTML로 넣은 상자가 오른쪽으로 삐져나옴).
          카드는 화면 본문보다 좁아, 화면 폭에 맞춰 둔 고정 폭 · 왼쪽 들여쓰기(margin)가 있는 칸은 max-width만으로는 안 막혔다 —
          배치된 뒤 실제로 본문 오른쪽 끝을 넘는 칸의 폭을 남은 만큼으로 줄인다 (바깥 칸부터 차례로) */
