@@ -1,7 +1,9 @@
 'use client';
 /**
  * 아이기스 지도 (v2.0 사용자 요청 · lib/aegisMap.ts) — 세 장.
- *  1) 섬 전체 — 세계지도처럼 위에서 본 섬 실루엣. 통합 지휘본부 · 요원 거주구역 두 곳의 표식만. 누르면 그 건물로 확대되며 넘어간다.
+ *  1) 섬 전체 — 비스듬히 내려다본 축측(axonometric) 홀로그램. 섬 지형 · 바다 격자 위에 통합 지휘본부 · 요원 거주구역을
+ *     와이어프레임 입체로 세운다. 누르면 그 건물로 확대되며 넘어간다.
+ * 세 장 모두 파란 홀로그램(발광 선 · 주사선 · 깜빡임)으로 그린다 — 색은 archdoc.css의 '홀로그램' 묶음.
  *  2) 지휘본부 — 층별 안내도 (방마다 칸 · 소품. 옥상 훈련 돔 · 코어 탑 · 헬기 착륙장, 코어 위 상공의 하늘정원부터 지하 B5까지). 옆 화살표로 거주구역으로.
  *  3) 거주구역 — 입체로 본 숙소동들. 양 끝의 이브 · 에덴 숙소동을 강조 — 고르면 그 캐릭터의 대표색으로 빛난다.
  * 칸이나 표시를 누르면(또는 아래 목록) 그 시설이 지도 아래(PC는 오른쪽) 카드로 나온다.
@@ -15,11 +17,23 @@ import { HQ_ART } from './aegisHqArt';
 type View = 'site' | AegisView;
 type Pick = (spot: string) => void;
 
-/** 두 건물의 이름 — 섬 지도 · 머리줄 · 목록이 같이 쓴다 */
-const SITE: Record<AegisView, { x: number; y: number; code: string; en: string; ko: string; hd: string }> = {
-  hq: { x: 440, y: 470, code: 'SECTOR A · 01', en: 'ARCH COMMAND', ko: '통합 지휘본부', hd: 'B5 – 11F · ROOF' },
-  res: { x: 600, y: 505, code: 'SECTOR R · 02', en: 'AGENT QUARTERS', ko: '요원 거주구역', hd: '7 BLOCKS' },
+const pts = (a: [number, number][]) => 'M' + a.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(' L') + ' Z';
+const seg = (a: [number, number], b: [number, number]) => `M${a[0].toFixed(1)} ${a[1].toFixed(1)} L${b[0].toFixed(1)} ${b[1].toFixed(1)}`;
+/** 섬 축측 투영 — 위에서 본 섬 좌표(1000×1000)를 비스듬히 내려다본 화면 좌표로. z는 높이 */
+const sP = (x: number, y: number, z = 0): [number, number] => {
+  const u = x - 530, v = y - 480;
+  return [520 + (u - v) * 0.78, 560 + (u + v) * 0.4 - z];
 };
+
+/** 두 건물의 이름 — 섬 지도 · 머리줄 · 목록이 같이 쓴다. (gx, gy) = 섬 위 터, (x, y) = 투영된 화면 자리 */
+const SITE_RAW: Record<AegisView, { gx: number; gy: number; code: string; en: string; ko: string; hd: string; view: string; scale: string; ref: string }> = {
+  hq: { gx: 440, gy: 470, code: 'SECTOR A · 01', en: 'ARCH COMMAND', ko: '통합 지휘본부', hd: 'B5 – 11F · ROOF', view: 'SECTION VIEW', scale: '1:500', ref: 'AG-A01' },
+  res: { gx: 600, gy: 505, code: 'SECTOR R · 02', en: 'AGENT QUARTERS', ko: '요원 거주구역', hd: '7 BLOCKS', view: 'AXONOMETRIC VIEW', scale: '1:800', ref: 'AG-R02' },
+};
+const SITE = Object.fromEntries(Object.entries(SITE_RAW).map(([k, v]) => {
+  const [x, y] = sP(v.gx, v.gy);
+  return [k, { ...v, x, y }];
+})) as Record<AegisView, (typeof SITE_RAW)[AegisView] & { x: number; y: number }>;
 /** 확대 · 축소 모션의 기준점(%) = 섬 지도에서 두 건물의 자리 */
 const ORIGIN: Record<AegisView, string> = { hq: `${SITE.hq.x / 10}% ${SITE.hq.y / 10}%`, res: `${SITE.res.x / 10}% ${SITE.res.y / 10}%` };
 const ACC = '#b8d8ff';
@@ -30,13 +44,15 @@ function Paras({ text }: { text: string }) {
 
 const Defs = () => (
   <defs>
-    <pattern id="amGrid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="rgba(190,208,228,.05)" /></pattern>
+    <pattern id="amGrid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="rgba(90,170,255,.07)" /></pattern>
         <pattern id="amHatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0V7" stroke="rgba(255,150,160,.22)" /></pattern>
     <pattern id="amLeaf" width="11" height="11" patternUnits="userSpaceOnUse"><circle cx="5.5" cy="5.5" r="1.5" fill="rgba(160,220,190,.32)" /></pattern>
     <pattern id="amSoil" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="3" cy="4" r="1" fill="rgba(190,208,228,.07)" /><circle cx="10" cy="11" r="1" fill="rgba(190,208,228,.05)" /></pattern>
-    <linearGradient id="amSea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="rgba(120,170,230,.16)" /><stop offset="1" stopColor="rgba(120,170,230,.02)" /></linearGradient>
+    <linearGradient id="amSea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="rgba(70,150,255,.16)" /><stop offset="1" stopColor="rgba(70,150,255,.02)" /></linearGradient>
+    <radialGradient id="amFade"><stop offset=".35" stopColor="#fff" /><stop offset="1" stopColor="#000" /></radialGradient>
+    <mask id="amFadeM"><rect x="-200" y="200" width="1400" height="800" fill="url(#amFade)" /></mask>
     <radialGradient id="amPortal"><stop offset="0" stopColor="rgba(184,216,255,.45)" /><stop offset=".6" stopColor="rgba(184,216,255,.12)" /><stop offset="1" stopColor="rgba(184,216,255,0)" /></radialGradient>
-    <radialGradient id="amGlow"><stop offset="0" stopColor="rgba(184,216,255,.35)" /><stop offset="1" stopColor="rgba(184,216,255,0)" /></radialGradient>
+    <radialGradient id="amGlow"><stop offset="0" stopColor="rgba(90,170,255,.32)" /><stop offset="1" stopColor="rgba(90,170,255,0)" /></radialGradient>
   </defs>
 );
 
@@ -51,45 +67,144 @@ const ISLETS = [
   'M244 604 L243 606 L242 607 L240 608 L238 610 L236 609 L234 610 L232 610 L230 611 L227 611 L226 610 L223 609 L222 607 L222 606 L224 604 L223 603 L224 601 L224 600 L226 599 L227 597 L229 596 L232 596 L234 598 L236 598 L238 599 L239 600 L240 601 L242 602 Z',
   'M812 700 L811 702 L811 703 L808 704 L807 706 L806 708 L803 709 L800 709 L797 708 L794 708 L793 706 L792 704 L791 703 L788 702 L788 700 L788 698 L789 696 L789 694 L792 693 L795 693 L798 693 L800 693 L803 693 L805 693 L808 693 L811 694 L813 696 L811 698 Z',
 ];
-/** 건물 표식 — 겹 원 · 눈금 · 마름모. 지휘본부는 이름이 위, 거주구역은 아래 */
-function SiteMark({ k, go }: { k: AegisView; go: (v: AegisView) => void }) {
-  const s = SITE[k], up = k === 'hq';
-  const ty = (v: number) => (up ? -v : v);
+/** 축측 상자의 보이는 세 면(윗면 · 왼쪽 앞 · 오른쪽 앞)과 열두 모서리 */
+function Box({ x, y, w, d, z0, z1, cls = '' }: { x: number; y: number; w: number; d: number; z0: number; z1: number; cls?: string }) {
+  const P = sP, x1 = x + w, y1 = y + d;
+  const b = [P(x, y, z0), P(x1, y, z0), P(x1, y1, z0), P(x, y1, z0)];
+  const t = [P(x, y, z1), P(x1, y, z1), P(x1, y1, z1), P(x, y1, z1)];
   return (
-    <g className="am-node" transform={`translate(${s.x} ${s.y})`} onClick={() => go(k)} role="button" aria-label={`${s.ko} 지도 열기`}>
-      <rect className="am-hit" x="-150" y={up ? -160 : -60} width="300" height="220" />
-      <circle r="62" fill="url(#amGlow)" />
-      <circle className="am-mring dash" r="40" />
-      <circle className="am-mring" r="27" />
-      <path className="am-mtick" d="M0 -50 V-34 M0 34 V50 M-50 0 H-34 M34 0 H50" />
-      <rect className="am-mcore" x="-10" y="-10" width="20" height="20" transform="rotate(45)" />
-      <rect className="am-mdot" x="-3.5" y="-3.5" width="7" height="7" transform="rotate(45)" />
-      <path className="am-mtick" d={`M0 ${ty(56)} V${ty(74)}`} />
-      <text className="am-mcode" y={up ? -148 : 158} textAnchor="middle">{s.code}</text>
-      <text className="am-zl" y={up ? -112 : 112} textAnchor="middle">{s.en}</text>
-      <text className="am-zs" y={up ? -84 : 140} textAnchor="middle">{s.ko}</text>
+    <g className={`am-hbox ${cls}`}>
+      <path className="am-hf l" d={pts([b[3], b[2], t[2], t[3]])} />
+      <path className="am-hf r" d={pts([b[1], b[2], t[2], t[1]])} />
+      <path className="am-hf t" d={pts(t)} />
+      <path className="am-h1" d={`${pts(b)} ${pts(t)} ${[0, 1, 2, 3].map(i => seg(b[i], t[i])).join(' ')}`} />
+    </g>
+  );
+}
+
+/** 지휘본부 — 11층 본체 + 지하 5층(점선) + 옥상 돔 · 코어 탑 · 헬기 착륙장 + 비스듬한 트러스 지붕 */
+const HQ_B = { x: 400, y: 438, w: 80, d: 64, fl: 12, n: 11 };
+const HQ_TOP = HQ_B.fl * HQ_B.n;
+function HqModel() {
+  const { x, y, w, d, fl } = HQ_B, x1 = x + w, y1 = y + d, H = HQ_TOP, P = sP;
+  const floors: string[] = [], mull: string[] = [], base: string[] = [];
+  for (let z = fl; z < H; z += fl) floors.push(seg(P(x, y1, z), P(x1, y1, z)), seg(P(x1, y, z), P(x1, y1, z)));
+  for (let i = 8; i < w; i += 8) mull.push(seg(P(x + i, y1, 0), P(x + i, y1, H)));
+  for (let i = 8; i < d; i += 8) mull.push(seg(P(x1, y + i, 0), P(x1, y + i, H)));
+  for (let z = -fl; z >= -fl * 5; z -= fl) base.push(pts([P(x + 6, y + 6, z), P(x1 - 6, y + 6, z), P(x1 - 6, y1 - 6, z), P(x + 6, y1 - 6, z)]));
+  // 트러스 지붕 — 앞뒤 두 레일이 오른쪽으로 갈수록 솟고, 사이를 지그재그로 엮는다
+  const N = 10, rail = (yy: number, i: number) => P(x - 8 + (w + 22) * i / N, yy, H + 10 + 34 * i / N);
+  const truss: string[] = [seg(rail(y - 6, 0), rail(y - 6, N)), seg(rail(y1 + 6, 0), rail(y1 + 6, N))];
+  for (let i = 0; i <= N; i++) {
+    truss.push(seg(rail(y - 6, i), rail(y1 + 6, i)));
+    if (i < N) truss.push(seg(rail(i % 2 ? y - 6 : y1 + 6, i), rail(i % 2 ? y1 + 6 : y - 6, i + 1)));
+  }
+  truss.push(seg(P(x, y, H), rail(y - 6, 0)), seg(P(x, y1, H), rail(y1 + 6, 0)), seg(P(x1, y, H), rail(y - 6, N)), seg(P(x1, y1, H), rail(y1 + 6, N)));
+  // 옥상 돔(왼쪽 끝) — 바닥 타원 + 위로 볼록한 갈비
+  const [dx, dy] = P(x + 16, y + d / 2, H);
+  const [hx, hy] = P(x1 - 14, y + d / 2, H);
+  return (
+    <g className="am-model">
+      <path className="am-h3 dash" d={base.join(' ')} />
+      <path className="am-h2 dash" d={[0, 1, 2, 3].map(i => {
+        const c: [number, number][] = [[x + 6, y + 6], [x1 - 6, y + 6], [x1 - 6, y1 - 6], [x + 6, y1 - 6]];
+        return seg(P(...c[i], 0), P(...c[i], -fl * 5));
+      }).join(' ')} />
+      <path className="am-h2 dash" d={pts([P(x - 16, y - 16), P(x1 + 16, y - 16), P(x1 + 16, y1 + 16), P(x - 16, y1 + 16)])} />
+      <Box x={x} y={y} w={w} d={d} z0={0} z1={H} />
+      <path className="am-h2" d={floors.join(' ')} />
+      <path className="am-h3" d={mull.join(' ')} />
+      <Box x={x + 32} y={y + 24} w={16} d={16} z0={H} z1={H + 52} cls="core" />
+      <path className="am-h1" d={seg(P(x + 40, y + 32, H + 52), P(x + 40, y + 32, H + 84))} />
+      <circle className="am-hdot" cx={P(x + 40, y + 32, H + 84)[0]} cy={P(x + 40, y + 32, H + 84)[1]} r="3" />
+      <ellipse className="am-h2" cx={dx} cy={dy} rx="17" ry="9" />
+      <path className="am-h2" d={`M${dx - 17} ${dy} Q${dx} ${dy - 30} ${dx + 17} ${dy} M${dx - 8} ${dy - 7} Q${dx} ${dy - 22} ${dx + 8} ${dy + 7}`} />
+      <ellipse className="am-h2" cx={hx} cy={hy} rx="14" ry="7" />
+      <text className="am-tg2" x={hx} y={hy + 4} textAnchor="middle">H</text>
+      <path className="am-h2" d={truss.join(' ')} />
+    </g>
+  );
+}
+/** 거주구역 — 팔각 터 위 일곱 숙소동 (거주구역 지도의 RES_TOWERS를 줄여서) */
+function ResModel() {
+  const { gx, gy } = SITE.res, k = 0.22, P = sP;
+  const plate: [number, number][] = [[24, 0], [296, 0], [320, 24], [320, 296], [296, 320], [24, 320], [0, 296], [0, 24]];
+  const at = (cx: number, cy: number) => [gx + (cx - 160) * k, gy + (cy - 160) * k] as const;
+  const [yx, yy] = P(...at(160, 160));
+  return (
+    <g className="am-model">
+      <path className="am-h2" d={pts(plate.map(([px, py]) => P(...at(px, py), 0)))} />
+      <path className="am-h3 dash" d={pts(plate.map(([px, py]) => P(...at(px, py), -14)))} />
+      <ellipse className="am-h3" cx={yx} cy={yy} rx="17" ry="9" />
+      {[...RES_TOWERS].sort((a, b) => a.cx + a.cy - (b.cx + b.cy)).map(t => {
+        const [tx, ty] = at(t.cx - 32, t.cy - 32);
+        return <Box key={t.tag} x={tx} y={ty} w={64 * k} d={64 * k} z0={0} z1={t.h * 0.42} cls={t.key ? 'key' : ''} />;
+      })}
+    </g>
+  );
+}
+
+/** 건물 표식 — 바닥에서 퍼지는 고리 + 꺾인 지시선 + 이름. 지휘본부는 왼쪽 위, 거주구역은 오른쪽 위로 */
+const CALLOUT: Record<AegisView, { top: [number, number]; y: number; tx: number; to: number; end?: boolean; hit: [number, number, number, number] }> = {
+  hq: { top: sP(440, 470, HQ_TOP + 84), y: 262, tx: 150, to: 150, hit: [130, 150, 390, 410] },
+  res: { top: sP(624, 481, 128 * 0.42), y: 420, tx: 940, to: 940, end: true, hit: [520, 300, 450, 340] },
+};
+function SiteMark({ k, go }: { k: AegisView; go: (v: AegisView) => void }) {
+  const s = SITE[k], c = CALLOUT[k], [px, py] = c.top;
+  return (
+    <g className="am-node" onClick={() => go(k)} role="button" aria-label={`${s.ko} 지도 열기`}>
+      <rect className="am-hit" x={c.hit[0]} y={c.hit[1]} width={c.hit[2]} height={c.hit[3]} />
+      <ellipse className="am-pulse" cx={s.x} cy={s.y} rx="70" ry="36" />
+      <ellipse className="am-mring dash" cx={s.x} cy={s.y} rx="92" ry="47" />
+      <path className="am-lead" d={`M${px} ${py - 6} V${c.y} H${c.to}`} />
+      <rect className="am-mcore" x={px - 5} y={c.y - 5} width="10" height="10" transform={`rotate(45 ${px} ${c.y})`} />
+      <text className="am-mcode" x={c.tx} textAnchor={c.end ? 'end' : 'start'} y={c.y - 84}>{s.code}</text>
+      <text className="am-zl" x={c.tx} textAnchor={c.end ? 'end' : 'start'} y={c.y - 44}>{s.en}</text>
+      <text className="am-zs" x={c.tx} textAnchor={c.end ? 'end' : 'start'} y={c.y - 12}>{s.ko}</text>
     </g>
   );
 }
 function SiteView({ go }: { go: (v: AegisView) => void }) {
-  const { hq, res } = SITE;
-  const blocks: [number, number][] = [[-30, -30], [0, -30], [30, -30], [-30, 0], [30, 0], [-30, 30], [30, 30]];
+  const isl = ptsOf(ISLAND), C: [number, number] = [530, 480];
+  const ring = (a: [number, number][], f: number, z = 0) => pts(a.map(([x, y]) => sP(C[0] + (x - C[0]) * f, C[1] + (y - C[1]) * f, z)));
+  const SEA = -30;
+  const grid: string[] = [];
+  for (let v = -420; v <= 440; v += 40) grid.push(seg(sP(80, 480 + v, SEA), sP(980, 480 + v, SEA)));
+  for (let u = -450; u <= 450; u += 40) grid.push(seg(sP(530 + u, 40, SEA), sP(530 + u, 920, SEA)));
+  const walls = isl.filter((_, i) => i % 3 === 0).map(([x, y]) => seg(sP(x, y), sP(x, y, SEA))).join(' ');
+  // 치수선 — 섬의 앞 두 변을 따라
+  const dimX = [sP(215, 730, SEA), sP(865, 730, SEA)] as const, dimY = [sP(895, 276, SEA), sP(895, 700, SEA)] as const;
+  const mid = (a: readonly [number, number], b: readonly [number, number]) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  const [mx, my] = mid(...dimX), [nx, ny] = mid(...dimY);
+  const ang = Math.atan2(0.4, 0.78) * 180 / Math.PI;
   return (
     <>
-      {[200, 400, 600, 800].map(v => <path key={v} className="am-l3" d={`M0 ${v} H1000 M${v} 0 V1000`} />)}
-      <ellipse cx="520" cy="500" rx="360" ry="260" fill="url(#amGlow)" opacity=".35" />
-      <path d={ISLAND} className="am-land" />
-      {ISLETS.map(d => <path key={d} d={d} className="am-land" />)}
-      {/* 두 건물의 터 */}
-      <rect className="am-lot" x={hq.x - 44} y={hq.y - 42} width="88" height="84" rx="6" />
-      {blocks.map(([dx, dy]) => <rect key={`${dx}${dy}`} className="am-lot" x={res.x + dx - 10} y={res.y + dy - 10} width="20" height="20" />)}
+      <path className="am-h3 sea" d={grid.join(' ')} mask="url(#amFadeM)" />
+      <ellipse cx="520" cy="560" rx="420" ry="220" fill="url(#amGlow)" opacity=".5" />
+      {ISLETS.map(d => <path key={d} className="am-h2 islet" d={pts(ptsOf(d).map(([x, y]) => sP(x, y, SEA + 6)))} />)}
+      <path className="am-h3" d={walls} />
+      <path className="am-h2" d={pts(isl.map(([x, y]) => sP(x, y, SEA)))} />
+      <path className="am-hland" d={pts(isl.map(([x, y]) => sP(x, y)))} />
+      {[0.8, 0.6, 0.4].map(f => <path key={f} className="am-h3 dash" d={ring(isl, f)} />)}
+      <path className="am-road" d={`${seg(sP(440, 470), sP(600, 505))} ${seg(sP(440, 470), sP(330, 360))}`} />
+      <path className="am-dimln" d={`${seg(dimX[0], dimX[1])} ${seg(dimY[0], dimY[1])} ${[dimX[0], dimX[1], dimY[0], dimY[1]].map(([x, y]) => `M${x} ${y - 8} V${y + 8}`).join(' ')}`} />
+      <text className="am-tag" transform={`translate(${mx} ${my + 22}) rotate(${ang})`} textAnchor="middle">6.5 KM</text>
+      <text className="am-tag" transform={`translate(${nx + 16} ${ny + 18}) rotate(${-ang})`} textAnchor="middle">4.2 KM</text>
+      <ResModel />
+      <HqModel />
       <SiteMark k="hq" go={go} />
       <SiteMark k="res" go={go} />
-      <text className="am-tag dim" x="24" y="976">AEGIS · MOBILE CITADEL</text>
-      <g transform="translate(930 90)"><circle className="am-l2" r="24" /><path d="M0 -19 L5 0 L0 19 L-5 0 Z" fill="rgba(184,216,255,.6)" /><text className="am-tag" y="-32" textAnchor="middle">N</text></g>
+      {/* 축 표시 — 그림의 x · y · z 방향 */}
+      <g className="am-axis" transform="translate(84 900)">
+        <path d={`M0 0 L${0.78 * 50} ${0.4 * 50} M0 0 L${-0.78 * 50} ${0.4 * 50} M0 0 V-52`} />
+        <text x={0.78 * 50 + 8} y={0.4 * 50 + 10}>X</text>
+        <text x={-0.78 * 50 - 18} y={0.4 * 50 + 10}>Y</text>
+        <text x="-5" y="-60">Z</text>
+      </g>
     </>
   );
 }
+const ptsOf = (d: string) => [...d.matchAll(/(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g)].map(m => [+m[1], +m[2]] as [number, number]);
 
 /* ───────── 2) 지휘본부 — 층별 안내도 (그림: aegisHqArt.ts · viewBox 0 0 1000 1190) ───────── */
 export const HQ_H = 1190;
@@ -154,8 +269,6 @@ function HqLabel({ n, x, y, kind, icon }: { n: ArchMapNode; x: number; y: number
 }
 
 /* ───────── 3) 거주구역 — 입체 ───────── */
-const pts = (a: [number, number][]) => 'M' + a.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(' L') + ' Z';
-const seg = (a: [number, number], b: [number, number]) => `M${a[0].toFixed(1)} ${a[1].toFixed(1)} L${b[0].toFixed(1)} ${b[1].toFixed(1)}`;
 function Tower({ cx, cy, h, tag, hl, tint }: { cx: number; cy: number; h: number; tag: string; hl: boolean; tint?: string }) {
   const x = cx - 32, y = cy - 32, w = 64, d = 64, P = resP;
   const win: string[] = [];
@@ -331,6 +444,15 @@ export function AegisMap({ nodes, caption }: { nodes: ArchMapNode[]; caption?: s
               <Marks list={listOf('hq')} on={view === 'hq' ? on : null} pick={pick} tint={tint} /></>, '통합 지휘본부 층별 지도')}
             {layer('res', <><ResView pick={pick} on={view === 'res' ? on : null} has={has} tint={tint} />
               <Marks list={listOf('res')} on={view === 'res' ? on : null} pick={pick} tint={tint} /></>, '요원 거주구역 지도')}
+            {/* 홀로그램 겹 — 주사선 · 훑는 빛 · 모서리 · 도면 제목 */}
+            <div className="am-holo" aria-hidden="true">
+              <i className="am-scan" />
+              <div className="am-tb">
+                <b>{view === 'site' ? 'THE AEGIS' : SITE[view].en} — {view === 'site' ? 'AXONOMETRIC VIEW' : SITE[view].view}</b>
+                <span>SCALE {view === 'site' ? '1:20000' : SITE[view].scale}</span>
+                <span>CAD REF {view === 'site' ? 'AG-00' : SITE[view].ref} · HOLOGRAPHIC MODEL</span>
+              </div>
+            </div>
             {view === 'hq' && <button type="button" className="am-arrow r" onClick={() => go('res')} aria-label="요원 거주구역으로"><span>QUARTERS</span><i>›</i></button>}
             {view === 'res' && <button type="button" className="am-arrow l" onClick={() => go('hq')} aria-label="통합 지휘본부로"><i>‹</i><span>COMMAND</span></button>}
           </div>
