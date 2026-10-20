@@ -28,6 +28,8 @@ const ToneQuote = Blockquote.extend({
 });
 
 const HEX = /^#[0-9a-f]{3,8}$/i;
+/** 색을 안 고른 기본 인용구 색 (globals.css 인용구 --qc 기본값과 같게 — v2.0 사용자 요청 회색) */
+const QUOTE_GRAY = '#a3acb6';
 /** 접은글 · 박스칸 색 — data-tone에 적고 CSS 변수(--fx)로 넘긴다 (globals.css [data-fold] · [data-box]) */
 const toneAttr = {
   default: null,
@@ -334,7 +336,7 @@ export function RichEditor({ value, onChange, placeholder }: {
           onClick={() => editor.chain().focus().toggleOrderedList().run()} />
         <TBtn title="인용" label="❝" on={editor.isActive('blockquote')}
           onClick={() => editor.chain().focus().toggleBlockquote().run()} />
-        <TBtn title="인용구 색" label={<span className="re-qtone" style={{ background: curTone ?? undefined }} />}
+        <TBtn title="인용구 색" label={<span className="re-qtone" style={{ background: curTone ?? QUOTE_GRAY }} />}
           on={quoteOpen} onClick={() => setQuoteOpen(o => !o)} />
         <TBtn title="구분선" label="—" onClick={() => editor.chain().focus().setHorizontalRule().run()} />
         <TBtn title="접은글" label="접기" on={!!ctx?.fold} onClick={insertFold} />
@@ -388,7 +390,7 @@ export function RichEditor({ value, onChange, placeholder }: {
       {quoteOpen && (
         <div className="re-qpop">
           <button type="button" className={`re-qchip${!curTone ? ' on' : ''}`} onClick={() => setQuoteTone(null)}>
-            <i className="re-qtone" />기본
+            <i className="re-qtone" style={{ background: QUOTE_GRAY }} />기본
           </button>
           {toneChips.map(c => (
             <button key={c.name + c.color} type="button" className={`re-qchip${curTone === c.color ? ' on' : ''}`} onClick={() => setQuoteTone(c.color)}>
@@ -396,7 +398,7 @@ export function RichEditor({ value, onChange, placeholder }: {
             </button>
           ))}
           <label className="re-qchip">
-            <input type="color" value={curTone ?? '#8fb0d8'} onChange={e => setQuoteTone(e.target.value)} />직접
+            <input type="color" value={curTone ?? QUOTE_GRAY} onChange={e => setQuoteTone(e.target.value)} />직접
           </label>
         </div>
       )}

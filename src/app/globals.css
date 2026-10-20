@@ -589,7 +589,7 @@ html.ui-arch .page-arch .re-content a,.mng-box.arch-modal .re-content a{color:va
 /* 인용구 한 줄 높이(px) — 딱지(9px 글씨)에서도 인용구 줄 높이로 위치를 잡도록 길이로 등록해 px로 물려준다 */
 @property --qlh{syntax:'<length>';inherits:true;initial-value:21px}
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote,.mng-box.arch-modal .re-content blockquote{
-  --qx:var(--qc,#8fb0d8);--qt:color-mix(in srgb,var(--qx) 55%,#fff);--qlh:1.6em;position:relative;margin:10px 0;padding:4px 4px 4px 62px;border:0;   /* 위아래 여백 18 → 10px — 인용구 앞뒤 · 인용구끼리 사이가 문단 사이보다 너무 넓었다 (v2.0 사용자 요청) */
+  --qx:var(--qc,#a3acb6);--qt:color-mix(in srgb,var(--qx) 55%,#fff);--qlh:1.6em;position:relative;margin:10px 0;padding:4px 4px 4px 62px;border:0;   /* 위아래 여백 18 → 10px — 인용구 앞뒤 · 인용구끼리 사이가 문단 사이보다 너무 넓었다 · 색을 안 고른 기본 인용구는 회색 (v2.0 사용자 요청) */
   font-size:1em;line-height:1.6; /* 본문과 같은 크기 · 행간 (v2.0 사용자 요청 — 발췌 이미지도 같은 값) */
   width:-webkit-fit-content;width:fit-content;max-width:100%;box-sizing:border-box; /* 글자 길이만큼만 (v2.0 사용자 요청) */
   background:none;color:#f4f6f8;font-weight:400} /* 글자는 흰색으로 통일 — 색은 딱지·선에만 (v2.0 사용자 요청) */
