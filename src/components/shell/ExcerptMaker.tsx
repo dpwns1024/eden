@@ -415,12 +415,11 @@ export function ExcerptMaker() {
           gapPx = k ? r.top - k.getBoundingClientRect().bottom : 0;
         }
       }
-      /* 박스 · 접은글 딱지는 진짜 칸으로 바꿔 넣는다 (v2.0 사용자 제보 — 박스 딱지가 「홍…」처럼 잘리고 떠 보였다).
+      /* 접은글 딱지는 진짜 칸으로 바꿔 넣는다 (v2.0 사용자 제보 — 딱지가 「홍…」처럼 잘리고 떠 보였다. 박스 딱지는 원래 진짜 칸).
          가상 요소(::before)는 찍을 때 글꼴이 실리지 않아 폭 · 자리가 어긋났다. 위의 화면 짝짓기가 끝난 뒤라 칸을 더해도 된다 */
       [c, ...Array.from(c.querySelectorAll<HTMLElement>('*'))].forEach(x => {
         const tag = (cls: string, text: string) => { const t = document.createElement('span'); t.className = cls; t.textContent = text; x.prepend(t); };
-        if (x.matches('[data-box="tag"]')) tag('ex-boxtag', x.getAttribute('data-label') || 'MEMO');
-        else if (x.matches('details[data-fold] > summary')) tag('ex-foldtag', x.parentElement?.getAttribute('data-label') || 'FOLD');
+        if (x.matches('details[data-fold] > summary')) tag('ex-foldtag', x.parentElement?.getAttribute('data-label') || 'FOLD');
       });
       const gap = Math.max(0, gapPx) * scale;
       c.style.setProperty('margin-top', `${gap.toFixed(1)}px`, 'important');
