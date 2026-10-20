@@ -565,7 +565,12 @@ export function ExcerptMaker() {
         if (useTpl === 'wide') {
           const ks = Array.from(body.children).filter(k => !blankText(k));
           const g = ks.length > 1 ? ks[1].getBoundingClientRect().top - ks[0].getBoundingClientRect().bottom : 0;
-          (photoEl.parentElement as HTMLElement).style.marginBottom = `${((g > 0 ? g : 13.5) + 6).toFixed(1)}px`;
+          const gg = g > 0 ? g : 13.5;
+          (photoEl.parentElement as HTMLElement).style.marginBottom = `${(gg + 6).toFixed(1)}px`;
+          /* HUD 위 줄과 사진 사이도 같게 (v2.0 사용자 요청) — 문단 간격(글자 기준) = 칸 간격 + 아래 몫 6px + 위 몫 3.5px,
+             위 줄은 글자 아래 끝에서 줄 아래 끝까지 ≈4.5px(찍어서 잼)라 그만큼 뺀다 */
+          const hh = card.matches('.ex-d-hud:not(.ex-d-hudt)') ? frame.querySelector<HTMLElement>(':scope > .ex-dh') : null;
+          if (hh) hh.style.setProperty('margin-bottom', `${(gg + 5).toFixed(1)}px`, 'important');
         }
         if (useTpl === 'side') {
           const over = (w: number) => { card.style.width = `${w}px`; clampWide(); return card.offsetHeight - w * 1.25; };
