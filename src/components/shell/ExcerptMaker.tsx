@@ -548,7 +548,7 @@ export function ExcerptMaker() {
           const rel = pick?.root.closest('[data-ex-rel]')?.getAttribute('data-ex-rel')?.trim() || 'MASKED';
           // 제목은 자간을 좁게 따로 (고정폭 영문용 자간 .2em이면 한글 제목 띄어쓰기가 너무 벌어졌다 — v2.0 사용자 요청)
           const l = el('span', 'ex-dh-l');
-          if (title) l.append(el('span', 'ex-dh-tt', title), ' · ');
+          if (title) l.append(el('span', 'ex-dh-tt', title), el('span', 'ex-dh-dot', '·'));   // 점 양옆은 고정폭 빈칸 대신 좁은 여백
           l.append('SIGNAL ');
           l.appendChild(el('b', '', rel));
           head.append(l, el('i', 'ex-dh-ln'));   // 글 뒤로 길게 이어지는 줄 (v2.0 사용자 요청)

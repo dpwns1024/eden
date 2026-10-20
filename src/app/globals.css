@@ -3118,7 +3118,8 @@ html.ui-arch .excerpt-card{background:
 .excerpt-card.ex-d-hud .ex-dh{margin:0 0 8.5px;align-items:center}   /* 위 줄 ↔ 본문: 글자 기준 약 17px (v2.0 사용자 요청) */
 .excerpt-card.ex-d-hud:not(.ex-d-hudt) .ex-dh{gap:0}   /* 글과 줄 사이는 띄어쓰기 한 칸만큼만 — 줄 margin-left 6px + 마지막 글자 자간 2px ≈ 고정폭 10px 한 칸 */
 .excerpt-card.ex-d-hud .ex-dh-l{flex:0 0 auto;white-space:nowrap}
-.excerpt-card .ex-dh-tt{letter-spacing:.06em;font-family:var(--sans-base);font-size:8.6px;vertical-align:.6px}   /* 한글 제목은 자간 좁게 · 띄어쓰기도 본문 글꼴 폭으로(고정폭 빈칸은 넓었다) · 크기는 한글 글자 높이가 SIGNAL 대문자와 같게(10px면 한글이 더 컸다) */
+.excerpt-card .ex-dh-tt{letter-spacing:.06em;font-family:var(--sans-base);font-size:11px}   /* 한글 제목은 자간 좁게 · 띄어쓰기도 본문 글꼴 폭으로(고정폭 빈칸은 넓었다) · 11px — 10px면 SIGNAL보다 작아 보였다(사용자 요청) */
+.excerpt-card .ex-dh-dot{display:inline-block;margin:0 4px;letter-spacing:0}   /* 제목 · SIGNAL 사이 점 — 양옆 여백 4px(글자 여백 포함 눈으로 약 7~8px, 예전 고정폭 빈칸은 약 12px) */
 .excerpt-card.ex-d-hud .ex-dh-ln{flex:1 1 0;min-width:0;height:0;margin-left:6px;border-top:1px solid rgba(190,208,228,.14)}   /* 선은 테두리로 — 찍을 때 높이는 옮기지 않아(ExcerptMaker FREE) 높이 1px짜리 빈 칸은 사라졌다 */
 /* HUD+제목 머리 아래 경계선 — 선 위아래 간격이 **눈에 보이는 글자 기준으로** 같게 (v2.0 사용자 요청).
    선 위아래 각각 글자 기준 약 12px (v2.0 사용자 요청).
