@@ -109,18 +109,23 @@ function AgentPhoto({ src, alt }: { src: string; alt: string }) {
 }
 /** 증명사진 카드 — 누르면 상세 프로필 창 */
 function AgentCard({ a, onOpen }: { a: ArchAgent; onOpen: () => void }) {
-  return (
-    // <button>은 아이폰 사파리가 회색 기본 바탕 · 세로 가운데 정렬을 덧입혀 사진 위가 비었다 (v2.0 사용자 제보) — 일반 상자 + 버튼 역할로
-    <div role="button" tabIndex={0} className="ar-ag" onClick={onOpen} aria-label={`${a.name} 상세 프로필`}
-      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(); } }}
-      style={AG_COLOR[a.element] ? { '--ec': AG_COLOR[a.element] } as React.CSSProperties : undefined}>
+  const has = !!a.html.trim();
+  const style = AG_COLOR[a.element] ? { '--ec': AG_COLOR[a.element] } as React.CSSProperties : undefined;
+  const body = (<>
       <span className="ph"><AgentPhoto src={a.photo} alt={a.name} /></span>
       <span className="tx">
         {/* 이름 옆에 등급 · 영문 (v2.0 사용자 요청) */}
         <span className="nm"><b>{a.name}</b>{a.en && <small>{a.en}</small>}</span>
         <ElemBadge el={a.element} />
       </span>
-    </div>
+  </>);
+  return (
+    // <button>은 아이폰 사파리가 회색 기본 바탕 · 세로 가운데 정렬을 덧입혀 사진 위가 비었다 (v2.0 사용자 제보) — 일반 상자 + 버튼 역할로
+    // 상세 프로필(HTML)을 안 쓴 요원은 눌러도 아무것도 안 뜬다 (v2.0 사용자 요청)
+    has ? <div role="button" tabIndex={0} className="ar-ag" onClick={onOpen} aria-label={`${a.name} 상세 프로필`}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(); } }}
+      style={style}>{body}</div>
+      : <div className="ar-ag still" style={style}>{body}</div>
   );
 }
 /** 상세 프로필 창 — 위에 사진 · 이름 · 무리 · 원소, 아래에 관리자가 HTML로 쓴 내용 */
@@ -133,8 +138,7 @@ function AgentModal({ a, g, onClose }: { a: ArchAgent | null; g: ArchAgentGroup 
             <span className="ph"><AgentPhoto src={a.photo} alt={a.name} /></span>
             <div className="nm">
               <small>{g.title}{g.cls && <em>{g.cls}</em>}</small>
-              <b>{a.name}</b>
-              {a.en && <span className="en">{a.en}</span>}
+              <span className="nmr"><b>{a.name}</b>{a.en && <span className="en">{a.en}</span>}</span>
               <ElemBadge el={a.element} />
             </div>
           </div>

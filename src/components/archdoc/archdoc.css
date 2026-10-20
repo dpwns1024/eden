@@ -576,8 +576,9 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-ag .tx b{font:500 15px/1.2 'Noto Sans KR','Jost',sans-serif;letter-spacing:.04em;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.8)}
 .arx .ar-ag .tx .nm{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 6px}
 .arx .ar-ag .tx small{font:400 11px/1.2 'Noto Sans KR','Jost',sans-serif;letter-spacing:.04em;color:#aab5c1;text-shadow:0 1px 6px rgba(0,0,0,.8)}
-.arx .ar-ag:hover,.arx .ar-ag:focus-visible{border-color:color-mix(in srgb,var(--ec,#b8d8ff) 70%,transparent);box-shadow:0 0 22px -8px var(--ec,#b8d8ff)}
-.arx .ar-ag:hover .ph img{transform:scale(1.04)}
+.arx .ar-ag.still{cursor:default}
+.arx .ar-ag:not(.still):hover,.arx .ar-ag:focus-visible{border-color:color-mix(in srgb,var(--ec,#b8d8ff) 70%,transparent);box-shadow:0 0 22px -8px var(--ec,#b8d8ff)}
+.arx .ar-ag:not(.still):hover .ph img{transform:scale(1.04)}
 .ar-ag-el{display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 9px 0 6px;font:500 10.5px/1 'Noto Sans KR',sans-serif;color:#fff;
   background:color-mix(in srgb,var(--ec) 78%,#05070a);border:1px solid color-mix(in srgb,var(--ec) 70%,#fff 30%);box-shadow:0 0 12px -3px var(--ec)}
 .ar-ag-el i{display:block;width:13px;height:13px}
@@ -606,7 +607,8 @@ body:has(.arx)::before{display:none !important}
 .ar-ag-pf-h .nm small{font:400 9px/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:#8592a0}
 .ar-ag-pf-h .nm small em{font-style:normal;margin-left:10px;color:var(--gc)}
 .ar-ag-pf-h .nm b{font:400 26px/1.15 'Noto Sans KR','Jost',sans-serif;letter-spacing:.06em;color:#fff}
-.ar-ag-pf-h .nm .en{margin-top:-2px;font:400 13px/1.2 'Noto Sans KR','Jost',sans-serif;letter-spacing:.04em;color:#aab5c1}
+.ar-ag-pf-h .nm .nmr{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 10px}
+.ar-ag-pf-h .nm .en{font:400 13px/1.2 'Noto Sans KR','Jost',sans-serif;letter-spacing:.04em;color:#aab5c1}
 .ar-ag-pf-b{font:300 13px/1.85 'Noto Sans KR',sans-serif;color:#c3ccd6;word-break:keep-all}
 .ar-ag-pf-b.pend{font:400 9.5px/1.6 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.22em;color:#5f6b79;padding:20px 0}
 @media (max-width:560px){ .ar-ag-pf-h .ph{flex-basis:92px} .ar-ag-pf-h .nm b{font-size:21px} }
