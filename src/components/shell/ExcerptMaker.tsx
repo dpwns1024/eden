@@ -616,17 +616,17 @@ export function ExcerptMaker() {
            글씨 · 딱지 · 여백 비율이 그대로라 그림에서는 글씨 크기만 달라 보인다. 아주 짧거나(폭 640) 아주 길면(폭 1600) 그 폭에서 글 길이대로.
            가로형은 폭 · 사진 띠 높이만 고정하고 높이는 글 길이대로 */
         /* 가로형 — 사진과 본문 사이를 본문 문단 사이(엔터) 간격과 같게 (v2.0 사용자 요청 — 사진 아래가 더 넓었다).
-           카드에서 실제로 놓인 첫 두 글 칸 사이 간격 + 앞 칸 마지막 줄 아래 끝에서 글자 아래 끝까지(≈6px — 찍어서 잼).
+           카드에서 실제로 놓인 첫 두 글 칸 사이 간격 + 앞 칸 마지막 줄 아래 끝에서 글자 아래 끝까지(행간 1.6에서 ≈6.5px — 찍어서 잼).
            글자 위 끝까지의 몫은 사진 쪽 · 문단 쪽 둘 다 같아서 빼고 본다 */
         if (useTpl === 'wide') {
           const ks = Array.from(body.children).filter(k => !blankText(k));
           const g = ks.length > 1 ? ks[1].getBoundingClientRect().top - ks[0].getBoundingClientRect().bottom : 0;
           const gg = g > 0 ? g : 13.5;
-          (photoEl.parentElement as HTMLElement).style.marginBottom = `${(gg + 6).toFixed(1)}px`;
-          /* HUD 위 줄과 사진 사이도 같게 (v2.0 사용자 요청) — 문단 간격(글자 기준) = 칸 간격 + 아래 몫 6px + 위 몫 3.5px,
-             위 줄은 글자 아래 끝에서 줄 아래 끝까지 ≈4.5px(찍어서 잼)라 그만큼 뺀다 */
+          (photoEl.parentElement as HTMLElement).style.marginBottom = `${(gg + 6.5).toFixed(1)}px`;
+          /* HUD 위 줄과 사진 사이도 같게 (v2.0 사용자 요청) — 문단 간격(글자 기준) = 칸 간격 + 아래 몫 7px + 위 몫 4px(행간 1.6),
+             위 줄은 글자 아래 끝에서 줄 아래 끝까지 ≈4px(찍어서 잼)라 그만큼 뺀다 */
           const hh = card.matches('.ex-d-hud:not(.ex-d-hudt)') ? frame.querySelector<HTMLElement>(':scope > .ex-dh') : null;
-          if (hh) hh.style.setProperty('margin-bottom', `${(gg + 5).toFixed(1)}px`, 'important');
+          if (hh) hh.style.setProperty('margin-bottom', `${(gg + 7).toFixed(1)}px`, 'important');
         }
         if (useTpl === 'side') {
           const over = (w: number) => { card.style.width = `${w}px`; clampWide(); return card.offsetHeight - w * 1.25; };
