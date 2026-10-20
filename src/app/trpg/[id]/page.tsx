@@ -439,7 +439,7 @@ html,body{margin:0!important;padding:0!important;height:auto!important;min-heigh
         )}
         {(bd?.bodyRich || fragment) && body ? (
           /* 사이트 에디터로 쓴 본문 — 다른 게시판 글처럼 페이지 안에 (v2.0 사용자 요청) */
-          <HtmlBody className={`prose log-rich${bd?.bodyRich ? '' : ' log-frag'}`} html={body} exTitle={l.title} />
+          <HtmlBody className={`prose log-rich${bd?.bodyRich ? '' : ' log-frag'}`} html={body} exTitle={l.title} exRel={rel?.name} />
         ) : html ? (
           /* 원본 스타일·스크립트 유지 — 널 오리진 샌드박스라 사이트 데이터에는 접근 불가 (6.3 격리) */
           <LogFrame frameRef={frameRef} html={srcDoc} title={l.title} onFrameLoad={onFrameLoad} />
