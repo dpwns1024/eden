@@ -3119,8 +3119,9 @@ html.ui-arch .excerpt-card{background:
    글과 줄 사이는 좁게. 글자는 줄어들거나 말줄임 없이 그대로(글자 폭에 맞춘 칸은 찍을 때 조금 넓어져 잘렸다) — 줄이 남는 폭을 채운다.
    글자 줄 아래 본문까지는 글자 기준으로 약 25px (사진 템플릿은 사진이 바로 붙어 글자 몫만큼 더) */
 .excerpt-card.ex-d-hud .ex-dh{margin:0 0 22px;align-items:center}
+.excerpt-card.ex-d-hud:not(.ex-d-hudt) .ex-dh{gap:0}   /* 글과 줄 사이는 띄어쓰기 한 칸만큼만 — 줄 margin-left 6px + 마지막 글자 자간 2px ≈ 고정폭 10px 한 칸 */
 .excerpt-card.ex-d-hud .ex-dh-l{flex:0 0 auto;white-space:nowrap}
-.excerpt-card.ex-d-hud .ex-dh-ln{flex:1 1 0;min-width:0;height:0;margin-left:12px;border-top:1px solid rgba(190,208,228,.14)}   /* 선은 테두리로 — 찍을 때 높이는 옮기지 않아(ExcerptMaker FREE) 높이 1px짜리 빈 칸은 사라졌다 */
+.excerpt-card.ex-d-hud .ex-dh-ln{flex:1 1 0;min-width:0;height:0;margin-left:6px;border-top:1px solid rgba(190,208,228,.14)}   /* 선은 테두리로 — 찍을 때 높이는 옮기지 않아(ExcerptMaker FREE) 높이 1px짜리 빈 칸은 사라졌다 */
 /* HUD+제목 머리 아래 경계선 — 선 위아래 간격이 **눈에 보이는 글자 기준으로** 같게 (v2.0 사용자 요청).
    선 위: 안쪽 여백 18px + 제목 줄 아래 끝에서 글자 아래 끝까지(≈6px — 실제로 찍어서 잼)
    선 아래: 바깥 여백 + 본문 첫 줄 위 끝에서 글자 위 끝까지(15px · 행간 1.5 ≈3.5px) — 그만큼 바깥 여백을 줄인다.
