@@ -3110,18 +3110,15 @@ html.ui-arch .excerpt-card{background:
 .excerpt-card .ex-side{position:relative;align-self:stretch;overflow:hidden;box-shadow:0 0 0 1px rgba(190,208,228,.16)}   /* 칸 높이를 꽉 채우는 세로 띠 */
 /* 발췌 디자인 (v2.0 사용자 요청 — ARCH 시안) — 헤더: 제목 · 정보줄 · 빛나는 밑줄 / HUD: 좌표 · 신호 막대 · 왼쪽 눈금자 · 오른쪽 아래 제목 */
 .excerpt-card .ex-dh{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;grid-column:1/-1;font:400 10px/1.4 'JetBrains Mono',var(--sans-base);letter-spacing:.2em;color:#6f7b89}
-.excerpt-card.ex-d-report .ex-dh{padding:4px 0 14px;margin:0 0 0;border-bottom:1px solid rgba(190,208,228,.14)}
 .excerpt-card .ex-dh-t{font:400 24px/1.3 var(--sans-base);letter-spacing:0;color:#e8eef5;min-width:0}
 .excerpt-card .ex-dh-t small{display:block;margin-top:6px;font:400 10.5px/1.4 'JetBrains Mono',var(--sans-base);letter-spacing:.2em;color:#6f7b89}
-.excerpt-card .ex-dh-r{flex:0 0 auto;white-space:nowrap}
-.excerpt-card .ex-dh-ul{display:block;grid-column:1/-1;width:120px;height:1px;margin:-1px 0 24px;background:#8fb0d8;box-shadow:0 0 8px #8fb0d8}
 /* HUD 위 줄 — 「제목 · SIGNAL 자관」 뒤로 줄이 오른쪽 끝까지 길게 이어진다 (v2.0 사용자 요청). 줄은 HUD+제목 경계선과 같은 색 단색,
    글과 줄 사이는 좁게. 글자는 줄어들거나 말줄임 없이 그대로(글자 폭에 맞춘 칸은 찍을 때 조금 넓어져 잘렸다) — 줄이 남는 폭을 채운다.
    글자 줄 아래 본문까지는 글자 기준으로 약 25px (사진 템플릿은 사진이 바로 붙어 글자 몫만큼 더) */
 .excerpt-card.ex-d-hud .ex-dh{margin:0 0 8.5px;align-items:center}   /* 위 줄 ↔ 본문: 글자 기준 약 17px (v2.0 사용자 요청) */
 .excerpt-card.ex-d-hud:not(.ex-d-hudt) .ex-dh{gap:0}   /* 글과 줄 사이는 띄어쓰기 한 칸만큼만 — 줄 margin-left 6px + 마지막 글자 자간 2px ≈ 고정폭 10px 한 칸 */
 .excerpt-card.ex-d-hud .ex-dh-l{flex:0 0 auto;white-space:nowrap}
-.excerpt-card .ex-dh-tt{letter-spacing:.06em;font-family:var(--sans-base)}   /* 한글 제목은 자간 좁게 · 띄어쓰기도 본문 글꼴 폭으로(고정폭 빈칸은 넓었다) */
+.excerpt-card .ex-dh-tt{letter-spacing:.06em;font-family:var(--sans-base);font-size:8.6px;vertical-align:.6px}   /* 한글 제목은 자간 좁게 · 띄어쓰기도 본문 글꼴 폭으로(고정폭 빈칸은 넓었다) · 크기는 한글 글자 높이가 SIGNAL 대문자와 같게(10px면 한글이 더 컸다) */
 .excerpt-card.ex-d-hud .ex-dh-ln{flex:1 1 0;min-width:0;height:0;margin-left:6px;border-top:1px solid rgba(190,208,228,.14)}   /* 선은 테두리로 — 찍을 때 높이는 옮기지 않아(ExcerptMaker FREE) 높이 1px짜리 빈 칸은 사라졌다 */
 /* HUD+제목 머리 아래 경계선 — 선 위아래 간격이 **눈에 보이는 글자 기준으로** 같게 (v2.0 사용자 요청).
    선 위아래 각각 글자 기준 약 12px (v2.0 사용자 요청).
@@ -3135,8 +3132,8 @@ html.ui-arch .excerpt-card{background:
 .excerpt-card.ex-d-hud .ex-dh-t small{margin:0}
 .excerpt-card.ex-d-hud .ex-dh b{font-weight:400;color:#8fb0d8}
 /* 디자인 카드는 아래 제목 줄 대신 여백 40px — 빈 줄에 높이를 주면 찍을 때 높이가 안 옮겨져 아래만 좁아졌다 */
-.excerpt-card:is(.ex-d-report,.ex-d-hud){padding-bottom:40px}
-.excerpt-card:is(.ex-d-report,.ex-d-hud) .ex-foot:empty{display:none}
+.excerpt-card.ex-d-hud{padding-bottom:40px}
+.excerpt-card.ex-d-hud .ex-foot:empty{display:none}
 .excerpt-bar .ex-tpls{flex:0 0 auto;display:inline-flex;gap:0}
 .excerpt-bar .ex-tpls button{border-radius:0;margin-left:-1px}
 .excerpt-bar button.on{border-color:#8fb0d8;color:#fff;background:rgba(96,124,160,.2)}
