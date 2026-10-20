@@ -54,7 +54,7 @@ function collectTags(card: HTMLElement): QuoteTag[] {
     return [{
       x: r.left - cr.left, y: r.top - cr.top + pt, w: r.width, first: lh,
       label: raw.replace(/^["']|["']$/g, '').toUpperCase(),
-      bg: ps.backgroundColor, glow: bs.getPropertyValue('--qx').trim() || '#8fb0d8',
+      bg: ps.backgroundColor, glow: bs.getPropertyValue('--qx').trim() || '#a3acb6',
     }];
   });
 }
@@ -186,7 +186,7 @@ async function drawTags(url: string, tags: QuoteTag[], glows: Glow[] = [], boxTa
     ctx.shadowColor = t.glow; ctx.shadowBlur = 10 * PR; ctx.fillStyle = t.glow;
     ctx.fillRect(bx + 2 * PR, by + 2 * PR, bw - 4 * PR, bh - 4 * PR);
     ctx.restore();
-    ctx.fillStyle = t.bg && t.bg !== 'rgba(0, 0, 0, 0)' ? t.bg : '#c9d6e6';
+    ctx.fillStyle = t.bg && t.bg !== 'rgba(0, 0, 0, 0)' ? t.bg : '#d1d6dc';
     ctx.fillRect(bx, by, bw, bh);
     // 글자 — 자간 .2em, 상자 가운데(잉크 기준)
     ctx.font = `500 ${9 * PR}px "JetBrains Mono", "Pretendard Variable", "Pretendard", sans-serif`;
