@@ -61,7 +61,7 @@ export interface AegisSpot {
   lx2?: number; ly2?: number;  // 같은 시설이 두 칸일 때 두 번째 표시 자리
 }
 
-/** 그림 속 자리 — 섬 · 숙소 그림은 viewBox 0 0 1000 1000, 본부 안내도는 0 0 1000 1190 (aegisHqArt.ts). 순서 = 목록 순서(위층부터).
+/** 그림 속 자리 — 섬 · 숙소 그림은 viewBox 0 0 1000 1000, 본부는 예전 단면 좌표 0 0 1000 1190 — 입체도(components/archdoc/AegisHq3d.tsx)가 이 좌표를 입체로 옮긴다. 순서 = 목록 순서(위층부터).
  *  본부: 옥상(왼쪽 끝 훈련 돔 · 가운데 코어 탑 · 오른쪽 끝 헬기 착륙장, 코어 위 상공에 하늘정원) · 11F ~ 1F · 지하 B1 · B2–B4 · B5 */
 export const AEGIS_SPOTS: Record<string, AegisSpot> = {
   sky:       { label: '본부 · 코어 탑 위 상공 (하늘정원)', view: 'hq', lx: 650, ly: 108, cell: 'M374 60 Q500 36 626 60 Q588 120 500 144 Q412 120 374 60 Z', kind: 'entry', icon: 'leaf' },

@@ -256,7 +256,7 @@ body:has(.arx)::before{display:none !important}
 .arx .am-crumb:hover{color:var(--ac)}
 /* 장 — 겹쳐 두고 확대 · 축소 · 옆으로 밀며 바꾼다 */
 .arx .am-stage{position:relative;height:0;padding-top:100%;overflow:hidden;transition:padding-top .6s cubic-bezier(.2,.75,.2,1)}
-.arx .am-stage.v-hq{padding-top:119%}
+.arx .am-stage.v-hq{padding-top:127%}
 .arx .am-v{position:absolute;inset:0;transition:transform .75s cubic-bezier(.2,.75,.2,1),opacity .55s ease;pointer-events:none;will-change:transform,opacity}
 .arx .am-v.cur{pointer-events:auto}
 .arx .am-svg{display:block;width:100%;height:100%;-webkit-tap-highlight-color:transparent}
@@ -330,7 +330,7 @@ body:has(.arx)::before{display:none !important}
 .arx .am-rl .am-code{font-size:20px}
 .arx .am-rl .am-nm{font-size:17px}
 .arx .am-rl.on .am-ico{stroke:#fff}
-/* 본부 층별 안내도 — 그림(aegisHqArt.ts) */
+/* 본부 그림 (옛 단면도 시절 규칙 — 입체도는 아래 홀로그램 묶음) */
 .arx .am-o{fill:rgba(14,19,26,.97);stroke:rgba(225,233,242,.7);stroke-width:2.2}
 .arx .am-s{fill:none;stroke:rgba(225,233,242,.62);stroke-width:2.4}
 .arx .am-t{fill:none;stroke:rgba(225,233,242,.5);stroke-width:1.4}
@@ -644,7 +644,14 @@ body:has(.arx)::before{display:none !important}
 .arx .am-stage .am-hbox.key .am-h1{stroke:#d6ecff}
 .arx .am-stage .am-hbox.key .am-hf.t{fill:rgba(var(--hr),.4)}
 .arx .am-stage .am-hdot{fill:#e6f3ff;animation:arBlink 1.6s ease-in-out infinite}
-.arx .am-stage .am-dimln{fill:none;stroke:rgba(var(--hr),.45);stroke-width:1}
+.arx .am-stage .am-hacc{fill:none;stroke:rgba(150,215,255,.85);stroke-width:1.1}
+.arx .am-stage .am-hf.g{fill:rgba(140,210,255,.10)}
+.arx .am-stage .am-cellglow{fill:rgba(var(--hr),.22);stroke:rgba(200,232,255,.9);stroke-width:1.2;pointer-events:none;filter:drop-shadow(0 0 8px rgba(var(--hr),.8))}
+.arx .am-stage .am-rtree path,.arx .am-stage .am-rtree ellipse,.arx .am-stage .am-fount ellipse,.arx .am-stage .am-fount path{fill:none;stroke:rgba(150,215,255,.6);stroke-width:1}
+.arx .am-stage .am-rtree ellipse:first-of-type{fill:rgba(140,210,255,.08)}
+.arx .am-stage .am-lamp{fill:none;stroke:rgba(var(--hr),.45);stroke-width:1}
+.arx .am-stage .am-model.hq .am-hf.l{fill:rgba(var(--hr),.035)}
+.arx .am-stage .am-model.hq .am-hf.t{fill:rgba(var(--hr),.09)}
 .arx .am-stage .am-lead{fill:none;stroke:rgba(var(--hr),.75);stroke-width:1.1}
 .arx .am-stage .am-axis path{fill:none;stroke:rgba(var(--hr),.8);stroke-width:1.4}
 .arx .am-stage .am-axis text{font:400 13px 'JetBrains Mono',monospace;fill:rgba(var(--hr),.9)}

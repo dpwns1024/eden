@@ -4,21 +4,20 @@
  *  1) 섬 전체 — 비스듬히 내려다본 축측(axonometric) 홀로그램. 섬 지형 · 바다 격자 위에 통합 지휘본부 · 요원 거주구역을
  *     와이어프레임 입체로 세운다. 누르면 그 건물로 확대되며 넘어간다.
  * 세 장 모두 파란 홀로그램(발광 선 · 주사선 · 깜빡임)으로 그린다 — 색은 archdoc.css의 '홀로그램' 묶음.
- *  2) 지휘본부 — 층별 안내도 (방마다 칸 · 소품. 옥상 훈련 돔 · 코어 탑 · 헬기 착륙장, 코어 위 상공의 하늘정원부터 지하 B5까지). 옆 화살표로 거주구역으로.
- *  3) 거주구역 — 입체로 본 숙소동들. 양 끝의 이브 · 에덴 숙소동을 강조 — 고르면 그 캐릭터의 대표색으로 빛난다.
+ *  2) 지휘본부 — 축측 입체도 (AegisHq3d.tsx · 층마다 방 칸 · 소품. 옥상 훈련 돔 · 코어 탑 · 헬기 착륙장, 코어 위 상공의 하늘정원부터 지하 B5까지).
+ *     옆 화살표로 거주구역으로.
+ *  3) 거주구역 — 입체로 본 숙소동들(층 띠 · 발코니 · 옥상 설비 · 연결 다리). 양 끝의 이브 · 에덴 숙소동을 강조 — 고르면 그 캐릭터의 대표색으로 빛난다.
  * 칸이나 표시를 누르면(또는 아래 목록) 그 시설이 지도 아래(PC는 오른쪽) 카드로 나온다.
  */
 import React, { useState } from 'react';
 import { AEGIS_SPOTS, SPOT_ORDER, RES_TOWERS, resP, type AegisView, type ArchMapNode } from '@/lib/aegisMap';
 import { useLocalList } from '@/lib/postStore';
 import { CHAR_SEED, type Character } from '@/lib/charStore';
-import { HQ_ART } from './aegisHqArt';
+import { HqArt3d, HQ_SPOTS, HQ_GLOW, HQ3D_H, pts, seg } from './AegisHq3d';
 
 type View = 'site' | AegisView;
 type Pick = (spot: string) => void;
 
-const pts = (a: [number, number][]) => 'M' + a.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(' L') + ' Z';
-const seg = (a: [number, number], b: [number, number]) => `M${a[0].toFixed(1)} ${a[1].toFixed(1)} L${b[0].toFixed(1)} ${b[1].toFixed(1)}`;
 /** 섬 축측 투영 — 위에서 본 섬 좌표(1000×1000)를 비스듬히 내려다본 화면 좌표로. z는 높이 */
 const sP = (x: number, y: number, z = 0): [number, number] => {
   const u = x - 530, v = y - 480;
@@ -27,7 +26,7 @@ const sP = (x: number, y: number, z = 0): [number, number] => {
 
 /** 두 건물의 이름 — 섬 지도 · 머리줄 · 목록이 같이 쓴다. (gx, gy) = 섬 위 터, (x, y) = 투영된 화면 자리 */
 const SITE_RAW: Record<AegisView, { gx: number; gy: number; code: string; en: string; ko: string; hd: string; view: string; scale: string; ref: string }> = {
-  hq: { gx: 440, gy: 470, code: 'SECTOR A · 01', en: 'ARCH COMMAND', ko: '통합 지휘본부', hd: 'B5 – 11F · ROOF', view: 'SECTION VIEW', scale: '1:500', ref: 'AG-A01' },
+  hq: { gx: 440, gy: 470, code: 'SECTOR A · 01', en: 'ARCH COMMAND', ko: '통합 지휘본부', hd: 'B5 – 11F · ROOF', view: 'AXONOMETRIC VIEW', scale: '1:500', ref: 'AG-A01' },
   res: { gx: 600, gy: 505, code: 'SECTOR R · 02', en: 'AGENT QUARTERS', ko: '요원 거주구역', hd: '7 BLOCKS', view: 'AXONOMETRIC VIEW', scale: '1:800', ref: 'AG-R02' },
 };
 const SITE = Object.fromEntries(Object.entries(SITE_RAW).map(([k, v]) => {
@@ -172,11 +171,6 @@ function SiteView({ go }: { go: (v: AegisView) => void }) {
   for (let v = -420; v <= 440; v += 40) grid.push(seg(sP(80, 480 + v, SEA), sP(980, 480 + v, SEA)));
   for (let u = -450; u <= 450; u += 40) grid.push(seg(sP(530 + u, 40, SEA), sP(530 + u, 920, SEA)));
   const walls = isl.filter((_, i) => i % 3 === 0).map(([x, y]) => seg(sP(x, y), sP(x, y, SEA))).join(' ');
-  // 치수선 — 섬의 앞 두 변을 따라
-  const dimX = [sP(215, 730, SEA), sP(865, 730, SEA)] as const, dimY = [sP(895, 276, SEA), sP(895, 700, SEA)] as const;
-  const mid = (a: readonly [number, number], b: readonly [number, number]) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
-  const [mx, my] = mid(...dimX), [nx, ny] = mid(...dimY);
-  const ang = Math.atan2(0.4, 0.78) * 180 / Math.PI;
   return (
     <>
       <path className="am-h3 sea" d={grid.join(' ')} mask="url(#amFadeM)" />
@@ -187,9 +181,6 @@ function SiteView({ go }: { go: (v: AegisView) => void }) {
       <path className="am-hland" d={pts(isl.map(([x, y]) => sP(x, y)))} />
       {[0.8, 0.6, 0.4].map(f => <path key={f} className="am-h3 dash" d={ring(isl, f)} />)}
       <path className="am-road" d={`${seg(sP(440, 470), sP(600, 505))} ${seg(sP(440, 470), sP(330, 360))}`} />
-      <path className="am-dimln" d={`${seg(dimX[0], dimX[1])} ${seg(dimY[0], dimY[1])} ${[dimX[0], dimX[1], dimY[0], dimY[1]].map(([x, y]) => `M${x} ${y - 8} V${y + 8}`).join(' ')}`} />
-      <text className="am-tag" transform={`translate(${mx} ${my + 22}) rotate(${ang})`} textAnchor="middle">6.5 KM</text>
-      <text className="am-tag" transform={`translate(${nx + 16} ${ny + 18}) rotate(${-ang})`} textAnchor="middle">4.2 KM</text>
       <ResModel />
       <HqModel />
       <SiteMark k="hq" go={go} />
@@ -206,8 +197,7 @@ function SiteView({ go }: { go: (v: AegisView) => void }) {
 }
 const ptsOf = (d: string) => [...d.matchAll(/(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g)].map(m => [+m[1], +m[2]] as [number, number]);
 
-/* ───────── 2) 지휘본부 — 층별 안내도 (그림: aegisHqArt.ts · viewBox 0 0 1000 1190) ───────── */
-export const HQ_H = 1190;
+/* ───────── 2) 지휘본부 — 입체도 (그림 · 자리: AegisHq3d.tsx) ───────── */
 /** 시설 그림 기호 — 가운데 (0,0), 한 변 약 24 */
 const ICONS: Record<string, string> = {
   talk: 'M-11 -8 H11 V5 H-2 L-7 10 V5 H-11 Z',
@@ -227,9 +217,8 @@ const ICONS: Record<string, string> = {
   gate: 'M7 0 A7 11 0 1 1 -7 0 A7 11 0 1 1 7 0 Z M3.5 0 A3.5 6 0 1 1 -3.5 0 A3.5 6 0 1 1 3.5 0 Z',
   file: 'M-8 -11 H4 L9 -6 V11 H-8 Z M4 -11 V-6 H9 M-4 -1 H5 M-4 3 H5 M-4 7 H2',
 };
-function HqView() {
-  return <g dangerouslySetInnerHTML={{ __html: HQ_ART }} />;
-}
+/** 그 화면에서의 자리 — 본부는 입체도로 옮긴 자리 */
+const spotOf = (spot: string) => HQ_SPOTS[spot] ?? AEGIS_SPOTS[spot];
 /** 본부 시설 글씨 — PC: 기호 원 + 영문(번호) · 한글 두 줄 / 폰: 번호 + 한글 한 줄 (작은 화면에서도 읽히게).
  *  세로 가운데는 dominant-baseline 대신 dy=".35em" — 아이폰 사파리는 tspan에 기준선을 물려주지 않아 글자가 어긋난다 */
 function HqLabel({ n, x, y, kind, icon }: { n: ArchMapNode; x: number; y: number; kind: string; icon?: string }) {
@@ -269,22 +258,59 @@ function HqLabel({ n, x, y, kind, icon }: { n: ArchMapNode; x: number; y: number
 }
 
 /* ───────── 3) 거주구역 — 입체 ───────── */
+/** 숙소동 — 몸체 + 층 띠 · 창 기둥 · 한 층 걸러 발코니 · 입구 차양 · 옥상 계단실 · 설비 (강조 동은 안테나) */
 function Tower({ cx, cy, h, tag, hl, tint }: { cx: number; cy: number; h: number; tag: string; hl: boolean; tint?: string }) {
   const x = cx - 32, y = cy - 32, w = 64, d = 64, P = resP;
-  const win: string[] = [];
+  const win: string[] = [], bal: string[] = [];
   for (let z = 14; z < h - 4; z += 14) win.push(seg(P(x, y + d, z), P(x + w, y + d, z)), seg(P(x + w, y, z), P(x + w, y + d, z)));
+  for (let i = 8; i < w; i += 8) win.push(seg(P(x + i, y + d, 4), P(x + i, y + d, h)), seg(P(x + w, y + i, 4), P(x + w, y + i, h)));
+  for (let z = 28; z < h - 10; z += 28) {
+    bal.push(line3([P(x + 8, y + d, z), P(x + 8, y + d + 6, z), P(x + w - 8, y + d + 6, z), P(x + w - 8, y + d, z)]));
+    bal.push(line3([P(x + w, y + 8, z), P(x + w + 6, y + 8, z), P(x + w + 6, y + d - 8, z), P(x + w, y + d - 8, z)]));
+    bal.push(seg(P(x + 8, y + d + 6, z + 5), P(x + w - 8, y + d + 6, z + 5)), seg(P(x + w + 6, y + 8, z + 5), P(x + w + 6, y + d - 8, z + 5)));
+  }
   const [rx, ry] = P(cx, cy, h);
   const line = tint ?? (hl ? 'rgba(184,216,255,.75)' : undefined);
+  const st = line ? { stroke: line } : undefined;
   return (
     <g className={hl ? 'am-tw hl' : 'am-tw'}>
-      <path className="am-b f-l" d={pts([P(x, y + d, 0), P(x + w, y + d, 0), P(x + w, y + d, h), P(x, y + d, h)])} style={line ? { stroke: line } : undefined} />
-      <path className="am-b f-r" d={pts([P(x + w, y, 0), P(x + w, y + d, 0), P(x + w, y + d, h), P(x + w, y, h)])} style={line ? { stroke: line } : undefined} />
+      <path className="am-l2" d={`${pts([P(x - 5, y - 5, 4), P(x + w + 5, y - 5, 4), P(x + w + 5, y + d + 5, 4), P(x - 5, y + d + 5, 4)])} ${seg(P(x + w + 5, y + d + 5, 0), P(x + w + 5, y + d + 5, 4))}`} />
+      <path className="am-b f-l" d={pts([P(x, y + d, 0), P(x + w, y + d, 0), P(x + w, y + d, h), P(x, y + d, h)])} style={st} />
+      <path className="am-b f-r" d={pts([P(x + w, y, 0), P(x + w, y + d, 0), P(x + w, y + d, h), P(x + w, y, h)])} style={st} />
       <path className="am-l3 win" d={win.join(' ')} style={tint ? { stroke: tint, strokeOpacity: .35 } : undefined} />
+      <path className="am-l2" d={bal.join(' ')} style={tint ? { stroke: tint, strokeOpacity: .6 } : undefined} />
       <path className="am-b f-t" d={pts([P(x, y, h), P(x + w, y, h), P(x + w, y + d, h), P(x, y + d, h)])}
         style={line ? { stroke: line, fill: tint ?? 'rgba(184,216,255,.26)', fillOpacity: tint ? .55 : 1 } : undefined} />
+      <ResBox x={x + 20} y={y + d - 2} z={10} w={24} d={10} h={3} st={st} />
+      <ResBox x={x + 8} y={y + 8} z={h} w={22} d={18} h={10} st={st} />
+      <ResBox x={x + 44} y={y + 8} z={h} w={12} d={12} h={6} st={st} />
       {hl
         ? <path d={`M${rx} ${ry} V${ry - 64}`} stroke={tint ?? ACC} strokeWidth="3" strokeOpacity=".8" strokeDasharray={tint ? undefined : '2 4'} />
         : <text className="am-tag dim" x={rx} y={ry + 5} textAnchor="middle">{tag}</text>}
+    </g>
+  );
+}
+const line3 = (a: [number, number][]) => 'M' + a.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(' L');
+/** 거주구역의 작은 상자 (차양 · 계단실 · 설비 · 연결 다리) */
+function ResBox({ x, y, z, w, d, h, st }: { x: number; y: number; z: number; w: number; d: number; h: number; st?: React.CSSProperties }) {
+  const P = resP;
+  return (
+    <g className="am-tw">
+      <path className="am-b f-l" d={pts([P(x, y + d, z), P(x + w, y + d, z), P(x + w, y + d, z + h), P(x, y + d, z + h)])} style={st} />
+      <path className="am-b f-r" d={pts([P(x + w, y, z), P(x + w, y + d, z), P(x + w, y + d, z + h), P(x + w, y, z + h)])} style={st} />
+      <path className="am-b f-t" d={pts([P(x, y, z + h), P(x + w, y, z + h), P(x + w, y + d, z + h), P(x, y + d, z + h)])} style={st} />
+    </g>
+  );
+}
+/** 나무 — 줄기 + 세 겹 원뿔 수관 */
+function ResTree({ x, y }: { x: number; y: number }) {
+  const [a, b] = resP(x, y, 0), [c, e] = resP(x, y, 8);
+  const tier = (yb: number, r: number, hgt: number) => `M${c - r} ${yb} L${c} ${yb - hgt} L${c + r} ${yb}`;
+  return (
+    <g className="am-rtree">
+      <path d={`M${a} ${b} L${c} ${e}`} />
+      <ellipse cx={c} cy={e} rx="11" ry="5" />
+      <path d={`${tier(e, 11, 18)} ${tier(e - 8, 8, 16)} ${tier(e - 16, 5, 12)}`} />
     </g>
   );
 }
@@ -304,11 +330,21 @@ function ResView({ pick, on, has, tint }: { pick: Pick; on: string | null; has: 
       <path className="am-road" d={`${seg(P(160, 6), P(160, 160))} ${seg(P(6, 160), P(160, 160))} ${seg(P(160, 160), P(314, 314))}`} />
       <path className="am-l2" strokeDasharray="4 5" d={`${seg([wx, wy], [wx2, wy2])}`} />
       <text className="am-tag" x={wx2 - 10} y={wy2 + 6} textAnchor="end">← COMMAND</text>
-      {trees.map(([x, y]) => { const [a, b] = P(x, y, 0); return <circle key={`${x}-${y}`} cx={a} cy={b} r="5" fill="url(#amLeaf)" stroke="rgba(160,220,190,.35)" />; })}
+      {/* 가로등 — 길을 따라 */}
+      <path className="am-lamp" d={([[150, 40], [150, 100], [40, 150], [100, 150], [200, 200], [250, 250], [290, 290]] as [number, number][])
+        .map(([x, y]) => { const [a, b] = P(x, y, 0), [, c] = P(x, y, 18); return `M${a} ${b} V${c}`; }).join(' ')} />
+      {([[150, 40], [150, 100], [40, 150], [100, 150], [200, 200], [250, 250], [290, 290]] as [number, number][]).map(([x, y]) => {
+        const [a, b] = P(x, y, 18); return <circle key={`l${x}-${y}`} className="am-hdot" cx={a} cy={b} r="2" />;
+      })}
+      {trees.map(([x, y]) => <ResTree key={`${x}-${y}`} x={x} y={y} />)}
       {/* 가운데 정원 — 05 개인실 */}
       <ellipse className={`am-cell yard${has('quarters') ? '' : ' empty'}${on === 'quarters' ? ' on' : ''}`} cx={yx} cy={yy} rx="76" ry="44"
         onClick={has('quarters') ? () => pick('quarters') : undefined} />
       <ellipse cx={yx} cy={yy} rx="64" ry="36" fill="url(#amLeaf)" pointerEvents="none" />
+      <g className="am-fount" pointerEvents="none">
+        <ellipse cx={yx} cy={yy} rx="30" ry="17" /><ellipse cx={yx} cy={yy} rx="18" ry="10" />
+        <path d={`M${yx} ${yy} V${yy - 22} M${yx - 8} ${yy - 2} Q${yx} ${yy - 30} ${yx + 8} ${yy - 2}`} />
+      </g>
       {order.map(t => {
         const live = !!t.key && has(t.key);
         const sel = !!t.key && on === t.key;
@@ -317,6 +353,9 @@ function ResView({ pick, on, has, tint }: { pick: Pick; on: string | null; has: 
           ? <g key={t.tag} className={`am-hlg${live ? '' : ' empty'}${sel ? ' on' : ''}`} onClick={live ? () => pick(t.key!) : undefined}>{body}</g>
           : <React.Fragment key={t.tag}>{body}</React.Fragment>;
       })}
+      {/* 연결 다리 — R-1 ↔ R-2 · R-6 ↔ R-7 */}
+      <ResBox x={82} y={42} z={58} w={46} d={16} h={8} />
+      <ResBox x={82} y={262} z={50} w={46} d={16} h={8} />
     </>
   );
 }
@@ -326,7 +365,7 @@ function Marks({ list, on, pick, tint }: { list: ArchMapNode[]; on: string | nul
   return (
     <>
       {list.map(n => {
-        const s = AEGIS_SPOTS[n.spot];
+        const s = spotOf(n.spot);
         if (!s) return null;
         const act = on === n.spot;
         const cls = `${s.big ? 'am-big' : n.code ? 'am-mk' : 'am-pl'}${act ? ' on' : ''}`;
@@ -415,9 +454,9 @@ export function AegisMap({ nodes, caption }: { nodes: ArchMapNode[]; caption?: s
   };
   const layer = (v: View, body: React.ReactNode, label: string) => (
     <div className={`am-v${v === view ? ' cur' : ''}`} style={style(v)} aria-hidden={v !== view}>
-      <svg className="am-svg" viewBox={`0 0 1000 ${v === 'hq' ? HQ_H : 1000}`} role="img" aria-label={label}>
+      <svg className="am-svg" viewBox={`0 0 1000 ${v === 'hq' ? HQ3D_H : 1000}`} role="img" aria-label={label}>
         <Defs />
-        <rect width="1000" height={v === 'hq' ? HQ_H : 1000} fill="url(#amGrid)" />
+        <rect width="1000" height={v === 'hq' ? HQ3D_H : 1000} fill="url(#amGrid)" />
         {body}
       </svg>
     </div>
@@ -436,9 +475,10 @@ export function AegisMap({ nodes, caption }: { nodes: ArchMapNode[]; caption?: s
           </div>
           <div className={`am-stage v-${view}`}>
             {layer('site', <SiteView go={go} />, '아이기스 섬 지도')}
-            {layer('hq', <><HqView />
+            {layer('hq', <><HqArt3d />
+              {view === 'hq' && on && HQ_GLOW[on] && <path className="am-cellglow" d={HQ_GLOW[on]} />}
               {listOf('hq').map(n => {
-                const s = AEGIS_SPOTS[n.spot];
+                const s = spotOf(n.spot);
                 return s.cell ? <path key={n.id} d={s.cell} className={`am-cell${view === 'hq' && on === n.spot ? ' on' : ''}`} onClick={() => pick(n.spot)} /> : null;
               })}
               <Marks list={listOf('hq')} on={view === 'hq' ? on : null} pick={pick} tint={tint} /></>, '통합 지휘본부 층별 지도')}
