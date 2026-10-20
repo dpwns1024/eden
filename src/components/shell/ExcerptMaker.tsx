@@ -103,9 +103,27 @@ function paintGlows(ctx: CanvasRenderingContext2D, glows: Glow[]) {
   }));
 }
 
+/* 박스 · 접은글 딱지도 찍은 뒤 캔버스로 그린다 (v2.0 사용자 제보 — 발췌에서 딱지 글자가 위로 떠 있었다).
+   인용구 딱지와 같은 까닭: html-to-image는 기기마다 글자 높이가 반 px~1px씩 달라진다. 칸 자리 · 색은 카드에서 그대로 읽고
+   칸은 비워 둔 뒤, 그 자리에 바탕을 칠하고 글자는 실제 잉크 기준으로 가운데에 놓는다 */
+type BoxTag = { x: number; y: number; w: number; h: number; label: string; bg: string; ko: boolean; size: number };
+function collectBoxTags(card: HTMLElement): BoxTag[] {
+  const cr = card.getBoundingClientRect();
+  return Array.from(card.querySelectorAll<HTMLElement>('.ex-body [data-box-head] > [data-box-tag], .ex-body .ex-foldtag')).flatMap(el => {
+    const r = el.getBoundingClientRect();
+    if (!r.width || !r.height) return [];
+    const cs = getComputedStyle(el);
+    const t: BoxTag = { x: r.left - cr.left, y: r.top - cr.top, w: r.width, h: r.height, label: (el.textContent ?? '').trim(),
+      bg: cs.backgroundColor, ko: el.getAttribute('data-box-tag') === 'ko', size: parseFloat(cs.fontSize) || 9 };
+    el.style.setProperty('color', 'transparent', 'important');
+    el.style.setProperty('background', 'transparent', 'important');
+    return [t];
+  });
+}
+
 /** 찍힌 그림 위에 번짐 · 딱지를 그린다 */
-async function drawTags(url: string, tags: QuoteTag[], glows: Glow[] = []): Promise<string> {
-  if (!tags.length && !glows.length) return url;
+async function drawTags(url: string, tags: QuoteTag[], glows: Glow[] = [], boxTags: BoxTag[] = []): Promise<string> {
+  if (!tags.length && !glows.length && !boxTags.length) return url;
   const img = new Image();
   img.src = url;
   await img.decode();
@@ -115,6 +133,25 @@ async function drawTags(url: string, tags: QuoteTag[], glows: Glow[] = []): Prom
   if (!ctx) return url;
   ctx.drawImage(img, 0, 0);
   paintGlows(ctx, glows);
+  for (const f of [`500 ${9 * PR}px "JetBrains Mono"`, `500 ${9 * PR}px "Pretendard Variable"`]) {
+    try { await document.fonts.load(f, 'EDEN 가'); } catch { /* 없으면 대체 글꼴 */ }
+  }
+  boxTags.forEach(t => {
+    const bx = t.x * PR, by = t.y * PR, bw = t.w * PR, bh = t.h * PR;
+    ctx.fillStyle = '#c9d6e6';
+    ctx.fillStyle = t.bg && t.bg !== 'rgba(0, 0, 0, 0)' ? t.bg : '#c9d6e6';
+    ctx.fillRect(bx, by, bw, bh);
+    ctx.font = t.ko ? `500 ${t.size * PR}px "Pretendard Variable", "Pretendard", sans-serif` : `500 ${t.size * PR}px "JetBrains Mono", "Pretendard Variable", monospace`;
+    ctx.fillStyle = '#05070a'; ctx.textBaseline = 'alphabetic';
+    const sp = (t.ko ? 0.04 : 0.2) * t.size * PR, chars = Array.from(t.label);
+    const width = chars.reduce((a, c) => a + ctx.measureText(c).width, 0) + sp * Math.max(0, chars.length - 1);
+    const m = ctx.measureText(t.label);
+    const base = by + bh / 2 + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
+    ctx.save(); ctx.beginPath(); ctx.rect(bx, by, bw, bh); ctx.clip();
+    let x = bx + (bw - width) / 2;
+    for (const c of chars) { ctx.fillText(c, x, base); x += ctx.measureText(c).width + sp; }
+    ctx.restore();
+  });
   try { await document.fonts.load(`500 ${9 * PR}px "JetBrains Mono"`, 'EDEN'); } catch { /* 없으면 대체 글꼴 */ }
   /* 대사 첫 줄 글자의 실제 위아래를 찍힌 그림에서 찾아 그 가운데에 딱지를 놓는다 — 딱지마다 자기 자리에서
      (HTML 상자 안 인용구는 들여쓰기만큼 x가 다르다). 찍을 때 글씨 크기를 그대로 두므로(아래 make) 줄바꿈이 카드와 같아
@@ -630,11 +667,12 @@ export function ExcerptMaker() {
       // 딱지 자리 · 색을 읽어 두고 카드에서는 비운다 — 찍은 뒤 캔버스로 그린다 (위 drawTags)
       const tags = collectTags(card);
       const glows = collectGlows(card);
+      const boxTags = collectBoxTags(card);   // 번짐을 읽은 뒤에 비운다
       card.classList.add('ex-tags-later');
       let url: string;
       try { url = await toPng(card, opts); }
       catch { url = await toPng(card, { ...opts, skipFonts: true }); }   // 글꼴을 못 받아 오면 글꼴 없이라도
-      try { url = await drawTags(url, tags, glows); } catch { /* 못 그리면 딱지 없는 그림이라도 */ }
+      try { url = await drawTags(url, tags, glows, boxTags); } catch { /* 못 그리면 딱지 없는 그림이라도 */ }
       if (photoEl && photoRect) {
         try {
           const base = new Image(); base.src = url; await base.decode();

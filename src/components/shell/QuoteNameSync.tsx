@@ -10,6 +10,7 @@ import { useLocalList } from '@/lib/postStore';
 import { CHAR_SEED, type Character } from '@/lib/charStore';
 
 const HEX = /^#[0-9a-f]{3,8}$/i;
+const HANGUL = /[\u1100-\u11ff\u3130-\u318f\uac00-\ud7af]/;
 /** 한글 글자 가운데를 잴 표본 — 대사에 흔한 모양(ㅎ 꼭지 · 쌍자음 · 받침)을 고루 */
 const SAMPLE = '하아진짜미치겠네그래평생';
 const cssStr = (s: string) => `"${s.replace(/[\\"]/g, '\\$&').replace(/[\r\n]+/g, ' ')}"`;
@@ -68,7 +69,15 @@ export function QuoteNameSync() {
       labelDone = true;
       document.documentElement.style.setProperty('--qlp', `${pad}px`);
     };
-    const later = () => { window.clearTimeout(t); t = window.setTimeout(() => { measure(); measureLabel(); }, 150); };
+    /* 박스 딱지 · 딱지 옆 글에 한글이 들었으면 ko 표시 (globals.css — 자간 좁게). 새로 저장한 글은 에디터가 적어 두지만,
+       그 전에 저장된 글도 다시 저장하지 않고 바로 맞게 (v2.0 사용자 제보). 에디터 안은 에디터가 그리므로 건드리지 않는다 */
+    const markKo = () => {
+      document.querySelectorAll<HTMLElement>('[data-box-head] > [data-box-tag]:not([data-box-tag="ko"]), [data-box-head] > [data-box-note]:not([data-box-note="ko"])').forEach(el => {
+        if (el.closest('.ProseMirror') || !HANGUL.test(el.textContent ?? '')) return;
+        el.setAttribute(el.hasAttribute('data-box-tag') ? 'data-box-tag' : 'data-box-note', 'ko');
+      });
+    };
+    const later = () => { window.clearTimeout(t); t = window.setTimeout(() => { measure(); measureLabel(); markKo(); }, 150); };
     const onFonts = () => { key = ''; labelDone = false; later(); };   // 웹 글꼴이 늦게 붙으면 다시
     later();
     const mo = new MutationObserver(later);   // 글 · 페이지가 바뀌어 인용구가 새로 뜨면
