@@ -275,11 +275,11 @@ html.ui-arch .page-arch .profile-info h3{font:300 calc(20px*var(--fs,1))/1.2 'Jo
 html.ui-arch .page-arch .spec{padding-top:14px;border-top:1px solid var(--a-ln);row-gap:9px;grid-template-columns:96px 1fr}
 html.ui-arch .page-arch .spec dt{font:400 calc(8.5px*var(--fs,1))/1.9 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.22em;color:#6f7b89;text-transform:uppercase}
 html.ui-arch .page-arch .spec dd{font:400 calc(12px*var(--fs,1))/1.5 'Jost','Noto Sans KR',sans-serif;letter-spacing:.12em;color:var(--a-tx)}
-html.ui-arch .page-arch .prose{color:#b3bec9;font-weight:300;line-height:1.5;word-break:normal;overflow-wrap:anywhere;padding-top:16px;border-top:1px solid var(--a-ln)} /* 한 글자 단위 줄바꿈 — 단어째 넘겨 오른쪽이 비던 것 (v2.0 사용자 요청) */
-html.ui-arch .page-arch .re-content.prose{padding-top:14px;border-top:0;line-height:1.5} /* 에디터 본문(TipTap이 .prose를 붙임)에는 본문 구분선·위 여백을 넣지 않는다 — 안내 문구·커서 위치가 어긋났다 */
-/* 본문 글씨 통일 (v2.0 사용자 요청) — 리포트 · 게시판 · 저널 · 갤러리 · 프로필 · 글쓰기 칸 모두 15px · 행간 1.5 (발췌 이미지도 같은 값),
+html.ui-arch .page-arch .prose{color:#b3bec9;font-weight:300;line-height:1.6;word-break:normal;overflow-wrap:anywhere;padding-top:16px;border-top:1px solid var(--a-ln)} /* 한 글자 단위 줄바꿈 — 단어째 넘겨 오른쪽이 비던 것 (v2.0 사용자 요청) */
+html.ui-arch .page-arch .re-content.prose{padding-top:14px;border-top:0;line-height:1.6} /* 에디터 본문(TipTap이 .prose를 붙임)에는 본문 구분선·위 여백을 넣지 않는다 — 안내 문구·커서 위치가 어긋났다 */
+/* 본문 글씨 통일 (v2.0 사용자 요청) — 리포트 · 게시판 · 저널 · 갤러리 · 프로필 · 글쓰기 칸 모두 15px · 행간 1.6 (발췌 이미지도 같은 값),
    모바일은 14px */
-html.ui-arch .page-arch :is(.prose,.post-body,.re-content),html.ui-arch .page-arch .dy-body .post-body,.mng-box.arch-modal .re-content{font-size:calc(15px*var(--fs,1));line-height:1.5}
+html.ui-arch .page-arch :is(.prose,.post-body,.re-content),html.ui-arch .page-arch .dy-body .post-body,.mng-box.arch-modal .re-content{font-size:calc(15px*var(--fs,1));line-height:1.6}
 @media (max-width:620px){
   html.ui-arch .page-arch :is(.prose,.post-body,.re-content),html.ui-arch .page-arch .dy-body .post-body,.mng-box.arch-modal .re-content{font-size:calc(14px*var(--fs,1))}
 }
@@ -589,8 +589,8 @@ html.ui-arch .page-arch .re-content a,.mng-box.arch-modal .re-content a{color:va
 /* 인용구 한 줄 높이(px) — 딱지(9px 글씨)에서도 인용구 줄 높이로 위치를 잡도록 길이로 등록해 px로 물려준다 */
 @property --qlh{syntax:'<length>';inherits:true;initial-value:21px}
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote,.mng-box.arch-modal .re-content blockquote{
-  --qx:var(--qc,#8fb0d8);--qt:color-mix(in srgb,var(--qx) 55%,#fff);--qlh:1.5em;position:relative;margin:18px 0;padding:4px 4px 4px 62px;border:0;
-  font-size:1em;line-height:1.5; /* 본문과 같은 크기 · 행간 (v2.0 사용자 요청 — 발췌 이미지도 같은 값) */
+  --qx:var(--qc,#8fb0d8);--qt:color-mix(in srgb,var(--qx) 55%,#fff);--qlh:1.6em;position:relative;margin:18px 0;padding:4px 4px 4px 62px;border:0;
+  font-size:1em;line-height:1.6; /* 본문과 같은 크기 · 행간 (v2.0 사용자 요청 — 발췌 이미지도 같은 값) */
   width:-webkit-fit-content;width:fit-content;max-width:100%;box-sizing:border-box; /* 글자 길이만큼만 (v2.0 사용자 요청) */
   background:none;color:#f4f6f8;font-weight:400} /* 글자는 흰색으로 통일 — 색은 딱지·선에만 (v2.0 사용자 요청) */
 /* 딱지 — 첫 문단 첫 줄 안에 넣어 **글자 기준선**에 맞춘다 (v2.0 사용자 제보 — 기기마다 위아래가 어긋남).
@@ -1451,7 +1451,7 @@ html.ui-arch .tip-pop,html.ui-arch .tip-pop.dd{background:rgba(8,11,15,.96);colo
 .re-btn:hover{background:#eef0f2;color:var(--ink)}
 .re-btn.on{background:var(--ink);color:#fff}
 .re-sep{width:1px;height:16px;background:var(--line);margin:0 5px}
-.re-content{min-height:260px;padding:14px 16px;outline:none;font-size:calc(14.5px*var(--fs,1));line-height:1.85}
+.re-content{min-height:260px;padding:14px 16px;outline:none;font-size:calc(14.5px*var(--fs,1));line-height:1.6}
 /* TipTap이 .prose를 함께 붙임 — .prose(뒤 정의)가 이기지 않도록 상위 셀렉터로 고정 */
 .re-wrap .re-content{font-size:calc(14.5px*var(--fs,1))}
 .re-content:focus{outline:none}
@@ -1474,7 +1474,7 @@ html.ui-arch .tip-pop,html.ui-arch .tip-pop.dd{background:rgba(8,11,15,.96);colo
 /* 본문 영역 기준 배치 — 툴바가 줄바꿈돼도 플레이스홀더가 툴바를 침범하지 않음 (v1.9 사용자 발견) */
 .re-body{position:relative}
 /* 안내 문구는 첫 문단과 같은 자리·같은 글자 크기·줄높이로 — 위 여백 14 + 문단 여백 6 (v2.0 사용자 발견: 커서와 어긋났다) */
-.re-ph{position:absolute;top:20px;left:16px;right:16px;font-size:calc(14.5px*var(--fs,1));line-height:1.85;color:var(--faint);pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.re-ph{position:absolute;top:20px;left:16px;right:16px;font-size:calc(14.5px*var(--fs,1));line-height:1.6;color:var(--faint);pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* 모바일 — 실행 취소·다시 실행 숨김(단축키는 그대로), 툴바 한 줄 유지 (v1.9 사용자 확정) */
 @media (max-width:620px){
   .re-hide-m{display:none !important}
@@ -1849,7 +1849,7 @@ html.ui-arch body:has(.page-arch) .ctx-menu .sep{background:rgba(190,208,228,.14
 .spec{display:grid;grid-template-columns:76px 1fr;gap:7px 10px;font-size:calc(12.5px*var(--fs,1));margin-bottom:18px}
 .spec dt{color:var(--faint);letter-spacing:.06em}
 .spec dd{color:var(--ink)}
-.prose{font-size:calc(14px*var(--fs,1));line-height:1.85;color:#3a3f47}
+.prose{font-size:calc(14px*var(--fs,1));line-height:1.6;color:#3a3f47}
 .prose b{display:block;margin-bottom:4px}
 /* 글 편집기(.re-content)에서 쓴 요소가 출력에서도 같은 모양이 되게 (v2.0 사용자 제보 — 「수정창에선 구분선이 예쁜데
    출력은 굵은 흰 줄」: 출력 쪽에 hr 모양이 없어 브라우저 기본 선이 나왔다) */
@@ -2175,7 +2175,7 @@ html.ui-arch body:has(.page-arch) .ctx-menu .sep{background:rgba(190,208,228,.14
 .dy-thumb{width:96px;aspect-ratio:1;border-radius:8px;overflow:hidden;position:relative;cursor:var(--cur-pointer,pointer);transition:.15s;background:none}
 .dy-thumb:hover{transform:translateY(-2px)}
 @media (max-width:620px){.dy-thumb{width:76px}}
-.dy-row .dy-body .post-body{font-size:calc(14px*var(--fs,1));line-height:1.85}
+.dy-row .dy-body .post-body{font-size:calc(14px*var(--fs,1));line-height:1.6}
 
 /* ---------- 커미션 (4.18) ---------- */
 .cm-total-slot{display:inline-flex;align-items:center;padding:7px 15px;border-radius:999px;background:var(--panel);box-shadow:var(--sh-sm);font-size:calc(11.5px*var(--fs,1));font-weight:700;letter-spacing:.14em;color:var(--sub);cursor:default}
@@ -2508,7 +2508,7 @@ html.ui-arch .page-arch .log-rich > [style]:not([data-box]) :is(b,strong),.log-r
   .bticket .bt-title{font-size:calc(14.5px*var(--fs,1))}
 }
 /* 본문 렌더 (MD/HTML 공통) */
-.post-body{font-size:calc(14.5px*var(--fs,1));line-height:1.85;color:#2c3037;word-break:break-word}
+.post-body{font-size:calc(14.5px*var(--fs,1));line-height:1.6;color:#2c3037;word-break:break-word}
 .post-body h1,.post-body h2,.post-body h3{margin:18px 0 8px;line-height:1.4}
 .post-body h1{font-size:calc(22px*var(--fs,1))}.post-body h2{font-size:calc(19px*var(--fs,1))}.post-body h3{font-size:calc(16.5px*var(--fs,1))}
 .post-body p{margin:8px 0}
@@ -2988,7 +2988,7 @@ html.ui-arch .page-board .bticket .bt-meta{font:400 calc(10px*var(--fs,1))/1 'Je
 html.ui-arch .page-board-detail .b-title{font:300 calc(24px*var(--fs,1))/1.35 'Jost','Noto Sans KR',sans-serif !important;letter-spacing:.06em;color:#fff}
 html.ui-arch .page-board-detail .b-meta{font:400 calc(10px*var(--fs,1))/1.6 'JetBrains Mono','Noto Sans KR',monospace !important;letter-spacing:.12em;color:var(--a-mu) !important;padding-bottom:16px;border-bottom:1px solid var(--a-ln)}
 html.ui-arch .page-board-detail .b-meta span{color:var(--a-ac) !important}
-html.ui-arch .page-board-detail .post-body{color:#c3ccd6;font-weight:300;line-height:1.5;word-break:normal;overflow-wrap:anywhere}
+html.ui-arch .page-board-detail .post-body{color:#c3ccd6;font-weight:300;line-height:1.6;word-break:normal;overflow-wrap:anywhere}
 html.ui-arch .page-board-detail .post-body :is(h1,h2,h3,strong,b){color:#fff}
 html.ui-arch .page-board-detail .post-body a{color:var(--a-ac)}
 html.ui-arch .page-board-detail .post-body p{margin:0 0 .9em}
@@ -3055,7 +3055,7 @@ html.ui-arch .excerpt-card .ex-body blockquote::before,html.ui-arch .excerpt-car
 html.ui-arch .excerpt-card.ex-tags-later .ex-body blockquote > p:first-child::before{background:transparent!important;color:transparent!important;box-shadow:none!important}
 /* 문단 없는 인용구의 딱지(따로 떠 있는 칸)는 아예 뺀다 — 찍을 때 글자 칸처럼 자리를 차지해 대사가 한 줄 밀렸다 */
 html.ui-arch .excerpt-card.ex-tags-later .ex-body blockquote:not(:has(> p:first-child))::before{content:none!important}
-.excerpt-card .ex-body{font-size:15px !important;line-height:1.5;color:#c3ccd6;font-weight:300;word-break:normal;overflow-wrap:anywhere}
+.excerpt-card .ex-body{font-size:15px !important;line-height:1.6;color:#c3ccd6;font-weight:300;word-break:normal;overflow-wrap:anywhere}
 .excerpt-card .ex-body p{margin:0 0 .9em}
 .excerpt-card .ex-body p:last-child{margin-bottom:0}
 .excerpt-card .ex-body p:empty::before{content:'\00a0'}
@@ -3067,9 +3067,9 @@ html.ui-arch .excerpt-card.ex-tags-later .ex-body blockquote:not(:has(> p:first-
 .excerpt-card .ex-body{overflow-wrap:anywhere;min-width:0}
 .excerpt-card .ex-foot{margin:0;padding:12px 0;text-align:right;font:400 11px/16px var(--sans-base);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.06em;color:#6f7b89}   /* 글 제목 그대로 (대소문자 유지) · 한글 제목이 벌어져 보이지 않게 자간은 좁게 */
 /* 발췌 — 붙여 넣은 글에 남은 글자 크기 지정(span style)을 무시하고 한 크기로 (인용구 글씨가 들쭉날쭉하던 것) */
-.excerpt-card .ex-body :is(p,span,li,blockquote,div,em,i,strong,b,a,font):not([data-ex-keep],[data-ex-keep] *){font-size:15px !important;line-height:1.5 !important}
-/* 인용구 — 본문과 같은 15px · 행간 1.5 (v2.0 사용자 요청) */
-.excerpt-card .ex-body blockquote:not([data-ex-keep] *),.excerpt-card .ex-body blockquote :is(p,span,div,em,i,strong,b,a,font):not([data-ex-keep] *){font-size:15px !important;line-height:1.5 !important}
+.excerpt-card .ex-body :is(p,span,li,blockquote,div,em,i,strong,b,a,font):not([data-ex-keep],[data-ex-keep] *){font-size:15px !important;line-height:1.6 !important}
+/* 인용구 — 본문과 같은 15px · 행간 1.6 (v2.0 사용자 요청) */
+.excerpt-card .ex-body blockquote:not([data-ex-keep] *),.excerpt-card .ex-body blockquote :is(p,span,div,em,i,strong,b,a,font):not([data-ex-keep] *){font-size:15px !important;line-height:1.6 !important}
 /* HTML로 꾸민 상자(ExcerptMaker data-ex-keep) — 화면(.log-rich)과 같은 바탕에서 적힌 꾸밈 그대로. 기준 글씨는 15px로 고정해 PC · 폰이 같게 */
 .excerpt-card .ex-body > [data-ex-keep]{font-size:15px;font-weight:400;line-height:normal;word-break:normal;overflow-wrap:normal;letter-spacing:normal}
 .excerpt-card .ex-body [data-ex-keep] :is(b,strong){display:inline;color:inherit;font-weight:700;margin:0}
@@ -3118,7 +3118,7 @@ html.ui-arch .excerpt-card{background:
 /* HUD 위 줄 — 「제목 · SIGNAL 자관」 뒤로 줄이 오른쪽 끝까지 길게 이어진다 (v2.0 사용자 요청). 줄은 HUD+제목 경계선과 같은 색 단색,
    글과 줄 사이는 좁게. 글자는 줄어들거나 말줄임 없이 그대로(글자 폭에 맞춘 칸은 찍을 때 조금 넓어져 잘렸다) — 줄이 남는 폭을 채운다.
    글자 줄 아래 본문까지는 글자 기준으로 약 25px (사진 템플릿은 사진이 바로 붙어 글자 몫만큼 더) */
-.excerpt-card.ex-d-hud .ex-dh{margin:0 0 9.5px;align-items:center}   /* 위 줄 ↔ 본문: 글자 기준 약 17px (v2.0 사용자 요청) */
+.excerpt-card.ex-d-hud .ex-dh{margin:0 0 8.5px;align-items:center}   /* 위 줄 ↔ 본문: 글자 기준 약 17px (v2.0 사용자 요청) */
 .excerpt-card.ex-d-hud:not(.ex-d-hudt) .ex-dh{gap:0}   /* 글과 줄 사이는 띄어쓰기 한 칸만큼만 — 줄 margin-left 6px + 마지막 글자 자간 2px ≈ 고정폭 10px 한 칸 */
 .excerpt-card.ex-d-hud .ex-dh-l{flex:0 0 auto;white-space:nowrap}
 .excerpt-card .ex-dh-tt{letter-spacing:.06em;font-family:var(--sans-base)}   /* 한글 제목은 자간 좁게 · 띄어쓰기도 본문 글꼴 폭으로(고정폭 빈칸은 넓었다) */
@@ -3128,7 +3128,7 @@ html.ui-arch .excerpt-card{background:
    선 위: 안쪽 여백 8.6px + 제목 줄 아래 끝에서 글자 아래 끝까지(≈6px — 실제로 찍어서 잼)
    선 아래: 바깥 여백 + 본문 첫 줄 위 끝에서 글자 위 끝까지(15px · 행간 1.5 ≈3.5px) — 그만큼 바깥 여백을 줄인다.
    사진 템플릿은 선 바로 아래 사진이 붙으므로 글자 몫 없이 선 위 간격 그대로 */
-.excerpt-card.ex-d-hudt .ex-dh{margin-bottom:8.1px;padding:0 0 8.6px;border-bottom:1px solid rgba(190,208,228,.14);align-items:flex-end}
+.excerpt-card.ex-d-hudt .ex-dh{margin-bottom:7.1px;padding:0 0 8.6px;border-bottom:1px solid rgba(190,208,228,.14);align-items:flex-end}
 .excerpt-card.ex-d-hud:is(.ex-tpl-wide,.ex-tpl-side) .ex-dh{margin-bottom:12.5px}
 .excerpt-card.ex-d-hudt:is(.ex-tpl-wide,.ex-tpl-side) .ex-dh{margin-bottom:13.2px}
 .excerpt-card.ex-d-hud .ex-dh-t{flex:1 1 auto;display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 14px}   /* 줄을 꽉 채운다 — 글자 폭에 딱 맞추면 찍을 때 조금만 넓어져도 정보줄이 아래로 내려갔다 */
