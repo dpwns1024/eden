@@ -3399,10 +3399,20 @@ details[data-fold][open] > summary::after{content:'CLOSE';background-image:url("
   linear-gradient(var(--ln),var(--ln)) 0 0/100% 1px no-repeat,linear-gradient(var(--ln),var(--ln)) 0 100%/100% 1px no-repeat,
   linear-gradient(var(--ln),var(--ln)) 0 0/1px 100% no-repeat,linear-gradient(var(--ln),var(--ln)) 100% 0/1px 100% no-repeat,
   color-mix(in srgb,var(--fx0) 5%,transparent)}
-[data-box="tag"]{--ln:color-mix(in srgb,var(--fx0) 35%,transparent);padding:52px 18px 16px;border:1px solid var(--ln);
-  background:linear-gradient(var(--ln),var(--ln)) 0 36px/100% 1px no-repeat,color-mix(in srgb,var(--fx0) 6%,transparent)}
-[data-box="tag"]::before{content:attr(data-label);position:absolute;left:16px;top:10px;max-width:calc(100% - 32px);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
-  font:500 9px/15px 'JetBrains Mono','Pretendard Variable',monospace;letter-spacing:.2em;color:#05070a;background:color-mix(in srgb,var(--fx0) 55%,#fff);padding:0 7px 0 9px;box-shadow:0 0 10px -2px var(--fx0)}
+/* 딱지 머리 — 머리줄 [딱지][딱지 옆 글] 아래 선, 그 아래 본문. 머리줄은 진짜 칸(data-box-head, RichEditor가 그린다) —
+   가상 요소로는 딱지 옆에 글을 둘 수 없었고 발췌에서 어긋났다 */
+[data-box="tag"]{--ln:color-mix(in srgb,var(--fx0) 35%,transparent);padding:0;border:1px solid var(--ln);background:color-mix(in srgb,var(--fx0) 6%,transparent)}
+[data-box="tag"] > [data-box-head]{display:flex;align-items:center;gap:10px;min-height:15px;padding:10px 16px;border-bottom:1px solid var(--ln);overflow:hidden}
+[data-box="tag"] > [data-box-head] > [data-box-tag]{flex:0 0 auto;white-space:nowrap;font:500 9px/15px 'JetBrains Mono','Pretendard Variable',monospace;letter-spacing:.2em;color:#05070a;
+  background:color-mix(in srgb,var(--fx0) 55%,#fff);padding:0 7px 0 9px;box-shadow:0 0 10px -2px var(--fx0)}
+[data-box="tag"] > [data-box-head] > [data-box-note]{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:400 10px/15px 'JetBrains Mono','Pretendard Variable',monospace;letter-spacing:.2em;color:#8592a0}
+[data-box="tag"] > [data-box-body]{padding:16px 18px}
+/* 머리줄 칸이 생기기 전에 저장된 딱지 박스 — 예전처럼 가상 요소 딱지(다시 저장하면 새 모양) */
+[data-box="tag"]:not(:has(> [data-box-head])){padding:52px 18px 16px;background:linear-gradient(var(--ln),var(--ln)) 0 36px/100% 1px no-repeat,color-mix(in srgb,var(--fx0) 6%,transparent)}
+[data-box="tag"]:not(:has(> [data-box-head]))::before{content:attr(data-label);position:absolute;left:16px;top:10px;white-space:nowrap;
+  font:500 9px/15px 'JetBrains Mono','Pretendard Variable',monospace;letter-spacing:.2em;color:#05070a;background:color-mix(in srgb,var(--fx0) 55%,#fff);padding:0 7px 0 9px}
+[data-box="tag"] > [data-box-body] > :first-child{margin-top:0}
+[data-box="tag"] > [data-box-body] > :last-child{margin-bottom:0}
 [data-box="band"]{padding:14px 18px 14px 20px;background:linear-gradient(var(--fx0),var(--fx0)) 0 0/2px 100% no-repeat,color-mix(in srgb,var(--fx0) 8%,transparent)}
 /* 에디터 안 — 접은글은 늘 펼쳐 두고 점선으로 표시, OPEN 표시 대신 안내 */
 .re-content [data-fold]{border:1px dashed color-mix(in srgb,var(--fx0) 45%,transparent);padding:0 8px}
@@ -3418,11 +3428,13 @@ details[data-fold][open] > summary::after{content:'CLOSE';background-image:url("
 .mng-box.arch-modal .re-ctx-in,html.ui-arch .page-arch .re-ctx-in{border-color:rgba(190,208,228,.22);border-radius:0}
 /* 발췌 이미지 — 접은글은 열린 채로 찍고(ExcerptMaker) OPEN/CLOSE 표시는 빼며, 딱지 번짐은 기기마다 달라 뺀다 */
 .excerpt-card details[data-fold] > summary::after{display:none}
-/* 박스 딱지는 발췌에서 진짜 칸(.ex-boxtag, ExcerptMaker)으로 바꿔 그린다 — 가상 요소는 찍을 때 글꼴 · 자리가 어긋나 「홍…」처럼 잘렸다 */
-.excerpt-card [data-box="tag"]::before{content:none!important}
+/* 접은글 딱지는 발췌에서 진짜 칸(.ex-foldtag, ExcerptMaker)으로 바꿔 그린다 — 가상 요소는 찍을 때 글꼴 · 자리가 어긋났다 */
 .excerpt-card :is(details[data-fold] > summary)::before{content:none!important}
-.excerpt-card .ex-body span:is(.ex-boxtag,.ex-foldtag){white-space:nowrap;font-family:'JetBrains Mono','Pretendard Variable',sans-serif;font-weight:500;letter-spacing:.2em;color:#05070a;background:color-mix(in srgb,var(--fx0) 55%,#fff)}
-.excerpt-card .ex-body span.ex-boxtag{position:absolute;left:16px;top:10px;font-size:9px!important;line-height:15px!important;padding:0 7px 0 9px}
+.excerpt-card .ex-body span.ex-foldtag{white-space:nowrap;font-family:'JetBrains Mono','Pretendard Variable',sans-serif;font-weight:500;letter-spacing:.2em;color:#05070a;background:color-mix(in srgb,var(--fx0) 55%,#fff)}
 .excerpt-card .ex-body span.ex-foldtag{flex:0 0 auto;font-size:10px!important;line-height:1!important;padding:3px 7px 3px 9px}
-.excerpt-card :is(details[data-fold] > summary,[data-box="tag"])::before{box-shadow:none}
+.excerpt-card details[data-fold] > summary::before{box-shadow:none}
+/* 발췌 — 박스 머리줄 글자는 화면 크기 그대로 (본문 15px 통일에서 뺀다) */
+.excerpt-card .ex-body [data-box="tag"] > [data-box-head] > span[data-box-tag]{font-size:9px!important;line-height:15px!important}
+.excerpt-card .ex-body [data-box="tag"] > [data-box-head] > span[data-box-note]{font-size:10px!important;line-height:15px!important}
 html.ui-arch :is(details[data-fold] > summary,[data-fold] > [data-fold-title]){color:#f4f6f8}   /* ARCH — 제목은 흰 글씨 (시안 A) */
+.re-ctx-in.re-ctx-wide{width:200px;font-family:'JetBrains Mono','Pretendard Variable',monospace}

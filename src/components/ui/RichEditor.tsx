@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useEditor, useEditorState, EditorContent, Mark, Node, mergeAttributes } from '@tiptap/react';
 import { TextSelection } from '@tiptap/pm/state';
+import type { DOMOutputSpec } from '@tiptap/pm/model';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Blockquote from '@tiptap/extension-blockquote';
@@ -99,7 +100,8 @@ const FoldBody = Node.create({
   parseHTML() { return [{ tag: 'details[data-fold] > div[data-fold-body]' }]; },
   renderHTML() { return ['div', { 'data-fold-body': '' }, 0]; },
 });
-/* 박스칸 (v2.0 사용자 요청 — 시안 세 가지 모두): 꺾쇠(frame) · 딱지 머리(tag, 딱지 글자 data-label) · 단색 띠(band), 색은 고른 대로 */
+/* 박스칸 (v2.0 사용자 요청 — 시안 세 가지 모두): 꺾쇠(frame) · 딱지 머리(tag) · 단색 띠(band), 색은 고른 대로.
+   딱지 머리는 머리줄 [딱지 글자][딱지 옆 글]을 진짜 칸으로 그리고(data-box-head — 고쳐 쓰기는 설정 줄에서), 본문은 data-box-body 안에 */
 type BoxShape = 'frame' | 'tag' | 'band';
 const BOX_LABEL: Record<BoxShape, string> = { frame: '꺾쇠', tag: '딱지', band: '띠' };
 const Box = Node.create({
@@ -119,11 +121,23 @@ const Box = Node.create({
         parseHTML: el => cleanLabel(el.getAttribute('data-label'), 'MEMO'),
         renderHTML: a => (a.shape === 'tag' ? { 'data-label': cleanLabel(a.label, 'MEMO') } : {}),
       },
+      head: {
+        default: '',
+        parseHTML: el => (el.getAttribute('data-head') ?? '').slice(0, 60),
+        renderHTML: a => (a.shape === 'tag' && a.head ? { 'data-head': String(a.head) } : {}),
+      },
       tone: toneAttr,
     };
   },
-  parseHTML() { return [{ tag: 'div[data-box]' }]; },
-  renderHTML({ HTMLAttributes }) { return ['div', HTMLAttributes, 0]; },
+  // 본문은 data-box-body 안 (예전 것 · 다른 모양은 박스 자체)
+  parseHTML() { return [{ tag: 'div[data-box]', contentElement: (el: HTMLElement) => el.querySelector<HTMLElement>(':scope > [data-box-body]') ?? el }]; },
+  renderHTML({ node, HTMLAttributes }) {
+    if (node.attrs.shape !== 'tag') return ['div', HTMLAttributes, 0];
+    const head = String(node.attrs.head ?? '').trim();
+    const row: DOMOutputSpec[] = [['span', { 'data-box-tag': '' }, cleanLabel(node.attrs.label, 'MEMO')]];
+    if (head) row.push(['span', { 'data-box-note': '' }, head]);
+    return ['div', HTMLAttributes, ['div', { 'data-box-head': '', contenteditable: 'false' }, ...row], ['div', { 'data-box-body': '' }, 0]];
+  },
 });
 /** 접은글은 닫힌 채로 저장 (예전에 열린 채 들어온 것도) */
 const stripOpen = (html: string) => html.replace(/(<details\b[^>]*?) open=""/g, '$1');
@@ -207,6 +221,7 @@ export function RichEditor({ value, onChange, placeholder }: {
       box: e.isActive('box'), fold: e.isActive('fold'),
       shape: (e.getAttributes('box').shape as BoxShape | undefined) ?? 'frame',
       label: (e.getAttributes('box').label as string | undefined) ?? 'MEMO',
+      head: (e.getAttributes('box').head as string | undefined) ?? '',
       boxTone: (e.getAttributes('box').tone as string | null) ?? null,
       foldTone: (e.getAttributes('fold').tone as string | null) ?? null,
       foldLabel: (e.getAttributes('fold').label as string | undefined) ?? 'FOLD',
@@ -345,6 +360,10 @@ export function RichEditor({ value, onChange, placeholder }: {
           {ctx.shape === 'tag' && (
             <input className="re-ctx-in" value={ctx.label} maxLength={24} aria-label="딱지 글자"
               onChange={e => editor.chain().updateAttributes('box', { label: cleanLabel(e.target.value, '') }).run()} />
+          )}
+          {ctx.shape === 'tag' && (
+            <input className="re-ctx-in re-ctx-wide" value={ctx.head} maxLength={60} placeholder="딱지 옆 글" aria-label="딱지 옆 글"
+              onChange={e => editor.chain().updateAttributes('box', { head: e.target.value.replace(/[\n\r]/g, '') }).run()} />
           )}
           <span className="re-ctx-h">색</span>
           {tonePicker(ctx.boxTone, t => setBox({ tone: t }))}
