@@ -608,14 +608,16 @@ html,body{margin:0!important;padding:0!important;height:auto!important;min-heigh
             <button className={bodyMode === 'editor' ? 'on' : ''} onClick={() => {
               setBodyMode('editor');
               // 에디터로 쓴 본문이면 그대로, 글자만 있는 본문이면 문단으로 옮겨 온다.
-              // 로그 툴 HTML은 에디터에 넣으면 꾸밈이 다 빠지므로 비워 두고 안내한다
-              if (!eRich) setERich(bd?.bodyRich ? (bodyText ?? '') : html ? '' : textToEditorHtml(bodyText ?? ''));
+              // 글 + HTML 조각이 섞인 본문(페이지 안에 그리는 것)도 그대로 — 비워 두면 원본 글이 아예 안 떴다 (v2.0 사용자 제보).
+              // 문서째 든 로그 툴 HTML(격리 틀)만 에디터에 넣으면 꾸밈이 다 빠지므로 비워 두고 안내한다
+              if (!eRich) setERich(bd?.bodyRich || fragment ? (bodyText ?? '') : html ? '' : textToEditorHtml(bodyText ?? ''));
             }}>에디터로 수정</button>
             <button className={bodyMode === 'file' ? 'on' : ''} onClick={() => setBodyMode('file')}>파일 업로드</button>
           </div>
           {bodyMode === 'editor' && (
             <>
-              {html && !bd?.bodyRich && <p className="hint" style={{ margin: 0 }}>지금 본문은 로그 툴 HTML이라 에디터로 옮기면 꾸밈이 사라집니다 — 새로 쓰면 저장할 때 교체되고, 코드로 고치려면 「직접 수정」을 쓰세요</p>}
+              {fragment && !bd?.bodyRich && <p className="hint" style={{ margin: 0 }}>HTML로 꾸민 칸은 에디터가 모르는 꾸밈이 빠질 수 있습니다 — 꾸밈을 그대로 두려면 「직접 수정」을 쓰세요</p>}
+              {html && !fragment && !bd?.bodyRich && <p className="hint" style={{ margin: 0 }}>지금 본문은 로그 툴 HTML이라 에디터로 옮기면 꾸밈이 사라집니다 — 새로 쓰면 저장할 때 교체되고, 코드로 고치려면 「직접 수정」을 쓰세요</p>}
               <RichEditor value={eRich} onChange={setERich} placeholder="본문을 작성하세요 — 글자 색·굵기·이미지 삽입 가능" />
             </>
           )}

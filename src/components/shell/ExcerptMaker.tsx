@@ -325,7 +325,9 @@ export function ExcerptMaker() {
       if (!isMedia && r.height < line * 0.5) return;   // 화면에서 안 보이는 칸
       const c = e.cloneNode(true) as HTMLElement;
       c.classList.remove('ex-picked');
-      copyTree(e, c, e.matches(':is(div,section,table,figure,aside,article)[style]'));
+      const keep = e.matches(':is(div,section,table,figure,aside,article)[style]');
+      if (keep) c.setAttribute('data-ex-keep', '');
+      copyTree(e, c, keep);
       // 보이는 글자가 없는 빈 줄은 화면에서의 높이 그대로 — 글씨 크기를 통일해도 커지지 않게
       const pin = (el: HTMLElement, h: number) => {
         el.style.setProperty('height', `${(h * scale).toFixed(1)}px`, 'important');
@@ -409,9 +411,16 @@ export function ExcerptMaker() {
       // 화면 따라 하기에서 일부러 넣은 값(!important)은 남긴다 — 붙여 넣을 때 따라온 지정만 지운다
       if (el.style.getPropertyPriority('font-size') !== 'important') el.style.removeProperty('font-size');
       if (el.style.getPropertyPriority('line-height') !== 'important') el.style.removeProperty('line-height');
+      // HTML로 꾸민 상자(로그 툴 등) 안 글꼴은 그대로 — 지우면 고정폭 라벨·딱지가 본문 글꼴로 바뀌어 깨져 보였다 (v2.0 사용자 제보)
+      if (el.closest('[data-ex-keep]')) return;
       el.style.removeProperty('font-family');
       if (el.tagName === 'FONT') { el.removeAttribute('size'); el.removeAttribute('face'); }
     });
+    /* 폰(아이폰 · 사파리 = WebKit)에서 찍으면 box-shadow가 칸 오른쪽에 덩어리로 남는다 (v2.0 사용자 제보 — HTML 상자 안 딱지 번짐).
+       딱지 번짐을 뺀 것(globals.css)과 같은 까닭 — WebKit에서는 본문 안 그림자를 모두 뺀다 */
+    if (typeof navigator !== 'undefined' && /AppleWebKit/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|Android/.test(navigator.userAgent)) {
+      body.querySelectorAll<HTMLElement>('*').forEach(el => el.style.setProperty('box-shadow', 'none', 'important'));
+    }
     [card, body].forEach(el => { el.style.setProperty('-webkit-text-size-adjust', '100%'); el.style.setProperty('text-size-adjust', '100%'); });
     const foot = document.createElement('div');
     foot.className = 'ex-foot';
