@@ -46,9 +46,50 @@ export interface BackupPost {
   fold: { type: FoldType; label?: string } | null;
   /** 태그 (v2.0 사용자 요청) — 목록·카드에 나열되고 검색에 걸린다 */
   tags?: string[];
+  /** 글 번호 (v2.0 사용자 요청 — 주소를 리포트처럼 /confirmed/003). 예전 글은 처음 저장할 때 만든 순서대로 매겨 둔다 */
+  no?: number;
+  /** 직접 정한 주소 이름 (/confirmed/silent-protocol) — 없으면 번호 */
+  slug?: string;
 }
 
 export const BACKUP_SEED: BackupPost[] = [];
+
+/* ---------- 갤러리 글 주소 (v2.0 사용자 요청 — 「/confirmed/mvgn4rl3zfts」 대신 리포트처럼 번호 · 주소 이름) ---------- */
+/** 글을 만든 때 — 글 id 앞 8자는 만든 시각(newId: Date.now 36진수), 못 읽으면 날짜 */
+const backupTime = (p: BackupPost) => {
+  const t = parseInt(p.id.slice(0, 8), 36);
+  return Number.isFinite(t) && t > 1e12 && t < 4e12 ? t : Date.parse(p.date) || 0;
+};
+/** 글마다 번호 — 정해 둔 번호는 그대로, 없는 예전 글은 만든 순서대로 그 뒤에 */
+export function backupNos(posts: BackupPost[]): Map<string, number> {
+  const m = new Map<string, number>();
+  let max = 0;
+  posts.forEach(p => { if (p.no) { m.set(p.id, p.no); max = Math.max(max, p.no); } });
+  posts.filter(p => !p.no).sort((a, b) => backupTime(a) - backupTime(b) || a.id.localeCompare(b.id)).forEach(p => m.set(p.id, ++max));
+  return m;
+}
+/** 번호가 없는 글에 지금 번호를 적어 둔다 — 저장할 때마다 불러, 글을 지워도 다른 글 번호(주소)가 밀리지 않게 */
+export function freezeBackupNos(posts: BackupPost[]): BackupPost[] {
+  if (posts.every(p => p.no)) return posts;
+  const m = backupNos(posts);
+  return posts.map(p => (p.no ? p : { ...p, no: m.get(p.id) }));
+}
+/** 주소에 쓰는 이름 — 직접 정한 주소 이름, 없으면 3자리 번호 (003) */
+export const backupSlug = (p: BackupPost, nos?: Map<string, number>) =>
+  p.slug || String(p.no ?? nos?.get(p.id) ?? 0).padStart(3, '0');
+/** 글 상세 주소 (원래 주소 /gallery — 주소창에는 /confirmed로 보인다) */
+export const backupPath = (p: BackupPost, nos?: Map<string, number>) => `/gallery/${backupSlug(p, nos)}`;
+/** 주소의 글 표시(예전 id · 주소 이름 · 번호) → 글. 예전에 공유한 /confirmed/<id> 링크도 그대로 열린다 */
+export function findBackupByRef(posts: BackupPost[], ref: string): BackupPost | undefined {
+  const r = decodeURIComponent(ref);
+  const byId = posts.find(x => x.id === r);
+  if (byId) return byId;
+  const bySlug = posts.find(x => x.slug === r);
+  if (bySlug) return bySlug;
+  if (!/^\d{1,6}$/.test(r)) return undefined;
+  const n = Number(r), nos = backupNos(posts);
+  return posts.find(x => nos.get(x.id) === n);
+}
 
 export const BACKUP_CATEGORIES = ['합작', '낙서', '커미션', '설정화'];
 

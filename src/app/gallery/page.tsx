@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useSectionParam, filterSection, sectionSetter, secQuery } from '@/lib/sectionStore';
 import { useLocalList } from '@/lib/postStore';
-import { BackupPost, BACKUP_SEED } from '@/lib/galleryStore';
+import { BackupPost, BACKUP_SEED, backupNos, backupPath } from '@/lib/galleryStore';
 import { Pager } from '@/components/ui/Kit';
 import { useBoardSkin } from '@/lib/boardSkin';
 import { CroppedBlobImg } from '@/components/ui/CropEditor';
@@ -22,6 +22,7 @@ function BackupPageInner() {
   const { user, isAdmin } = useAuth();
   const { editOn } = useMainStore();
   const [postsAll, setPostsAll] = useLocalList<BackupPost>('ohome.backup.v1', BACKUP_SEED);
+  const nos = backupNos(postsAll);   // 글 주소 번호 (/confirmed/003)
   const sec = useSectionParam('gallery');
   const posts = filterSection(postsAll, sec.id);
   const setPosts = sectionSetter(postsAll, sec.id, setPostsAll);
@@ -125,7 +126,7 @@ function BackupPageInner() {
             const folded = p.fold && !unveiled[p.id];
             return (
               <div key={p.id} className="panel g-item" {...sort(i)}
-                onClick={() => { if (!folded && !editOn) router.push(`/gallery/${p.id}`); }}>
+                onClick={() => { if (!folded && !editOn) router.push(backupPath(p, nos)); }}>
                 <div className={`thumb ${folded ? 'veil' : ''}`}>
                   <div style={{ position: 'absolute', inset: 0 }}>
                     <CroppedBlobImg fileRef={p.images[0]} crop={p.thumbCrop} ph={p.phList[0] ?? 'cool'} />

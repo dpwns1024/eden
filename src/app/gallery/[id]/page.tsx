@@ -6,7 +6,7 @@ import { useHrefBlock } from '@/components/shell/MenuGuard';
 import { sectionHref, MAIN_SEC, useSectionTitle } from '@/lib/sectionStore';
 import { useAuth } from '@/lib/auth';
 import { useLocalList } from '@/lib/postStore';
-import { BackupPost, BACKUP_SEED } from '@/lib/galleryStore';
+import { BackupPost, BACKUP_SEED, findBackupByRef, backupNos, backupPath, freezeBackupNos } from '@/lib/galleryStore';
 import { ConfirmModal } from '@/components/ui/Modal';
 import { useBlobUrl } from '@/lib/blobStore';
 import { sanitizeHtml } from '@/lib/sanitize';
@@ -24,7 +24,8 @@ export default function BackupDetailPage() {
   const [lbOpen, setLbOpen] = useState(false); // 단일형 — 클릭 확대 보기
   const { st: boardSet } = useBoardSettings(); // 환경설정 > 게시판 관리 설정
 
-  const p = posts.find(x => x.id === id);
+  const p = findBackupByRef(posts, id);
+  const nos = backupNos(posts);
   /* 이전·다음 글 (v2.0 사용자 요청) — 목록과 같은 순서·같은 소속(섹션)·볼 수 있는 글만 */
   const sibs = p ? posts.filter(x => (x.secId ?? MAIN_SEC) === (p.secId ?? MAIN_SEC)
     && (isAdmin || x.visibility === 'public' || (x.visibility === 'member' && !!user))) : [];
@@ -110,7 +111,7 @@ export default function BackupDetailPage() {
       <div className="page-head">
         <PageTitle href={tt.href}>{tt.title}</PageTitle>
         <div className="head-actions">
-          {canManage && <button className="btn btn-dark" onClick={() => router.push(`/gallery/${p.id}/edit`)}>EDIT</button>}
+          {canManage && <button className="btn btn-dark" onClick={() => router.push(`${backupPath(p, nos)}/edit`)}>EDIT</button>}
           {canManage && <button className="btn btn-dark" onClick={() => setDelAsk(true)}>DELETE</button>}
         </div>
       </div>
@@ -178,8 +179,8 @@ export default function BackupDetailPage() {
 
       {(prevPost || nextPost) && (
         <div className="g-nav">
-          {prevPost ? <button className="btn btn-ghost" onClick={() => router.push(`/gallery/${prevPost.id}`)}>‹ PREV</button> : <span />}
-          {nextPost && <button className="btn btn-dark" onClick={() => router.push(`/gallery/${nextPost.id}`)}>NEXT ›</button>}
+          {prevPost ? <button className="btn btn-ghost" onClick={() => router.push(backupPath(prevPost, nos))}>‹ PREV</button> : <span />}
+          {nextPost && <button className="btn btn-dark" onClick={() => router.push(backupPath(nextPost, nos))}>NEXT ›</button>}
         </div>
       )}
 
@@ -190,7 +191,7 @@ export default function BackupDetailPage() {
       <ConfirmModal open={delAsk} title="게시물을 삭제하시겠습니까?" body="삭제한 게시물은 복구할 수 없습니다."
         onClose={() => setDelAsk(false)}
         buttons={[
-          { label: 'DELETE', kind: 'accent', onClick: () => { setPosts(posts.filter(x => x.id !== p.id)); router.push(tt.href); } },
+          { label: 'DELETE', kind: 'accent', onClick: () => { setPosts(freezeBackupNos(posts).filter(x => x.id !== p.id)); router.push(tt.href); } },
           { label: 'CANCEL', kind: 'ghost', onClick: () => setDelAsk(false) },
         ]} />
     </section>
