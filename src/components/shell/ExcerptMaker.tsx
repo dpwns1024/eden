@@ -503,12 +503,11 @@ export function ExcerptMaker() {
           l.appendChild(el('b', '', rel));
           head.append(l);
         }
-        frame.insertBefore(head, frame.firstChild);
-        frame.appendChild(el('i', 'ex-rule'));
+        frame.insertBefore(head, frame.firstChild);   // 왼쪽 눈금자는 뺐다 (v2.0 사용자 요청)
       }
       foot.textContent = '';
     }
-    frame.insertBefore(body, frame.querySelector(':scope > .ex-rule'));
+    frame.appendChild(body);
     card.appendChild(frame);
     card.appendChild(foot);
     document.body.appendChild(card);
