@@ -34,17 +34,37 @@ const toneAttr = {
   renderHTML: (a: Record<string, unknown>) => (a.tone && HEX.test(String(a.tone)) ? { 'data-tone': a.tone, style: `--fx:${a.tone}` } : {}),
 };
 
+/** 딱지 글자 — 대문자, 따옴표 · 역슬래시 · 줄바꿈은 뺀다 (CSS 문자열 --fl에 그대로 들어간다) */
+const cleanLabel = (v: unknown, def: string) => String(v ?? '').replace(/["\\\n\r]/g, '').trim().toUpperCase().slice(0, 24) || def;
+/** 에디터 안에서만 쓰는 모양 — 저장(renderHTML)과 달리 평범한 div로 그린다 */
+const divView = (attrs: Record<string, string>) => ({ HTMLAttributes }: { HTMLAttributes: Record<string, unknown> }) => {
+  const dom = document.createElement('div');
+  Object.entries({ ...HTMLAttributes, ...attrs }).forEach(([k, v]) => { if (v != null && v !== false) dom.setAttribute(k, String(v)); });
+  return { dom, contentDOM: dom };
+};
+
 /* 접은글 (v2.0 사용자 요청 — 시안 A 신호 막대). 저장은 <details data-fold><summary>제목</summary><div data-fold-body>…</div></details> —
    브라우저가 스스로 열고 닫아, 본문을 그리는 곳 어디서든 스크립트 없이 접힌다. 기본은 닫힘.
-   에디터 안에서는 늘 펼쳐 둔다(open) — 저장할 때 open을 지워 닫힌 채로 남긴다 (아래 stripOpen) */
+   에디터 안에서는 details/summary 대신 같은 모양의 div로 그린다 — summary 안은 브라우저에 따라 글을 고쳐 쓸 수 없었다(사용자 제보).
+   딱지 글자(label)는 data-label + CSS 변수 --fl */
 const Fold = Node.create({
   name: 'fold',
   group: 'block',
   content: 'foldTitle foldBody',
   defining: true,
-  addAttributes() { return { tone: toneAttr }; },
+  addAttributes() {
+    return {
+      tone: toneAttr,
+      label: {
+        default: 'FOLD',
+        parseHTML: el => cleanLabel(el.getAttribute('data-label'), 'FOLD'),
+        renderHTML: a => { const l = cleanLabel(a.label, 'FOLD'); return l === 'FOLD' ? {} : { 'data-label': l, style: `--fl:"${l}"` }; },
+      },
+    };
+  },
   parseHTML() { return [{ tag: 'details[data-fold]' }]; },
-  renderHTML({ HTMLAttributes }) { return ['details', mergeAttributes(HTMLAttributes, { 'data-fold': '', open: '' }), 0]; },
+  renderHTML({ HTMLAttributes }) { return ['details', mergeAttributes(HTMLAttributes, { 'data-fold': '' }), 0]; },
+  addNodeView() { return divView({ 'data-fold': '' }); },
 });
 const FoldTitle = Node.create({
   name: 'foldTitle',
@@ -52,6 +72,7 @@ const FoldTitle = Node.create({
   defining: true,
   parseHTML() { return [{ tag: 'details[data-fold] > summary' }]; },
   renderHTML() { return ['summary', 0]; },
+  addNodeView() { return divView({ 'data-fold-title': '' }); },
   addKeyboardShortcuts() {
     return {
       // 제목 맨 앞에서 지우기 — 앞 문단과 합쳐지며 앞 글이 통째로 지워졌다. 아무것도 하지 않는다
@@ -95,8 +116,8 @@ const Box = Node.create({
       },
       label: {
         default: 'MEMO',
-        parseHTML: el => el.getAttribute('data-label') || 'MEMO',
-        renderHTML: a => (a.shape === 'tag' ? { 'data-label': String(a.label || 'MEMO') } : {}),
+        parseHTML: el => cleanLabel(el.getAttribute('data-label'), 'MEMO'),
+        renderHTML: a => (a.shape === 'tag' ? { 'data-label': cleanLabel(a.label, 'MEMO') } : {}),
       },
       tone: toneAttr,
     };
@@ -104,7 +125,7 @@ const Box = Node.create({
   parseHTML() { return [{ tag: 'div[data-box]' }]; },
   renderHTML({ HTMLAttributes }) { return ['div', HTMLAttributes, 0]; },
 });
-/** 에디터에서 늘 펼쳐 둔 접은글을 저장할 때는 닫힌 채로 */
+/** 접은글은 닫힌 채로 저장 (예전에 열린 채 들어온 것도) */
 const stripOpen = (html: string) => html.replace(/(<details\b[^>]*?) open=""/g, '$1');
 
 // 외부 패키지 설치 없이 작동하는 자체 글자 색상 마크
@@ -176,10 +197,6 @@ export function RichEditor({ value, onChange, placeholder }: {
     immediatelyRender: false,
     editorProps: {
       attributes: { class: 're-content prose' },
-      // 에디터 안에서 접은글 제목을 눌러도 접히지 않게 (글을 고치려고 누르는 것)
-      handleDOMEvents: {
-        click: (_v, e) => { if ((e.target as Element | null)?.closest?.('summary')) e.preventDefault(); return false; },
-      },
     },
     onUpdate: ({ editor: e }) => onChange(stripOpen(e.getHTML())),
   });
@@ -192,6 +209,7 @@ export function RichEditor({ value, onChange, placeholder }: {
       label: (e.getAttributes('box').label as string | undefined) ?? 'MEMO',
       boxTone: (e.getAttributes('box').tone as string | null) ?? null,
       foldTone: (e.getAttributes('fold').tone as string | null) ?? null,
+      foldLabel: (e.getAttributes('fold').label as string | undefined) ?? 'FOLD',
     } : null,
   });
 
@@ -326,7 +344,7 @@ export function RichEditor({ value, onChange, placeholder }: {
           ))}
           {ctx.shape === 'tag' && (
             <input className="re-ctx-in" value={ctx.label} maxLength={24} aria-label="딱지 글자"
-              onChange={e => editor.chain().updateAttributes('box', { label: e.target.value.toUpperCase() }).run()} />
+              onChange={e => editor.chain().updateAttributes('box', { label: cleanLabel(e.target.value, '') }).run()} />
           )}
           <span className="re-ctx-h">색</span>
           {tonePicker(ctx.boxTone, t => setBox({ tone: t }))}
@@ -336,7 +354,10 @@ export function RichEditor({ value, onChange, placeholder }: {
       )}
       {ctx?.fold && !ctx.box && (
         <div className="re-ctx">
-          <span className="re-ctx-h">접은글 색</span>
+          <span className="re-ctx-h">접은글 딱지</span>
+          <input className="re-ctx-in" value={ctx.foldLabel} maxLength={24} aria-label="접은글 딱지 글자"
+            onChange={e => editor.chain().updateAttributes('fold', { label: cleanLabel(e.target.value, '') }).run()} />
+          <span className="re-ctx-h">색</span>
           {tonePicker(ctx.foldTone, setFoldTone)}
         </div>
       )}
