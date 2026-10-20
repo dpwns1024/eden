@@ -3055,7 +3055,7 @@ html.ui-arch .excerpt-card .ex-body blockquote::before,html.ui-arch .excerpt-car
 html.ui-arch .excerpt-card.ex-tags-later .ex-body blockquote > p:first-child::before{background:transparent!important;color:transparent!important;box-shadow:none!important}
 /* 문단 없는 인용구의 딱지(따로 떠 있는 칸)는 아예 뺀다 — 찍을 때 글자 칸처럼 자리를 차지해 대사가 한 줄 밀렸다 */
 html.ui-arch .excerpt-card.ex-tags-later .ex-body blockquote:not(:has(> p:first-child))::before{content:none!important}
-.excerpt-card .ex-body{font-size:15px;line-height:1.5;color:#c3ccd6;font-weight:300;word-break:normal;overflow-wrap:anywhere}
+.excerpt-card .ex-body{font-size:15px !important;line-height:1.5;color:#c3ccd6;font-weight:300;word-break:normal;overflow-wrap:anywhere}
 .excerpt-card .ex-body p{margin:0 0 .9em}
 .excerpt-card .ex-body p:last-child{margin-bottom:0}
 .excerpt-card .ex-body p:empty::before{content:'\00a0'}
@@ -3067,9 +3067,13 @@ html.ui-arch .excerpt-card.ex-tags-later .ex-body blockquote:not(:has(> p:first-
 .excerpt-card .ex-body{overflow-wrap:anywhere;min-width:0}
 .excerpt-card .ex-foot{margin:0;padding:12px 0;text-align:right;font:400 11px/16px var(--sans-base);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.06em;color:#6f7b89}   /* 글 제목 그대로 (대소문자 유지) · 한글 제목이 벌어져 보이지 않게 자간은 좁게 */
 /* 발췌 — 붙여 넣은 글에 남은 글자 크기 지정(span style)을 무시하고 한 크기로 (인용구 글씨가 들쭉날쭉하던 것) */
-.excerpt-card .ex-body :is(p,span,li,blockquote,div,em,i,strong,b,a,font){font-size:15px !important;line-height:1.5 !important}
+.excerpt-card .ex-body :is(p,span,li,blockquote,div,em,i,strong,b,a,font):not([data-ex-keep],[data-ex-keep] *){font-size:15px !important;line-height:1.5 !important}
 /* 인용구 — 본문과 같은 15px · 행간 1.5 (v2.0 사용자 요청) */
-.excerpt-card .ex-body blockquote,.excerpt-card .ex-body blockquote :is(p,span,div,em,i,strong,b,a,font){font-size:15px !important;line-height:1.5 !important}
+.excerpt-card .ex-body blockquote:not([data-ex-keep] *),.excerpt-card .ex-body blockquote :is(p,span,div,em,i,strong,b,a,font):not([data-ex-keep] *){font-size:15px !important;line-height:1.5 !important}
+/* HTML로 꾸민 상자(ExcerptMaker data-ex-keep) — 화면(.log-rich)과 같은 바탕에서 적힌 꾸밈 그대로. 기준 글씨는 15px로 고정해 PC · 폰이 같게 */
+.excerpt-card .ex-body > [data-ex-keep]{font-size:15px;font-weight:400;line-height:normal;word-break:normal;overflow-wrap:normal;letter-spacing:normal}
+.excerpt-card .ex-body [data-ex-keep] :is(b,strong){display:inline;color:inherit;font-weight:700;margin:0}
+.excerpt-card .ex-body :is(code,pre,kbd,samp,tt){font-family:'JetBrains Mono','Pretendard Variable','Pretendard',sans-serif !important}
 html.ui-arch .excerpt-card .ex-body blockquote,.excerpt-card .ex-body blockquote{padding:9px 15px}
 html.ui-arch .excerpt-card .ex-body blockquote{padding:4px 4px 4px 62px}
 /* 발췌 모드 — 왼쪽 아래 ✂ 켜기/끄기, 아래 안내 막대, 고른 칸 표시 */
@@ -3112,13 +3116,14 @@ html.ui-arch .excerpt-card{background:
 .excerpt-card .ex-dh-r{flex:0 0 auto;white-space:nowrap}
 .excerpt-card .ex-dh-ul{display:block;grid-column:1/-1;width:120px;height:1px;margin:-1px 0 24px;background:#8fb0d8;box-shadow:0 0 8px #8fb0d8}
 .excerpt-card.ex-d-hud .ex-frame{padding-left:52px}
-.excerpt-card.ex-d-hud .ex-dh{margin:0 0 22px;padding:0 0 14px;border-bottom:1px solid rgba(190,208,228,.14)}
+.excerpt-card.ex-d-hud .ex-dh{margin:0 0 22px;align-items:center}
+.excerpt-card.ex-d-hudt .ex-dh{padding:0 0 14px;border-bottom:1px solid rgba(190,208,228,.14);align-items:flex-end}
+.excerpt-card.ex-d-hud .ex-dh-l{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}   /* 제목 · SIGNAL 자관 — 길면 말줄임 */
 .excerpt-card.ex-d-hud .ex-dh-t{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 14px}
 .excerpt-card.ex-d-hud .ex-dh-t small{margin:0}
 .excerpt-card.ex-d-hud .ex-dh b{font-weight:400;color:#8fb0d8}
 .excerpt-card.ex-d-hud .ex-dh-r i{display:inline-block;width:3px;margin-left:2px;background:#8fb0d8;vertical-align:bottom}
 .excerpt-card .ex-rule{position:absolute;left:20px;top:28px;bottom:28px;width:10px;background:repeating-linear-gradient(180deg,rgba(190,208,228,.35) 0 1px,transparent 1px 12px);border-left:1px solid rgba(190,208,228,.25)}
-.excerpt-card .ex-df{grid-column:1/-1;margin:20px 0 0;text-align:right;font:400 10px/1.4 'JetBrains Mono',var(--sans-base);letter-spacing:.2em;color:#6f7b89}
 /* 디자인 카드는 아래 제목 줄 대신 여백 40px — 빈 줄에 높이를 주면 찍을 때 높이가 안 옮겨져 아래만 좁아졌다 */
 .excerpt-card:is(.ex-d-report,.ex-d-hud){padding-bottom:40px}
 .excerpt-card:is(.ex-d-report,.ex-d-hud) .ex-foot:empty{display:none}

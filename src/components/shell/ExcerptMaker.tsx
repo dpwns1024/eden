@@ -34,6 +34,9 @@ const stamp = () => {
    그 가운데에 딱지(번짐 · 글자 포함)를 그린다 — 기기와 상관없이 글자 기준으로 맞는다 */
 type QuoteTag = { x: number; y: number; w: number; first: number; label: string; bg: string; glow: string };
 const PR = 2;   // toPng pixelRatio
+/* 발췌에 쓰는 글꼴은 홈이 직접 내려 주는 웹 글꼴만 — 기기 글꼴은 PC · 폰이 달라 같은 문단도 다르게 찍혔다 */
+const SANS = `'Pretendard Variable', 'Pretendard', sans-serif`;
+const MONO = /mono|consol|courier|menlo|monaco|code|d2coding|che\b|체|typewriter|fixed/i;
 
 /** 카드 안 인용구 딱지 자리 · 색 · 이름 (카드 왼쪽 위 기준 CSS px) */
 function collectTags(card: HTMLElement): QuoteTag[] {
@@ -56,9 +59,53 @@ function collectTags(card: HTMLElement): QuoteTag[] {
   });
 }
 
-/** 찍힌 그림 위에 딱지를 그린다 */
-async function drawTags(url: string, tags: QuoteTag[]): Promise<string> {
-  if (!tags.length) return url;
+/* ── 번짐(box-shadow)도 찍은 뒤 캔버스로 그린다 (v2.0 사용자 제보) ──
+   html-to-image로 찍으면 아이폰(WebKit)에서는 그림자가 칸 오른쪽에 덩어리로 남고, PC에서는 제대로 나와 기기마다 달랐다.
+   본문 안 그림자는 카드에서 빼 두고, 찍은 그림 위에 같은 크기 · 색 · 번짐으로 칸 바깥에만 그린다 — 어느 기기든 같은 그림 */
+type GlowPart = { color: string; ox: number; oy: number; blur: number; spread: number };
+type Glow = { x: number; y: number; w: number; h: number; parts: GlowPart[] };
+
+/** 본문 안 그림자를 읽어 두고 카드에서는 뺀다 (안쪽 그림자 inset은 그대로 둔다) */
+function collectGlows(card: HTMLElement): Glow[] {
+  const cr = card.getBoundingClientRect();
+  const out: Glow[] = [];
+  card.querySelectorAll<HTMLElement>('.ex-body *').forEach(el => {
+    const bs = getComputedStyle(el).boxShadow;
+    if (!bs || bs === 'none') return;
+    const parts: GlowPart[] = [], inset: string[] = [];
+    bs.split(/,(?![^(]*\))/).forEach(raw => {
+      if (/\binset\b/.test(raw)) { inset.push(raw.trim()); return; }
+      const color = raw.match(/rgba?\([^)]*\)|#[0-9a-f]{3,8}\b/i)?.[0] ?? 'rgb(0, 0, 0)';
+      const n = (raw.replace(color, '').match(/-?[\d.]+px/g) ?? []).map(parseFloat);
+      if (n.length < 2 || /rgba\([^)]*,\s*0\)$/.test(color)) return;
+      parts.push({ color, ox: n[0], oy: n[1], blur: n[2] ?? 0, spread: n[3] ?? 0 });
+    });
+    el.style.setProperty('box-shadow', inset.length ? inset.join(', ') : 'none', 'important');
+    const r = el.getBoundingClientRect();
+    if (parts.length && r.width > 0 && r.height > 0) out.push({ x: r.left - cr.left, y: r.top - cr.top, w: r.width, h: r.height, parts });
+  });
+  return out;
+}
+
+/** 그림자를 칸 바깥에만 — 칸 자체는 오려 내고, 그림자를 만드는 상자는 그림 밖에 두고 그림자만 끌어온다 */
+function paintGlows(ctx: CanvasRenderingContext2D, glows: Glow[]) {
+  const W = ctx.canvas.width, H = ctx.canvas.height, off = W + 400;
+  glows.forEach(g => g.parts.forEach(p => {
+    const w = g.w + p.spread * 2, h = g.h + p.spread * 2;
+    if (w <= 0 || h <= 0) return;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.rect(g.x * PR, g.y * PR, g.w * PR, g.h * PR); ctx.clip('evenodd');
+    ctx.shadowColor = p.color; ctx.shadowBlur = p.blur * PR;
+    ctx.shadowOffsetX = p.ox * PR + off; ctx.shadowOffsetY = p.oy * PR;
+    ctx.fillStyle = '#000';
+    ctx.fillRect((g.x - p.spread) * PR - off, (g.y - p.spread) * PR, w * PR, h * PR);
+    ctx.restore();
+  }));
+}
+
+/** 찍힌 그림 위에 번짐 · 딱지를 그린다 */
+async function drawTags(url: string, tags: QuoteTag[], glows: Glow[] = []): Promise<string> {
+  if (!tags.length && !glows.length) return url;
   const img = new Image();
   img.src = url;
   await img.decode();
@@ -67,6 +114,7 @@ async function drawTags(url: string, tags: QuoteTag[]): Promise<string> {
   const ctx = cv.getContext('2d');
   if (!ctx) return url;
   ctx.drawImage(img, 0, 0);
+  paintGlows(ctx, glows);
   try { await document.fonts.load(`500 ${9 * PR}px "JetBrains Mono"`, 'EDEN'); } catch { /* 없으면 대체 글꼴 */ }
   /* 대사 첫 줄 글자의 실제 위아래를 찍힌 그림에서 찾아 그 가운데에 딱지를 놓는다 — 딱지마다 자기 자리에서
      (HTML 상자 안 인용구는 들여쓰기만큼 x가 다르다). 찍을 때 글씨 크기를 그대로 두므로(아래 make) 줄바꿈이 카드와 같아
@@ -104,7 +152,7 @@ async function drawTags(url: string, tags: QuoteTag[]): Promise<string> {
     ctx.fillStyle = t.bg && t.bg !== 'rgba(0, 0, 0, 0)' ? t.bg : '#c9d6e6';
     ctx.fillRect(bx, by, bw, bh);
     // 글자 — 자간 .2em, 상자 가운데(잉크 기준)
-    ctx.font = `500 ${9 * PR}px "JetBrains Mono", "Noto Sans KR", monospace`;
+    ctx.font = `500 ${9 * PR}px "JetBrains Mono", "Pretendard Variable", "Pretendard", sans-serif`;
     ctx.fillStyle = '#05070a'; ctx.textBaseline = 'alphabetic';
     const sp = 1.8 * PR, room = bw - 6 * PR;
     let chars = Array.from(t.label);
@@ -292,31 +340,30 @@ export function ExcerptMaker() {
        (붙여 넣은 글의 제각각 크기 정리), 화면에서 아주 작게 그려진 글씨(숨은 줄)는 작게 그대로 둔다.
        화면에 없는 빈 줄 표시(::before 공백)는 카드에서도 붙이지 않는다 */
     const px = (v: string) => `${((parseFloat(v) || 0) * scale).toFixed(2)}px`;
-    const copyLayout = (o: Element, c: HTMLElement, keep = false) => {
+    const copyLayout = (o: Element, c: HTMLElement) => {
       if (o.matches(MEDIA)) return;
       const cs = getComputedStyle(o);
       const set = (k: string, v: string) => c.style.setProperty(k, v, 'important');
       set('display', cs.display);
       set('white-space', cs.whiteSpace);
-      for (const side of ['top', 'right', 'bottom', 'left']) {
+      /* 인용구 여백은 카드 CSS 그대로 — 화면 값(px)을 글씨 비율로 옮기면 폰(본문 14px)에서만 커져 줄바꿈이 PC와 달라졌다 */
+      if (!o.matches('blockquote')) for (const side of ['top', 'right', 'bottom', 'left']) {
         set(`margin-${side}`, px(cs.getPropertyValue(`margin-${side}`)));
         set(`padding-${side}`, px(cs.getPropertyValue(`padding-${side}`)));
       }
       const fs = parseFloat(cs.fontSize);
-      if (fs && (keep || fs < pageFont * 0.6)) {   // keep — HTML로 꾸민 상자: 글씨 크기를 통일하지 않고 화면 그대로 (작은 라벨이 커지던 것)
+      if (fs && fs < pageFont * 0.6) {
         set('font-size', px(cs.fontSize));
         set('line-height', cs.lineHeight.endsWith('px') ? px(cs.lineHeight) : 'normal');
       }
-      // 인용구 딱지 · 색 선은 위 여백 기준으로 자리를 잡는다 (globals.css --qpt) — 비율대로 바뀐 위 여백을 알려 준다
-      if (o.matches('blockquote')) { c.style.setProperty('--qpt', px(cs.paddingTop)); c.style.setProperty('--qpl', px(cs.paddingLeft)); }
       const before = getComputedStyle(o, '::before').content;
       if (!before || before === 'none' || before === 'normal') c.setAttribute('data-ex-nobefore', '');
     };
-    const copyTree = (o: Element, c: HTMLElement, keep = false) => {
+    const copyTree = (o: Element, c: HTMLElement) => {
       const os = [o, ...Array.from(o.querySelectorAll('*'))];
       const cs = [c, ...Array.from(c.querySelectorAll<HTMLElement>('*'))];
       if (os.length !== cs.length) return;
-      os.forEach((x, i) => copyLayout(x, cs[i], keep));
+      os.forEach((x, i) => copyLayout(x, cs[i]));
     };
     let prevEl: Element | null = null, prevBottom = 0;
     els.forEach(e => {
@@ -325,9 +372,11 @@ export function ExcerptMaker() {
       if (!isMedia && r.height < line * 0.5) return;   // 화면에서 안 보이는 칸
       const c = e.cloneNode(true) as HTMLElement;
       c.classList.remove('ex-picked');
+      /* HTML로 꾸민 상자(로그 툴 등)는 화면을 따라 하지 않고 적힌 꾸밈(인라인 style) 그대로 카드에서 다시 그린다 (v2.0 사용자 요청 —
+         같은 문단이면 PC · 폰 똑같이). 화면에서 잰 값은 기기마다 달라(폰 본문 14px · 화면 폭) 옮기면 줄바꿈이 달라졌다 */
       const keep = e.matches(':is(div,section,table,figure,aside,article)[style]');
       if (keep) c.setAttribute('data-ex-keep', '');
-      copyTree(e, c, keep);
+      else copyTree(e, c);
       // 보이는 글자가 없는 빈 줄은 화면에서의 높이 그대로 — 글씨 크기를 통일해도 커지지 않게
       const pin = (el: HTMLElement, h: number) => {
         el.style.setProperty('height', `${(h * scale).toFixed(1)}px`, 'important');
@@ -338,7 +387,7 @@ export function ExcerptMaker() {
       // 고른 칸 안쪽(문단을 감싼 칸이 있는 글)도 같은 기준 — 복제본은 구조가 같으니 같은 순서로 짝지어 본다
       const INNER = 'p,div,li,h1,h2,h3,h4,h5,h6,blockquote,section';
       const os = Array.from(e.querySelectorAll(INNER)), cs = Array.from(c.querySelectorAll<HTMLElement>(INNER));
-      if (os.length === cs.length) {
+      if (!keep && os.length === cs.length) {
         os.forEach((o, i) => {
           if (media(o)) return;
           const h = o.getBoundingClientRect().height;
@@ -408,19 +457,20 @@ export function ExcerptMaker() {
        ① 붙여 넣을 때 따라온 글자 크기·글꼴 지정을 지우고
        ② 아이폰 사파리의 「글자 자동 확대」를 끈다 — 넓은 칸의 글씨만 키워서 폭이 좁은(짧은) 인용구만 작아 보였다 */
     body.querySelectorAll<HTMLElement>('*').forEach(el => {
+      /* HTML로 꾸민 상자 안은 글씨 크기 · 줄 간격을 적힌 그대로 두고, 글꼴만 홈이 내려 주는 웹 글꼴로 바꾼다 (v2.0 사용자 제보) —
+         기기 글꼴(Consolas · 굴림체 …)은 폰에 없어 발췌가 Courier로 찍혔다. 고정폭이면 JetBrains Mono(한글은 Pretendard), 그 밖은 본문 글꼴 */
+      if (el.closest('[data-ex-keep]')) {
+        const ff = el.style.fontFamily || (el.tagName === 'FONT' ? el.getAttribute('face') ?? '' : '');
+        if (ff) el.style.setProperty('font-family', MONO.test(ff) ? `'JetBrains Mono', ${SANS}` : SANS);
+        if (el.tagName === 'FONT') el.removeAttribute('face');
+        return;
+      }
       // 화면 따라 하기에서 일부러 넣은 값(!important)은 남긴다 — 붙여 넣을 때 따라온 지정만 지운다
       if (el.style.getPropertyPriority('font-size') !== 'important') el.style.removeProperty('font-size');
       if (el.style.getPropertyPriority('line-height') !== 'important') el.style.removeProperty('line-height');
-      // HTML로 꾸민 상자(로그 툴 등) 안 글꼴은 그대로 — 지우면 고정폭 라벨·딱지가 본문 글꼴로 바뀌어 깨져 보였다 (v2.0 사용자 제보)
-      if (el.closest('[data-ex-keep]')) return;
       el.style.removeProperty('font-family');
       if (el.tagName === 'FONT') { el.removeAttribute('size'); el.removeAttribute('face'); }
     });
-    /* 폰(아이폰 · 사파리 = WebKit)에서 찍으면 box-shadow가 칸 오른쪽에 덩어리로 남는다 (v2.0 사용자 제보 — HTML 상자 안 딱지 번짐).
-       딱지 번짐을 뺀 것(globals.css)과 같은 까닭 — WebKit에서는 본문 안 그림자를 모두 뺀다 */
-    if (typeof navigator !== 'undefined' && /AppleWebKit/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|Android/.test(navigator.userAgent)) {
-      body.querySelectorAll<HTMLElement>('*').forEach(el => el.style.setProperty('box-shadow', 'none', 'important'));
-    }
     [card, body].forEach(el => { el.style.setProperty('-webkit-text-size-adjust', '100%'); el.style.setProperty('text-size-adjust', '100%'); });
     const foot = document.createElement('div');
     foot.className = 'ex-foot';
@@ -440,21 +490,27 @@ export function ExcerptMaker() {
         frame.insertBefore(head, frame.firstChild);
         frame.insertBefore(el('i', 'ex-dh-ul'), head.nextSibling);
       } else {
-        // HUD — 좌표 줄은 빼고(사용자 요청) 눈금자 · 오른쪽 아래 제목만. HUD+제목은 위에 제목과 그 옆 정보줄
+        /* HUD (v2.0 사용자 요청) — 위 줄: 왼쪽은 좌표 대신 글 제목(같은 글씨) · SIGNAL 뒤에는 이 글의 자관(없으면 MASKED),
+           오른쪽은 LINK 신호 막대. HUD+제목은 큰 제목과 정보줄 오른쪽에 LINK 신호 막대. 아래 글자(제목 · 세션 번호)는 없다 */
         card.classList.add('ex-d-hud');
+        const sig = el('span', 'ex-dh-r', 'LINK ');
+        [4, 7, 10, 13].forEach((h, k) => { const b = el('i', ''); b.style.height = `${h}px`; if (k === 3) b.style.opacity = '.3'; sig.appendChild(b); });
         if (design === 'hudt') {
           const t = el('div', 'ex-dh-t', title);
           if (info) t.appendChild(el('small', '', info.toUpperCase()));
-          head.appendChild(t);
-          frame.insertBefore(head, frame.firstChild);
+          head.append(t, sig);
+        } else {
+          const rel = pick?.root.closest('[data-ex-rel]')?.getAttribute('data-ex-rel')?.trim() || 'MASKED';
+          const l = el('span', 'ex-dh-l', title ? `${title} · SIGNAL ` : 'SIGNAL ');
+          l.appendChild(el('b', '', rel));
+          head.append(l, sig);
         }
+        frame.insertBefore(head, frame.firstChild);
         frame.appendChild(el('i', 'ex-rule'));
-        const hex = Math.floor(Math.random() * 0xffff).toString(16).toUpperCase().padStart(4, '0');
-        frame.appendChild(el('div', 'ex-df', design === 'hudt' ? `SESSION 0x${hex}` : `${title} · SESSION 0x${hex}`));
       }
       foot.textContent = '';
     }
-    frame.insertBefore(body, frame.querySelector(':scope > .ex-df'));
+    frame.insertBefore(body, frame.querySelector(':scope > .ex-rule'));
     card.appendChild(frame);
     card.appendChild(foot);
     document.body.appendChild(card);
@@ -530,11 +586,12 @@ export function ExcerptMaker() {
           ...(photoEl ? { justifyContent: 'flex-start' } : {}) } as Partial<CSSStyleDeclaration> };
       // 딱지 자리 · 색을 읽어 두고 카드에서는 비운다 — 찍은 뒤 캔버스로 그린다 (위 drawTags)
       const tags = collectTags(card);
+      const glows = collectGlows(card);
       card.classList.add('ex-tags-later');
       let url: string;
       try { url = await toPng(card, opts); }
       catch { url = await toPng(card, { ...opts, skipFonts: true }); }   // 글꼴을 못 받아 오면 글꼴 없이라도
-      try { url = await drawTags(url, tags); } catch { /* 못 그리면 딱지 없는 그림이라도 */ }
+      try { url = await drawTags(url, tags, glows); } catch { /* 못 그리면 딱지 없는 그림이라도 */ }
       if (photoEl && photoRect) {
         try {
           const base = new Image(); base.src = url; await base.decode();
