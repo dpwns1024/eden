@@ -20,7 +20,7 @@ import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { AEGIS_SPOTS, type AegisView } from '@/lib/aegisMap';
 import {
-  R0, DOME_K, TURRET_R, RP, DECK, Y, HQ_B, RES_B, CORE, HQ_PODIUM, RES_PODIUM, RES_TWR, anchorOf, type P3,
+  R0, DOME_K, TURRET_R, CORE_H, RING_Y, SKY_Y, RP, DECK, Y, HQ_B, RES_B, CORE, HQ_PODIUM, RES_PODIUM, RES_TWR, anchorOf, type P3,
 } from './layout';
 
 export type View = 'site' | AegisView;
@@ -30,10 +30,10 @@ type Cat = 'hq' | 'res' | 'base';
 
 const COL: Record<Lv, number> = { a: 0x5ad8ff, b: 0x2c8fd0, c: 0x1d6496, g: 0xffb444, r: 0xff4a5a };
 const OPA: Record<Lv, number> = { a: 0.92, b: 0.72, c: 0.5, g: 0.95, r: 0.95 };
-const WID: Record<Lv, number> = { a: 1.9, b: 1.6, c: 1.4, g: 2, r: 2 };
+const WID: Record<Lv, number> = { a: 2.8, b: 2.3, c: 2, g: 3, r: 3 };
 const HOT = 0xff9a36;
 /** 도트 한 알 크기 (CAM_REF 거리에서의 월드 길이) — 카메라가 다가가도 화면에서 같은 크기로 */
-const DOT = 1.1, CAM_REF = 760;
+const DOT = 2.2, CAM_REF = 760;
 const FILL = 0x06182b, FILL2 = 0x0a2138;
 
 const circ = (cx: number, y: number, cz: number, r: number, n = 32, rz = r): P3[] =>
@@ -191,14 +191,14 @@ const HQ_DRAW: Record<string, (k: Kit) => void> = {
   lobby: k => { k.slab(CORE.x, CORE.z, HQ_B, 48, 42, 12, 6); },
   core: k => {
     const B = HQ_B + 12;
-    const top = k.tower(CORE.x, CORE.z, B, 30, 26, 58, { band: 6 });
-    k.poly(circ(CORE.x, B + 40, CORE.z, 28, 48, 24)); k.poly(circ(CORE.x, B + 45, CORE.z, 28, 48, 24));
-    k.poly(circ(CORE.x, B + 42.5, CORE.z, 28.4, 48, 24.4), 'g');
-    k.fill(new THREE.CylinderGeometry(28, 28, 5, 48).scale(1, 1, 24 / 28).translate(CORE.x, B + 42.5, CORE.z));
+    const top = k.tower(CORE.x, CORE.z, B, 30, 26, CORE_H, { band: 8 });
+    k.poly(circ(CORE.x, B + RING_Y, CORE.z, 28, 48, 24)); k.poly(circ(CORE.x, B + RING_Y + 5, CORE.z, 28, 48, 24));
+    k.poly(circ(CORE.x, B + RING_Y + 2.5, CORE.z, 28.4, 48, 24.4), 'g');
+    k.fill(new THREE.CylinderGeometry(28, 28, 5, 48).scale(1, 1, 24 / 28).translate(CORE.x, B + RING_Y + 2.5, CORE.z));
     k.seg([CORE.x, top, CORE.z], [CORE.x, top + 8, CORE.z]); k.poly(circ(CORE.x, top + 5, CORE.z, 3, 10));
   },
   sky: k => {
-    const SY = 140, x = CORE.x, z = CORE.z;
+    const SY = SKY_Y, x = CORE.x, z = CORE.z;
     const T = circ(x, SY, z, 26, 24, 20), M = circ(x, SY - 10, z, 17, 24, 13), P: P3 = [x, SY - 22, z];
     k.poly(T); k.poly(M); T.forEach((p, i) => { if (i % 3 === 0) { k.seg(p, M[i], 'b'); k.seg(M[i], P, 'b'); } });
     k.fill(new THREE.ConeGeometry(26, 22, 24).rotateX(Math.PI).scale(1, 1, 20 / 26).translate(x, SY - 11, z));
@@ -266,8 +266,8 @@ function resTower(k: Kit, t: (typeof RES_TWR)[number]) {
 
 /* ───────── 카메라 · 초점 ───────── */
 const CAM: Record<View, { pos: THREE.Vector3; tgt: THREE.Vector3 }> = {
-  site: { pos: new THREE.Vector3(470, 320, 500), tgt: new THREE.Vector3(0, 30, 0) },
-  hq: { pos: new THREE.Vector3(330, 215, 300), tgt: new THREE.Vector3(30, 42, 0) },
+  site: { pos: new THREE.Vector3(480, 340, 520), tgt: new THREE.Vector3(0, 55, 0) },
+  hq: { pos: new THREE.Vector3(360, 250, 330), tgt: new THREE.Vector3(30, 62, 0) },
   res: { pos: new THREE.Vector3(-400, 180, 230), tgt: new THREE.Vector3(-160, 45, 0) },
 };
 const FOCUS: Record<View, Record<Cat, number>> = {
@@ -360,7 +360,7 @@ export class AegisWorld {
       const g = new LineSegmentsGeometry(); g.setPositions(k.L[lv]);
       // 모든 선을 도트로 — 외곽(a · g · r)은 촘촘하게, 층 띠(b · c)는 성글게. 크기는 화면 기준(loop에서 dashScale)
       const main = lv === 'a' || lv === 'g' || lv === 'r';
-      const m = new LineMaterial({ color: COL[lv], linewidth: WID[lv], dashed: true, dashSize: DOT, gapSize: main ? DOT * 1.3 : DOT * 3, transparent: true, opacity: OPA[lv], depthWrite: false });
+      const m = new LineMaterial({ color: COL[lv], linewidth: WID[lv], dashed: true, dashSize: DOT, gapSize: main ? DOT * 1.6 : DOT * 3.2, transparent: true, opacity: OPA[lv], depthWrite: false });
       m.resolution.set(this.w, this.h);
       const l = new LineSegments2(g, m);
       l.computeLineDistances();
@@ -422,7 +422,7 @@ export class AegisWorld {
       if (spot === 'sky') this.tick.push(t => { p.group.position.y = Math.sin(t * 0.8) * 1.2; });
     }
     // 관제탑 경고등 · 반응로 맥동 · 봉인 고리 회전
-    const bea = new THREE.Mesh(new THREE.SphereGeometry(1.6, 8, 8).translate(CORE.x, HQ_B + 12 + 58 + 5 + 9, CORE.z), new THREE.MeshBasicMaterial({ color: COL.g }));
+    const bea = new THREE.Mesh(new THREE.SphereGeometry(1.6, 8, 8).translate(CORE.x, HQ_B + 12 + CORE_H + 5 + 9, CORE.z), new THREE.MeshBasicMaterial({ color: COL.g }));
     bea.renderOrder = 3; this.scene.add(bea);
     this.tick.push(t => { bea.visible = Math.sin(t * 4) > 0; });
     const core = new THREE.Mesh(new THREE.SphereGeometry(7, 16, 12).translate(CORE.x, -1, CORE.z), new THREE.MeshBasicMaterial({ color: 0x8fdcff, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false }));
@@ -437,7 +437,7 @@ export class AegisWorld {
     RES_TWR.filter(t => t.key).forEach(t => { const k = new Kit(); resTower(k, t); this.add(k, t.key!, 'res', true); });
 
     // 섬 화면에서 고르는 큰 상자
-    this.addPick('site:hq', 'hq', [-80, Y, -97], [200, 160, 97]);
+    this.addPick('site:hq', 'hq', [-80, Y, -97], [200, SKY_Y + 10, 97]);
     this.addPick('site:res', 'res', [-214, Y, -98], [-106, 110, 98]);
     this.paint();
   }

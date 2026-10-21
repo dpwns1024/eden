@@ -7,7 +7,7 @@
 export type P3 = [number, number, number];
 
 /** 방패 돔 · 바다 위 포탑 (시안 C-3 그대로 고정) */
-export const R0 = 250, DOME_K = 0.62;
+export const R0 = 250, DOME_K = 0.9;
 export const TURRET_R = 285;
 /** 그 자리에서 돔 안쪽 높이 한계 */
 export const domeLimit = (x: number, z: number) => R0 * DOME_K * Math.sqrt(Math.max(0, 1 - (x * x + z * z) / (R0 * R0)));
@@ -17,6 +17,8 @@ export const RP = 232, DECK = 20, Y = DECK + 4;
 /** 본부 · 숙소 단지 기단 위 높이 */
 export const HQ_B = Y + 10, RES_B = Y + 8;
 
+/** 관제탑(메인 건물) 높이 · 관제 고리 높이 · 그 위 하늘정원 — 높아진 돔(높이 225) 안에 든다 */
+export const CORE_H = 110, RING_Y = 80, SKY_Y = 192;
 /** 본부 단지 */
 export const CORE = { x: 30, z: 0 };
 export const HQ_PODIUM: [number, number][] = [[-78, -72], [-55, -95], [118, -95], [140, -72], [140, 72], [118, 95], [-55, 95], [-78, 72]];
@@ -29,8 +31,8 @@ export const RES_TWR: { x: number; z: number; h: number; key?: 'eden' | 'eve' }[
 
 /** 시설(spot)마다 이름표 자리 */
 const SPOT: Record<string, P3> = {
-  sky: [30, 154, 0],
-  core: [62, 92, 0],
+  sky: [30, SKY_Y + 14, 0],
+  core: [62, HQ_B + 12 + RING_Y + 2, 0],
   lobby: [30, HQ_B + 14, 26],
   dome: [95, HQ_B + 38, -50],
   heli: [180, Y + 10, 0],
@@ -56,7 +58,7 @@ const SPOT: Record<string, P3> = {
 };
 /** 이름표 열쇠 → 월드 자리. site:hq · site:res · 시설 spot */
 export function anchorOf(k: string): P3 | undefined {
-  if (k === 'site:hq') return [40, 168, 0];
+  if (k === 'site:hq') return [40, SKY_Y + 28, 0];
   if (k === 'site:res') return [-160, 112, 0];
   return SPOT[k];
 }
