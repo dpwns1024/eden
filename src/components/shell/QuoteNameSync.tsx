@@ -5,9 +5,20 @@
  * 인용구에는 색(data-tone)만 저장돼 있으므로 이름은 화면에서 캐릭터 목록으로 찾아 CSS로 붙인다 —
  * 이미 쓴 글도 그대로 바뀌고, 캐릭터 이름을 고치면 딱지도 따라 바뀐다. 직접 고른 색은 「COMM」 그대로.
  */
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocalList } from '@/lib/postStore';
 import { CHAR_SEED, type Character } from '@/lib/charStore';
+import { useAuth } from '@/lib/auth';
+import { getSetting, onSettingChange, setSetting } from '@/lib/settingStore';
+
+/* 방문자도 딱지 이름이 보이게 (v2.0 사용자 요청) — 캐릭터가 멤버공개 · 나만보기면 방문자는 캐릭터 목록을 못 받아 「COMM」만 보였다.
+   관리자 화면에서 「인용구 색 → 이름」 짝만 공개 설정에 적어 두고, 모두가 그걸로 이름을 붙인다(캐릭터 목록이 있으면 그쪽이 먼저) */
+export const QUOTE_NAMES_KEY = 'ohome.quotenames.v1';
+type ToneNames = Record<string, string>;
+const readToneNames = (): ToneNames => {
+  const v = getSetting<ToneNames>(QUOTE_NAMES_KEY, {});
+  return v && typeof v === 'object' && !Array.isArray(v) ? v : {};
+};
 
 const HEX = /^#[0-9a-f]{3,8}$/i;
 const HANGUL = /[\u1100-\u11ff\u3130-\u318f\uac00-\ud7af]/;
@@ -20,7 +31,28 @@ const SCOPES = [
 ];
 
 export function QuoteNameSync() {
-  const [chars] = useLocalList<Character>('ohome.chars.v1', CHAR_SEED);
+  const [chars, , charsLoaded] = useLocalList<Character>('ohome.chars.v1', CHAR_SEED);
+  const { isAdmin } = useAuth();
+  // 내 캐릭터 대표색 → 이름 (같은 색이면 앞 캐릭터)
+  const ownNames = useMemo(() => {
+    const m: ToneNames = {};
+    for (const c of chars) {
+      const color = (c.color ?? '').trim().toLowerCase();
+      const name = (c.name ?? '').trim();
+      if (c.own && HEX.test(color) && name && !(color in m)) m[color] = name;
+    }
+    return m;
+  }, [chars]);
+  const [pubNames, setPubNames] = useState<ToneNames>({});
+  useEffect(() => {
+    setPubNames(readToneNames());
+    return onSettingChange(k => { if (k === QUOTE_NAMES_KEY) setPubNames(readToneNames()); });
+  }, []);
+  // 관리자 화면에서 — 바뀌었을 때만 공개 설정에 적는다
+  useEffect(() => {
+    if (!isAdmin || !charsLoaded) return;
+    if (JSON.stringify(readToneNames()) !== JSON.stringify(ownNames)) setSetting(QUOTE_NAMES_KEY, ownNames);
+  }, [isAdmin, charsLoaded, ownNames]);
   /* 딱지 높이 맞춤 (v2.0 사용자 제보 — 기기마다 위아래 어긋남). 딱지는 대사 기준선 위 「한글 글자 가운데」에 놓이는데(globals.css --qhc),
      그 높이는 글꼴마다 다르다 — 본문 기본 글꼴은 웹 글꼴이 아니라 기기 글꼴(맑은 고딕 · 애플 산돌고딕 …)로 그려져 미리 정해 둘 수 없다.
      그래서 인용구가 실제로 쓰는 글꼴로 한글 표본을 그려 보고(캔버스 — 화면과 같은 글꼴을 고른다) 그 가운데 높이를 em으로 알려 준다 */
@@ -86,16 +118,13 @@ export function QuoteNameSync() {
     return () => { window.clearTimeout(t); mo.disconnect(); document.fonts?.removeEventListener?.('loadingdone', onFonts); };
   }, []);
   const css = useMemo(() => {
-    const seen = new Set<string>();
     const rules: string[] = [];
-    for (const c of chars) {
-      const color = (c.color ?? '').trim().toLowerCase();
-      const name = (c.name ?? '').trim();
-      if (!c.own || !HEX.test(color) || !name || seen.has(color)) continue;   // 같은 색이면 앞 캐릭터
-      seen.add(color);
-      rules.push(`${SCOPES.map(s => `${s}[data-tone="${color}" i]`).join(',')}{--qname:${cssStr(name)}}`);   // 딱지(globals.css)가 이 값을 글자로 쓴다
+    // 공개 설정의 짝 위에 지금 받은 캐릭터 목록을 덮는다
+    for (const [color, name] of Object.entries({ ...pubNames, ...ownNames })) {
+      if (!HEX.test(color) || typeof name !== 'string' || !name.trim()) continue;
+      rules.push(`${SCOPES.map(s => `${s}[data-tone="${color}" i]`).join(',')}{--qname:${cssStr(name.trim())}}`);   // 딱지(globals.css)가 이 값을 글자로 쓴다
     }
     return rules.join('\n');
-  }, [chars]);
+  }, [pubNames, ownNames]);
   return css ? <style data-quote-names="">{css}</style> : null;
 }

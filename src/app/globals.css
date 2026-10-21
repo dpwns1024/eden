@@ -625,6 +625,8 @@ html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote::after,.mn
   background:linear-gradient(var(--qx),color-mix(in srgb,var(--qx) 15%,transparent))}
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote p,.mng-box.arch-modal .re-content blockquote p{margin:0;color:inherit}
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote p + p,.mng-box.arch-modal .re-content blockquote p + p{margin-top:6px}
+/* 인용구 바로 다음 칸 — 위 여백을 문단 간격(.9em)으로. 앞 문단 아래 여백(.9em)과 맞춰 인용구 위아래 간격이 같게 (v2.0 사용자 제보) */
+html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote + :not(blockquote),.mng-box.arch-modal .re-content blockquote + :not(blockquote){margin-top:.9em}
 html.ui-arch .page-arch .re-content hr,.mng-box.arch-modal .re-content hr{border-top-color:var(--a-ln2)}
 html.ui-arch .page-arch .re-ph,.mng-box.arch-modal .re-ph{color:var(--a-dim)}
 /* 추가 탭 목록 줄 (인라인 모양을 덮어써야 해서 !important) */
