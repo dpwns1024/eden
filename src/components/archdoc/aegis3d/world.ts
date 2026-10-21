@@ -1,6 +1,7 @@
 /**
  * 아이기스 3D 홀로그램 지도 (사용자 요청 — 바다 위를 떠다니는 강철 이동 요새). three.js로 그리고, AegisScene.tsx가 띄운다.
  *  - 육각 그물 방패 돔 + 바다 위 금빛 돔 포탑 6기와 아치 다리(시안 C-3 그대로 고정). 돔은 보호막이라 모든 건물은 그 안에 든다.
+ *  - 요새 경비: 바깥 강철 성벽 · 감시탑 8 · 갑판 포대 · 방패 발생기 4 · 단지마다 담 · 숙소 ↔ 본부 검문소, 양 현에 격납고 · 사일로 · 레이더 · 통신탑.
  *  - 원형 강철 플랫폼: 뱃머리 쪽 본부 단지(관제탑 · 업무동 · 의료동 · 공용동 · 훈련 돔 · 공명연구실 · 비행 갑판), 선미 쪽 숙소 단지, 둘을 셔틀 선로로.
  *  - 갑판 아래 · 물속: 기계실(반응로) · 무기고 · 출전 게이트 · 수중 식물원 · 봉인 구역. 본부 화면에선 선체가 반투명해져 보인다.
  *  - 건물은 꽉 찬 어두운 면 + 가는 발광 실선, 화면 전체를 LED 점 격자로 찍어 도트 느낌(DotShader). 본부 · 숙소로 들어가면 방패 돔은 사라진다.
@@ -178,8 +179,6 @@ function hullKit(k: Kit) {
 }
 function deckKit(k: Kit) {
   for (let x = -220; x <= 220; x += 24) { const h = Math.sqrt(Math.max(0, (RP - 4) ** 2 - x * x)); k.seg([x, Y + 0.3, -h], [x, Y + 0.3, h], 'c'); }
-  k.poly(ring(RP - 3, Y + 7));
-  ring(RP - 3, Y).forEach((p, i) => { k.seg(p, [p[0], Y + 7, p[2]], 'b'); if (i % 4 === 0) { k.seg(p, [p[0], Y + 22, p[2]]); k.poly(circ(p[0], Y + 22, p[2], 2.5, 8)); } });
   // 추진기 — 선미 네 기
   [-78, -26, 26, 78].forEach(z => {
     const x0 = -Math.sqrt(RP * RP - z * z) + 6;
@@ -191,6 +190,81 @@ function deckKit(k: Kit) {
   [-1, 1].forEach(s => k.seg([-108, Y + 22, s * 3], [-78, Y + 22, s * 3]));
   for (let x = -104; x < -78; x += 12) { k.seg([x, Y, 0], [x, Y + 22, 0]); k.fill(new THREE.BoxGeometry(2, 22, 2).translate(x, Y + 11, 0)); }
   k.fill(new THREE.BoxGeometry(30, 2, 7).translate(-93, Y + 21, 0));
+}
+
+/* ───────── 요새 경비 시설 · 의미 없는 건물들 ───────── */
+const ang = (i: number, n: number, off = 0) => (i / n) * Math.PI * 2 + off;
+/** 높은 감시탑 — 몸통 · 위 감시실 · 탐조 고리 */
+function watchtower(k: Kit, x: number, z: number, h: number) {
+  k.tower(x, z, Y, 12, 12, h, { taper: 0.8, crown: false, band: 10 });
+  k.slab(x, z, Y + h, 16, 16, 8, 4);
+  k.poly(circ(x, Y + h + 8.5, z, 10, 16), 'b');
+  k.seg([x, Y + h + 8, z], [x, Y + h + 16, z]);
+}
+/** 갑판 포대 — 받침 · 돔 · 바깥을 향한 포신 둘 */
+function battery(k: Kit, x: number, z: number) {
+  const a = Math.atan2(z, x), c = Math.cos(a), sn = Math.sin(a);
+  k.cyl(x, Y, z, 7, 4);
+  k.dome(x, Y + 4, z, 5.5);
+  [-1.6, 1.6].forEach(o => k.seg([x - sn * o, Y + 7, z + c * o], [x - sn * o + c * 16, Y + 9, z + c * o + sn * 16]));
+}
+/** 방패 발생기 — 가늘고 높은 바늘 탑 + 고리 */
+function pylon(k: Kit, x: number, z: number, h: number) {
+  k.tower(x, z, Y, 12, 12, h, { taper: 0.35, crown: false, band: 14 });
+  for (let y = 30; y < h - 10; y += 30) k.poly(circ(x, Y + y, z, 9 - (y / h) * 6, 20), 'b');
+  k.poly(circ(x, Y + h - 6, z, 7, 24), 'g');
+  k.seg([x, Y + h, z], [x, Y + h + 14, z]);
+}
+/** 반원통 격납고 */
+function hangar(k: Kit, x: number, z: number, len: number, r: number) {
+  for (let n = 0; n <= 8; n++) { const a = (Math.PI * n) / 8; k.seg([x - len / 2, Y + Math.sin(a) * r, z + Math.cos(a) * r], [x + len / 2, Y + Math.sin(a) * r, z + Math.cos(a) * r], n % 2 ? 'b' : 'a'); }
+  for (let xx = x - len / 2; xx <= x + len / 2 + 0.1; xx += len / 4) k.poly(Array.from({ length: 9 }, (_, n) => { const a = (Math.PI * n) / 8; return [xx, Y + Math.sin(a) * r, z + Math.cos(a) * r] as P3; }), 'a', false);
+  k.fill(new THREE.CylinderGeometry(r, r, len, 16, 1, false, 0, Math.PI).rotateZ(Math.PI / 2).rotateX(-Math.PI / 2).translate(x, Y, z));
+}
+/** 레이더 — 기둥 + 기울어진 접시 */
+function radar(k: Kit, x: number, z: number, h: number) {
+  k.tower(x, z, Y, 7, 7, h, { taper: 0.7, crown: false });
+  const r = 12, c = [x, Y + h + 6, z] as P3, tilt = 0.6;
+  const dish = (rr: number) => Array.from({ length: 24 }, (_, i) => { const a = (i / 24) * Math.PI * 2; return [c[0] + Math.cos(a) * rr * Math.cos(tilt), c[1] + Math.cos(a) * rr * Math.sin(tilt), c[2] + Math.sin(a) * rr] as P3; });
+  k.poly(dish(r)); k.poly(dish(r * 0.55), 'b');
+  k.seg([x, Y + h, z], c); k.seg(c, [c[0] - 8 * Math.sin(tilt), c[1] + 8 * Math.cos(tilt), c[2]]);
+}
+/** 담 — 점들을 잇는 강철 벽 (모서리마다 기둥) */
+function wallLoop(k: Kit, pts: [number, number][], h: number, posts = true) {
+  k.poly(pts.map(([x, z]) => [x, Y, z])); k.poly(pts.map(([x, z]) => [x, Y + h, z])); k.poly(pts.map(([x, z]) => [x, Y + h - 3, z]), 'b');
+  pts.forEach(([x, z], i) => {
+    const [x2, z2] = pts[(i + 1) % pts.length], L = Math.hypot(x2 - x, z2 - z);
+    k.fill(new THREE.BoxGeometry(L, h, 2.5).rotateY(-Math.atan2(z2 - z, x2 - x)).translate((x + x2) / 2, Y + h / 2, (z + z2) / 2));
+    for (let t = 1; t < L / 10; t++) { const u = (t * 10) / L; k.seg([x + (x2 - x) * u, Y, z + (z2 - z) * u], [x + (x2 - x) * u, Y + h, z + (z2 - z) * u], 'c'); }
+    if (posts) k.tower(x, z, Y, 8, 8, h + 10, { taper: 0.9, crown: true });
+  });
+}
+function fortKit(k: Kit) {
+  // 바깥 성벽 — 갑판 가장자리를 두르는 강철 벽 + 감시탑 8 · 포대 8
+  const RW = RP - 10, rim: [number, number][] = Array.from({ length: 48 }, (_, i) => [Math.cos(ang(i, 48)) * RW, Math.sin(ang(i, 48)) * RW]);
+  k.poly(rim.map(([x, z]) => [x, Y, z])); k.poly(rim.map(([x, z]) => [x, Y + 18, z])); k.poly(rim.map(([x, z]) => [x, Y + 15, z]), 'b');
+  rim.forEach(([x, z], i) => k.seg([x, Y, z], [x, Y + 18, z], i % 2 ? 'c' : 'b'));
+  k.fill(new THREE.CylinderGeometry(RW, RW, 18, 48, 1, true).translate(0, Y + 9, 0));
+  for (let i = 0; i < 8; i++) { const a = ang(i, 8, Math.PI / 8); watchtower(k, Math.cos(a) * (RW - 6), Math.sin(a) * (RW - 6), 58); }
+  for (let i = 0; i < 8; i++) { const a = ang(i, 8); if (Math.abs(Math.sin(a)) < 0.1 && Math.cos(a) > 0) continue; battery(k, Math.cos(a) * (RW - 18), Math.sin(a) * (RW - 18)); }
+  // 방패 발생기 네 기
+  [1, 3, 5, 7].forEach(i => { const a = (i * Math.PI) / 4; pylon(k, Math.cos(a) * 152, Math.sin(a) * 152, 190); });
+  // 본부 · 숙소 단지 담
+  wallLoop(k, HQ_PODIUM.map(([x, z]) => [x * 1.04 + 4, z * 1.1]), 14);
+  wallLoop(k, RES_PODIUM.map(([x, z]) => [-160 + (x + 160) * 1.1, z * 1.1]), 12);
+  // 숙소 ↔ 본부 검문소 (셔틀이 지나는 문)
+  [-1, 1].forEach(sd => k.tower(-93, sd * 16, Y, 9, 9, 44, { crown: true }));
+  k.slab(-93, 0, Y + 36, 8, 40, 8, 4);
+  [Y + 10, Y + 16].forEach(y => k.seg([-93, y, -12], [-93, y, 12], 'r'));
+  // 양 현 — 격납고 · 사일로 · 창고 · 레이더 · 통신탑
+  [-1, 1].forEach(sd => {
+    hangar(k, 55, sd * 150, 56, 16);
+    [[-20, 142], [-38, 142], [-29, 160]].forEach(([x, z]) => { k.cyl(x, Y, sd * z, 8, 42, 'a', 4); k.dome(x, Y + 42, sd * z, 8); });
+    k.slab(-72, sd * 150, Y, 30, 22, 22); k.slab(-72, sd * 172, Y, 22, 14, 14);
+    radar(k, 122, sd * 138, 40);
+    k.tower(-122, sd * 148, Y, 10, 10, 96, { taper: 0.5, crown: false, band: 12 });
+    k.seg([-122, Y + 96, sd * 148], [-122, Y + 116, sd * 148]);
+  });
 }
 
 /* ───────── 본부 단지 ───────── */
@@ -207,12 +281,24 @@ function hqBase(k: Kit) {
 const HQ_DRAW: Record<string, (k: Kit) => void> = {
   lobby: k => { k.slab(CORE.x, CORE.z, HQ_B, 48, 42, 12, 6); },
   core: k => {
-    const B = HQ_B + 12;
-    const top = k.tower(CORE.x, CORE.z, B, 30, 26, CORE_H, { band: 8 });
-    k.poly(circ(CORE.x, B + RING_Y, CORE.z, 28, 48, 24)); k.poly(circ(CORE.x, B + RING_Y + 5, CORE.z, 28, 48, 24));
-    k.poly(circ(CORE.x, B + RING_Y + 2.5, CORE.z, 28.4, 48, 24.4), 'g');
-    k.fill(new THREE.CylinderGeometry(28, 28, 5, 48).scale(1, 1, 24 / 28).translate(CORE.x, B + RING_Y + 2.5, CORE.z));
-    k.seg([CORE.x, top, CORE.z], [CORE.x, top + 8, CORE.z]); k.poly(circ(CORE.x, top + 5, CORE.z, 3, 10));
+    // 메인 탑 — 세 단으로 좁아지는 팔각 탑 · 네 방향 버팀 날개 · 전망 고리 · 첨탑
+    const B = HQ_B + 12, X = CORE.x, Z = CORE.z;
+    k.tower(X, Z, B, 44, 38, 70, { taper: 0.9, crown: false, band: 10 });
+    k.tower(X, Z, B + 70, 34, 30, 80, { taper: 0.88, crown: false, band: 10 });
+    const top = k.tower(X, Z, B + 150, 24, 22, CORE_H - 150, { band: 10 });
+    [Math.PI / 4, (3 * Math.PI) / 4, (5 * Math.PI) / 4, (7 * Math.PI) / 4].forEach(a => {
+      const c = Math.cos(a), sn = Math.sin(a), at = (r: number, y: number, o: number): P3 => [X + c * r - sn * o, B + y, Z + sn * r + c * o];
+      [-1.5, 1.5].forEach(o => k.poly([at(18, 0, o), at(40, 0, o), at(20, 130, o)]));
+      k.seg(at(40, 0, -1.5), at(40, 0, 1.5)); k.seg(at(20, 130, -1.5), at(20, 130, 1.5));
+      const sh = new THREE.Shape([new THREE.Vector2(18, 0), new THREE.Vector2(40, 0), new THREE.Vector2(20, 130)]);
+      k.fill(new THREE.ExtrudeGeometry(sh, { depth: 3, bevelEnabled: false }).translate(0, 0, -1.5).rotateY(-a).translate(X, B, Z));
+    });
+    const RY = B + RING_Y;
+    k.poly(circ(X, RY, Z, 38, 48, 34)); k.poly(circ(X, RY + 7, Z, 38, 48, 34));
+    k.poly(circ(X, RY + 3.5, Z, 38.4, 48, 34.4), 'g');
+    k.fill(new THREE.CylinderGeometry(38, 38, 7, 48).scale(1, 1, 34 / 38).translate(X, RY + 3.5, Z));
+    k.poly(circ(X, B + 70, Z, 30, 32, 27), 'b'); k.poly(circ(X, B + 150, Z, 22, 32, 20), 'b');
+    k.seg([X, top, Z], [X, top + 20, Z]); [6, 12].forEach(h => k.poly(circ(X, top + h, Z, 4 - h / 6, 10)));
   },
   sky: k => {
     const SY = SKY_Y, x = CORE.x, z = CORE.z;
@@ -283,9 +369,9 @@ function resTower(k: Kit, t: (typeof RES_TWR)[number]) {
 
 /* ───────── 카메라 · 초점 ───────── */
 const CAM: Record<View, { pos: THREE.Vector3; tgt: THREE.Vector3 }> = {
-  site: { pos: new THREE.Vector3(480, 340, 520), tgt: new THREE.Vector3(0, 55, 0) },
-  hq: { pos: new THREE.Vector3(360, 250, 330), tgt: new THREE.Vector3(30, 62, 0) },
-  res: { pos: new THREE.Vector3(-400, 180, 230), tgt: new THREE.Vector3(-160, 45, 0) },
+  site: { pos: new THREE.Vector3(600, 450, 650), tgt: new THREE.Vector3(0, 115, 0) },
+  hq: { pos: new THREE.Vector3(420, 300, 380), tgt: new THREE.Vector3(30, 120, 0) },
+  res: { pos: new THREE.Vector3(-470, 290, 300), tgt: new THREE.Vector3(-150, 40, 0) },
 };
 const FOCUS: Record<View, Record<Cat, number>> = {
   site: { hq: 1, res: 1, base: 1 },
@@ -419,6 +505,7 @@ export class AegisWorld {
     const tk = new Kit(); turrets(tk); this.add(tk, 'turrets', 'base');
     const hk = new Kit(); hullKit(hk); this.add(hk, 'hull', 'base', false, this.hullFill);
     const dk = new Kit(); deckKit(dk); this.add(dk, 'deck', 'base');
+    const fk = new Kit(); fortKit(fk); this.add(fk, 'fort', 'base');
     // 추진기 불빛
     [-78, -26, 26, 78].forEach(z => {
       const x0 = -Math.sqrt(RP * RP - z * z) + 6;
@@ -439,7 +526,7 @@ export class AegisWorld {
       if (spot === 'sky') this.tick.push(t => { p.group.position.y = Math.sin(t * 0.8) * 1.2; });
     }
     // 관제탑 경고등 · 반응로 맥동 · 봉인 고리 회전
-    const bea = new THREE.Mesh(new THREE.SphereGeometry(1.6, 8, 8).translate(CORE.x, HQ_B + 12 + CORE_H + 5 + 9, CORE.z), new THREE.MeshBasicMaterial({ color: COL.g }));
+    const bea = new THREE.Mesh(new THREE.SphereGeometry(2, 8, 8).translate(CORE.x, HQ_B + 12 + CORE_H + 5 + 20, CORE.z), new THREE.MeshBasicMaterial({ color: COL.g }));
     bea.renderOrder = 3; this.scene.add(bea);
     this.tick.push(t => { bea.visible = Math.sin(t * 4) > 0; });
     const core = new THREE.Mesh(new THREE.SphereGeometry(7, 16, 12).translate(CORE.x, -1, CORE.z), new THREE.MeshBasicMaterial({ color: 0x8fdcff, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false }));
@@ -541,6 +628,7 @@ export class AegisWorld {
     this.renderer.setSize(w, h, false);
     this.composer.setSize(w, h);
     this.bloom.setSize(w, h);
+    this.bloom.strength = w < 640 ? 0.28 : 0.6;   // 좁은 화면은 선이 빽빽해 번짐이 하얗게 뭉친다
     const pr = this.renderer.getPixelRatio();
     this.dots.uniforms.res.value.set(w * pr, h * pr);
     this.dots.uniforms.cell.value = (w < 640 ? DOT_CELL_NARROW : DOT_CELL) * pr;

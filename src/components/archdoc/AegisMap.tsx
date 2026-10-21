@@ -16,7 +16,7 @@ type View = 'site' | AegisView;
 
 /** 두 구역의 이름 — 이름표 · 머리줄 · 목록 · 도면 제목이 같이 쓴다 */
 const SITE: Record<AegisView, { code: string; en: string; ko: string; hd: string; scale: string; ref: string }> = {
-  hq: { code: 'SECTOR A · 01', en: 'ARCH COMMAND', ko: '통합 지휘본부', hd: 'COMMAND COMPLEX · DECK B5', scale: '1:500', ref: 'AG-A01' },
+  hq: { code: 'SECTOR A · 01', en: 'ARCH COMMAND', ko: '통합 지휘본부', hd: 'COMMAND COMPLEX · CENTRAL SPIRE', scale: '1:500', ref: 'AG-A01' },
   res: { code: 'SECTOR R · 02', en: 'AGENT QUARTERS', ko: '요원 거주구역', hd: '8 TOWERS', scale: '1:800', ref: 'AG-R02' },
 };
 const ACC = '#b8d8ff';
