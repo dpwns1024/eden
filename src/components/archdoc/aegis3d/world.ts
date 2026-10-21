@@ -3,7 +3,8 @@
  *  - 육각 그물 방패 돔 + 바다 위 금빛 돔 포탑 6기와 아치 다리(시안 C-3 그대로 고정). 돔은 보호막이라 모든 건물은 그 안에 든다.
  *  - 원형 강철 플랫폼: 뱃머리 쪽 본부 단지(관제탑 · 업무동 · 의료동 · 공용동 · 훈련 돔 · 공명연구실 · 비행 갑판), 선미 쪽 숙소 단지, 둘을 셔틀 선로로.
  *  - 갑판 아래 · 물속: 기계실(반응로) · 무기고 · 출전 게이트 · 수중 식물원 · 봉인 구역. 본부 화면에선 선체가 반투명해져 보인다.
- *  - 건물은 꽉 찬 어두운 면 + 굵은 실선(외곽) · 점선(층 띠). 색은 하늘색 하나, 포인트는 금색(포탑 돔 · 관제 고리 · 헬기장) · 빨강(격리 · 봉인)만.
+ *  - 건물은 꽉 찬 어두운 면 + 가는 실선(외곽) · 도트 점선(층 띠). 본부 · 숙소로 들어가면 방패 돔은 사라진다.
+ *  - 끌어서 돌리기, 휠(PC) · 두 손가락(폰)으로 확대 · 축소. 색은 하늘색 하나, 포인트는 금색(포탑 돔 · 관제 고리 · 헬기장) · 빨강(격리 · 봉인)만.
  *  - 시설(spot)마다 따로 고를 수 있게 덩어리(파트)를 나눈다. 고른 시설은 주황(숙소동은 캐릭터 대표색)으로 빛난다.
  * 시설 이름표는 React가 그리고(data-k), 자리는 여기서 매 프레임 투영해 옮긴다.
  */
@@ -23,13 +24,13 @@ import {
 } from './layout';
 
 export type View = 'site' | AegisView;
-/** 선 종류 — a 굵은 실선 · b 점선 · c 옅은 점선 · g 금색 포인트 · r 빨강 포인트 */
+/** 선 종류 — a 가는 실선 · b 도트 점선 · c 옅은 도트 점선 · g 금색 포인트 · r 빨강 포인트 */
 type Lv = 'a' | 'b' | 'c' | 'g' | 'r';
 type Cat = 'hq' | 'res' | 'base';
 
 const COL: Record<Lv, number> = { a: 0x5ad8ff, b: 0x2c8fd0, c: 0x1d6496, g: 0xffb444, r: 0xff4a5a };
 const OPA: Record<Lv, number> = { a: 0.92, b: 0.72, c: 0.5, g: 0.95, r: 0.95 };
-const WID: Record<Lv, number> = { a: 2.1, b: 1.4, c: 1.2, g: 2.1, r: 2.1 };
+const WID: Record<Lv, number> = { a: 1.3, b: 1.15, c: 1, g: 1.4, r: 1.4 };
 const HOT = 0xff9a36;
 const FILL = 0x06182b, FILL2 = 0x0a2138;
 
@@ -286,6 +287,7 @@ export class AegisWorld {
   private lineMats: LineMaterial[] = [];
   private fill = new THREE.MeshBasicMaterial({ color: FILL, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
   private hullFill = new THREE.MeshBasicMaterial({ color: FILL2, transparent: true, opacity: 1, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+  private domeVis = 1;          // 방패 돔 — 본부 · 숙소로 들어가면 사라진다
   private xray = 0;              // 0 = 선체 불투명, 1 = 반투명 (본부 화면)
   private view: View = 'site';
   private sel: string | null = null;
@@ -319,7 +321,7 @@ export class AegisWorld {
     this.camera.position.copy(CAM.site.pos);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.target.copy(CAM.site.tgt);
-    Object.assign(this.controls, { enableDamping: true, dampingFactor: 0.08, enablePan: false, enableZoom: false, rotateSpeed: 0.6, minPolarAngle: 0.2, maxPolarAngle: 1.5, autoRotate: true, autoRotateSpeed: 0.35 });
+    Object.assign(this.controls, { enableDamping: true, dampingFactor: 0.08, enablePan: false, enableZoom: true, zoomSpeed: 0.8, minDistance: 50, maxDistance: 950, rotateSpeed: 0.6, minPolarAngle: 0.2, maxPolarAngle: 1.5, autoRotate: true, autoRotateSpeed: 0.35 });
     this.controls.addEventListener('start', () => { this.idle = -1; this.controls.autoRotate = false; this.fly = 1; });
     this.controls.addEventListener('end', () => { this.idle = 0; });
 
@@ -355,7 +357,8 @@ export class AegisWorld {
       if (!k.L[lv].length) return;
       const g = new LineSegmentsGeometry(); g.setPositions(k.L[lv]);
       const dashed = lv === 'b' || lv === 'c';
-      const m = new LineMaterial({ color: COL[lv], linewidth: WID[lv], dashed, dashSize: 2.2, gapSize: 1.6, transparent: true, opacity: OPA[lv], depthWrite: false });
+      // 점선은 짧게 끊어 도트처럼
+      const m = new LineMaterial({ color: COL[lv], linewidth: WID[lv], dashed, dashSize: 0.55, gapSize: 1.5, transparent: true, opacity: OPA[lv], depthWrite: false });
       m.resolution.set(this.w, this.h);
       const l = new LineSegments2(g, m);
       if (dashed) l.computeLineDistances();
@@ -392,7 +395,7 @@ export class AegisWorld {
     this.scene.add(shieldDome());
     const shield = this.scene.children[this.scene.children.length - 1] as THREE.LineSegments;
     // 구역 안(본부 · 숙소)에선 돔을 옅게 — 시설이 가려지지 않게
-    this.tick.push(t => { (shield.material as THREE.LineBasicMaterial).opacity = (0.26 + 0.07 * Math.sin(t * 1.4)) * (0.35 + 0.65 * this.focus.base ** 2); });
+    this.tick.push(t => { (shield.material as THREE.LineBasicMaterial).opacity = (0.26 + 0.07 * Math.sin(t * 1.4)) * this.domeVis; shield.visible = this.domeVis > 0.01; });
 
     const tk = new Kit(); turrets(tk); this.add(tk, 'turrets', 'base');
     const hk = new Kit(); hullKit(hk); this.add(hk, 'hull', 'base', false, this.hullFill);
@@ -526,6 +529,7 @@ export class AegisWorld {
     const goal = FOCUS[this.view];
     (Object.keys(goal) as Cat[]).forEach(c => { this.focus[c] += (goal[c] - this.focus[c]) * Math.min(1, step * 4); });
     this.xray += ((this.view === 'hq' ? 1 : 0) - this.xray) * Math.min(1, step * 4);
+    this.domeVis += ((this.view === 'site' ? 1 : 0) - this.domeVis) * Math.min(1, step * 4);
     this.applyFocus();
     this.tick.forEach(f => f(time));
     this.controls.update();

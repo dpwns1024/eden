@@ -114,7 +114,7 @@ export function AegisMap({ nodes, caption }: { nodes: ArchMapNode[]; caption?: s
               <span>SCALE {view === 'site' ? '1:20000' : hd!.scale}</span>
               <span>CAD REF {view === 'site' ? 'AG-00' : hd!.ref} · LIVE MODEL</span>
             </div>
-            <div className="am-hint">DRAG TO ROTATE</div>
+            <div className="am-hint">DRAG TO ROTATE · SCROLL / PINCH TO ZOOM</div>
           </div>
           {view === 'hq' && <button type="button" className="am-arrow r" onClick={() => go('res')} aria-label="요원 거주구역으로"><span>QUARTERS</span><i>›</i></button>}
           {view === 'res' && <button type="button" className="am-arrow r" onClick={() => go('hq')} aria-label="통합 지휘본부로"><span>COMMAND</span><i>›</i></button>}
@@ -142,7 +142,7 @@ export function AegisMap({ nodes, caption }: { nodes: ArchMapNode[]; caption?: s
           <article className="ar-pn ar-card am-card" key="site">
             <div className="ar-c-k"><span>SITE · OVERVIEW</span><span>OPEN SEA</span></div>
             <h3><span className="ar-silver">THE AEGIS</span><small>아크 본부 · 바다 위 이동 요새</small></h3>
-            <div className="am-body"><p>본부나 숙소를 누르면 그 구역으로 들어가 시설이 보입니다. 끌어서 요새를 돌려 볼 수 있어요.</p></div>
+            <div className="am-body"><p>본부나 숙소를 누르면 그 구역으로 들어가 시설이 보입니다. 끌어서 돌리고, 휠이나 두 손가락으로 확대 · 축소할 수 있어요.</p></div>
             <div className="am-gobox">
               {(['hq', 'res'] as const).map(k => (
                 <button key={k} type="button" onClick={() => go(k)}><small>{SITE[k].code}</small><b>{SITE[k].en}</b><span>{SITE[k].ko} ›</span></button>
