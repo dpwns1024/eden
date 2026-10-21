@@ -1,10 +1,10 @@
 /**
- * 아이기스 3D 홀로그램 지도 (사용자 요청 — 고퀄리티 3D 홀로그램 도시처럼). three.js로 그리고, AegisScene.tsx가 띄운다.
- *  - 모든 건물은 발광 선(가산 혼합) + 아주 옅은 유리 면 + 블룸(빛 번짐)으로 그린다.
- *  - 섬 · 바다 격자 · 주변 도시(시드 고정 난수) · 도로와 그 위를 흐르는 빛 · 현수교 · 떠다니는 입자.
- *  - 지휘본부: 단면 좌표의 방 칸을 입체 방으로 세우고 방마다 소품. 옥상 돔 · 코어 탑 · 헬기 착륙장, 위에 하늘정원 부유섬.
- *  - 거주구역: 일곱 숙소동(층 띠 · 창 · 발코니 · 옥상 설비 · 연결 다리), 가운데 정원.
- *  - 화면(site · hq · res)마다 카메라가 날아가고, 고른 시설은 주황(또는 캐릭터 대표색)으로 빛난다.
+ * 아이기스 3D 홀로그램 지도 (사용자 요청 — 바다 위를 떠다니는 강철 이동 요새). three.js로 그리고, AegisScene.tsx가 띄운다.
+ *  - 육각 그물 방패 돔 + 바다 위 금빛 돔 포탑 6기와 아치 다리(시안 C-3 그대로 고정). 돔은 보호막이라 모든 건물은 그 안에 든다.
+ *  - 원형 강철 플랫폼: 뱃머리 쪽 본부 단지(관제탑 · 업무동 · 의료동 · 공용동 · 훈련 돔 · 공명연구실 · 비행 갑판), 선미 쪽 숙소 단지, 둘을 셔틀 선로로.
+ *  - 갑판 아래 · 물속: 기계실(반응로) · 무기고 · 출전 게이트 · 수중 식물원 · 봉인 구역. 본부 화면에선 선체가 반투명해져 보인다.
+ *  - 건물은 꽉 찬 어두운 면 + 굵은 실선(외곽) · 점선(층 띠). 색은 하늘색 하나, 포인트는 금색(포탑 돔 · 관제 고리 · 헬기장) · 빨강(격리 · 봉인)만.
+ *  - 시설(spot)마다 따로 고를 수 있게 덩어리(파트)를 나눈다. 고른 시설은 주황(숙소동은 캐릭터 대표색)으로 빛난다.
  * 시설 이름표는 React가 그리고(data-k), 자리는 여기서 매 프레임 투영해 옮긴다.
  */
 import * as THREE from 'three';
@@ -13,480 +13,264 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
+import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { AEGIS_SPOTS, RES_TOWERS, type AegisView } from '@/lib/aegisMap';
+import { AEGIS_SPOTS, type AegisView } from '@/lib/aegisMap';
 import {
-  ISLAND, ISLETS, ptsOf, mapXZ, HQX, HQZ, HQ_S, HQ_D, hqW, zOf, rectsOf, HQ_BANDS, RX, RZ, RES_S, RES_V, resW, anchorOf, type P3,
+  R0, DOME_K, TURRET_R, RP, DECK, Y, HQ_B, RES_B, CORE, HQ_PODIUM, RES_PODIUM, RES_TWR, anchorOf, type P3,
 } from './layout';
 
 export type View = 'site' | AegisView;
-type Lv = 'a' | 'b' | 'c' | 'g';
-type Cat = 'hq' | 'res' | 'city';
+/** 선 종류 — a 굵은 실선 · b 점선 · c 옅은 점선 · g 금색 포인트 · r 빨강 포인트 */
+type Lv = 'a' | 'b' | 'c' | 'g' | 'r';
+type Cat = 'hq' | 'res' | 'base';
 
-const COL = { a: 0x58d6ff, b: 0x2a9ae6, c: 0x1c6ea8, g: 0xbff2ff, f: 0x1a7cc0, hot: 0xff9a36 };
-const BASE = { a: 0.85, b: 0.42, c: 0.16, g: 0.85, f: 0.014 };
+const COL: Record<Lv, number> = { a: 0x5ad8ff, b: 0x2c8fd0, c: 0x1d6496, g: 0xffb444, r: 0xff4a5a };
+const OPA: Record<Lv, number> = { a: 0.92, b: 0.72, c: 0.5, g: 0.95, r: 0.95 };
+const WID: Record<Lv, number> = { a: 2.1, b: 1.4, c: 1.2, g: 2.1, r: 2.1 };
+const HOT = 0xff9a36;
+const FILL = 0x06182b, FILL2 = 0x0a2138;
 
-/** 시드 고정 난수 — 주변 도시가 매번 같게 */
-function rng(seed: number) {
-  return () => {
-    seed |= 0; seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
+const circ = (cx: number, y: number, cz: number, r: number, n = 32, rz = r): P3[] =>
+  Array.from({ length: n }, (_, i) => [cx + Math.cos((i / n) * Math.PI * 2) * r, y, cz + Math.sin((i / n) * Math.PI * 2) * rz]);
 
-/* ───────── 선 · 면 모으기 ───────── */
-/** 한 덩어리(파트)의 선과 면. 좌표는 그 파트의 '설계 좌표'(x · 깊이 y · 높이 z)로 받아 월드로 옮긴다 */
+/* ───────── 한 덩어리(파트)의 선 · 면 모으기 ───────── */
 class Kit {
-  L: Record<Lv, number[]> = { a: [], b: [], c: [], g: [] };
+  L: Record<Lv, number[]> = { a: [], b: [], c: [], g: [], r: [] };
   F: THREE.BufferGeometry[] = [];
   box3 = new THREE.Box3();
-  constructor(private ox: number, private oy: number, private oz: number, private s: number, private sv: number) {}
-  v(x: number, y: number, z: number): P3 { return [this.ox + x * this.s, this.oy + z * this.sv, this.oz + y * this.s]; }
-  private push(lv: Lv, p: P3) { this.L[lv].push(...p); this.box3.expandByPoint(new THREE.Vector3(...p)); }
-  seg(p: P3, q: P3, lv: Lv = 'b') { this.push(lv, this.v(...p)); this.push(lv, this.v(...q)); }
-  path(a: P3[], lv: Lv = 'b', closed = false) {
-    for (let i = 0; i < a.length - 1; i++) this.seg(a[i], a[i + 1], lv);
-    if (closed && a.length > 2) this.seg(a[a.length - 1], a[0], lv);
-  }
-  box(x: number, y: number, z: number, w: number, d: number, h: number, lv: Lv = 'b', fill = true) {
-    const c: P3[] = [[x, y, z], [x + w, y, z], [x + w, y + d, z], [x, y + d, z]];
-    const t = c.map(([a, b]) => [a, b, z + h] as P3);
-    this.path(c, lv, true); this.path(t, lv, true);
-    c.forEach((p, i) => this.seg(p, t[i], lv));
-    if (fill) {
-      const [cx, cy, cz] = this.v(x + w / 2, y + d / 2, z + h / 2);
-      this.F.push(new THREE.BoxGeometry(Math.max(w * this.s, 0.01), Math.max(h * this.sv, 0.01), Math.max(d * this.s, 0.01)).translate(cx, cy, cz));
+  private v = new THREE.Vector3();
+  seg(p: P3, q: P3, lv: Lv = 'a') { this.L[lv].push(...p, ...q); this.box3.expandByPoint(this.v.set(...p)); this.box3.expandByPoint(this.v.set(...q)); }
+  poly(a: P3[], lv: Lv = 'a', closed = true) { for (let i = 0; i < a.length - (closed ? 0 : 1); i++) this.seg(a[i], a[(i + 1) % a.length], lv); }
+  fill(g: THREE.BufferGeometry) { this.F.push(g.index ? g.toNonIndexed() : g); }
+  /** 팔각 타워 — 위로 조금 좁아지고, 층 띠는 점선, 꼭대기 관 */
+  tower(x: number, z: number, y0: number, w: number, d: number, h: number, o: { taper?: number; crown?: boolean; band?: number } = {}) {
+    const { taper = 0.88, crown = true, band = 7 } = o, k = 1 / Math.cos(Math.PI / 8);
+    const oct = (y: number, s: number) => Array.from({ length: 8 }, (_, i) => { const a = (i / 8) * Math.PI * 2 + Math.PI / 8; return [x + Math.cos(a) * (w / 2) * s * k, y, z + Math.sin(a) * (d / 2) * s * k] as P3; });
+    const lo = oct(y0, 1), hi = oct(y0 + h, taper);
+    this.poly(lo); this.poly(hi); lo.forEach((p, i) => this.seg(p, hi[i]));
+    for (let j = 1; j < h / band; j++) { const t = (j * band) / h; this.poly(oct(y0 + h * t, 1 + (taper - 1) * t), 'b'); }
+    this.fill(new THREE.CylinderGeometry((w / 2) * taper * k, (w / 2) * k, h, 8).rotateY(Math.PI / 8).scale(1, 1, d / w).translate(x, y0 + h / 2, z));
+    let top = y0 + h;
+    if (crown) {
+      const c = oct(top + 5, taper * 0.72);
+      this.poly(c); hi.forEach((p, i) => this.seg(p, c[i]));
+      this.fill(new THREE.CylinderGeometry((w / 2) * taper * 0.72 * k, (w / 2) * taper * k, 5, 8).rotateY(Math.PI / 8).scale(1, 1, d / w).translate(x, top + 2.5, z));
+      top += 5;
     }
+    return top;
   }
-  ring(cx: number, cy: number, z: number, rx: number, ry = rx, n = 24): P3[] {
-    return Array.from({ length: n }, (_, i) => [cx + Math.cos((i / n) * Math.PI * 2) * rx, cy + Math.sin((i / n) * Math.PI * 2) * ry, z] as P3);
+  /** 상자 건물 — 층 띠 점선 */
+  slab(x: number, z: number, y0: number, w: number, d: number, h: number, band = 7) {
+    const c: [number, number][] = [[x - w / 2, z - d / 2], [x + w / 2, z - d / 2], [x + w / 2, z + d / 2], [x - w / 2, z + d / 2]];
+    this.poly(c.map(([a, b]) => [a, y0, b])); this.poly(c.map(([a, b]) => [a, y0 + h, b]));
+    c.forEach(([a, b]) => this.seg([a, y0, b], [a, y0 + h, b]));
+    for (let y = y0 + band; y < y0 + h - 2; y += band) this.poly(c.map(([a, b]) => [a, y, b]), 'b');
+    this.fill(new THREE.BoxGeometry(w, h, d).translate(x, y0 + h / 2, z));
   }
-  cyl(cx: number, cy: number, z: number, r: number, h: number, lv: Lv = 'b', ry = r, fill = true, n = 24) {
-    const lo = this.ring(cx, cy, z, r, ry, n), hi = this.ring(cx, cy, z + h, r, ry, n);
-    this.path(lo, lv, true); this.path(hi, lv, true);
-    for (let i = 0, st = Math.max(1, Math.round(n / 6)); i < n; i += st) this.seg(lo[i], hi[i], lv === 'a' ? 'b' : 'c');
-    if (fill) {
-      const [px, py, pz] = this.v(cx, cy, z + h / 2);
-      this.F.push(new THREE.CylinderGeometry(r * this.s, r * this.s, h * this.sv, 20, 1, false).scale(1, 1, ry / r).translate(px, py, pz));
-    }
+  /** 기단 — 모서리 깎은 판 */
+  podium(pts: [number, number][], y0: number, h: number) {
+    this.poly(pts.map(([x, z]) => [x, y0, z])); this.poly(pts.map(([x, z]) => [x, y0 + h, z]));
+    this.poly(pts.map(([x, z]) => [x, y0 + h / 2, z]), 'b');
+    pts.forEach(([x, z]) => this.seg([x, y0, z], [x, y0 + h, z]));
+    const sh = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -z)));
+    this.fill(new THREE.ExtrudeGeometry(sh, { depth: h, bevelEnabled: false }).rotateX(-Math.PI / 2).translate(0, y0, 0));
   }
-  tree(x: number, y: number, z: number, k = 1) {
-    this.seg([x, y, z], [x, y, z + 12 * k], 'c');
-    const a = this.ring(x, y, z + 12 * k, 15 * k, 15 * k, 12), b = this.ring(x, y, z + 26 * k, 10 * k, 10 * k, 12);
-    const top: P3 = [x, y, z + 44 * k];
-    this.path(a, 'g', true); this.path(b, 'g', true);
-    for (let i = 0; i < 12; i += 3) { this.seg(a[i], b[i], 'g'); this.seg(b[i], top, 'g'); }
+  /** 반구 (훈련 돔 · 격리 포드) */
+  dome(x: number, y: number, z: number, r: number, lv: Lv = 'a') {
+    this.poly(circ(x, y, z, r, 40), lv);
+    for (let k = 1; k < 5; k++) { const th = (k / 5) * (Math.PI / 2); this.poly(circ(x, y + Math.sin(th) * r, z, Math.cos(th) * r, 32), lv === 'r' ? 'r' : 'b'); }
+    for (let j = 0; j < 12; j++) { const ph = (j / 12) * Math.PI * 2; this.poly(Array.from({ length: 9 }, (_, i) => { const th = (i / 8) * (Math.PI / 2); return [x + Math.cos(ph) * Math.cos(th) * r, y + Math.sin(th) * r, z + Math.sin(ph) * Math.cos(th) * r] as P3; }), j % 3 ? (lv === 'r' ? 'r' : 'b') : lv, false); }
+    this.fill(new THREE.SphereGeometry(r, 28, 12, 0, Math.PI * 2, 0, Math.PI / 2).translate(x, y, z));
+  }
+  /** 원통 */
+  cyl(x: number, y: number, z: number, r: number, h: number, lv: Lv = 'a', bands = 0) {
+    const lo = circ(x, y, z, r, 24), hi = circ(x, y + h, z, r, 24);
+    this.poly(lo, lv); this.poly(hi, lv);
+    for (let i = 0; i < 24; i += 4) this.seg(lo[i], hi[i], lv === 'a' ? 'b' : lv);
+    for (let k = 1; k <= bands; k++) this.poly(circ(x, y + (h * k) / (bands + 1), z, r, 24), 'b');
+    this.fill(new THREE.CylinderGeometry(r, r, h, 24).translate(x, y + h / 2, z));
+  }
+  /** 공중 통로 */
+  bridge(a: [number, number], b: [number, number], y: number) {
+    const dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz), nx = (-dz / L) * 3, nz = (dx / L) * 3;
+    [1, -1].forEach(s => { this.seg([a[0] + nx * s, y, a[1] + nz * s], [b[0] + nx * s, y, b[1] + nz * s]); this.seg([a[0] + nx * s, y + 5, a[1] + nz * s], [b[0] + nx * s, y + 5, b[1] + nz * s]); });
+    this.fill(new THREE.BoxGeometry(L, 5, 6).rotateY(-Math.atan2(dz, dx)).translate((a[0] + b[0]) / 2, y + 2.5, (a[1] + b[1]) / 2));
   }
 }
 
-interface Part {
-  key: string; cat: Cat; group: THREE.Group;
-  mats: Record<Lv | 'f', THREE.LineBasicMaterial | THREE.MeshBasicMaterial>;
-  pick?: THREE.Mesh; center: THREE.Vector3;
-}
-const lineMat = (c: number, o: number) => new THREE.LineBasicMaterial({ color: c, transparent: true, opacity: o, blending: THREE.AdditiveBlending, depthWrite: false });
-function makePart(kit: Kit, key: string, cat: Cat, pickable: boolean): Part {
-  const group = new THREE.Group();
-  const mats = {
-    a: lineMat(COL.a, BASE.a), b: lineMat(COL.b, BASE.b), c: lineMat(COL.c, BASE.c), g: lineMat(COL.g, BASE.g),
-    f: new THREE.MeshBasicMaterial({ color: COL.f, transparent: true, opacity: BASE.f, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
-  };
-  (['c', 'b', 'a', 'g'] as Lv[]).forEach(lv => {
-    if (!kit.L[lv].length) return;
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.Float32BufferAttribute(kit.L[lv], 3));
-    group.add(new THREE.LineSegments(g, mats[lv]));
-  });
-  if (kit.F.length) {
-    const merged = mergeGeometries(kit.F.map(g => g.index ? g.toNonIndexed() : g), false);
-    kit.F.forEach(g => g.dispose());
-    if (merged) group.add(new THREE.Mesh(merged, mats.f));
-  }
-  const center = kit.box3.getCenter(new THREE.Vector3());
-  let pick: THREE.Mesh | undefined;
-  if (pickable && !kit.box3.isEmpty()) {
-    const sz = kit.box3.getSize(new THREE.Vector3());
-    pick = new THREE.Mesh(new THREE.BoxGeometry(sz.x + 0.5, sz.y + 0.5, sz.z + 0.5), new THREE.MeshBasicMaterial({ visible: false }));
-    pick.position.copy(center);
-    pick.userData.key = key;
-    group.add(pick);
-  }
-  return { key, cat, group, mats, pick, center };
-}
+interface Part { key: string; cat: Cat; group: THREE.Group; mats: Partial<Record<Lv, LineMaterial>>; pick?: THREE.Mesh }
 
-/* ───────── 섬 · 바다 · 주변 도시 ───────── */
-const ISL = ptsOf(ISLAND).map(([x, y]) => mapXZ(x, y));
-function inPoly(x: number, z: number, poly: [number, number][]) {
-  let ins = false;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const [xi, zi] = poly[i], [xj, zj] = poly[j];
-    if ((zi > z) !== (zj > z) && x < ((xj - xi) * (z - zi)) / (zj - zi) + xi) ins = !ins;
-  }
-  return ins;
-}
-const inset = (poly: [number, number][], f: number, c: [number, number] = [0, 0]) => poly.map(([x, z]) => [c[0] + (x - c[0]) * f, c[1] + (z - c[1]) * f] as [number, number]);
-const SEA = -40;
-
-function buildIsland(): Kit {
-  const k = new Kit(0, 0, 0, 1, 1);
-  const top = ISL.map(([x, z]) => [x, z, 0] as P3), bot = ISL.map(([x, z]) => [x, z, SEA] as P3);
-  k.path(top, 'a', true);
-  k.path(bot, 'c', true);
-  top.forEach((p, i) => { if (i % 2 === 0) k.seg(p, bot[i], 'c'); });
-  [0.86, 0.7, 0.52].forEach((f, i) => k.path(inset(ISL, f, [-20, 10]).map(([x, z]) => [x, z, -i * 0.01] as P3), 'c', true));
-  ISLETS.forEach(d => {
-    const p = ptsOf(d).map(([x, y]) => mapXZ(x, y));
-    k.path(p.map(([x, z]) => [x, z, -26] as P3), 'b', true);
-    k.path(p.map(([x, z]) => [x, z, SEA] as P3), 'c', true);
-    p.forEach(([x, z], i) => { if (i % 3 === 0) k.seg([x, z, -26], [x, z, SEA], 'c'); });
-  });
-  return k;
-}
-function islandFill(): THREE.Mesh {
-  const shape = new THREE.Shape(ISL.map(([x, z]) => new THREE.Vector2(x, -z)));
-  const g = new THREE.ShapeGeometry(shape).rotateX(-Math.PI / 2);
-  return new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: 0x0f5f99, transparent: true, opacity: 0.035, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-}
-function buildSea(): THREE.LineSegments {
+/* ───────── 고정 부분: 방패 돔 · 바다 위 포탑 · 바다 ───────── */
+function sea(): THREE.LineSegments {
   const p: number[] = [];
-  for (let v = -1200; v <= 1200; v += 40) { p.push(-1200, SEA, v, 1200, SEA, v, v, SEA, -1200, v, SEA, 1200); }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(p, 3));
-  return new THREE.LineSegments(g, lineMat(0x1a5f95, 0.18));
+  for (let v = -1400; v <= 1400; v += 50) p.push(-1400, -30, v, 1400, -30, v, v, -30, -1400, v, -30, 1400);
+  for (let r = 300; r < 900; r += 120) { const c = circ(0, -30, 0, r, 96); c.forEach((q, i) => p.push(...q, ...c[(i + 1) % c.length])); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(p, 3));
+  return new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x154f7a, transparent: true, opacity: 0.35, depthWrite: false }));
+}
+function shieldDome(): THREE.LineSegments {
+  const geo = new THREE.IcosahedronGeometry(R0, 3), pos = geo.getAttribute('position'), keep: number[] = [];
+  for (let i = 0; i < pos.count; i += 3) {
+    const tri = [0, 1, 2].map(j => new THREE.Vector3().fromBufferAttribute(pos, i + j));
+    if (tri.every(v => v.y > -2)) tri.forEach((v, j) => { const w = tri[(j + 1) % 3]; keep.push(v.x, v.y * DOME_K, v.z, w.x, w.y * DOME_K, w.z); });
+  }
+  geo.dispose();
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(keep, 3));
+  const m = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x5ccaff, transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false }));
+  m.renderOrder = 5;
+  return m;
+}
+/** 바다 위 돔 포탑 6기 + 플랫폼으로 가는 아치 다리 */
+function turrets(k: Kit) {
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2 + Math.PI / 6, c = Math.cos(a), s = Math.sin(a), x = c * TURRET_R, z = s * TURRET_R;
+    // 아치 다리
+    const A: P3 = [c * 212, 0, s * 212], B: P3 = [c * 280, 0, s * 280], y = -10, h = 14;
+    k.seg([A[0], y + h, A[2]], [B[0], y + h, B[2]]);
+    for (let n = 0; n < 4; n++) {
+      const P = (t: number): P3 => [A[0] + (B[0] - A[0]) * t, 0, A[2] + (B[2] - A[2]) * t];
+      k.poly(Array.from({ length: 9 }, (_, j) => { const t = (n + j / 8) / 4, v = P(t); return [v[0], y + h * 0.35 + Math.sin((j / 8) * Math.PI) * h * 0.5, v[2]] as P3; }), 'b', false);
+      const p = P(n / 4); k.seg([p[0], y - 4, p[2]], [p[0], y + h, p[2]], 'b');
+    }
+    // 원통 기둥 · 돌출 회랑 · 성가퀴 · 금빛 돔
+    k.cyl(x, -30, z, 8, 46, 'a', 5);
+    k.poly(circ(x, 14, z, 10, 32)); k.poly(circ(x, 16, z, 10, 32));
+    k.fill(new THREE.CylinderGeometry(10, 10, 2, 24).translate(x, 15, z));
+    k.dome(x, 17.4, z, 8.4, 'g');
+    k.seg([x, 25.8, z], [x, 30, z], 'g');
+  }
 }
 
-/** 주변 도시 — 섬 안 빈터에 시드 고정으로 세운 건물들 */
-function buildCity(): Kit {
-  const k = new Kit(0, 0, 0, 1, 1);
-  const r = rng(7);
-  const busy = (x: number, z: number) =>
-    (Math.abs(x - HQX) < 68 && Math.abs(z - HQZ) < 34) || (Math.abs(x - RX) < 40 && Math.abs(z - RZ) < 40) ||
-    Math.hypot(x - (HQX + RX) / 2, z - (HQZ + RZ) / 2) < 30;
-  const placed: [number, number, number][] = [];
-  for (let n = 0; n < 900 && placed.length < 110; n++) {
-    const x = -300 + r() * 620, z = -200 + r() * 410;
-    const w = 6 + r() * 10, d = 6 + r() * 10, rad = Math.max(w, d) * 0.75 + 3;
-    if (!inPoly(x, z, inset(ISL, 0.9, [-20, 10])) || busy(x, z)) continue;
-    if (placed.some(([px, pz, pr]) => Math.hypot(px - x, pz - z) < pr + rad)) continue;
-    placed.push([x, z, rad]);
-    const nearC = Math.max(0, 1 - Math.hypot(x + 20, z) / 260);
-    const h = 5 + r() * 14 + nearC * nearC * 40 * r();
-    const style = r();
-    const x0 = x - w / 2, y0 = z - d / 2;
-    if (style < 0.16) {
-      // 원통 탑
-      const rr = Math.min(w, d) / 2;
-      k.cyl(x, z, 0, rr, h, 'b', rr, true, 16);
-      for (let zz = 4; zz < h; zz += 4) k.path(k.ring(x, z, zz, rr, rr, 16), 'c', true);
-      k.seg([x, z, h], [x, z, h + 6 + r() * 8], 'g');
-    } else if (style < 0.5) {
-      // 계단식 탑 + 첨탑
-      let bw = w, bd = d, zb = 0;
-      const tiers = 2 + Math.floor(r() * 2);
-      for (let t = 0; t < tiers; t++) {
-        const th = h / tiers;
-        k.box(x - bw / 2, z - bd / 2, zb, bw, bd, th, t === tiers - 1 ? 'a' : 'b');
-        for (let zz = zb + 3; zz < zb + th; zz += 3) k.path([[x - bw / 2, z + bd / 2, zz], [x + bw / 2, z + bd / 2, zz], [x + bw / 2, z - bd / 2, zz]], 'c');
-        zb += th; bw *= 0.72; bd *= 0.72;
-      }
-      if (r() < 0.6) k.seg([x, z, zb], [x, z, zb + 8 + r() * 14], 'g');
-    } else {
-      // 상자 + 창 격자
-      k.box(x0, y0, 0, w, d, h, h > 18 ? 'a' : 'b');
-      for (let zz = 3; zz < h; zz += 3) k.path([[x0, y0 + d, zz], [x0 + w, y0 + d, zz], [x0 + w, y0, zz]], 'c');
-      for (let xx = 2.5; xx < w; xx += 2.5) k.seg([x0 + xx, y0 + d, 0], [x0 + xx, y0 + d, h], 'c');
-      if (r() < 0.4) k.box(x0 + w * 0.2, y0 + d * 0.2, h, w * 0.3, d * 0.3, 2.5, 'b');
-    }
-  }
-  // 현수교 — 섬 동쪽 끝 → 작은 섬
-  const A: P3 = [318, 6, 0], B: P3 = [372, -24, -26];
-  const at = (t: number, dz = 0): P3 => [A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t, A[2] + (B[2] - A[2]) * t + dz];
-  const side = (o: number): P3 => [o * 0.48, o * 0.86, 0];
-  [-3, 3].forEach(o => {
-    const s = side(o), sh = (p: P3): P3 => [p[0] + s[0], p[1] + s[1], p[2]];
-    k.path(Array.from({ length: 11 }, (_, i) => sh(at(i / 10, 2))), 'a');
-    [0.18, 0.82].forEach(t => k.seg(sh(at(t, -10)), sh(at(t, 24)), 'a'));
-    // 케이블 — 양 끝에서 탑 꼭대기로 오르고, 탑 사이는 아래로 처진다
-    const ch = (t: number) => t < 0.18 ? 2 + (t / 0.18) * 22 : t > 0.82 ? 2 + ((1 - t) / 0.18) * 22 : 8 + 16 * ((t - 0.5) / 0.32) ** 2;
-    const cab = Array.from({ length: 21 }, (_, i) => sh(at(i / 20, ch(i / 20))));
-    cab.forEach((p, i) => { if (i % 2 === 0) k.seg(p, sh(at(i / 20, 2)), 'c'); });
+/* ───────── 플랫폼 (선체) ───────── */
+const NS = 24;
+const ring = (r: number, y: number) => circ(0, y, 0, r, NS);
+function hullKit(k: Kit) {
+  const lv: [number, number][] = [[RP, Y], [RP, DECK], [RP * 0.95, -30], [RP * 0.8, -55]];
+  lv.forEach(([r, y]) => k.poly(ring(r, y)));
+  for (let i = 0; i < NS; i++) k.poly(lv.map(([r, y]) => ring(r, y)[i]), 'a', false);
+  for (let y = -24; y < DECK; y += 7) k.poly(ring(RP * (0.95 + ((y + 30) / 50) * 0.05), y), 'b');
+  k.fill(new THREE.CylinderGeometry(RP, RP, 4, NS).translate(0, DECK + 2, 0));
+  k.fill(new THREE.CylinderGeometry(RP, RP * 0.95, 50, NS).translate(0, -5, 0));
+  k.fill(new THREE.CylinderGeometry(RP * 0.95, RP * 0.8, 25, NS).translate(0, -42.5, 0));
+}
+function deckKit(k: Kit) {
+  for (let x = -220; x <= 220; x += 24) { const h = Math.sqrt(Math.max(0, (RP - 4) ** 2 - x * x)); k.seg([x, Y + 0.3, -h], [x, Y + 0.3, h], 'c'); }
+  k.poly(ring(RP - 3, Y + 7));
+  ring(RP - 3, Y).forEach((p, i) => { k.seg(p, [p[0], Y + 7, p[2]], 'b'); if (i % 4 === 0) { k.seg(p, [p[0], Y + 22, p[2]]); k.poly(circ(p[0], Y + 22, p[2], 2.5, 8)); } });
+  // 추진기 — 선미 네 기
+  [-78, -26, 26, 78].forEach(z => {
+    const x0 = -Math.sqrt(RP * RP - z * z) + 6;
+    for (let n = 0; n < 4; n++) k.poly(circ(0, 0, 0, 13 - n * 2, 24).map(([a, , b]) => [x0 - 8 - n * 6, -10 + b, z + a] as P3));
+    k.fill(new THREE.CylinderGeometry(13, 10, 24, 24).rotateZ(Math.PI / 2).translate(x0 - 14, -10, z));
   });
-  return k;
+  for (let n = 0; n < 7; n++) { const z = -60 + n * 20; k.poly(Array.from({ length: 30 }, (_, i) => [-262 - i * 14, -29.5, z * (1 + i * 0.03)] as P3), 'c', false); }
+  // 셔틀 선로 (숙소 ↔ 본부)
+  [-1, 1].forEach(s => k.seg([-108, Y + 22, s * 3], [-78, Y + 22, s * 3]));
+  for (let x = -104; x < -78; x += 12) { k.seg([x, Y, 0], [x, Y + 22, 0]); k.fill(new THREE.BoxGeometry(2, 22, 2).translate(x, Y + 11, 0)); }
+  k.fill(new THREE.BoxGeometry(30, 2, 7).translate(-93, Y + 21, 0));
 }
 
-/** 도로 — 둘레 길 · 본부 ↔ 숙소 · 북쪽 부두 · 동쪽 다리 */
-function roads(): THREE.Vector3[][] {
-  const ringRoad = inset(ISL, 0.8, [-20, 10]).map(([x, z]) => new THREE.Vector3(x, 0.3, z));
-  ringRoad.push(ringRoad[0].clone());
-  const L = (a: [number, number][]) => a.map(([x, z]) => new THREE.Vector3(x, 0.3, z));
-  return [
-    ringRoad,
-    L([[HQX + 50, HQZ + 20], [(HQX + RX) / 2, HQZ + 20], [(HQX + RX) / 2, RZ], [RX - 40, RZ]]),
-    L([[HQX, HQZ - 20], [HQX, -130], [-150, -170]]),
-    L([[RX + 40, RZ], [200, RZ], [318, 6]]),
-    L([[HQX - 55, HQZ], [-230, 0], [-262, 60]]),
-    L([[RX, RZ + 40], [RX, 140], [120, 170]]),
-  ];
+/* ───────── 본부 단지 ───────── */
+const OPS = { x: -15, z: -58, w: 34, d: 24 }, MED = { x: -15, z: 58, w: 40, d: 26 }, COM = { x: -55, z: 0 };
+function hqBase(k: Kit) {
+  k.podium(HQ_PODIUM, Y, 10);
+  k.bridge([CORE.x - 12, -10], [OPS.x + 10, OPS.z + 12], HQ_B + 40);
+  k.bridge([CORE.x - 12, 10], [MED.x + 12, MED.z - 13], HQ_B + 28);
+  k.bridge([CORE.x + 14, -8], [76, -32], HQ_B + 18);
+  k.bridge([CORE.x + 14, 8], [76, 38], HQ_B + 18);
+  k.bridge([CORE.x - 14, 0], [COM.x + 18, 0], HQ_B + 14);
+}
+/** 시설마다 그리는 법 (본부) */
+const HQ_DRAW: Record<string, (k: Kit) => void> = {
+  lobby: k => { k.slab(CORE.x, CORE.z, HQ_B, 48, 42, 12, 6); },
+  core: k => {
+    const B = HQ_B + 12;
+    const top = k.tower(CORE.x, CORE.z, B, 30, 26, 58, { band: 6 });
+    k.poly(circ(CORE.x, B + 40, CORE.z, 28, 48, 24)); k.poly(circ(CORE.x, B + 45, CORE.z, 28, 48, 24));
+    k.poly(circ(CORE.x, B + 42.5, CORE.z, 28.4, 48, 24.4), 'g');
+    k.fill(new THREE.CylinderGeometry(28, 28, 5, 48).scale(1, 1, 24 / 28).translate(CORE.x, B + 42.5, CORE.z));
+    k.seg([CORE.x, top, CORE.z], [CORE.x, top + 8, CORE.z]); k.poly(circ(CORE.x, top + 5, CORE.z, 3, 10));
+  },
+  sky: k => {
+    const SY = 140, x = CORE.x, z = CORE.z;
+    const T = circ(x, SY, z, 26, 24, 20), M = circ(x, SY - 10, z, 17, 24, 13), P: P3 = [x, SY - 22, z];
+    k.poly(T); k.poly(M); T.forEach((p, i) => { if (i % 3 === 0) { k.seg(p, M[i], 'b'); k.seg(M[i], P, 'b'); } });
+    k.fill(new THREE.ConeGeometry(26, 22, 24).rotateX(Math.PI).scale(1, 1, 20 / 26).translate(x, SY - 11, z));
+    circ(x, SY, z, 9, 8).forEach(([px, , pz], i) => k.seg([px, SY, pz], [px, SY + (i % 3 === 1 ? 4 : 9), pz]));
+    k.poly(circ(x, SY + 9, z, 10, 16), 'b');
+  },
+  sdiv: k => k.slab(OPS.x, OPS.z, HQ_B, OPS.w, OPS.d, 22),
+  hdiv: k => k.slab(OPS.x, OPS.z, HQ_B + 22, OPS.w, OPS.d, 22),
+  rst: k => { k.slab(OPS.x, OPS.z, HQ_B + 44, OPS.w, OPS.d, 20); k.slab(OPS.x + 6, OPS.z, HQ_B + 64, 14, 12, 6); },
+  harmony: k => k.tower(-50, -45, HQ_B, 22, 20, 42, { taper: 0.9 }),
+  medbay: k => k.slab(MED.x, MED.z, HQ_B, MED.w, MED.d, 20),
+  ward: k => { k.slab(MED.x, MED.z, HQ_B + 20, MED.w, MED.d, 18); k.seg([MED.x, HQ_B + 42, MED.z + MED.d / 2], [MED.x, HQ_B + 54, MED.z + MED.d / 2]); k.seg([MED.x - 6, HQ_B + 48, MED.z + MED.d / 2], [MED.x + 6, HQ_B + 48, MED.z + MED.d / 2]); },
+  stabil: k => [[-52, 50], [-52, 74]].forEach(([x, z]) => { k.cyl(x, HQ_B, z, 8, 14, 'r'); k.dome(x, HQ_B + 14, z, 8, 'r'); }),
+  lounge: k => k.slab(COM.x - 9, COM.z, HQ_B, 18, 40, 12, 6),
+  dining: k => k.slab(COM.x + 9, COM.z, HQ_B, 18, 40, 12, 6),
+  igarden: k => {
+    const y0 = HQ_B + 12, r = 14;
+    for (let n = 0; n <= 8; n++) { const a = (Math.PI * n) / 8; k.seg([COM.x - 18, y0 + Math.sin(a) * r, Math.cos(a) * r], [COM.x + 18, y0 + Math.sin(a) * r, Math.cos(a) * r], n % 4 ? 'b' : 'a'); }
+    for (let x = COM.x - 18; x <= COM.x + 18; x += 12) k.poly(Array.from({ length: 9 }, (_, n) => { const a = (Math.PI * n) / 8; return [x, y0 + Math.sin(a) * r, Math.cos(a) * r] as P3; }), 'a', false);
+    k.fill(new THREE.CylinderGeometry(r, r, 36, 16, 1, false, 0, Math.PI).rotateZ(Math.PI / 2).rotateX(-Math.PI / 2).translate(COM.x, y0, 0));
+  },
+  dome: k => k.dome(95, HQ_B, -50, 30),
+  resonance: k => {
+    k.slab(95, 52, HQ_B, 40, 32, 18, 6);
+    [[-12, -9], [12, -9], [-12, 9], [12, 9]].forEach(([a, b]) => { const x = 95 + a, z = 52 + b; k.seg([x, HQ_B + 18, z], [x, HQ_B + 42, z]); for (let n = 0; n < 4; n++) k.poly(circ(x, HQ_B + 23 + n * 5, z, 3.4 - n * 0.6, 12), 'b'); k.fill(new THREE.CylinderGeometry(1.4, 2.4, 24, 8).translate(x, HQ_B + 30, z)); });
+  },
+  heli: k => {
+    [[180, -34], [180, 34]].forEach(([x, z]) => {
+      k.poly(circ(x, Y + 0.5, z, 16, 32));
+      k.seg([x - 6, Y + 0.5, z - 7], [x - 6, Y + 0.5, z + 7], 'g'); k.seg([x + 6, Y + 0.5, z - 7], [x + 6, Y + 0.5, z + 7], 'g'); k.seg([x - 6, Y + 0.5, z], [x + 6, Y + 0.5, z], 'g');
+    });
+    k.slab(158, 0, Y, 14, 20, 8, 4);
+  },
+  // ── 갑판 아래 · 물속
+  mech: k => {
+    k.cyl(CORE.x, -14, CORE.z, 12, 26, 'a', 3);
+    [18, 24].forEach(r => k.poly(circ(CORE.x, 0, CORE.z, r, 32), 'b'));
+    k.poly(circ(CORE.x, -1, CORE.z, 18.4, 32), 'g');
+  },
+  armory: k => { for (let n = 0; n < 5; n++) k.slab(OPS.x - 22 + n * 11, OPS.z, -16, 7, 28, 30, 6); },
+  gate: k => {
+    for (let n = 0; n < 3; n++) k.poly(circ(0, 0, 0, 16 - n * 4, 32).map(([a, , b]) => [196 - n * 3, -6 + b, a] as P3), n === 1 ? 'g' : 'a');
+    for (let x = 150; x < 192; x += 10) k.poly(circ(0, 0, 0, 10, 16).map(([a, , b]) => [x, -6 + b, a] as P3), 'b');
+    k.fill(new THREE.CylinderGeometry(10, 10, 42, 16, 1, true).rotateZ(Math.PI / 2).translate(171, -6, 0));
+  },
+  aqua: k => {
+    const x = 60, z = 70;
+    for (let n = 0; n < 5; n++) { const th = (n / 5) * (Math.PI / 2); k.poly(circ(x, -55 - Math.sin(th) * 24, z, Math.cos(th) * 26, 32), n ? 'b' : 'a'); }
+    for (let j = 0; j < 8; j++) { const ph = (j / 8) * Math.PI * 2; k.poly(Array.from({ length: 7 }, (_, i) => { const th = (i / 6) * (Math.PI / 2); return [x + Math.cos(ph) * Math.cos(th) * 26, -55 - Math.sin(th) * 24, z + Math.sin(ph) * Math.cos(th) * 26] as P3; }), 'b', false); }
+    k.fill(new THREE.SphereGeometry(26, 24, 12, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2).scale(1, 24 / 26, 1).translate(x, -55, z));
+  },
+  arena: k => {
+    const x = -40, VY = -140;
+    for (let n = 0; n < 4; n++) k.seg([x + (n - 1.5) * 10, -55, 0], [x + (n - 1.5) * 18, VY + 40, 0], 'b');
+    k.cyl(x, VY, 0, 30, 40, 'a', 3);
+    [8, 20, 32].forEach(h => k.poly(circ(x, VY + h, 0, 34, 48), 'r'));
+  },
+};
+
+/* ───────── 숙소 단지 ───────── */
+function resTower(k: Kit, t: (typeof RES_TWR)[number]) {
+  const top = k.tower(t.x, t.z, RES_B, 20, 18, t.h, { taper: 0.9 });
+  if (t.key) { k.seg([t.x, top, t.z], [t.x, top + 8, t.z]); k.poly(circ(t.x, top + 2, t.z, 12, 32), 'b'); }
 }
 
-/* ───────── 지휘본부 ───────── */
-const hqKit = () => new Kit(HQX - 500 * HQ_S, 0, HQZ - (HQ_D / 2) * HQ_S, HQ_S, HQ_S);
-const D = HQ_D, X0 = 110, X1 = 890, UX0 = 150, RZT = zOf(300);
-
-function hqShell(): Kit {
-  const k = hqKit();
-  HQ_BANDS.forEach((b, i) => {
-    const zb = zOf(b.bot), zt = zOf(b.top), xl = b.bot > 880 ? UX0 : X0;
-    k.path([[xl, 0, zb], [X1, 0, zb], [X1, D, zb], [xl, D, zb]], 'a', true);
-    k.box(xl, 0, zb - 3, X1 - xl, D, 3, 'c');
-    for (let x = xl + 39; x < X1; x += 39) k.seg([x, D, zb], [x, D, zt], 'c');
-    for (let y = 25; y < D; y += 25) { k.seg([X1, y, zb], [X1, y, zt], 'c'); k.seg([xl, y, zb], [xl, y, zt], 'c'); }
-    if (i === 0) k.path([[X0, 0, zt], [X1, 0, zt], [X1, D, zt], [X0, D, zt]], 'a', true);
-  });
-  [[X0, 0], [X1, 0], [X1, D], [X0, D]].forEach(([x, y]) => k.seg([x, y, 0], [x, y, RZT], 'a'));
-  [[UX0, 0], [X1, 0], [X1, D], [UX0, D]].forEach(([x, y]) => k.seg([x, y, 0], [x, y, zOf(1160)], 'b'));
-  k.path([[X0 + 6, 6, RZT + 10], [X1 - 6, 6, RZT + 10], [X1 - 6, D - 6, RZT + 10], [X0 + 6, D - 6, RZT + 10]], 'c', true);
-  // 칸막이
-  HQ_BANDS.forEach(b => {
-    const xs = Object.values(AEGIS_SPOTS).flatMap(s => rectsOf(s.cell)).filter(r => r.y0 > b.top && r.y1 < b.bot).sort((p, q) => p.x0 - q.x0);
-    for (let i = 1; i < xs.length; i++) {
-      if (xs[i].x0 - xs[i - 1].x1 > 30) continue;
-      const wx = (xs[i - 1].x1 + xs[i].x0) / 2;
-      k.path([[wx, 0, zOf(b.bot)], [wx, D, zOf(b.bot)], [wx, D, zOf(b.top)], [wx, 0, zOf(b.top)]], 'c', true);
-    }
-  });
-  // 외부 비상계단
-  for (let z = zOf(580); z < zOf(470); z += 18) k.path([[X1, 150, z], [X1 + 44, 150, z + 9], [X1, 180, z + 18]], 'c');
-  // 공조기
-  k.box(640, 30, RZT, 46, 34, 16, 'c');
-  k.box(640, 120, RZT, 30, 30, 22, 'c');
-  return k;
-}
-
-/** 방마다 소품 (단면 좌표: x0~x1 · 바닥 z · 천장까지 h) */
-function props(k: Kit, spot: string, x0: number, x1: number, z: number, h: number) {
-  const W = x1 - x0, cx = (x0 + x1) / 2;
-  const table = (x: number, y: number) => {
-    k.cyl(x, y, z + 14, 13, 2, 'b');
-    k.seg([x, y, z], [x, y, z + 14], 'c');
-    k.path(k.ring(x - 22, y, z + 8, 6, 6, 10), 'c', true);
-    k.path(k.ring(x + 22, y, z + 8, 6, 6, 10), 'c', true);
-  };
-  switch (spot) {
-    case 'lounge':
-      k.box(x0 + 16, 12, z, W - 32, 22, 14);
-      k.box(x1 - 58, 70, z, 38, 80, 22);
-      [48, 112].forEach(dx => { table(x0 + dx, 80); table(x0 + dx + 30, 150); });
-      break;
-    case 'dining':
-      [55, 135].forEach(y => {
-        k.box(x0 + 30, y, z + 12, W - 60, 22, 3);
-        k.box(x0 + 34, y - 14, z, W - 68, 8, 7, 'c');
-        k.box(x0 + 34, y + 28, z, W - 68, 8, 7, 'c');
-      });
-      break;
-    case 'igarden':
-      k.box(x0 + 18, 14, z, W - 36, 34, 10);
-      [[50, 110, 1.1], [120, 70, 1.3], [190, 125, 1.05], [80, 165, 0.85], [210, 40, 1.1]].forEach(([dx, y, s]) => k.tree(x0 + dx, y, z, s));
-      break;
-    case 'resonance':
-      for (let i = 0; i < 5; i++) {
-        const x = x0 + 110 + i * 140;
-        k.cyl(x, 80, z, 24, 50, 'a');
-        k.path(k.ring(x, 80, z + 30, 27), 'g', true);
-        k.seg([x, 80, z + 50], [x, 80, z + h - 2], 'c');
-        k.box(x - 24, 150, z, 48, 18, 14, 'c');
-      }
-      break;
-    case 'hdiv':
-    case 'sdiv': {
-      const rows = spot === 'sdiv' ? [70, 140] : [55, 130];
-      const n = Math.floor((spot === 'sdiv' ? 340 : W - 40) / 72);
-      rows.forEach(y => { for (let i = 0; i < n; i++) {
-        const x = x0 + 28 + i * 72;
-        k.box(x, y, z, 52, 24, 12);
-        k.box(x + 12, y + 2, z + 12, 28, 3, 14, 'g', false);
-      } });
-      if (spot === 'sdiv') {
-        k.box(x0 + 420, 10, z, W - 450, 22, 74);
-        for (let x = x0 + 450; x < x1 - 30; x += 30) k.seg([x, 32, z], [x, 32, z + 74], 'c');
-        [450, 580].forEach(dx => k.box(x0 + dx, 110, z, 100, 16, 9, 'c'));
-      }
-      break;
-    }
-    case 'harmony':
-      k.box(x0 + 26, 26, z, 120, 26, 15);
-      k.box(x0 + 26, 52, z, 26, 70, 15);
-      table(x0 + 110, 105);
-      k.seg([x1 - 40, 40, z], [x1 - 40, 40, z + 54], 'c');
-      k.path(k.ring(x1 - 40, 40, z + 54, 12), 'g', true);
-      k.tree(x1 - 40, 150, z, 0.8);
-      break;
-    case 'rst':
-      for (let i = 0; i < 4; i++) k.box(x0 + 18 + i * 52, 10, z, 40, 18, 66);
-      k.box(x0 + 60, 120, z, 110, 30, 13);
-      break;
-    case 'medbay':
-      for (let i = 0; i < 4; i++) {
-        const x = x0 + 30 + i * 82;
-        k.box(x, 40, z, 34, 66, 12);
-        k.box(x + 4, 42, z + 12, 26, 12, 4, 'c');
-        k.path([[x - 8, 30, z + 50], [x + 42, 30, z + 50], [x + 42, 116, z + 50], [x - 8, 116, z + 50]], 'c', true);
-      }
-      k.seg([x1 - 60, 2, z + 52], [x1 - 60, 2, z + 76], 'g');
-      k.seg([x1 - 72, 2, z + 64], [x1 - 48, 2, z + 64], 'g');
-      break;
-    case 'ward':
-      for (let i = 0; i < 6; i++) {
-        const x = x0 + 22 + i * 58;
-        k.box(x, 18, z, 30, 62, 11);
-        k.path([[x + 42, 6, z], [x + 42, 96, z], [x + 42, 96, z + 56], [x + 42, 6, z + 56]], 'c', true);
-      }
-      break;
-    case 'stabil':
-      k.cyl(cx, 100, z, 40, 56, 'g');
-      k.path(k.ring(cx, 100, z + 1, 62, 62, 32), 'c', true);
-      k.path(k.ring(cx, 100, z + 28, 41), 'c', true);
-      break;
-    case 'lobby':
-      k.box(cx - 66, 70, z, 132, 24, 16);
-      [x0 + 34, x1 - 34].forEach(x => k.cyl(x, 160, z, 8, h - 4, 'b'));
-      k.box(cx - 60, D, z + h - 26, 120, 46, 5, 'a');
-      k.seg([cx - 54, D + 40, z], [cx - 54, D + 40, z + h - 26], 'c');
-      k.seg([cx + 54, D + 40, z], [cx + 54, D + 40, z + h - 26], 'c');
-      break;
-    case 'mech':
-      [70, 145, 220].forEach(dx => k.cyl(x0 + dx, 90, z, 27, 60, 'b'));
-      k.path([[x0 + 70, 90, z + 76], [x0 + 330, 90, z + 76], [x0 + 330, 60, z + 76]], 'c');
-      [70, 145, 220].forEach(dx => k.seg([x0 + dx, 90, z + 60], [x0 + dx, 90, z + 76], 'c'));
-      k.box(x1 - 150, 30, z, 110, 90, 44);
-      break;
-    case 'aqua':
-      k.box(x0 + 18, 18, z, W - 36, 160, 72, 'g');
-      for (let y = 40; y < 178; y += 34) k.path(Array.from({ length: 13 }, (_, i) => [x0 + 18 + (i * (W - 36)) / 12, y + (i % 2 ? 6 : -6), z + 64] as P3), 'c');
-      [60, 120, 170].forEach(dx => k.path([[x0 + dx, 100, z], [x0 + dx - 6, 100, z + 20], [x0 + dx + 4, 100, z + 38], [x0 + dx - 2, 100, z + 52]], 'g'));
-      break;
-    case 'armory':
-      for (let i = 0; i < 5; i++) {
-        const x = x0 + 34 + i * 62;
-        k.box(x, 26, z, 10, 120, 74);
-        for (let y = 40; y < 140; y += 20) k.seg([x + 12, y, z + 12], [x + 12, y, z + 66], 'c');
-      }
-      break;
-    case 'gate': {
-      k.cyl(cx, 100, z, 64, 6, 'b');
-      const vr = (r: number) => Array.from({ length: 32 }, (_, i) => [cx + Math.cos((i / 32) * Math.PI * 2) * r * 0.7, 100, z + 50 + Math.sin((i / 32) * Math.PI * 2) * r] as P3);
-      k.path(vr(42), 'g', true); k.path(vr(30), 'g', true);
-      break;
-    }
-    case 'arena':
-      [40, 72, 96].forEach((r, i) => k.path(k.ring(cx, 100, z + 1, r * 1.6, r, 40), i === 1 ? 'g' : 'c', true));
-      [[x0 + 30, 20], [x1 - 30, 20], [x0 + 30, 180], [x1 - 30, 180]].forEach(([x, y]) => k.cyl(x, y, z, 8, h - 4, 'b'));
-      break;
-  }
-}
-
-/** 옥상 · 하늘 시설 (돔 · 코어 · 헬기 · 하늘정원) */
-function roofPart(spot: string): Kit {
-  const k = hqKit(), MY = D / 2;
-  if (spot === 'dome') {
-    const c = { x: 226, z: RZT }, r = 92;
-    const sp = (th: number, ph: number): P3 => [c.x + r * Math.cos(th) * Math.cos(ph), MY + r * 0.95 * Math.cos(th) * Math.sin(ph), c.z + r * Math.sin(th)];
-    [0, 0.4, 0.8, 1.15, 1.4].forEach((th, i) => k.path(Array.from({ length: 40 }, (_, j) => sp(th, (j / 40) * Math.PI * 2)), i === 0 ? 'a' : 'b', true));
-    for (let j = 0; j < 12; j++) k.path(Array.from({ length: 13 }, (_, i) => sp((i / 12) * (Math.PI / 2), (j / 12) * Math.PI * 2)), 'b');
-    k.cyl(c.x, MY, c.z, r * 0.6, 4, 'g', r * 0.57, false);
-    const [px, py, pz] = k.v(c.x, MY, c.z);
-    k.F.push(new THREE.SphereGeometry(r * HQ_S, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 1, 0.95).translate(px, py, pz));
-  } else if (spot === 'core') {
-    k.cyl(500, MY, RZT, 22, 64, 'a');
-    for (let z = RZT + 8; z < RZT + 64; z += 8) k.path(k.ring(500, MY, z, 22, 22, 20), 'c', true);
-    k.cyl(500, MY, RZT + 64, 30, 8, 'b');
-    k.cyl(500, MY, RZT + 74, 62, 8, 'a', 56);
-    k.path(k.ring(500, MY, RZT + 78, 80, 72, 40), 'g', true);
-    k.seg([500, MY, RZT + 82], [500, MY, RZT + 124], 'a');
-    k.seg([486, MY, RZT + 104], [514, MY, RZT + 104], 'b');
-  } else if (spot === 'heli') {
-    const px = 726, pw = 160;
-    k.box(px, 20, RZT + 14, pw, 160, 4, 'b');
-    [[px + 10, 30], [px + pw - 10, 30], [px + 10, 170], [px + pw - 10, 170]].forEach(([x, y]) => k.seg([x, y, RZT], [x, y, RZT + 14], 'c'));
-    k.path(k.ring(806, 100, RZT + 19, 62, 62, 36), 'g', true);
-    k.seg([786, 76, RZT + 19], [786, 124, RZT + 19], 'g'); k.seg([826, 76, RZT + 19], [826, 124, RZT + 19], 'g'); k.seg([786, 100, RZT + 19], [826, 100, RZT + 19], 'g');
-    k.box(786, 140, RZT + 22, 44, 22, 18, 'a');
-    k.seg([786, 151, RZT + 32], [736, 151, RZT + 36], 'b');
-    k.seg([808, 151, RZT + 40], [808, 151, RZT + 44], 'b');
-  } else if (spot === 'sky') {
-    const top = zOf(60), mid = zOf(100), tip = zOf(146);
-    const T = k.ring(500, MY, top, 126, 92, 40), M = k.ring(500, MY, mid, 82, 60, 40);
-    const P: P3 = [500, MY, tip];
-    k.path(T, 'a', true); k.path(M, 'b', true);
-    for (let i = 0; i < 40; i += 4) { k.seg(T[i], M[i], 'c'); k.seg(M[i], P, 'c'); }
-    for (let i = 0; i < 8; i++) {
-      const an = (i / 8) * Math.PI * 2, x = 500 + Math.cos(an) * 46, y = MY + Math.sin(an) * 34;
-      k.seg([x, y, top], [x, y, top + (i % 3 === 2 ? 22 : 40)], 'a');
-    }
-    k.path(k.ring(500, MY, top + 40, 52, 40, 32), 'b', true);
-    k.tree(420, 60, top, 0.9); k.tree(585, 140, top, 1.05); k.tree(560, 40, top, 0.75); k.tree(440, 150, top, 0.8);
-    const [px, py, pz] = k.v(500, MY, (top + tip) / 2);
-    k.F.push(new THREE.ConeGeometry(126 * HQ_S, (top - tip) * HQ_S, 24, 1, false).rotateX(Math.PI).scale(1, 1, 92 / 126).translate(px, py, pz));
-  }
-  return k;
-}
-
-/* ───────── 거주구역 ───────── */
-const resKit = () => new Kit(RX - 160 * RES_S, 0, RZ - 160 * RES_S, RES_S, RES_V);
-function tower(k: Kit, t: (typeof RES_TOWERS)[number]) {
-  const x = t.cx - 32, y = t.cy - 32, w = 64, d = 64, h = t.h;
-  k.box(x - 5, y - 5, 0, w + 10, d + 10, 4, 'c');
-  k.box(x, y, 0, w, d, h, 'a');
-  for (let z = 7; z < h - 2; z += 7) k.path([[x, y + d, z], [x + w, y + d, z], [x + w, y, z], [x, y, z], [x, y + d, z]], 'c');
-  for (let i = 8; i < w; i += 8) { k.seg([x + i, y + d, 0], [x + i, y + d, h], 'c'); k.seg([x + w, y + i, 0], [x + w, y + i, h], 'c'); k.seg([x + i, y, 0], [x + i, y, h], 'c'); k.seg([x, y + i, 0], [x, y + i, h], 'c'); }
-  for (let z = 21; z < h - 8; z += 21) {
-    k.path([[x + 8, y + d, z], [x + 8, y + d + 6, z], [x + w - 8, y + d + 6, z], [x + w - 8, y + d, z]], 'b');
-    k.path([[x + w, y + 8, z], [x + w + 6, y + 8, z], [x + w + 6, y + d - 8, z], [x + w, y + d - 8, z]], 'b');
-  }
-  k.box(x + 20, y + d, 10, 24, 10, 2, 'b');
-  k.box(x + 8, y + 8, h, 22, 18, 8, 'b');
-  k.box(x + 44, y + 8, h, 12, 12, 5, 'c');
-  if (t.key) { k.seg([t.cx, t.cy, h], [t.cx, t.cy, h + 30], 'g'); k.path(k.ring(t.cx, t.cy, h + 2, 40, 40, 32), 'g', true); }
-}
-function resBase(): Kit {
-  const k = resKit();
-  const plate: P3[] = ([[24, 0], [296, 0], [320, 24], [320, 296], [296, 320], [24, 320], [0, 296], [0, 24]] as [number, number][]).map(([x, y]) => [x, y, 0]);
-  k.path(plate, 'a', true);
-  k.path(plate.map(([x, y]) => [x, y, -26] as P3), 'c', true);
-  plate.forEach(p => k.seg(p, [p[0], p[1], -26], 'c'));
-  k.path(([[30, 12], [290, 12], [308, 30], [308, 290], [290, 308], [30, 308], [12, 290], [12, 30]] as [number, number][]).map(([x, y]) => [x, y, 0.5] as P3), 'c', true);
-  RES_TOWERS.filter(t => !t.key).forEach(t => tower(k, t));
-  k.box(82, 42, 58, 46, 16, 8, 'b');
-  k.box(82, 262, 50, 46, 16, 8, 'b');
-  ([[14, 110], [14, 210], [110, 14], [210, 14], [306, 110], [306, 210], [110, 306], [230, 300], [300, 230]] as [number, number][]).forEach(([x, y]) => k.tree(x, y, 0, 0.45));
-  ([[150, 40], [150, 100], [40, 150], [100, 150], [200, 200], [250, 250], [290, 290]] as [number, number][]).forEach(([x, y]) => { k.seg([x, y, 0], [x, y, 16], 'c'); k.seg([x, y, 16], [x, y, 17], 'g'); });
-  return k;
-}
-function yardPart(): Kit {
-  const k = resKit();
-  k.path(k.ring(160, 160, 0.5, 70, 70, 40), 'a', true);
-  k.path(k.ring(160, 160, 0.5, 30, 30, 28), 'g', true);
-  k.path(k.ring(160, 160, 4, 18, 18, 20), 'b', true);
-  k.seg([160, 160, 0], [160, 160, 14], 'g');
-  ([[105, 105], [215, 105], [105, 215], [215, 215]] as [number, number][]).forEach(([x, y]) => k.tree(x, y, 0, 0.45));
-  const [px, py, pz] = k.v(160, 160, 0.3);
-  k.F.push(new THREE.CircleGeometry(70 * RES_S, 40).rotateX(-Math.PI / 2).translate(px, py, pz));
-  return k;
-}
-
-/* ───────── 카메라 자리 ───────── */
+/* ───────── 카메라 · 초점 ───────── */
 const CAM: Record<View, { pos: THREE.Vector3; tgt: THREE.Vector3 }> = {
-  site: { pos: new THREE.Vector3(250, 300, 470), tgt: new THREE.Vector3(-10, 0, 10) },
-  hq: { pos: new THREE.Vector3(HQX + 100, 72, HQZ + 196), tgt: new THREE.Vector3(HQX, 30, HQZ) },
-  res: { pos: new THREE.Vector3(RX + 118, 112, RZ + 142), tgt: new THREE.Vector3(RX, 20, RZ) },
+  site: { pos: new THREE.Vector3(470, 320, 500), tgt: new THREE.Vector3(0, 30, 0) },
+  hq: { pos: new THREE.Vector3(330, 215, 300), tgt: new THREE.Vector3(30, 42, 0) },
+  res: { pos: new THREE.Vector3(-400, 180, 230), tgt: new THREE.Vector3(-160, 45, 0) },
 };
 const FOCUS: Record<View, Record<Cat, number>> = {
-  site: { hq: 1, res: 1, city: 1 },
-  hq: { hq: 1, res: 0.14, city: 0.15 },
-  res: { hq: 0.15, res: 1, city: 0.15 },
+  site: { hq: 1, res: 1, base: 1 },
+  hq: { hq: 1, res: 0.35, base: 0.6 },
+  res: { hq: 0.35, res: 1, base: 0.6 },
 };
 
 export interface WorldCb { pick: (spot: string) => void; go: (v: AegisView) => void }
@@ -499,18 +283,19 @@ export class AegisWorld {
   private camera = new THREE.PerspectiveCamera(36, 1, 1, 4000);
   private controls: OrbitControls;
   private parts: Part[] = [];
+  private lineMats: LineMaterial[] = [];
+  private fill = new THREE.MeshBasicMaterial({ color: FILL, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+  private hullFill = new THREE.MeshBasicMaterial({ color: FILL2, transparent: true, opacity: 1, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+  private xray = 0;              // 0 = 선체 불투명, 1 = 반투명 (본부 화면)
   private view: View = 'site';
   private sel: string | null = null;
-  private selColor = new THREE.Color(COL.hot);
+  private selColor = new THREE.Color(HOT);
   private live = new Set<string>();
-  private fly = 1;              // 카메라 이동 진행(0~1) — 1이면 멈춤
+  private fly = 1;
   private flyFrom = { pos: new THREE.Vector3(), tgt: new THREE.Vector3() };
   private flyTo = { pos: new THREE.Vector3(), tgt: new THREE.Vector3() };
-  private focus: Record<Cat, number> = { hq: 1, res: 1, city: 1 };
-  private pulses!: { pts: THREE.Points; paths: { p: THREE.Vector3[]; len: number[]; total: number }[]; t: Float32Array; v: Float32Array; who: Uint16Array };
-  private dust!: THREE.Points;
-  private scan!: THREE.LineLoop;
-  private sky?: Part;
+  private focus: Record<Cat, number> = { hq: 1, res: 1, base: 1 };
+  private tick: ((t: number) => void)[] = [];
   private raf = 0;
   private running = true;
   private clock = new THREE.Clock();
@@ -520,6 +305,7 @@ export class AegisWorld {
   private down: { x: number; y: number } | null = null;
   private ray = new THREE.Raycaster();
   private v3 = new THREE.Vector3();
+  private w = 1; private h = 1;
 
   constructor(private host: HTMLElement, private labels: HTMLElement, private cb: WorldCb) {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -528,18 +314,18 @@ export class AegisWorld {
     host.prepend(this.renderer.domElement);
     this.renderer.domElement.className = 'am3-gl';
     this.scene.background = new THREE.Color(0x01040b);   // 지우기 색은 합성 단계에서 감마가 두 번 걸려 밝아지므로 배경은 장면 쪽에
-    this.scene.fog = new THREE.FogExp2(0x01040b, 0.0011);
+    this.scene.fog = new THREE.FogExp2(0x01040b, 0.0012);
 
     this.camera.position.copy(CAM.site.pos);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.target.copy(CAM.site.tgt);
-    Object.assign(this.controls, { enableDamping: true, dampingFactor: 0.08, enablePan: false, enableZoom: false, rotateSpeed: 0.6, minPolarAngle: 0.25, maxPolarAngle: 1.45, autoRotate: true, autoRotateSpeed: 0.35 });
+    Object.assign(this.controls, { enableDamping: true, dampingFactor: 0.08, enablePan: false, enableZoom: false, rotateSpeed: 0.6, minPolarAngle: 0.2, maxPolarAngle: 1.5, autoRotate: true, autoRotateSpeed: 0.35 });
     this.controls.addEventListener('start', () => { this.idle = -1; this.controls.autoRotate = false; this.fly = 1; });
     this.controls.addEventListener('end', () => { this.idle = 0; });
 
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
-    this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.8, 0.22, 0.28);
+    this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.45, 0.25, 0.6);
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
 
@@ -561,96 +347,93 @@ export class AegisWorld {
     this.loop();
   }
 
-  private add(kit: Kit, key: string, cat: Cat, pickable = false) {
-    const p = makePart(kit, key, cat, pickable);
+  /** 파트 굽기 — 선은 굵은 선(LineSegments2), 면은 하나로 합쳐 불투명 */
+  private add(k: Kit, key: string, cat: Cat, pickable = false, fillMat: THREE.Material = this.fill) {
+    const group = new THREE.Group();
+    const mats: Part['mats'] = {};
+    (Object.keys(k.L) as Lv[]).forEach(lv => {
+      if (!k.L[lv].length) return;
+      const g = new LineSegmentsGeometry(); g.setPositions(k.L[lv]);
+      const dashed = lv === 'b' || lv === 'c';
+      const m = new LineMaterial({ color: COL[lv], linewidth: WID[lv], dashed, dashSize: 2.2, gapSize: 1.6, transparent: true, opacity: OPA[lv], depthWrite: false });
+      m.resolution.set(this.w, this.h);
+      const l = new LineSegments2(g, m);
+      if (dashed) l.computeLineDistances();
+      l.renderOrder = 2;
+      group.add(l); mats[lv] = m; this.lineMats.push(m);
+    });
+    if (k.F.length) {
+      const merged = mergeGeometries(k.F, false);
+      k.F.forEach(g => g.dispose());
+      if (merged) group.add(new THREE.Mesh(merged, fillMat));
+    }
+    let pick: THREE.Mesh | undefined;
+    if (pickable && !k.box3.isEmpty()) {
+      const sz = k.box3.getSize(new THREE.Vector3());
+      pick = new THREE.Mesh(new THREE.BoxGeometry(sz.x + 2, sz.y + 2, sz.z + 2), new THREE.MeshBasicMaterial({ visible: false }));
+      pick.position.copy(k.box3.getCenter(new THREE.Vector3()));
+      pick.userData.key = key;
+      group.add(pick);
+    }
+    const p: Part = { key, cat, group, mats, pick };
     this.parts.push(p);
-    this.scene.add(p.group);
+    this.scene.add(group);
     return p;
+  }
+  /** 화면 전체를 고르는 큰 상자 (섬 화면에서 본부 · 숙소) */
+  private addPick(key: string, cat: Cat, min: P3, max: P3) {
+    const b = new THREE.Box3(new THREE.Vector3(...min), new THREE.Vector3(...max));
+    const k = new Kit(); k.box3.copy(b);
+    this.add(k, key, cat, true);
   }
 
   private build() {
-    this.scene.add(buildSea());
-    this.scene.add(islandFill());
-    this.add(buildIsland(), 'island', 'city');
-    this.add(buildCity(), 'city', 'city');
-    // 도로 + 흐르는 빛
-    const rs = roads();
-    const roadGeo = new THREE.BufferGeometry();
-    const rp: number[] = [];
-    rs.forEach(p => { for (let i = 0; i < p.length - 1; i++) rp.push(p[i].x, p[i].y, p[i].z, p[i + 1].x, p[i + 1].y, p[i + 1].z); });
-    roadGeo.setAttribute('position', new THREE.Float32BufferAttribute(rp, 3));
-    this.scene.add(new THREE.LineSegments(roadGeo, lineMat(0x2fb6ff, 0.55)));
-    const paths = rs.map(p => {
-      const len = [0];
-      for (let i = 1; i < p.length; i++) len.push(len[i - 1] + p[i].distanceTo(p[i - 1]));
-      return { p, len, total: len[len.length - 1] };
+    this.scene.add(sea());
+    this.scene.add(shieldDome());
+    const shield = this.scene.children[this.scene.children.length - 1] as THREE.LineSegments;
+    // 구역 안(본부 · 숙소)에선 돔을 옅게 — 시설이 가려지지 않게
+    this.tick.push(t => { (shield.material as THREE.LineBasicMaterial).opacity = (0.26 + 0.07 * Math.sin(t * 1.4)) * (0.35 + 0.65 * this.focus.base ** 2); });
+
+    const tk = new Kit(); turrets(tk); this.add(tk, 'turrets', 'base');
+    const hk = new Kit(); hullKit(hk); this.add(hk, 'hull', 'base', false, this.hullFill);
+    const dk = new Kit(); deckKit(dk); this.add(dk, 'deck', 'base');
+    // 추진기 불빛
+    [-78, -26, 26, 78].forEach(z => {
+      const x0 = -Math.sqrt(RP * RP - z * z) + 6;
+      const glow = new THREE.Mesh(new THREE.CircleGeometry(8, 24).rotateY(Math.PI / 2).translate(x0 - 27, -10, z), new THREE.MeshBasicMaterial({ color: 0x8fdcff, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+      glow.renderOrder = 3; this.scene.add(glow);
+      this.tick.push(t => { glow.material.opacity = 0.45 + 0.2 * Math.sin(t * 6 + z); });
     });
-    const N = 160, r = rng(3);
-    const pos = new Float32Array(N * 3), col = new Float32Array(N * 3);
-    const t = new Float32Array(N), v = new Float32Array(N), who = new Uint16Array(N);
-    const warm = new THREE.Color(0xffa040), cool = new THREE.Color(0x8fe6ff);
-    for (let i = 0; i < N; i++) {
-      who[i] = Math.floor(r() * paths.length); t[i] = r(); v[i] = (0.02 + r() * 0.05) * (r() < 0.5 ? -1 : 1) * (200 / paths[who[i]].total);
-      const c = r() < 0.35 ? warm : cool;
-      col.set([c.r, c.g, c.b], i * 3);
-    }
-    const pg = new THREE.BufferGeometry();
-    pg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    pg.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    const pts = new THREE.Points(pg, new THREE.PointsMaterial({ size: 3.2, vertexColors: true, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true }));
-    this.scene.add(pts);
-    this.pulses = { pts, paths, t, v, who };
-    // 떠다니는 입자
-    const DN = 700, dp = new Float32Array(DN * 3);
-    for (let i = 0; i < DN; i++) dp.set([-450 + r() * 900, SEA + r() * 220, -320 + r() * 640], i * 3);
-    const dg = new THREE.BufferGeometry();
-    dg.setAttribute('position', new THREE.BufferAttribute(dp, 3));
-    this.dust = new THREE.Points(dg, new THREE.PointsMaterial({ size: 1.1, color: 0x7fd8ff, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));
-    this.scene.add(this.dust);
+    // 셔틀
+    const tram = new THREE.Mesh(new THREE.BoxGeometry(12, 5, 6), new THREE.MeshBasicMaterial({ color: 0xbfeaff }));
+    tram.renderOrder = 3; this.scene.add(tram);
+    this.tick.push(t => { tram.position.set(-93 + Math.sin(t * 0.6) * 9, Y + 25.5, 0); });
 
-    // 지휘본부
-    this.add(hqShell(), 'hq:shell', 'hq');
-    for (const [spot, s] of Object.entries(AEGIS_SPOTS)) {
-      if (s.view !== 'hq') continue;
-      const rects = rectsOf(s.cell);
-      const k = rects.length ? hqKit() : roofPart(spot);
-      rects.forEach(rc => {
-        const zb = zOf(rc.y1), zt = zOf(rc.y0);
-        k.box(rc.x0 + 2, 2, zb + 1, rc.x1 - rc.x0 - 4, D - 4, zt - zb - 2, 'c');
-        props(k, spot, rc.x0, rc.x1, zb, zt - zb);
-      });
+    // 본부 단지
+    const hb = new Kit(); hqBase(hb); this.add(hb, 'hq:base', 'hq');
+    for (const [spot, draw] of Object.entries(HQ_DRAW)) {
+      const k = new Kit(); draw(k);
       const p = this.add(k, spot, 'hq', true);
-      if (spot === 'sky') this.sky = p;
+      if (spot === 'sky') this.tick.push(t => { p.group.position.y = Math.sin(t * 0.8) * 1.2; });
     }
-    // 본부 전체를 고르는 상자 (섬 화면)
-    const hb = hqKit();
-    hb.box(X0, 0, zOf(1160), X1 - X0, D, zOf(36) - zOf(1160), 'c', false);
-    const hqAll = makePart(new Kit(0, 0, 0, 1, 1), 'site:hq', 'hq', false);
-    const sz = hb.box3.getSize(new THREE.Vector3());
-    hqAll.pick = new THREE.Mesh(new THREE.BoxGeometry(sz.x + 20, sz.y, sz.z + 20), new THREE.MeshBasicMaterial({ visible: false }));
-    hqAll.pick.position.copy(hb.box3.getCenter(new THREE.Vector3()));
-    hqAll.pick.userData.key = 'site:hq';
-    hqAll.group.add(hqAll.pick);
-    this.parts.push(hqAll); this.scene.add(hqAll.group);
-    // 훑는 고리
-    const ring = new THREE.BufferGeometry().setFromPoints(Array.from({ length: 64 }, (_, i) => new THREE.Vector3(Math.cos((i / 64) * Math.PI * 2) * 62, 0, Math.sin((i / 64) * Math.PI * 2) * 26)));
-    this.scan = new THREE.LineLoop(ring, lineMat(0x9fe8ff, 0.7));
-    this.scan.position.set(HQX, 0, HQZ);
-    this.scene.add(this.scan);
+    // 관제탑 경고등 · 반응로 맥동 · 봉인 고리 회전
+    const bea = new THREE.Mesh(new THREE.SphereGeometry(1.6, 8, 8).translate(CORE.x, HQ_B + 12 + 58 + 5 + 9, CORE.z), new THREE.MeshBasicMaterial({ color: COL.g }));
+    bea.renderOrder = 3; this.scene.add(bea);
+    this.tick.push(t => { bea.visible = Math.sin(t * 4) > 0; });
+    const core = new THREE.Mesh(new THREE.SphereGeometry(7, 16, 12).translate(CORE.x, -1, CORE.z), new THREE.MeshBasicMaterial({ color: 0x8fdcff, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false }));
+    core.renderOrder = 3; this.scene.add(core);
+    this.tick.push(t => { core.scale.setScalar(1 + 0.1 * Math.sin(t * 3)); (core.material as THREE.MeshBasicMaterial).opacity = 0.6 * this.xray; });
 
-    // 거주구역
-    this.add(resBase(), 'res:base', 'res');
-    this.add(yardPart(), 'quarters', 'res', true);
-    RES_TOWERS.filter(t => t.key).forEach(t => { const k = resKit(); tower(k, t); this.add(k, t.key!, 'res', true); });
-    const rb = resKit();
-    rb.box(0, 0, 0, 320, 320, 140, 'c', false);
-    const resAll = makePart(new Kit(0, 0, 0, 1, 1), 'site:res', 'res', false);
-    const rsz = rb.box3.getSize(new THREE.Vector3());
-    resAll.pick = new THREE.Mesh(new THREE.BoxGeometry(rsz.x, rsz.y, rsz.z), new THREE.MeshBasicMaterial({ visible: false }));
-    resAll.pick.position.copy(rb.box3.getCenter(new THREE.Vector3()));
-    resAll.pick.userData.key = 'site:res';
-    resAll.group.add(resAll.pick);
-    this.parts.push(resAll); this.scene.add(resAll.group);
+    // 숙소 단지
+    const rb = new Kit(); rb.podium(RES_PODIUM, Y, 8);
+    rb.poly(circ(-160, RES_B + 0.4, 0, 12, 32), 'b');
+    RES_TWR.filter(t => !t.key).forEach(t => resTower(rb, t));
+    this.add(rb, 'quarters', 'res', true);
+    RES_TWR.filter(t => t.key).forEach(t => { const k = new Kit(); resTower(k, t); this.add(k, t.key!, 'res', true); });
+
+    // 섬 화면에서 고르는 큰 상자
+    this.addPick('site:hq', 'hq', [-80, Y, -97], [200, 160, 97]);
+    this.addPick('site:res', 'res', [-214, Y, -98], [-106, 110, 98]);
     this.paint();
   }
 
@@ -666,29 +449,25 @@ export class AegisWorld {
   }
   setSelected(spot: string | null, color?: string) {
     this.sel = spot;
-    this.selColor.set(color && /^#|^rgb/.test(color) ? color : COL.hot);
+    this.selColor.set(color && /^#|^rgb/.test(color) ? color : HOT);
     this.paint();
   }
   setLive(spots: string[]) { this.live = new Set(spots); }
 
-  /** 색 · 밝기 다시 칠하기 (화면 · 고른 시설이 바뀔 때) */
   private paint() {
     for (const p of this.parts) {
       const on = p.key === this.sel;
-      (['a', 'b', 'c', 'g'] as Lv[]).forEach(lv => {
-        const m = p.mats[lv] as THREE.LineBasicMaterial;
-        m.color.set(on ? this.selColor : COL[lv]);
-        if (on && lv === 'c') m.color.multiplyScalar(0.8);
-      });
-      (p.mats.f as THREE.MeshBasicMaterial).color.set(on ? this.selColor : COL.f);
+      (Object.keys(p.mats) as Lv[]).forEach(lv => p.mats[lv]!.color.set(on ? this.selColor : COL[lv]));
     }
   }
   private applyFocus() {
     for (const p of this.parts) {
       const f = this.focus[p.cat], on = p.key === this.sel;
-      (['a', 'b', 'c', 'g'] as Lv[]).forEach(lv => { p.mats[lv].opacity = Math.min(1, BASE[lv] * f * (on ? 1.6 : 1) + (on ? 0.15 : 0)); });
-      p.mats.f.opacity = BASE.f * f * (on ? 6 : 1);
+      (Object.keys(p.mats) as Lv[]).forEach(lv => { p.mats[lv]!.opacity = Math.min(1, OPA[lv] * f + (on ? 0.1 : 0)); });
     }
+    // 본부 화면: 선체를 반투명으로 (갑판 아래 시설이 보이게)
+    this.hullFill.opacity = 1 - 0.8 * this.xray;
+    this.hullFill.depthWrite = this.xray < 0.1;
   }
 
   /* ── 누르기 ── */
@@ -697,10 +476,8 @@ export class AegisWorld {
     this.ray.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), this.camera);
     const want = (k: string) => this.view === 'site' ? k.startsWith('site:')
       : !k.startsWith('site:') && this.live.has(k) && AEGIS_SPOTS[k]?.view === this.view;
-    const cands = this.parts.filter(p => p.pick && want(p.key)).map(p => p.pick!);
-    const hits = this.ray.intersectObjects(cands, false);
-    if (!hits.length) return null;
-    return hits[0].object.userData.key as string;
+    const hits = this.ray.intersectObjects(this.parts.filter(p => p.pick && want(p.key)).map(p => p.pick!), false);
+    return hits.length ? (hits[0].object.userData.key as string) : null;
   }
   private onDown = (e: PointerEvent) => { this.down = { x: e.clientX, y: e.clientY }; };
   private onUp = (e: PointerEvent) => {
@@ -722,52 +499,35 @@ export class AegisWorld {
   private resize() {
     const w = this.host.clientWidth, h = this.host.clientHeight;
     if (!w || !h) return;
+    this.w = w; this.h = h;
     this.renderer.setSize(w, h, false);
     this.composer.setSize(w, h);
     this.bloom.setSize(w, h);
+    this.lineMats.forEach(m => m.resolution.set(w, h));
     this.camera.aspect = w / h;
-    // 좁은 화면은 조금 물러선다
-    this.camera.zoom = Math.min(1, (w / h) / 1.45 + 0.12);
+    this.camera.zoom = Math.min(1, w / h / 1.45 + 0.12);   // 좁은 화면은 조금 물러선다
     this.camera.updateProjectionMatrix();
   }
 
   private loop = () => {
     if (!this.running) return;
     this.raf = requestAnimationFrame(this.loop);
-    const raw = this.clock.getDelta(), dt = Math.min(raw, 0.05), time = this.clock.elapsedTime;
-    // 카메라 이동
+    const raw = this.clock.getDelta(), step = Math.min(raw, 0.25), time = this.clock.elapsedTime;
     if (this.fly < 1) {
-      this.fly = Math.min(1, this.fly + Math.min(raw, 0.25) / 1.4);
+      this.fly = Math.min(1, this.fly + step / 1.4);
       const e = this.fly < 0.5 ? 4 * this.fly ** 3 : 1 - (-2 * this.fly + 2) ** 3 / 2;
       this.camera.position.lerpVectors(this.flyFrom.pos, this.flyTo.pos, e);
       this.controls.target.lerpVectors(this.flyFrom.tgt, this.flyTo.tgt, e);
     }
     if (this.idle >= 0 && this.view === 'site' && !this.controls.autoRotate) {
-      this.idle += dt;
+      this.idle += raw;
       if (this.idle > 6) this.controls.autoRotate = true;
     }
-    // 초점 (다른 구역은 어둡게)
     const goal = FOCUS[this.view];
-    (Object.keys(goal) as Cat[]).forEach(c => { this.focus[c] += (goal[c] - this.focus[c]) * Math.min(1, Math.min(raw, 0.25) * 4); });
+    (Object.keys(goal) as Cat[]).forEach(c => { this.focus[c] += (goal[c] - this.focus[c]) * Math.min(1, step * 4); });
+    this.xray += ((this.view === 'hq' ? 1 : 0) - this.xray) * Math.min(1, step * 4);
     this.applyFocus();
-    // 흐르는 빛
-    const { pts, paths, t, v, who } = this.pulses;
-    const pa = pts.geometry.getAttribute('position') as THREE.BufferAttribute;
-    for (let i = 0; i < t.length; i++) {
-      t[i] = (t[i] + v[i] * dt + 1) % 1;
-      const P = paths[who[i]], d = t[i] * P.total;
-      let j = 1; while (j < P.len.length - 1 && P.len[j] < d) j++;
-      const a = P.p[j - 1], b = P.p[j], u = (d - P.len[j - 1]) / Math.max(P.len[j] - P.len[j - 1], 1e-6);
-      pa.setXYZ(i, a.x + (b.x - a.x) * u, 0.8, a.z + (b.z - a.z) * u);
-    }
-    pa.needsUpdate = true;
-    (pts.material as THREE.PointsMaterial).opacity = 0.35 + 0.6 * this.focus.city;
-    this.dust.rotation.y = time * 0.01;
-    // 본부를 훑는 고리 · 하늘정원 떠오름
-    const sy = ((time * 9) % 140) - 36;
-    this.scan.position.y = sy;
-    (this.scan.material as THREE.LineBasicMaterial).opacity = 0.75 * this.focus.hq * Math.max(0, 1 - Math.abs(sy - 34) / 90);
-    if (this.sky) this.sky.group.position.y = Math.sin(time * 0.8) * 1.2;
+    this.tick.forEach(f => f(time));
     this.controls.update();
     this.composer.render();
     this.placeLabels();
@@ -775,14 +535,12 @@ export class AegisWorld {
 
   /** 이름표 자리 — 열쇠(data-k)의 월드 자리를 화면으로 */
   private placeLabels() {
-    const w = this.host.clientWidth, h = this.host.clientHeight;
     this.labels.querySelectorAll<HTMLElement>('[data-k]').forEach(el => {
       const a = anchorOf(el.dataset.k!);
       if (!a) return;
-      const off = el.dataset.k === 'sky' && this.sky ? this.sky.group.position.y : 0;
-      this.v3.set(a[0], a[1] + off, a[2]).project(this.camera);
+      this.v3.set(...a).project(this.camera);
       const vis = this.v3.z < 1 && Math.abs(this.v3.x) < 1.1 && Math.abs(this.v3.y) < 1.1;
-      el.style.transform = `translate3d(${((this.v3.x + 1) / 2) * w}px, ${((1 - this.v3.y) / 2) * h}px, 0)`;
+      el.style.transform = `translate3d(${((this.v3.x + 1) / 2) * this.w}px, ${((1 - this.v3.y) / 2) * this.h}px, 0)`;
       el.style.opacity = vis ? '' : '0';
     });
   }

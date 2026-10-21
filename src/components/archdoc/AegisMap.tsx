@@ -1,7 +1,8 @@
 'use client';
 /**
  * 아이기스 지도 (v2.0 사용자 요청 · lib/aegisMap.ts) — 3D 홀로그램 (사용자 요청: 고퀄리티 홀로그램 도시처럼, 디자인 전면 교체).
- *  섬 전체(site) → 통합 지휘본부(hq) / 요원 거주구역(res). 그림은 aegis3d/world.ts(three.js), 무대는 AegisScene.tsx.
+ *  바다 위 강철 이동 요새: 전경(site)엔 본부 · 숙소 두 이름표만, 본부(hq) · 숙소(res)에 들어가야 시설 이름표가 뜬다.
+ *  그림은 aegis3d/world.ts(three.js), 배치는 aegis3d/layout.ts, 무대는 AegisScene.tsx.
  *  지도 위 건물 · 방을 누르거나 아래 목록을 고르면 그 시설이 주황(숙소동은 캐릭터 대표색)으로 빛나고 설명 카드가 나온다.
  *  끌어서 돌려 볼 수 있다. 섬 화면은 가만두면 천천히 돈다.
  */
@@ -10,14 +11,13 @@ import { AEGIS_SPOTS, SPOT_ORDER, type AegisView, type ArchMapNode } from '@/lib
 import { useLocalList } from '@/lib/postStore';
 import { CHAR_SEED, type Character } from '@/lib/charStore';
 import { AegisScene } from './AegisScene';
-import { HQ_BANDS } from './aegis3d/layout';
 
 type View = 'site' | AegisView;
 
 /** 두 구역의 이름 — 이름표 · 머리줄 · 목록 · 도면 제목이 같이 쓴다 */
 const SITE: Record<AegisView, { code: string; en: string; ko: string; hd: string; scale: string; ref: string }> = {
-  hq: { code: 'SECTOR A · 01', en: 'ARCH COMMAND', ko: '통합 지휘본부', hd: 'B5 – 11F · ROOF', scale: '1:500', ref: 'AG-A01' },
-  res: { code: 'SECTOR R · 02', en: 'AGENT QUARTERS', ko: '요원 거주구역', hd: '7 BLOCKS', scale: '1:800', ref: 'AG-R02' },
+  hq: { code: 'SECTOR A · 01', en: 'ARCH COMMAND', ko: '통합 지휘본부', hd: 'COMMAND COMPLEX · DECK B5', scale: '1:500', ref: 'AG-A01' },
+  res: { code: 'SECTOR R · 02', en: 'AGENT QUARTERS', ko: '요원 거주구역', hd: '8 TOWERS', scale: '1:800', ref: 'AG-R02' },
 };
 const ACC = '#b8d8ff';
 
@@ -95,7 +95,6 @@ export function AegisMap({ nodes, caption }: { nodes: ArchMapNode[]; caption?: s
                 <i className="pin" /><span><small>{SITE[k].code}</small><b>{SITE[k].en}</b><em>{SITE[k].ko}</em></span>
               </button>
             ))}
-            {view === 'hq' && HQ_BANDS.map(({ tag: t }) => <span key={t} data-k={`fl:${t}`} className="am3-lb fl">{t}</span>)}
             {view !== 'site' && list.map(n => {
               const big = AEGIS_SPOTS[n.spot]?.big;
               const c = n.spot === on && big ? colorOf(n) : undefined;
@@ -111,7 +110,7 @@ export function AegisMap({ nodes, caption }: { nodes: ArchMapNode[]; caption?: s
           <div className="am-holo" aria-hidden="true">
             <i className="am-scan" />
             <div className="am-tb">
-              <b>{view === 'site' ? 'THE AEGIS' : hd!.en} — {view === 'site' ? 'PERSPECTIVE VIEW' : 'HOLOGRAPHIC SECTION'}</b>
+              <b>{view === 'site' ? 'THE AEGIS' : hd!.en} — {view === 'site' ? 'MOBILE CITADEL' : 'SECTOR DETAIL'}</b>
               <span>SCALE {view === 'site' ? '1:20000' : hd!.scale}</span>
               <span>CAD REF {view === 'site' ? 'AG-00' : hd!.ref} · LIVE MODEL</span>
             </div>
@@ -142,8 +141,8 @@ export function AegisMap({ nodes, caption }: { nodes: ArchMapNode[]; caption?: s
         {view === 'site' ? (
           <article className="ar-pn ar-card am-card" key="site">
             <div className="ar-c-k"><span>SITE · OVERVIEW</span><span>OPEN SEA</span></div>
-            <h3><span className="ar-silver">THE AEGIS</span><small>아크 본부 · 인공섬</small></h3>
-            <div className="am-body"><p>건물을 누르면 시설 내부로 들어갑니다. 끌어서 섬을 돌려 볼 수 있어요.</p></div>
+            <h3><span className="ar-silver">THE AEGIS</span><small>아크 본부 · 바다 위 이동 요새</small></h3>
+            <div className="am-body"><p>본부나 숙소를 누르면 그 구역으로 들어가 시설이 보입니다. 끌어서 요새를 돌려 볼 수 있어요.</p></div>
             <div className="am-gobox">
               {(['hq', 'res'] as const).map(k => (
                 <button key={k} type="button" onClick={() => go(k)}><small>{SITE[k].code}</small><b>{SITE[k].en}</b><span>{SITE[k].ko} ›</span></button>

@@ -295,8 +295,6 @@ body:has(.arx)::before{display:none !important}
 .arx .am3-lb.site small{font:400 8px/1 'JetBrains Mono',monospace;letter-spacing:.28em}
 .arx .am3-lb.site b{font:400 20px/1 'Jost',sans-serif;letter-spacing:.26em;color:#fff;text-shadow:0 0 12px rgba(var(--hr),.9)}
 .arx .am3-lb.site em{font-size:11px;letter-spacing:.2em;color:rgba(190,228,255,.8)}
-.arx .am3-lb.fl{pointer-events:none;cursor:default;justify-content:flex-end;width:60px;margin-left:-66px;font:500 9px/1 'JetBrains Mono',monospace;letter-spacing:.12em;color:rgba(var(--hr),.85);
-  border-right:1px solid rgba(var(--hr),.6);padding-right:6px;text-shadow:0 0 6px rgba(var(--hr),.8)}
 .arx .am3-lb.flip{width:0;flex-direction:row-reverse}
 .arx .am3-lb.flip .pin{margin:0 -3.5px 0 0}
 .arx .am3-lb.flip > span{border-left-width:1px;border-right:2px solid rgba(var(--hr),.9);align-items:flex-end}
@@ -327,7 +325,6 @@ body:has(.arx)::before{display:none !important}
   .arx .am3-lb.site em{font-size:9px;letter-spacing:.1em}
   .arx .am3-lb.pl:not(.on){display:none}
   .arx .am3-lb.big b{font-size:14px}
-  .arx .am3-lb.fl{display:none}
 }
 .arx .am-swatch{display:inline-block;width:9px;height:9px;margin:0 8px 0 0;vertical-align:0;transform:rotate(45deg)}
 /* 목록 */
