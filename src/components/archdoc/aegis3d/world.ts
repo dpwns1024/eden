@@ -3,7 +3,7 @@
  *  - 육각 그물 방패 돔 + 바다 위 금빛 돔 포탑 6기와 아치 다리(시안 C-3 그대로 고정). 돔은 보호막이라 모든 건물은 그 안에 든다.
  *  - 원형 강철 플랫폼: 뱃머리 쪽 본부 단지(관제탑 · 업무동 · 의료동 · 공용동 · 훈련 돔 · 공명연구실 · 비행 갑판), 선미 쪽 숙소 단지, 둘을 셔틀 선로로.
  *  - 갑판 아래 · 물속: 기계실(반응로) · 무기고 · 출전 게이트 · 수중 식물원 · 봉인 구역. 본부 화면에선 선체가 반투명해져 보인다.
- *  - 건물은 꽉 찬 어두운 면 + 가는 실선(외곽) · 도트 점선(층 띠). 본부 · 숙소로 들어가면 방패 돔은 사라진다.
+ *  - 건물은 꽉 찬 어두운 면 + 전부 도트 점선(외곽은 촘촘, 층 띠는 성글게). 본부 · 숙소로 들어가면 방패 돔은 사라진다.
  *  - 끌어서 돌리기, 휠(PC) · 두 손가락(폰)으로 확대 · 축소. 색은 하늘색 하나, 포인트는 금색(포탑 돔 · 관제 고리 · 헬기장) · 빨강(격리 · 봉인)만.
  *  - 시설(spot)마다 따로 고를 수 있게 덩어리(파트)를 나눈다. 고른 시설은 주황(숙소동은 캐릭터 대표색)으로 빛난다.
  * 시설 이름표는 React가 그리고(data-k), 자리는 여기서 매 프레임 투영해 옮긴다.
@@ -24,14 +24,16 @@ import {
 } from './layout';
 
 export type View = 'site' | AegisView;
-/** 선 종류 — a 가는 실선 · b 도트 점선 · c 옅은 도트 점선 · g 금색 포인트 · r 빨강 포인트 */
+/** 선 종류 — a 외곽(촘촘한 도트) · b 층 띠(성근 도트) · c 옅은 도트 · g 금색 포인트 · r 빨강 포인트 */
 type Lv = 'a' | 'b' | 'c' | 'g' | 'r';
 type Cat = 'hq' | 'res' | 'base';
 
 const COL: Record<Lv, number> = { a: 0x5ad8ff, b: 0x2c8fd0, c: 0x1d6496, g: 0xffb444, r: 0xff4a5a };
 const OPA: Record<Lv, number> = { a: 0.92, b: 0.72, c: 0.5, g: 0.95, r: 0.95 };
-const WID: Record<Lv, number> = { a: 1.3, b: 1.15, c: 1, g: 1.4, r: 1.4 };
+const WID: Record<Lv, number> = { a: 1.9, b: 1.6, c: 1.4, g: 2, r: 2 };
 const HOT = 0xff9a36;
+/** 도트 한 알 크기 (CAM_REF 거리에서의 월드 길이) — 카메라가 다가가도 화면에서 같은 크기로 */
+const DOT = 1.1, CAM_REF = 760;
 const FILL = 0x06182b, FILL2 = 0x0a2138;
 
 const circ = (cx: number, y: number, cz: number, r: number, n = 32, rz = r): P3[] =>
@@ -356,12 +358,12 @@ export class AegisWorld {
     (Object.keys(k.L) as Lv[]).forEach(lv => {
       if (!k.L[lv].length) return;
       const g = new LineSegmentsGeometry(); g.setPositions(k.L[lv]);
-      const dashed = lv === 'b' || lv === 'c';
-      // 점선은 짧게 끊어 도트처럼
-      const m = new LineMaterial({ color: COL[lv], linewidth: WID[lv], dashed, dashSize: 0.55, gapSize: 1.5, transparent: true, opacity: OPA[lv], depthWrite: false });
+      // 모든 선을 도트로 — 외곽(a · g · r)은 촘촘하게, 층 띠(b · c)는 성글게. 크기는 화면 기준(loop에서 dashScale)
+      const main = lv === 'a' || lv === 'g' || lv === 'r';
+      const m = new LineMaterial({ color: COL[lv], linewidth: WID[lv], dashed: true, dashSize: DOT, gapSize: main ? DOT * 1.3 : DOT * 3, transparent: true, opacity: OPA[lv], depthWrite: false });
       m.resolution.set(this.w, this.h);
       const l = new LineSegments2(g, m);
-      if (dashed) l.computeLineDistances();
+      l.computeLineDistances();
       l.renderOrder = 2;
       group.add(l); mats[lv] = m; this.lineMats.push(m);
     });
@@ -533,6 +535,8 @@ export class AegisWorld {
     this.applyFocus();
     this.tick.forEach(f => f(time));
     this.controls.update();
+    const ds = CAM_REF / this.camera.position.distanceTo(this.controls.target);
+    this.lineMats.forEach(m => { m.dashScale = ds; });
     this.composer.render();
     this.placeLabels();
   };
