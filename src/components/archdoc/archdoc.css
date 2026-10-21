@@ -245,8 +245,10 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-rank-card > :not(.bg){position:relative;z-index:1}
 .arx .ar-rank-card .bg{position:absolute;right:-8px;bottom:-22px;font:600 92px/1 'Saira Semi Condensed',sans-serif;color:transparent;-webkit-text-stroke:1px rgba(190,208,228,.07);pointer-events:none;white-space:nowrap}
 
-/* ── 아이기스 지도 (AegisMap.tsx · MAP 탭) — 섬 → 본부 / 숙소. PC는 지도 왼쪽 · 설명 오른쪽, 폰은 위아래 ── */
-.arx .am{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px;align-items:start}
+/* ── 아이기스 지도 (AegisMap.tsx · MAP 탭) — 3D 홀로그램(aegis3d/world.ts)을 넓게, 아래에 목록 | 설명 카드 (폰은 위아래) ── */
+.arx .am{display:grid;gap:14px}
+.arx .am-dock{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:18px;align-items:start}
+.arx .am-dock .am-legend{margin-top:0}
 .arx .am-frame{padding:0;overflow:hidden}
 .arx .am-hd{display:flex;justify-content:space-between;align-items:center;gap:10px;height:36px;padding:0 16px;border-bottom:1px solid var(--ln);
   font:400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--mu);white-space:nowrap;overflow:hidden}
@@ -254,13 +256,6 @@ body:has(.arx)::before{display:none !important}
 .arx .am-hd b{font-weight:400;color:var(--ac)}
 .arx .am-crumb{border:0;background:none;padding:0;cursor:pointer;font:inherit;letter-spacing:inherit;color:var(--tx)}
 .arx .am-crumb:hover{color:var(--ac)}
-/* 장 — 겹쳐 두고 확대 · 축소 · 옆으로 밀며 바꾼다 */
-.arx .am-stage{position:relative;height:0;padding-top:100%;overflow:hidden;transition:padding-top .6s cubic-bezier(.2,.75,.2,1)}
-.arx .am-stage.v-hq{padding-top:119%}
-.arx .am-v{position:absolute;inset:0;transition:transform .75s cubic-bezier(.2,.75,.2,1),opacity .55s ease;pointer-events:none;will-change:transform,opacity}
-.arx .am-v.cur{pointer-events:auto}
-.arx .am-svg{display:block;width:100%;height:100%;-webkit-tap-highlight-color:transparent}
-@media (prefers-reduced-motion:reduce){.arx .am-v{transition:opacity .2s}}
 .arx .am-arrow{position:absolute;bottom:12px;z-index:2;display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;
   border:1px solid var(--ln2);background:rgba(5,7,10,.78);cursor:pointer;color:var(--mu);font:400 9px/1 'JetBrains Mono',monospace;letter-spacing:.22em;
   transition:color .2s,border-color .2s,box-shadow .2s;animation:arIn .5s .3s ease both}
@@ -268,126 +263,70 @@ body:has(.arx)::before{display:none !important}
 .arx .am-arrow:hover{color:#fff;border-color:rgba(var(--acr),.6);box-shadow:0 0 16px -4px rgba(var(--acr),.6)}
 .arx .am-arrow.r{right:12px}
 .arx .am-arrow.l{left:12px}
-/* 그림 선 */
-.arx .am-hull{fill:rgba(190,208,228,.045);stroke:rgba(220,230,240,.55);stroke-width:1.4}
-.arx .am-hull.body{fill:rgba(14,20,28,.94)}
-.arx .am-hull.top{fill:rgba(26,34,44,.97)}
-.arx .am-hull.rock{fill:rgba(14,20,28,.96)}
-.arx .am-b{fill:rgba(16,22,30,.96);stroke:rgba(220,230,240,.5);stroke-width:1.1}
-.arx .am-line{fill:none;stroke:rgba(220,230,240,.42);stroke-width:1.2}
-.arx .am-l2{fill:none;stroke:rgba(220,230,240,.2);stroke-width:1}
-.arx .am-l3{fill:none;stroke:rgba(220,230,240,.1);stroke-width:1}
-.arx .am-acc{fill:none;stroke:rgba(var(--acr),.6);stroke-width:1.1}
-.arx .am-dash{fill:none;stroke:rgba(var(--acr),.45);stroke-width:1;stroke-dasharray:5 6}
-.arx .am-glass{fill:rgba(var(--acr),.07);stroke:rgba(var(--acr),.55);stroke-width:1.1}
-.arx .am-sea{fill:none;stroke:rgba(var(--acr),.45);stroke-width:1.2}
-.arx .am-sea.dim{stroke:rgba(var(--acr),.2)}
-.arx .am-shaft{fill:none;stroke:rgba(var(--acr),.32);stroke-width:1;stroke-dasharray:6 5}
-.arx .am-road{fill:none;stroke:rgba(220,230,240,.12);stroke-width:7;stroke-linecap:round}
-.arx .am-tag{font:400 13px 'JetBrains Mono',monospace;letter-spacing:.2em;fill:rgba(190,208,228,.45)}
-.arx .am-tag.dim{fill:rgba(190,208,228,.28)}
-/* 섬 지도 — 세계지도처럼 회색 땅 + 건물 표식 */
-.arx .am-land{fill:rgba(150,166,184,.26);stroke:rgba(200,214,230,.12);stroke-width:1;filter:drop-shadow(0 10px 24px rgba(0,0,0,.6))}
-.arx .am-lot{fill:rgba(5,7,10,.35);stroke:rgba(220,230,240,.18);stroke-width:1}
-.arx .am-node{cursor:pointer}
-.arx .am-mring{fill:none;stroke:rgba(var(--acr),.4);stroke-width:1.2;transition:stroke .3s}
-.arx .am-mring.dash{stroke:rgba(var(--acr),.55);stroke-dasharray:2 7;transform-box:fill-box;transform-origin:center;animation:arSpin 26s linear infinite}
-.arx .am-mtick{fill:none;stroke:rgba(220,230,240,.55);stroke-width:1.2}
-.arx .am-mcore{fill:rgba(5,7,10,.9);stroke:var(--ac);stroke-width:1.4;filter:drop-shadow(0 0 8px rgba(var(--acr),.6));transition:fill .3s}
-.arx .am-mdot{fill:#fff}
-.arx .am-mcode{font:400 11px 'JetBrains Mono',monospace;letter-spacing:.3em;fill:rgba(var(--acr),.75)}
-.arx .am-node:hover .am-mring{stroke:var(--ac)}
-.arx .am-node:hover .am-mcore{fill:rgba(var(--acr),.35)}
-.arx .am-node:hover .am-zl{fill:var(--ac)}
-.arx .am-earth{fill:rgba(12,17,24,.92)}
-.arx .am-beam{fill:none;stroke:rgba(var(--acr),.5);stroke-width:1;stroke-dasharray:3 5;animation:amFlow 1.6s linear infinite}
-@keyframes amFlow{to{stroke-dashoffset:-16}}
+
+/* 3D 무대 — 캔버스 · 이름표 · 겹 효과 */
+.arx .am-stage3{--hr:86,190,255;--hot:#ff9a36;position:relative;height:clamp(420px,62vw,720px);overflow:hidden;background:#02060f}
+.arx .am3{position:absolute;inset:0}
+.arx .am3-gl{display:block;width:100%;height:100%;cursor:grab;touch-action:pan-y;-webkit-tap-highlight-color:transparent}
+.arx .am3-gl:active{cursor:grabbing}
+.arx .am3-msg{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;font:400 10px/1.8 'JetBrains Mono',monospace;letter-spacing:.24em;color:rgba(var(--hr),.8);animation:arBlink 1.6s ease-in-out infinite}
+.arx .am3.is-fail .am3-msg{animation:none;font-family:'Noto Sans KR',sans-serif;letter-spacing:.04em;color:var(--mu)}
+.arx .am3-labels{position:absolute;inset:0;z-index:2;pointer-events:none}
+.arx .am3-lb{position:absolute;left:0;top:0;height:0;display:flex;align-items:center;gap:7px;padding:0;border:0;background:none;color:#cfeaff;pointer-events:auto;cursor:pointer;
+  font:400 11px/1 'Noto Sans KR',sans-serif;white-space:nowrap;transition:opacity .25s;will-change:transform}
+.arx .am3-lb .pin{flex:0 0 7px;width:7px;height:7px;margin-left:-3.5px;transform:rotate(45deg);border:1px solid rgba(var(--hr),.9);background:#03101f;box-shadow:0 0 8px rgba(var(--hr),.9)}
+.arx .am3-lb > span{display:flex;align-items:center;gap:6px;padding:4px 8px 4px 6px;border:1px solid rgba(var(--hr),.35);border-left:2px solid rgba(var(--hr),.9);
+  background:linear-gradient(90deg,rgba(6,30,58,.82),rgba(4,16,32,.55));backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);transition:border-color .2s,box-shadow .2s,background .2s}
+.arx .am3-lb small{font:500 10px/1 'Saira Semi Condensed',sans-serif;letter-spacing:.06em;color:rgba(var(--hr),1)}
+.arx .am3-lb em{font-style:normal}
+.arx .am3-lb.pl > span{border-left-style:dashed;opacity:.85}
+.arx .am3-lb:hover > span{border-color:rgba(var(--hr),.8);box-shadow:0 0 14px -2px rgba(var(--hr),.7)}
+.arx .am3-lb.on{z-index:3}
+.arx .am3-lb.on .pin{border-color:var(--hot);background:var(--hot);box-shadow:0 0 12px var(--hot)}
+.arx .am3-lb.on > span{border-color:color-mix(in srgb,var(--hot) 70%,transparent);border-left-color:var(--hot);background:linear-gradient(90deg,color-mix(in srgb,var(--hot) 28%,#06121f),rgba(4,16,32,.6));box-shadow:0 0 18px -4px var(--hot);color:#fff}
+.arx .am3-lb.on small{color:var(--hot)}
+.arx .am3-ic{width:13px;height:13px;fill:none;stroke:rgba(var(--hr),1);stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
+.arx .am3-lb.on .am3-ic{stroke:#fff}
+.arx .am3-lb.big > span{flex-direction:column;align-items:flex-start;gap:4px;padding:6px 10px}
+.arx .am3-lb.big b{font:400 18px/1 'Jost',sans-serif;letter-spacing:.3em;color:#fff;text-shadow:0 0 12px rgba(var(--hr),.9)}
+.arx .am3-lb.big.on b{color:var(--hot);text-shadow:0 0 14px var(--hot)}
+.arx .am3-lb.site{flex-direction:row}
+.arx .am3-lb.site > span{flex-direction:column;align-items:flex-start;gap:5px;padding:8px 14px 9px 12px}
+.arx .am3-lb.site small{font:400 8px/1 'JetBrains Mono',monospace;letter-spacing:.28em}
+.arx .am3-lb.site b{font:400 20px/1 'Jost',sans-serif;letter-spacing:.26em;color:#fff;text-shadow:0 0 12px rgba(var(--hr),.9)}
+.arx .am3-lb.site em{font-size:11px;letter-spacing:.2em;color:rgba(190,228,255,.8)}
+.arx .am3-lb.flip{width:0;flex-direction:row-reverse}
+.arx .am3-lb.flip .pin{margin:0 -3.5px 0 0}
+.arx .am3-lb.flip > span{border-left-width:1px;border-right:2px solid rgba(var(--hr),.9);align-items:flex-end}
+.arx .am-stage3 .am-holo{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;
+  background:repeating-linear-gradient(0deg,rgba(var(--hr),.035) 0 1px,transparent 1px 3px),radial-gradient(120% 90% at 50% 50%,transparent 55%,rgba(0,3,10,.75))}
+.arx .am-holo::before{content:'';position:absolute;inset:10px;border:1px solid rgba(var(--hr),.7);
+  -webkit-mask:linear-gradient(#000 0 0) top left/22px 22px no-repeat,linear-gradient(#000 0 0) top right/22px 22px no-repeat,linear-gradient(#000 0 0) bottom left/22px 22px no-repeat,linear-gradient(#000 0 0) bottom right/22px 22px no-repeat;
+  mask:linear-gradient(#000 0 0) top left/22px 22px no-repeat,linear-gradient(#000 0 0) top right/22px 22px no-repeat,linear-gradient(#000 0 0) bottom left/22px 22px no-repeat,linear-gradient(#000 0 0) bottom right/22px 22px no-repeat}
+.arx .am-scan{position:absolute;left:0;right:0;top:-20%;height:18%;background:linear-gradient(180deg,transparent,rgba(var(--hr),.035) 70%,rgba(var(--hr),.1) 99%,transparent);animation:amScan 7s linear infinite}
+@keyframes amScan{to{transform:translateY(680%)}}
+.arx .am-tb{position:absolute;left:22px;top:20px;display:grid;gap:4px;padding:0 0 7px;border-bottom:1px solid rgba(var(--hr),.4);
+  font:400 8px/1.2 'JetBrains Mono',monospace;letter-spacing:.18em;color:rgba(var(--hr),.75);white-space:nowrap}
+.arx .am-tb b{font-weight:500;font-size:10px;color:#d8f0ff;text-shadow:0 0 8px rgba(var(--hr),.8)}
+.arx .am-hint{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);font:400 8px/1 'JetBrains Mono',monospace;letter-spacing:.3em;color:rgba(var(--hr),.55)}
+.arx .am-stage3 .am-arrow{z-index:3;background:rgba(3,10,22,.8)}
+@media (prefers-reduced-motion:reduce){.arx .am-scan{display:none}}
+@media (max-width:560px){
+  .arx .am-stage3{height:min(118vw,560px)}
+  .arx .am-tb{left:16px;top:14px;font-size:6.5px;letter-spacing:.12em}
+  .arx .am-tb b{font-size:8px}
+  .arx .am-hint{display:none}
+  .arx .am3-lb{font-size:10px}
+  .arx .am3-lb .am3-ic{display:none}
+  .arx .am3-lb > span{padding:3px 6px 3px 5px}
+  .arx .am3-lb.site > span{padding:5px 8px 6px 7px;gap:3px}
+  .arx .am3-lb.site small{display:none}
+  .arx .am3-lb.site b{font-size:12px;letter-spacing:.16em}
+  .arx .am3-lb.site em{font-size:9px;letter-spacing:.1em}
+  .arx .am3-lb.pl:not(.on){display:none}
+  .arx .am3-lb.big b{font-size:14px}
+}
 .arx .am-swatch{display:inline-block;width:9px;height:9px;margin:0 8px 0 0;vertical-align:0;transform:rotate(45deg)}
-/* 섬 지도 — 건물 두 곳 */
-.arx .am-bld{cursor:pointer}
-.arx .am-hit{fill:transparent}
-.arx .am-bld .am-b{transition:stroke .25s,fill .25s}
-.arx .am-bld:hover .am-b{stroke:rgba(var(--acr),.85);fill:rgba(24,34,46,.98)}
-.arx .am-b.am-hl{stroke:rgba(var(--acr),.8);fill:rgba(var(--acr),.14)}
-.arx .am-zl{font:400 26px 'Jost',sans-serif;letter-spacing:.24em;fill:#fff;transition:fill .3s}
-.arx .am-zs{font:400 15px 'Noto Sans KR',sans-serif;letter-spacing:.22em;fill:rgba(220,230,240,.62)}
-.arx .am-pulse{fill:none;stroke:var(--ac);stroke-width:1.4;transform-box:fill-box;transform-origin:center;animation:amPulse 2.2s ease-out infinite;pointer-events:none}
-@keyframes amPulse{0%{opacity:.9;transform:scale(.5)}100%{opacity:0;transform:scale(2.6)}}
-/* 본부 — 층별 안내도 */
-.arx .am-bldg{fill:rgba(14,19,26,.97);stroke:rgba(225,233,242,.7);stroke-width:2.2}
-.arx .am-room{fill:rgba(190,208,228,.035);stroke:rgba(220,230,240,.16);stroke-width:1}
-.arx .am-slab{fill:none;stroke:rgba(225,233,242,.62);stroke-width:2.4}
-.arx .am-stair{fill:none;stroke:rgba(225,233,242,.45);stroke-width:1.4}
-.arx .am-core{fill:rgba(var(--acr),.07);stroke:rgba(var(--acr),.4);stroke-width:1.2}
-.arx .am-plq{fill:rgba(5,7,10,.92);stroke:rgba(225,233,242,.6);stroke-width:1.4}
-.arx .am-plqt{font:500 15px 'JetBrains Mono',monospace;letter-spacing:.14em;fill:#e8edf3}
-.arx .am-room-t{font:400 14px 'JetBrains Mono',monospace;letter-spacing:.32em;fill:rgba(220,230,240,.42)}
-.arx .am-room-t.dim{fill:rgba(220,230,240,.22)}
-.arx .am-room-sub{font:400 12px 'JetBrains Mono',monospace;letter-spacing:.24em;fill:rgba(220,230,240,.3)}
-.arx .am-rl.on .am-room-sub{fill:rgba(var(--acr),.8)}
-.arx .am-ico{fill:none;stroke:rgba(var(--acr),.75);stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
-.arx .am-rl{cursor:pointer}
-.arx .am-rl .am-code{font-size:20px}
-.arx .am-rl .am-nm{font-size:17px}
-.arx .am-rl.on .am-ico{stroke:#fff}
-/* 본부 층별 안내도 — 그림(aegisHqArt.ts) */
-.arx .am-o{fill:rgba(14,19,26,.97);stroke:rgba(225,233,242,.7);stroke-width:2.2}
-.arx .am-s{fill:none;stroke:rgba(225,233,242,.62);stroke-width:2.4}
-.arx .am-t{fill:none;stroke:rgba(225,233,242,.5);stroke-width:1.4}
-.arx .am-f{fill:none;stroke:rgba(225,233,242,.3);stroke-width:1.2}
-.arx .am-rm{fill:rgba(190,208,228,.035);stroke:rgba(220,230,240,.24);stroke-width:1.2}
-.arx .am-iso{fill:url(#amHatch);stroke:rgba(255,140,150,.5);stroke-width:1.3}
-.arx .am-tagb{fill:rgba(5,7,10,.92);stroke:rgba(225,233,242,.55);stroke-width:1.2}
-.arx .am-pt{font:500 12px 'JetBrains Mono',monospace;letter-spacing:.1em;fill:#e8edf3}
-.arx .am-tg2{font:400 10.5px 'JetBrains Mono',monospace;letter-spacing:.26em;fill:rgba(227,233,240,.36)}
-.arx .am-pg{fill:none;stroke:rgba(160,220,190,.6);stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
-.arx .am-pgf{fill:rgba(160,220,190,.08);stroke:rgba(160,220,190,.6);stroke-width:1.2}
-.arx .am-wt{fill:none;stroke:rgba(184,216,255,.5);stroke-width:1.2;stroke-linecap:round}
-.arx .am-wtf{fill:rgba(120,170,230,.10);stroke:rgba(184,216,255,.45);stroke-width:1.2}
-.arx .am-portal{fill:url(#amPortal);stroke:rgba(184,216,255,.7);stroke-width:1.4}
-/* 본부 시설 글씨 — PC 두 줄 · 폰 한 줄 */
-.arx .am-hq{cursor:pointer}
-.arx .am-bd{fill:rgba(5,7,10,.9);stroke:rgba(184,216,255,.55);stroke-width:1.3;transition:fill .2s,stroke .2s}
-.arx .am-ic{fill:none;stroke:rgba(184,216,255,.8);stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round}
-.arx .am-en2{font:500 13px 'JetBrains Mono',monospace;letter-spacing:.08em;fill:#e8edf3}
-.arx .am-ko2{font:400 12.5px 'Noto Sans KR',sans-serif;letter-spacing:.02em;fill:rgba(227,233,240,.62)}
-.arx .am-cd{fill:var(--ac)}
-.arx .am-mob{display:none}
-.arx .am-mcode2{font:500 24px 'JetBrains Mono',monospace}
-.arx .am-mnm{font:400 22px 'Noto Sans KR',sans-serif;fill:rgba(227,233,240,.85)}
-.arx .am-hq.on .am-bd{fill:rgba(var(--acr),.28);stroke:var(--ac)}
-.arx .am-hq.on .am-ic{stroke:#fff}
-.arx .am-hq.on .am-ko2,.arx .am-hq.on .am-mnm{fill:#fff}
-.arx .am-hq.on .am-lb{fill:var(--ac)}
-/* 누를 칸 */
-.arx .am-cell{fill:rgba(190,208,228,.01);stroke:transparent;stroke-width:1.4;cursor:pointer;transition:fill .25s,stroke .25s}
-.arx .am-cell:hover{fill:rgba(var(--acr),.08);stroke:rgba(var(--acr),.45)}
-.arx .am-cell.on{fill:rgba(var(--acr),.14);stroke:var(--ac);filter:drop-shadow(0 0 8px rgba(var(--acr),.5))}
-.arx .am-cell.yard{stroke:rgba(160,220,190,.3)}
-.arx .am-cell.empty{cursor:default;pointer-events:none}
-/* 숙소동 */
-.arx .am-tw .f-l{fill:rgba(8,11,15,.97)}
-.arx .am-tw .f-r{fill:rgba(20,27,36,.97)}
-.arx .am-tw .f-t{fill:rgba(34,44,56,.97)}
-.arx .am-tw.hl .am-b{stroke:rgba(var(--acr),.75)}
-.arx .am-tw.hl .f-t{fill:rgba(var(--acr),.26)}
-.arx .am-tw.hl .win{stroke:rgba(var(--acr),.22)}
-.arx .am-hlg{cursor:pointer}
-.arx .am-hlg.empty{cursor:default;pointer-events:none}
-.arx .am-hlg:hover .f-t,.arx .am-hlg.on .f-t{fill:rgba(var(--acr),.5)}
-.arx .am-hlg.on .am-b{stroke:var(--ac);filter:drop-shadow(0 0 6px rgba(var(--acr),.55))}
-/* 표시 */
-.arx .am-mk,.arx .am-pl,.arx .am-big{cursor:pointer}
-.arx .am-mk .am-dia,.arx .am-big .am-dia{fill:#05070a;stroke:rgba(var(--acr),.8);stroke-width:1.4;transition:fill .2s}
-.arx .am-pl circle{fill:#05070a;stroke:rgba(220,230,240,.6);stroke-width:1.3}
-.arx .am-mk.on .am-dia,.arx .am-big.on .am-dia{fill:var(--ac);filter:drop-shadow(0 0 6px var(--ac))}
-.arx .am-pl.on circle{fill:var(--ac);stroke:var(--ac)}
-.arx .am-code{font:500 21px 'Saira Semi Condensed',sans-serif;fill:#fff;letter-spacing:.04em}
-.arx .am-nm{font:400 17px 'Noto Sans KR',sans-serif;fill:rgba(220,230,240,.75);letter-spacing:.02em}
-.arx .am-pl .am-nm{fill:rgba(220,230,240,.55)}
-.arx .am-en{font:400 36px 'Jost',sans-serif;letter-spacing:.3em;fill:#fff}
-.arx .am-mk.on .am-code,.arx .am-big.on .am-en{fill:var(--ac)}
-.arx .am-mk.on .am-nm,.arx .am-pl.on .am-nm,.arx .am-big.on .am-nm{fill:#fff}
 /* 목록 */
 .arx .am-legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-top:10px}
 .arx .am-legend button{display:flex;align-items:center;gap:9px;min-width:0;height:34px;padding:0 10px;border:1px solid var(--ln2);background:rgba(8,11,15,.5);cursor:pointer;
@@ -415,29 +354,11 @@ body:has(.arx)::before{display:none !important}
 .arx .am-gobox b{font:400 18px/1 'Jost',sans-serif;letter-spacing:.3em;color:#fff}
 .arx .am-gobox span{font:400 12px/1.2 'Noto Sans KR',sans-serif;color:var(--mu)}
 @media (max-width:900px){
-  .arx .am{grid-template-columns:1fr}
+  .arx .am-dock{grid-template-columns:1fr}
 }
 @media (max-width:560px){
   .arx .am-hd{padding:0 12px;font-size:7.5px;letter-spacing:.16em}
   .arx .am-hd > span:last-child{display:none}
-  .arx .am-code{font-size:30px}
-  .arx .am-nm{font-size:26px}
-  .arx .am-mk .am-dia,.arx .am-big .am-dia{transform:rotate(45deg) scale(1.5)}
-  .arx .am-pl circle{transform:scale(1.5)}
-  .arx .am-tag{font-size:20px}
-  .arx .am-en{font-size:50px}
-  .arx .am-zl{font-size:36px;letter-spacing:.18em}
-  .arx .am-zs{font-size:22px}
-  .arx .am-mcode{font-size:16px}
-  .arx .am-dsk{display:none}
-  .arx .am-mob{display:inline}
-  .arx .am-lb{font-size:18px}
-  .arx .am-rl .am-code{font-size:28px}
-  .arx .am-rl .am-nm{font-size:24px}
-  .arx .am-plqt{font-size:22px;letter-spacing:.06em}
-  .arx .am-room-t{font-size:20px;letter-spacing:.2em}
-  .arx .am-room-sub{font-size:17px;letter-spacing:.1em}
-  .arx .am-ico{stroke-width:2}
   .arx .am-arrow{height:34px;padding:0 9px}
   .arx .am-arrow span{display:none}
   .arx .am-legend{grid-template-columns:repeat(2,minmax(0,1fr))}
