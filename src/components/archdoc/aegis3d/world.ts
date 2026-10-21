@@ -24,16 +24,16 @@ import {
 } from './layout';
 
 export type View = 'site' | AegisView;
-/** 선 종류 — a 외곽(촘촘한 도트) · b 층 띠(성근 도트) · c 옅은 도트 · g 금색 포인트 · r 빨강 포인트 */
+/** 선 종류 — a 외곽(긴 점선) · b 층 띠(짧은 점선) · c 옅은 점선 · g 금색 포인트 · r 빨강 포인트 */
 type Lv = 'a' | 'b' | 'c' | 'g' | 'r';
 type Cat = 'hq' | 'res' | 'base';
 
 const COL: Record<Lv, number> = { a: 0x5ad8ff, b: 0x2c8fd0, c: 0x1d6496, g: 0xffb444, r: 0xff4a5a };
 const OPA: Record<Lv, number> = { a: 0.92, b: 0.72, c: 0.5, g: 0.95, r: 0.95 };
-const WID: Record<Lv, number> = { a: 2.8, b: 2.3, c: 2, g: 3, r: 3 };
+const WID: Record<Lv, number> = { a: 1.6, b: 1.4, c: 1.2, g: 1.8, r: 1.8 };
 const HOT = 0xff9a36;
-/** 도트 한 알 크기 (CAM_REF 거리에서의 월드 길이) — 카메라가 다가가도 화면에서 같은 크기로 */
-const DOT = 2.2, CAM_REF = 760;
+/** 점선 한 알 · 틈 (화면 픽셀) — 굵기보다 길쭉하게. 폰 · PC · 확대 상태와 상관없이 같은 크기로 보이게 loop에서 dashScale을 맞춘다 */
+const DASH: Record<Lv, [number, number]> = { a: [6, 3.5], b: [4, 4.5], c: [3, 5], g: [6, 3.5], r: [6, 3.5] };
 const FILL = 0x06182b, FILL2 = 0x0a2138;
 
 const circ = (cx: number, y: number, cz: number, r: number, n = 32, rz = r): P3[] =>
@@ -358,9 +358,8 @@ export class AegisWorld {
     (Object.keys(k.L) as Lv[]).forEach(lv => {
       if (!k.L[lv].length) return;
       const g = new LineSegmentsGeometry(); g.setPositions(k.L[lv]);
-      // 모든 선을 도트로 — 외곽(a · g · r)은 촘촘하게, 층 띠(b · c)는 성글게. 크기는 화면 기준(loop에서 dashScale)
-      const main = lv === 'a' || lv === 'g' || lv === 'r';
-      const m = new LineMaterial({ color: COL[lv], linewidth: WID[lv], dashed: true, dashSize: DOT, gapSize: main ? DOT * 1.6 : DOT * 3.2, transparent: true, opacity: OPA[lv], depthWrite: false });
+      // 모든 선을 점선으로 — 외곽(a · g · r)은 길고 촘촘하게, 층 띠(b · c)는 짧고 성글게
+      const m = new LineMaterial({ color: COL[lv], linewidth: WID[lv], dashed: true, dashSize: DASH[lv][0], gapSize: DASH[lv][1], transparent: true, opacity: OPA[lv], depthWrite: false });
       m.resolution.set(this.w, this.h);
       const l = new LineSegments2(g, m);
       l.computeLineDistances();
@@ -535,7 +534,8 @@ export class AegisWorld {
     this.applyFocus();
     this.tick.forEach(f => f(time));
     this.controls.update();
-    const ds = CAM_REF / this.camera.position.distanceTo(this.controls.target);
+    // 월드 길이 → 화면 픽셀 (카메라가 보는 곳 기준) — 점선 크기를 픽셀로 고정
+    const ds = (this.h * this.camera.zoom) / (2 * this.camera.position.distanceTo(this.controls.target) * Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2)));
     this.lineMats.forEach(m => { m.dashScale = ds; });
     this.composer.render();
     this.placeLabels();
@@ -548,7 +548,11 @@ export class AegisWorld {
       if (!a) return;
       this.v3.set(...a).project(this.camera);
       const vis = this.v3.z < 1 && Math.abs(this.v3.x) < 1.1 && Math.abs(this.v3.y) < 1.1;
-      el.style.transform = `translate3d(${((this.v3.x + 1) / 2) * this.w}px, ${((1 - this.v3.y) / 2) * this.h}px, 0)`;
+      // 이름표가 무대 밖으로 잘리지 않게 (flip은 왼쪽으로 펼쳐진다)
+      const cw = (el.querySelector('span') as HTMLElement | null)?.offsetWidth ?? 0;
+      let x = ((this.v3.x + 1) / 2) * this.w;
+      x = el.classList.contains('flip') ? Math.max(x, cw + 10) : Math.min(x, this.w - cw - 10);
+      el.style.transform = `translate3d(${x}px, ${((1 - this.v3.y) / 2) * this.h}px, 0)`;
       el.style.opacity = vis ? '' : '0';
     });
   }
