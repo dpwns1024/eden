@@ -3076,6 +3076,8 @@ html.ui-arch .excerpt-card.ex-tags-later .ex-body blockquote:not(:has(> p:first-
 .excerpt-card .ex-body :is(code,pre,kbd,samp,tt){font-family:'JetBrains Mono','Pretendard Variable','Pretendard',sans-serif !important}
 html.ui-arch .excerpt-card .ex-body blockquote,.excerpt-card .ex-body blockquote{padding:9px 15px}
 html.ui-arch .excerpt-card .ex-body blockquote{padding:4px 4px 4px 62px}
+/* 발췌에서는 인용구 폭을 글자 길이에 맞추지 않는다 — 찍을 때 글자가 조금만 넓어져도 짧은 대사(「……?」)가 두 줄로 꺾이고 딱지 · 간격이 어긋났다 (v2.0 사용자 제보) */
+.excerpt-card .ex-body blockquote{width:auto!important}
 /* 발췌 모드 — 왼쪽 아래 ✂ 켜기/끄기, 아래 안내 막대, 고른 칸 표시 */
 .excerpt-toggle{position:fixed;left:12px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:66;width:36px;height:36px;display:grid;place-items:center;
   border:1px solid rgba(150,170,195,.38);background:rgba(10,13,18,.82);color:#c9d4e2;font-size:15px;opacity:.8;cursor:var(--cur-pointer,pointer)}

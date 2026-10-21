@@ -174,9 +174,18 @@ async function drawTags(url: string, tags: QuoteTag[], glows: Glow[] = [], boxTa
         // 쉼표 꼬리처럼 몇 점뿐인 줄은 빼고, 가장 굵은 줄이 든 글자 덩어리 하나만 (위아래 줄 끝이 칸에 걸려도)
         const lim = Math.max(1, max * 0.06);
         const peak = rows.indexOf(max);
-        let a = peak, b = peak;
-        while (a > 0 && rows[a - 1] >= lim) a--;
-        while (b < rows.length - 1 && rows[b + 1] >= lim) b++;
+        /* 글자 안의 작은 틈(3px까지)은 건너뛴다 (v2.0 사용자 제보 — 「……?」에서 점 줄과 물음표 윗부분 사이가 비어,
+           점 줄만 글자로 보고 딱지를 기준선에 붙였다) */
+        const GAP = 3 * PR;
+        const grow = (i: number, d: number) => {
+          for (;;) {
+            let j = i + d, k = 0;
+            while (j >= 0 && j < rows.length && rows[j] < lim && k < GAP) { j += d; k++; }
+            if (j < 0 || j >= rows.length || rows[j] < lim) return i;
+            i = j;
+          }
+        };
+        const a = grow(peak, -1), b = grow(peak, 1);
         cy = y0 + (a + b + 1) / 2;
       }
     }
