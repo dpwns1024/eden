@@ -61,6 +61,8 @@ export function areaHrefOf(coll: string, item: ListItem): string | null {
   if (coll === 'memos' && item.kind === 'note') return '/memo2';
   // 프롬프트(/prompt)도 같은 목록 — 공개범위·잠금은 그 메뉴를 따른다
   if (coll === 'memos' && item.kind === 'prompt') return '/prompt';
+  // 리포트 관리자 메모 — 항상 나만보기로 저장하고 메뉴 잠금은 걸지 않는다 (관리자만 쓰고 읽는다)
+  if (coll === 'memos' && item.kind === 'logmemo') return null;
   const a = AREA[coll];
   if (!a) return null;
   if (a.href) return a.href;

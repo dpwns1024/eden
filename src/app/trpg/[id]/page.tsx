@@ -8,7 +8,8 @@ import { MAIN_SEC as MAIN_SEC_ID } from '@/lib/sectionStore';
 import { useHrefBlock } from '@/components/shell/MenuGuard';
 import { sectionHref, MAIN_SEC, secStamp, useSectionTitle } from '@/lib/sectionStore';
 import { useAuth } from '@/lib/auth';
-import { useLocalList } from '@/lib/postStore';
+import { useLocalList, newId } from '@/lib/postStore';
+import { MEMO_SEED } from '@/lib/memoStore';
 import { TrpgLog, TRPG_SEED, TrpgLogBody, TRPG_BODY_SEED, bodyVisibility, bodyPwLock, showAsHtml, decodeLogText, logNo, saveLogBody , textToEditorHtml } from '@/lib/galleryStore';
 import { Relation, REL_SEED, Character, CHAR_SEED, charGrant } from '@/lib/charStore';
 import { Modal, ConfirmModal } from '@/components/ui/Modal';
@@ -44,6 +45,46 @@ function LogFrame({ frameRef, html, title, onFrameLoad }: {
       title={title}
       onLoad={onFrameLoad}
     />
+  );
+}
+
+/**
+ * 관리자 메모 (v2.0 사용자 요청) — 제목 옆 작은 MEMO 버튼, 관리자만.
+ * 저장은 메모 목록(memos 컬렉션)에 `kind: 'logmemo'`로 — 프롬프트(/prompt)와 같은 방식이라 보안 규칙을
+ * 다시 붙여넣지 않아도 된다. `visibility: 'private'`라 서버가 관리자(작성자)에게만 내준다.
+ * 관리자일 때만 그려서 다른 사람은 메모 목록을 받아 오지도 않는다.
+ */
+type AnyMemo = { id: string; kind?: string; [k: string]: unknown };
+type LogMemo = { id: string; kind: 'logmemo'; logId: string; text: string; date: string; authorId?: string; visibility: 'private' };
+const isLogMemo = (m: AnyMemo): m is AnyMemo & LogMemo => m.kind === 'logmemo';
+
+function LogMemoButton({ logId }: { logId: string }) {
+  const { user } = useAuth();
+  const [all, setAll] = useLocalList<AnyMemo>('ohome.memo.v1', MEMO_SEED as unknown as AnyMemo[]);
+  const memo = all.filter(isLogMemo).find(m => m.logId === logId);
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState('');
+  const save = () => {
+    const t = text.trim();
+    const rest = all.filter(m => m !== memo);
+    // 비우고 저장하면 메모를 지운다
+    if (!t) setAll(rest);
+    else setAll([{ ...(memo ?? { id: newId(), kind: 'logmemo', logId }), text: t, date: new Date().toISOString(), authorId: memo?.authorId ?? user?.id, visibility: 'private' }, ...rest]);
+    setOpen(false);
+  };
+  return (
+    <>
+      <button type="button" className={`log-memo-btn${memo ? ' on' : ''}`} title={memo ? memo.text : '관리자 메모'}
+        onClick={() => { setText(memo?.text ?? ''); setOpen(true); }}>MEMO</button>
+      <Modal open={open} onClose={() => setOpen(false)} small title="관리자 메모" desc="관리자만 볼 수 있습니다"
+        dirty={text !== (memo?.text ?? '')}
+        actions={<>
+          <button className="btn btn-ghost" onClick={() => setOpen(false)}>CANCEL</button>
+          <button className="btn btn-dark" onClick={save}>SAVE</button>
+        </>}>
+        <KTextarea placeholder="이 글에 대한 메모" value={text} onChange={ev => setText(ev.target.value)} style={{ minHeight: 140 }} />
+      </Modal>
+    </>
   );
 }
 
@@ -421,17 +462,22 @@ html,body{margin:0!important;padding:0!important;height:auto!important;min-heigh
         {arch ? (
           /* ARCH — 캐릭터·페어 이름과 같은 강철 그라데이션. 한글은 얇은 명조 대신 고딕(Noto Sans KR)이 그라데이션을 또렷하게 받는다 */
           <>
-            <h2 className="fr-title" style={{ marginBottom: l.catchphrase ? 6 : 18 }}>{l.title}</h2>
+            <div className="log-title-row" style={{ marginBottom: l.catchphrase ? 6 : 18 }}>
+              <h2 className="fr-title">{l.title}</h2>
+              {isAdmin && <LogMemoButton logId={id} />}
+            </div>
             {l.catchphrase && <p className="fr-catch">{l.catchphrase}</p>}
           </>
         ) : (
           <>
-            <h2 style={{
-              fontFamily: l.serifTitle ? 'var(--serif)' : "'Noto Serif KR',serif",
-              fontSize: 24, fontWeight: 700,
-              marginBottom: l.catchphrase ? 2 : 18, // 캐치프레이즈가 없으면 본문과 붙지 않게 여백
-              letterSpacing: l.serifTitle ? '.12em' : '.04em',
-            }}>{l.title}</h2>
+            <div className="log-title-row" style={{ marginBottom: l.catchphrase ? 2 : 18 }}>{/* 캐치프레이즈가 없으면 본문과 붙지 않게 여백 */}
+              <h2 style={{
+                fontFamily: l.serifTitle ? 'var(--serif)' : "'Noto Serif KR',serif",
+                fontSize: 24, fontWeight: 700,
+                letterSpacing: l.serifTitle ? '.12em' : '.04em',
+              }}>{l.title}</h2>
+              {isAdmin && <LogMemoButton logId={id} />}
+            </div>
             {l.catchphrase && (
               <p style={{ fontSize: 11.5, color: 'var(--faint)', letterSpacing: '.14em', marginBottom: 16 }}>{l.catchphrase}</p>
             )}

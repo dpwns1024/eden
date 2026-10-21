@@ -832,6 +832,12 @@ html.ui-arch .page-arch .fr-cur i{display:inline-block;width:8px;height:14px;mar
 html.ui-arch .page-arch .fr-title{display:inline-block;font:400 calc(30px*var(--fs,1))/1.3 'Jost','Noto Sans KR',sans-serif;letter-spacing:.08em;background:var(--a-sil);-webkit-background-clip:text;background-clip:text;color:transparent;word-break:keep-all}
 html.ui-arch .page-arch .fr-catch{margin-bottom:16px;font:300 calc(11.5px*var(--fs,1))/1.6 'Noto Sans KR',sans-serif;letter-spacing:.2em;color:var(--a-mu)}
 @media (max-width:620px){html.ui-arch .page-arch .fr-title{font-size:calc(22px*var(--fs,1))}}
+/* 리포트 제목 옆 관리자 메모 버튼 (v2.0 사용자 요청) */
+.log-title-row{display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px}
+.log-title-row h2{margin:0}
+.log-memo-btn{flex:none;height:22px;padding:0 8px;font:500 10px/1 'JetBrains Mono',monospace;letter-spacing:.14em;color:var(--faint,#8592a0);background:transparent;border:1px solid currentColor;border-radius:3px;cursor:var(--cur-pointer,pointer);opacity:.75;transition:opacity .2s,color .2s}
+.log-memo-btn:hover{opacity:1}
+.log-memo-btn.on{color:var(--accent);opacity:1}
 
 /* PAIRING 목록 · MISSION BANNER (v2.0 사용자 선택 E) — 가로로 긴 배너, 그림 위 왼쪽에 이름·정보 */
 html.ui-arch .page-arch .rel-bns{display:grid;gap:14px}
