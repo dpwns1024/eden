@@ -568,8 +568,10 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-ag::before,.arx .ar-ag::after{content:'';position:absolute;z-index:3;width:9px;height:9px;border:solid rgba(220,230,240,.55);pointer-events:none}
 .arx .ar-ag::before{left:-1px;top:-1px;border-width:1px 0 0 1px}
 .arx .ar-ag::after{right:-1px;bottom:-1px;border-width:0 1px 1px 0}
-.arx .ar-ag .ph{position:absolute;inset:0;overflow:hidden}
-.arx .ar-ag .ph img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+/* 전역 .ph(회색 바탕 · grid 가운데 정렬)가 겹쳐 아이폰 사파리에서 사진이 원본 비율에 따라 아래로 밀리고 위가 회색으로 비었다 (v2.0 사용자 제보) —
+   상자는 일반 블록, 사진은 상자를 꽉 채우게 못박는다 */
+.arx .ar-ag .ph{position:absolute;inset:0;display:block;overflow:hidden;background:none}
+.arx .ar-ag .ph img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
 .arx .ar-ag .ph::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 48%,rgba(5,7,10,.55) 70%,rgba(5,7,10,.95))}
 .arx .ar-ag-noimg{position:absolute;inset:0;display:grid;place-items:center;font:400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--dim)}
 .arx .ar-ag .tx{position:absolute;left:12px;right:12px;bottom:12px;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:6px}
@@ -600,8 +602,9 @@ body:has(.arx)::before{display:none !important}
 /* 상세 프로필 창 (portal — .arx 밖) */
 .mng-box.ar-more-modal.ar-ag-modal{width:min(640px,94vw);max-height:88vh;overflow:auto}
 .ar-ag-pf-h{display:flex;gap:18px;align-items:flex-end;padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid rgba(190,208,228,.14)}
-.ar-ag-pf-h .ph{position:relative;flex:0 0 120px;aspect-ratio:3/4;overflow:hidden;border:1px solid color-mix(in srgb,var(--gc) 60%,transparent);background:#0a0d12;box-shadow:0 0 22px -10px var(--gc)}
-.ar-ag-pf-h .ph img{display:block;width:100%;height:100%;object-fit:cover}
+.ar-ag-pf-h .ph{position:relative;display:block;flex:0 0 120px;aspect-ratio:3/4;overflow:hidden;border:1px solid color-mix(in srgb,var(--gc) 60%,transparent);background:#0a0d12;box-shadow:0 0 22px -10px var(--gc)}
+.ar-ag-pf-h .ph img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover}
+.ar-ag-pf-h .ph::after{content:none}
 .ar-ag-pf-h .ph .ar-ag-noimg{position:absolute;inset:0;display:grid;place-items:center;font:400 8px/1 'JetBrains Mono',monospace;letter-spacing:.2em;color:#5f6b79}
 .ar-ag-pf-h .nm{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0}
 .ar-ag-pf-h .nm small{font:400 9px/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:#8592a0}
