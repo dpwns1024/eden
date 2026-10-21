@@ -6,8 +6,8 @@
  */
 export type P3 = [number, number, number];
 
-/** 방패 돔 · 바다 위 포탑 (시안 C-3 그대로 고정) */
-export const R0 = 250, DOME_K = 0.9;
+/** 방패 돔 · 바다 위 포탑 (포탑은 시안 C-3 그대로, 돔은 메인 탑에 맞춰 높임) */
+export const R0 = 250, DOME_K = 1.5;
 export const TURRET_R = 285;
 /** 그 자리에서 돔 안쪽 높이 한계 */
 export const domeLimit = (x: number, z: number) => R0 * DOME_K * Math.sqrt(Math.max(0, 1 - (x * x + z * z) / (R0 * R0)));
@@ -17,8 +17,8 @@ export const RP = 232, DECK = 20, Y = DECK + 4;
 /** 본부 · 숙소 단지 기단 위 높이 */
 export const HQ_B = Y + 10, RES_B = Y + 8;
 
-/** 관제탑(메인 건물) 높이 · 관제 고리 높이 · 그 위 하늘정원 — 높아진 돔(높이 225) 안에 든다 */
-export const CORE_H = 110, RING_Y = 80, SKY_Y = 192;
+/** 관제탑(메인 건물) 높이 · 관제 고리 높이 · 그 위 하늘정원 — 높인 돔(높이 375) 안에 든다 */
+export const CORE_H = 230, RING_Y = 150, SKY_Y = 330;
 /** 본부 단지 */
 export const CORE = { x: 30, z: 0 };
 export const HQ_PODIUM: [number, number][] = [[-78, -72], [-55, -95], [118, -95], [140, -72], [140, 72], [118, 95], [-55, 95], [-78, 72]];
