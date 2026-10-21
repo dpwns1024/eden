@@ -54,7 +54,7 @@ function collectTags(card: HTMLElement): QuoteTag[] {
     return [{
       x: r.left - cr.left, y: r.top - cr.top + pt, w: r.width, first: lh,
       label: raw.replace(/^["']|["']$/g, '').toUpperCase(),
-      bg: ps.backgroundColor, glow: bs.getPropertyValue('--qx').trim() || '#8fb0d8',
+      bg: ps.backgroundColor, glow: bs.getPropertyValue('--qx').trim() || '#a3acb6',
     }];
   });
 }
@@ -186,7 +186,7 @@ async function drawTags(url: string, tags: QuoteTag[], glows: Glow[] = [], boxTa
     ctx.shadowColor = t.glow; ctx.shadowBlur = 10 * PR; ctx.fillStyle = t.glow;
     ctx.fillRect(bx + 2 * PR, by + 2 * PR, bw - 4 * PR, bh - 4 * PR);
     ctx.restore();
-    ctx.fillStyle = t.bg && t.bg !== 'rgba(0, 0, 0, 0)' ? t.bg : '#c9d6e6';
+    ctx.fillStyle = t.bg && t.bg !== 'rgba(0, 0, 0, 0)' ? t.bg : '#d1d6dc';
     ctx.fillRect(bx, by, bw, bh);
     // 글자 — 자간 .2em, 상자 가운데(잉크 기준)
     ctx.font = `500 ${9 * PR}px "JetBrains Mono", "Pretendard Variable", "Pretendard", sans-serif`;
@@ -548,7 +548,7 @@ export function ExcerptMaker() {
           const rel = pick?.root.closest('[data-ex-rel]')?.getAttribute('data-ex-rel')?.trim() || 'MASKED';
           // 제목은 자간을 좁게 따로 (고정폭 영문용 자간 .2em이면 한글 제목 띄어쓰기가 너무 벌어졌다 — v2.0 사용자 요청)
           const l = el('span', 'ex-dh-l');
-          if (title) l.append(el('span', 'ex-dh-tt', title), ' · ');
+          if (title) l.append(el('span', 'ex-dh-tt', title), el('span', 'ex-dh-dot', '·'));   // 점 양옆은 고정폭 빈칸 대신 좁은 여백
           l.append('SIGNAL ');
           l.appendChild(el('b', '', rel));
           head.append(l, el('i', 'ex-dh-ln'));   // 글 뒤로 길게 이어지는 줄 (v2.0 사용자 요청)

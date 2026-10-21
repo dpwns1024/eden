@@ -589,7 +589,7 @@ html.ui-arch .page-arch .re-content a,.mng-box.arch-modal .re-content a{color:va
 /* 인용구 한 줄 높이(px) — 딱지(9px 글씨)에서도 인용구 줄 높이로 위치를 잡도록 길이로 등록해 px로 물려준다 */
 @property --qlh{syntax:'<length>';inherits:true;initial-value:21px}
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote,.mng-box.arch-modal .re-content blockquote{
-  --qx:var(--qc,#8fb0d8);--qt:color-mix(in srgb,var(--qx) 55%,#fff);--qlh:1.6em;position:relative;margin:18px 0;padding:4px 4px 4px 62px;border:0;
+  --qx:var(--qc,#a3acb6);--qt:color-mix(in srgb,var(--qx) 55%,#fff);--qlh:1.6em;position:relative;margin:10px 0;padding:4px 4px 4px 62px;border:0;   /* 위아래 여백 18 → 10px — 인용구 앞뒤 · 인용구끼리 사이가 문단 사이보다 너무 넓었다 · 색을 안 고른 기본 인용구는 회색 (v2.0 사용자 요청) */
   font-size:1em;line-height:1.6; /* 본문과 같은 크기 · 행간 (v2.0 사용자 요청 — 발췌 이미지도 같은 값) */
   width:-webkit-fit-content;width:fit-content;max-width:100%;box-sizing:border-box; /* 글자 길이만큼만 (v2.0 사용자 요청) */
   background:none;color:#f4f6f8;font-weight:400} /* 글자는 흰색으로 통일 — 색은 딱지·선에만 (v2.0 사용자 요청) */
@@ -3118,7 +3118,8 @@ html.ui-arch .excerpt-card{background:
 .excerpt-card.ex-d-hud .ex-dh{margin:0 0 8.5px;align-items:center}   /* 위 줄 ↔ 본문: 글자 기준 약 17px (v2.0 사용자 요청) */
 .excerpt-card.ex-d-hud:not(.ex-d-hudt) .ex-dh{gap:0}   /* 글과 줄 사이는 띄어쓰기 한 칸만큼만 — 줄 margin-left 6px + 마지막 글자 자간 2px ≈ 고정폭 10px 한 칸 */
 .excerpt-card.ex-d-hud .ex-dh-l{flex:0 0 auto;white-space:nowrap}
-.excerpt-card .ex-dh-tt{letter-spacing:.06em;font-family:var(--sans-base);font-size:8.6px;vertical-align:.6px}   /* 한글 제목은 자간 좁게 · 띄어쓰기도 본문 글꼴 폭으로(고정폭 빈칸은 넓었다) · 크기는 한글 글자 높이가 SIGNAL 대문자와 같게(10px면 한글이 더 컸다) */
+.excerpt-card .ex-dh-tt{letter-spacing:.06em;font-family:var(--sans-base);font-size:11px}   /* 한글 제목은 자간 좁게 · 띄어쓰기도 본문 글꼴 폭으로(고정폭 빈칸은 넓었다) · 11px — 10px면 SIGNAL보다 작아 보였다(사용자 요청) */
+.excerpt-card .ex-dh-dot{display:inline-block;margin:0 4px;letter-spacing:0}   /* 제목 · SIGNAL 사이 점 — 양옆 여백 4px(글자 여백 포함 눈으로 약 7~8px, 예전 고정폭 빈칸은 약 12px) */
 .excerpt-card.ex-d-hud .ex-dh-ln{flex:1 1 0;min-width:0;height:0;margin-left:6px;border-top:1px solid rgba(190,208,228,.14)}   /* 선은 테두리로 — 찍을 때 높이는 옮기지 않아(ExcerptMaker FREE) 높이 1px짜리 빈 칸은 사라졌다 */
 /* HUD+제목 머리 아래 경계선 — 선 위아래 간격이 **눈에 보이는 글자 기준으로** 같게 (v2.0 사용자 요청).
    선 위아래 각각 글자 기준 약 12px (v2.0 사용자 요청).

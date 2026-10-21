@@ -489,15 +489,19 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-ag::before,.arx .ar-ag::after{content:'';position:absolute;z-index:3;width:9px;height:9px;border:solid rgba(220,230,240,.55);pointer-events:none}
 .arx .ar-ag::before{left:-1px;top:-1px;border-width:1px 0 0 1px}
 .arx .ar-ag::after{right:-1px;bottom:-1px;border-width:0 1px 1px 0}
-.arx .ar-ag .ph{position:absolute;inset:0;overflow:hidden}
-.arx .ar-ag .ph img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+/* 전역 .ph(회색 바탕 · grid 가운데 정렬)가 겹쳐 아이폰 사파리에서 사진이 원본 비율에 따라 아래로 밀리고 위가 회색으로 비었다 (v2.0 사용자 제보) —
+   상자는 일반 블록, 사진은 상자를 꽉 채우게 못박는다 */
+.arx .ar-ag .ph{position:absolute;inset:0;display:block;overflow:hidden;background:none}
+.arx .ar-ag .ph img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
 .arx .ar-ag .ph::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 48%,rgba(5,7,10,.55) 70%,rgba(5,7,10,.95))}
 .arx .ar-ag-noimg{position:absolute;inset:0;display:grid;place-items:center;font:400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--dim)}
 .arx .ar-ag .tx{position:absolute;left:12px;right:12px;bottom:12px;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:6px}
 .arx .ar-ag .tx b{font:500 15px/1.2 'Noto Sans KR','Jost',sans-serif;letter-spacing:.04em;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.8)}
-.arx .ar-ag .tx small{margin-top:-3px;font:400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.2em;color:#aab5c1}
-.arx .ar-ag:hover,.arx .ar-ag:focus-visible{border-color:color-mix(in srgb,var(--ec,#b8d8ff) 70%,transparent);box-shadow:0 0 22px -8px var(--ec,#b8d8ff)}
-.arx .ar-ag:hover .ph img{transform:scale(1.04)}
+.arx .ar-ag .tx .nm{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 6px}
+.arx .ar-ag .tx small{font:400 11px/1.2 'Noto Sans KR','Jost',sans-serif;letter-spacing:.04em;color:#aab5c1;text-shadow:0 1px 6px rgba(0,0,0,.8)}
+.arx .ar-ag.still{cursor:default}
+.arx .ar-ag:not(.still):hover,.arx .ar-ag:focus-visible{border-color:color-mix(in srgb,var(--ec,#b8d8ff) 70%,transparent);box-shadow:0 0 22px -8px var(--ec,#b8d8ff)}
+.arx .ar-ag:not(.still):hover .ph img{transform:scale(1.04)}
 .ar-ag-el{display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 9px 0 6px;font:500 10.5px/1 'Noto Sans KR',sans-serif;color:#fff;
   background:color-mix(in srgb,var(--ec) 78%,#05070a);border:1px solid color-mix(in srgb,var(--ec) 70%,#fff 30%);box-shadow:0 0 12px -3px var(--ec)}
 .ar-ag-el i{display:block;width:13px;height:13px}
@@ -509,7 +513,8 @@ body:has(.arx)::before{display:none !important}
   .arx .ar-ag-list{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
   .arx .ar-ag .tx{left:7px;right:7px;bottom:7px;gap:4px}
   .arx .ar-ag .tx b{font-size:12px;letter-spacing:.02em}
-  .arx .ar-ag .tx small{font-size:7px;letter-spacing:.12em;margin-top:-2px}
+  .arx .ar-ag .tx .nm{gap:0 4px}
+  .arx .ar-ag .tx small{font-size:9px;letter-spacing:.02em}
   .arx .ar-ag .ar-ag-el{height:16px;gap:3px;padding:0 6px 0 4px;font-size:9px}
   .arx .ar-ag .ar-ag-el i{width:10px;height:10px}
   .arx .ar-ag::before,.arx .ar-ag::after{width:7px;height:7px}
@@ -518,14 +523,16 @@ body:has(.arx)::before{display:none !important}
 /* 상세 프로필 창 (portal — .arx 밖) */
 .mng-box.ar-more-modal.ar-ag-modal{width:min(640px,94vw);max-height:88vh;overflow:auto}
 .ar-ag-pf-h{display:flex;gap:18px;align-items:flex-end;padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid rgba(190,208,228,.14)}
-.ar-ag-pf-h .ph{position:relative;flex:0 0 120px;aspect-ratio:3/4;overflow:hidden;border:1px solid color-mix(in srgb,var(--gc) 60%,transparent);background:#0a0d12;box-shadow:0 0 22px -10px var(--gc)}
-.ar-ag-pf-h .ph img{display:block;width:100%;height:100%;object-fit:cover}
+.ar-ag-pf-h .ph{position:relative;display:block;flex:0 0 120px;aspect-ratio:3/4;overflow:hidden;border:1px solid color-mix(in srgb,var(--gc) 60%,transparent);background:#0a0d12;box-shadow:0 0 22px -10px var(--gc)}
+.ar-ag-pf-h .ph img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover}
+.ar-ag-pf-h .ph::after{content:none}
 .ar-ag-pf-h .ph .ar-ag-noimg{position:absolute;inset:0;display:grid;place-items:center;font:400 8px/1 'JetBrains Mono',monospace;letter-spacing:.2em;color:#5f6b79}
 .ar-ag-pf-h .nm{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0}
 .ar-ag-pf-h .nm small{font:400 9px/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:#8592a0}
 .ar-ag-pf-h .nm small em{font-style:normal;margin-left:10px;color:var(--gc)}
 .ar-ag-pf-h .nm b{font:400 26px/1.15 'Noto Sans KR','Jost',sans-serif;letter-spacing:.06em;color:#fff}
-.ar-ag-pf-h .nm .en{margin-top:-4px;font:400 9px/1 'JetBrains Mono',monospace;letter-spacing:.2em;color:#aab5c1}
+.ar-ag-pf-h .nm .nmr{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 10px}
+.ar-ag-pf-h .nm .en{font:400 13px/1.2 'Noto Sans KR','Jost',sans-serif;letter-spacing:.04em;color:#aab5c1}
 .ar-ag-pf-b{font:300 13px/1.85 'Noto Sans KR',sans-serif;color:#c3ccd6;word-break:keep-all}
 .ar-ag-pf-b.pend{font:400 9.5px/1.6 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.22em;color:#5f6b79;padding:20px 0}
 @media (max-width:560px){ .ar-ag-pf-h .ph{flex-basis:92px} .ar-ag-pf-h .nm b{font-size:21px} }

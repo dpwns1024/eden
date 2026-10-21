@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useLocalList, newId, FoldType } from '@/lib/postStore';
 import { useSectionParam, secStamp, MAIN_SEC, useSectionTitle } from '@/lib/sectionStore';
-import { BackupPost, BACKUP_SEED } from '@/lib/galleryStore';
+import { BackupPost, BACKUP_SEED, backupNos, backupPath, freezeBackupNos } from '@/lib/galleryStore';
+import { normalizeLogSlug } from '@/lib/logPath';
 import { useBoardSettings, DEFAULT_GALLERY_CATS, galleryCatsOf } from '@/lib/boardStore';
 import { useConfirmDelete } from '@/components/ui/Modal';
 import { Visibility } from '@/lib/charStore';
@@ -55,6 +56,8 @@ export function BackupForm({ initial }: { initial: BackupPost | null }) {
   // 수정 주소에는 ?s=가 없으므로 고치는 글 자신의 소속(secId)에서 읽는다
   const tt = useSectionTitle('gallery', initial ? (initial.secId ?? MAIN_SEC) : sec.id, isNew ? 'WRITE' : 'EDIT');
   const [title, setTitle] = useState(initial?.title ?? '');
+  // 주소 이름 (v2.0 사용자 요청 — 리포트처럼). 비우면 번호 /confirmed/003
+  const [slugText, setSlugText] = useState(initial?.slug ?? '');
   const [type, setType] = useState<'log' | 'single' | 'vlist'>(initial?.type ?? 'log');
   const [files, setFiles] = useState<UpFile[]>(() =>
     (initial?.images ?? []).map((ref, i) => ({
@@ -108,11 +111,17 @@ export function BackupForm({ initial }: { initial: BackupPost | null }) {
 
   const post = async () => {
     if (!title.trim()) { toast('제목을 입력해 주세요'); return; }
+    const slug = normalizeLogSlug(slugText);
+    if (slug === null) { toast('주소 이름은 숫자만으로 정할 수 없습니다 — 영문을 섞어 주세요'); return; }
+    if (slug && posts.some(x => x.id !== initial?.id && x.slug === slug)) { toast('이미 다른 글이 쓰는 주소 이름입니다'); return; }
+    // 번호가 없는 예전 글에 지금 번호를 적어 둔다 — 이후 글을 지워도 주소가 밀리지 않게
+    const base = freezeBackupNos(posts);
     // 이미지 실저장 (IndexedDB) — 기존 ref는 유지, 새 파일만 저장
     const imageIds = await Promise.all(files.map(f => (f.file ? putBlob(f.file) : Promise.resolve(f.ref!))));
     if (isNew) {
       const p: BackupPost = {
         id: newId(), title: title.trim(), type,
+        no: Math.max(0, ...backupNos(base).values()) + 1, slug: slug || undefined,
         images: imageIds, phList: files.length ? [] : ['cool'],
         thumbCrop: files[0]?.crop, // 대표 이미지 크롭 (6.1)
         desc, category, tags: parseTags(tagsText), madeDate: madeDate || undefined,
@@ -120,19 +129,21 @@ export function BackupForm({ initial }: { initial: BackupPost | null }) {
         visibility,
         fold: foldType === 'none' ? null : { type: foldType, label: foldType === 'custom' ? foldLabel : undefined },
       };
-      setPosts([{ ...p, ...secStamp(sec.id) }, ...posts]);
+      setPosts([{ ...p, ...secStamp(sec.id) }, ...base]);
       toast('등록되었습니다 — 이미지는 이 브라우저에 실제 저장됩니다');
-      router.push(`/gallery/${p.id}`);
+      router.push(backupPath(p));
     } else {
-      setPosts(posts.map(x => x.id === initial.id ? {
-        ...x, title: title.trim(), type,
+      const next = base.map(x => x.id === initial.id ? {
+        ...x, title: title.trim(), type, slug: slug || undefined,
         images: imageIds, phList: files.length ? [] : x.phList,
         thumbCrop: files[0]?.crop,
         desc, category, tags: parseTags(tagsText), madeDate: madeDate || undefined, visibility,
         fold: foldType === 'none' ? null : { type: foldType, label: foldType === 'custom' ? foldLabel : undefined },
-      } : x));
+      } : x);
+      setPosts(next);
       toast('저장되었습니다');
-      router.push(`/gallery/${initial.id}`);
+      const saved = next.find(x => x.id === initial.id);
+      router.push(saved ? backupPath(saved) : '/gallery');
     }
   };
 
@@ -145,6 +156,11 @@ export function BackupForm({ initial }: { initial: BackupPost | null }) {
           <div className="form-row">
             <label className="k-label" style={{ width: 60 }}>제목</label>
             <KInput value={title} onChange={e => setTitle(e.target.value)} style={{ flex: 1 }} />
+          </div>
+          <div className="form-row">
+            <label className="k-label" style={{ width: 60 }}>주소</label>
+            <KInput placeholder="주소 이름 (선택 — 영문·숫자·하이픈, 비우면 번호 /confirmed/003)" value={slugText}
+              onChange={e => setSlugText(e.target.value)} style={{ flex: 1 }} />
           </div>
           <div className="form-row">
             <label className="k-label" style={{ width: 60 }}>유형</label>
@@ -249,7 +265,7 @@ export function BackupForm({ initial }: { initial: BackupPost | null }) {
           </div>
           <div className="form-actions">
             <button className="btn btn-onbk"
-              onClick={() => router.push(isNew ? tt.href : `/gallery/${initial.id}`)}>CANCEL</button>
+              onClick={() => router.push(isNew ? tt.href : backupPath(initial, backupNos(posts)))}>CANCEL</button>
             <button className="btn btn-accent" onClick={post}>
               {isNew ? 'POST' : 'SAVE'}
             </button>

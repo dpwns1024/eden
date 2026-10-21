@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useEditor, useEditorState, EditorContent, Mark, Node, mergeAttributes } from '@tiptap/react';
 import { TextSelection } from '@tiptap/pm/state';
-import type { DOMOutputSpec } from '@tiptap/pm/model';
+import { Slice, Fragment, type DOMOutputSpec } from '@tiptap/pm/model';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Blockquote from '@tiptap/extension-blockquote';
@@ -28,6 +28,8 @@ const ToneQuote = Blockquote.extend({
 });
 
 const HEX = /^#[0-9a-f]{3,8}$/i;
+/** 색을 안 고른 기본 인용구 색 (globals.css 인용구 --qc 기본값과 같게 — v2.0 사용자 요청 회색) */
+const QUOTE_GRAY = '#a3acb6';
 /** 접은글 · 박스칸 색 — data-tone에 적고 CSS 변수(--fx)로 넘긴다 (globals.css [data-fold] · [data-box]) */
 const toneAttr = {
   default: null,
@@ -142,6 +144,44 @@ const Box = Node.create({
     return ['div', HTMLAttributes, ['div', { 'data-box-head': '', contenteditable: 'false' }, ...row], ['div', { 'data-box-body': '' }, 0]];
   },
 });
+/* 붙여넣기 (v2.0 사용자 요청 — PC · 모바일 모두): 바깥에서 가져온 글은 서식(글꼴 · 크기 · 색 · 굵기 · 링크 · 인라인 스타일)을 전부 버리고
+   글자와 줄만 남겨 홈 서식(본문 문단)으로 넣는다. 줄 하나가 문단 하나, 빈 줄은 빈 문단. 에디터 안에서 복사한 것(data-pm-slice)은 그대로 */
+const BLOCK_TAG = /^(P|DIV|H[1-6]|LI|BLOCKQUOTE|TR|PRE|SECTION|ARTICLE|HEADER|FOOTER|UL|OL|TABLE|DL|DT|DD|FIGURE|FIGCAPTION|ADDRESS|ASIDE|NAV|MAIN|DETAILS|SUMMARY)$/;
+function pastedLines(html: string, text: string): string[] {
+  let lines: string[] = [];
+  if (html) {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    doc.querySelectorAll('script,style,head,title,meta,link,template').forEach(n => n.remove());
+    let cur = '';
+    const walk = (n: globalThis.Node, pre: boolean) => {
+      if (n.nodeType === 3) { cur += pre ? (n.textContent ?? '') : (n.textContent ?? '').replace(/[\t\n\r ]+/g, ' '); return; }
+      if (n.nodeType !== 1) return;
+      const el = n as Element, tag = el.tagName;
+      if (tag === 'BR') { lines.push(cur); cur = ''; return; }
+      if (tag === 'HR') { if (cur) lines.push(cur); cur = ''; return; }
+      const block = BLOCK_TAG.test(tag);
+      if (block && cur) { lines.push(cur); cur = ''; }
+      if (pre || tag === 'PRE') {
+        // 미리 쓴 글(pre)은 줄바꿈이 글자 안에 있다
+        const before = cur; cur = '';
+        el.childNodes.forEach(c => walk(c, true));
+        const parts = (before + cur).split(/\r?\n/); cur = parts.pop() ?? ''; lines.push(...parts);
+      } else el.childNodes.forEach(c => walk(c, false));
+      if (block && cur) { lines.push(cur); cur = ''; }
+    };
+    walk(doc.body, false);
+    if (cur) lines.push(cur);
+  } else {
+    lines = text.replace(/\r\n?/g, '\n').split('\n');
+  }
+  // 줄 앞뒤 빈칸은 빼고, 보이지 않는 글자(ㅤ 한글 채움 · 폭 없는 글자 · 점자 빈칸 …)만 있는 줄은 빈 줄로. 처음 · 끝의 빈 줄은 뺀다
+  const INVISIBLE = /^[\s\u00a0\u180e\u200b-\u200f\u2028\u2029\u2060\ufeff\u115f\u1160\u3164\u2800\u3000\uffa0]*$/;
+  lines = lines.map(l => (INVISIBLE.test(l) ? '' : l.replace(/^[\s\u00a0]+|[\s\u00a0]+$/g, '')));
+  while (lines.length && !lines[0]) lines.shift();
+  while (lines.length && !lines[lines.length - 1]) lines.pop();
+  return lines;
+}
+
 /** 접은글은 닫힌 채로 저장 (예전에 열린 채 들어온 것도) */
 const stripOpen = (html: string) => html.replace(/(<details\b[^>]*?) open=""/g, '$1');
 
@@ -214,6 +254,22 @@ export function RichEditor({ value, onChange, placeholder }: {
     immediatelyRender: false,
     editorProps: {
       attributes: { class: 're-content prose' },
+      // 바깥에서 붙여 넣은 글은 서식 없이 홈 서식으로 (위 pastedLines)
+      handlePaste: (view, event) => {
+        const cd = event.clipboardData;
+        if (!cd) return false;
+        const html = cd.getData('text/html');
+        if (html && /data-pm-slice/.test(html)) return false;   // 에디터 안에서 복사 — 접은글 · 박스 그대로
+        const text = cd.getData('text/plain');
+        if (!html && !text) return false;   // 그림만 붙여 넣기 등은 원래대로
+        const lines = pastedLines(html, text);
+        if (!lines.length) return false;   // 글자가 없으면(그림만 등) 원래대로
+        const { schema } = view.state;
+        const paras = lines.map(l => schema.nodes.paragraph.create(null, l ? schema.text(l) : null));
+        // 열린 조각(1, 1)으로 — 한 줄이면 지금 문단 안에 이어 붙고, 여러 줄이면 앞뒤 문단과 이어진다
+        view.dispatch(view.state.tr.replaceSelection(new Slice(Fragment.from(paras), 1, 1)).scrollIntoView());
+        return true;
+      },
     },
     onUpdate: ({ editor: e }) => onChange(stripOpen(e.getHTML())),
   });
@@ -334,7 +390,7 @@ export function RichEditor({ value, onChange, placeholder }: {
           onClick={() => editor.chain().focus().toggleOrderedList().run()} />
         <TBtn title="인용" label="❝" on={editor.isActive('blockquote')}
           onClick={() => editor.chain().focus().toggleBlockquote().run()} />
-        <TBtn title="인용구 색" label={<span className="re-qtone" style={{ background: curTone ?? undefined }} />}
+        <TBtn title="인용구 색" label={<span className="re-qtone" style={{ background: curTone ?? QUOTE_GRAY }} />}
           on={quoteOpen} onClick={() => setQuoteOpen(o => !o)} />
         <TBtn title="구분선" label="—" onClick={() => editor.chain().focus().setHorizontalRule().run()} />
         <TBtn title="접은글" label="접기" on={!!ctx?.fold} onClick={insertFold} />
@@ -388,7 +444,7 @@ export function RichEditor({ value, onChange, placeholder }: {
       {quoteOpen && (
         <div className="re-qpop">
           <button type="button" className={`re-qchip${!curTone ? ' on' : ''}`} onClick={() => setQuoteTone(null)}>
-            <i className="re-qtone" />기본
+            <i className="re-qtone" style={{ background: QUOTE_GRAY }} />기본
           </button>
           {toneChips.map(c => (
             <button key={c.name + c.color} type="button" className={`re-qchip${curTone === c.color ? ' on' : ''}`} onClick={() => setQuoteTone(c.color)}>
@@ -396,7 +452,7 @@ export function RichEditor({ value, onChange, placeholder }: {
             </button>
           ))}
           <label className="re-qchip">
-            <input type="color" value={curTone ?? '#8fb0d8'} onChange={e => setQuoteTone(e.target.value)} />직접
+            <input type="color" value={curTone ?? QUOTE_GRAY} onChange={e => setQuoteTone(e.target.value)} />직접
           </label>
         </div>
       )}
