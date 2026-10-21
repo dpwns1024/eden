@@ -3,7 +3,7 @@
  *  - 육각 그물 방패 돔 + 바다 위 금빛 돔 포탑 6기와 아치 다리(시안 C-3 그대로 고정). 돔은 보호막이라 모든 건물은 그 안에 든다.
  *  - 원형 강철 플랫폼: 뱃머리 쪽 본부 단지(관제탑 · 업무동 · 의료동 · 공용동 · 훈련 돔 · 공명연구실 · 비행 갑판), 선미 쪽 숙소 단지, 둘을 셔틀 선로로.
  *  - 갑판 아래 · 물속: 기계실(반응로) · 무기고 · 출전 게이트 · 수중 식물원 · 봉인 구역. 본부 화면에선 선체가 반투명해져 보인다.
- *  - 건물은 꽉 찬 어두운 면 + 전부 도트 점선(외곽은 촘촘, 층 띠는 성글게). 본부 · 숙소로 들어가면 방패 돔은 사라진다.
+ *  - 건물은 꽉 찬 어두운 면 + 가는 발광 실선, 화면 전체를 LED 점 격자로 찍어 도트 느낌(DotShader). 본부 · 숙소로 들어가면 방패 돔은 사라진다.
  *  - 끌어서 돌리기, 휠(PC) · 두 손가락(폰)으로 확대 · 축소. 색은 하늘색 하나, 포인트는 금색(포탑 돔 · 관제 고리 · 헬기장) · 빨강(격리 · 봉인)만.
  *  - 시설(spot)마다 따로 고를 수 있게 덩어리(파트)를 나눈다. 고른 시설은 주황(숙소동은 캐릭터 대표색)으로 빛난다.
  * 시설 이름표는 React가 그리고(data-k), 자리는 여기서 매 프레임 투영해 옮긴다.
@@ -13,6 +13,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
@@ -24,16 +25,30 @@ import {
 } from './layout';
 
 export type View = 'site' | AegisView;
-/** 선 종류 — a 외곽(긴 점선) · b 층 띠(짧은 점선) · c 옅은 점선 · g 금색 포인트 · r 빨강 포인트 */
+/** 선 종류 — a 외곽 실선 · b 층 띠 · 갈빗대 · c 옅은 선 · g 금색 포인트 · r 빨강 포인트 */
 type Lv = 'a' | 'b' | 'c' | 'g' | 'r';
 type Cat = 'hq' | 'res' | 'base';
 
 const COL: Record<Lv, number> = { a: 0x5ad8ff, b: 0x2c8fd0, c: 0x1d6496, g: 0xffb444, r: 0xff4a5a };
 const OPA: Record<Lv, number> = { a: 0.92, b: 0.72, c: 0.5, g: 0.95, r: 0.95 };
-const WID: Record<Lv, number> = { a: 1.6, b: 1.4, c: 1.2, g: 1.8, r: 1.8 };
+const WID: Record<Lv, number> = { a: 1.5, b: 1.1, c: 1, g: 1.6, r: 1.6 };
 const HOT = 0xff9a36;
-/** 점선 한 알 · 틈 (화면 픽셀) — 굵기보다 길쭉하게. 폰 · PC · 확대 상태와 상관없이 같은 크기로 보이게 loop에서 dashScale을 맞춘다 */
-const DASH: Record<Lv, [number, number]> = { a: [6, 3.5], b: [4, 4.5], c: [3, 5], g: [6, 3.5], r: [6, 3.5] };
+/** LED 점 화면 — 화면을 칸으로 나눠 칸마다 동그란 점 하나로 찍는다(선은 실선 그대로, 점 느낌은 화면 전체에서). 칸 크기는 CSS 픽셀 */
+const DOT_CELL = 4, DOT_CELL_NARROW = 2.6;   // 좁은 화면(폰)은 점을 작게 — 그림이 작아 형태가 뭉개지지 않게
+const DotShader = {
+  uniforms: { tDiffuse: { value: null as THREE.Texture | null }, res: { value: new THREE.Vector2(1, 1) }, cell: { value: 4 } },
+  vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: `
+    uniform sampler2D tDiffuse; uniform vec2 res; uniform float cell; varying vec2 vUv;
+    void main(){
+      vec2 px = vUv * res;
+      vec2 c = (floor(px / cell) + 0.5) * cell;
+      vec3 dotc = texture2D(tDiffuse, c / res).rgb;
+      float m = 1.0 - smoothstep(0.5, 0.9, length(px - c) / (cell * 0.5));
+      vec3 o = texture2D(tDiffuse, vUv).rgb;
+      gl_FragColor = vec4(o * 0.3 + dotc * m * 1.45 + vec3(0.002, 0.006, 0.013) * m, 1.0);
+    }`,
+};
 const FILL = 0x06182b, FILL2 = 0x0a2138;
 
 const circ = (cx: number, y: number, cz: number, r: number, n = 32, rz = r): P3[] =>
@@ -54,6 +69,8 @@ class Kit {
     const oct = (y: number, s: number) => Array.from({ length: 8 }, (_, i) => { const a = (i / 8) * Math.PI * 2 + Math.PI / 8; return [x + Math.cos(a) * (w / 2) * s * k, y, z + Math.sin(a) * (d / 2) * s * k] as P3; });
     const lo = oct(y0, 1), hi = oct(y0 + h, taper);
     this.poly(lo); this.poly(hi); lo.forEach((p, i) => this.seg(p, hi[i]));
+    // 면마다 세로 갈빗대 둘
+    lo.forEach((p, i) => { const q = lo[(i + 1) % 8], r = hi[i], u = hi[(i + 1) % 8]; [1 / 3, 2 / 3].forEach(t => this.seg([p[0] + (q[0] - p[0]) * t, p[1], p[2] + (q[2] - p[2]) * t], [r[0] + (u[0] - r[0]) * t, r[1], r[2] + (u[2] - r[2]) * t], 'b')); });
     for (let j = 1; j < h / band; j++) { const t = (j * band) / h; this.poly(oct(y0 + h * t, 1 + (taper - 1) * t), 'b'); }
     this.fill(new THREE.CylinderGeometry((w / 2) * taper * k, (w / 2) * k, h, 8).rotateY(Math.PI / 8).scale(1, 1, d / w).translate(x, y0 + h / 2, z));
     let top = y0 + h;
@@ -92,7 +109,7 @@ class Kit {
   cyl(x: number, y: number, z: number, r: number, h: number, lv: Lv = 'a', bands = 0) {
     const lo = circ(x, y, z, r, 24), hi = circ(x, y + h, z, r, 24);
     this.poly(lo, lv); this.poly(hi, lv);
-    for (let i = 0; i < 24; i += 4) this.seg(lo[i], hi[i], lv === 'a' ? 'b' : lv);
+    for (let i = 0; i < 24; i++) this.seg(lo[i], hi[i], i % 4 ? (lv === 'a' ? 'b' : lv) : lv);
     for (let k = 1; k <= bands; k++) this.poly(circ(x, y + (h * k) / (bands + 1), z, r, 24), 'b');
     this.fill(new THREE.CylinderGeometry(r, r, h, 24).translate(x, y + h / 2, z));
   }
@@ -282,6 +299,7 @@ export class AegisWorld {
   private renderer: THREE.WebGLRenderer;
   private composer: EffectComposer;
   private bloom: UnrealBloomPass;
+  private dots: ShaderPass;
   private scene = new THREE.Scene();
   private camera = new THREE.PerspectiveCamera(36, 1, 1, 4000);
   private controls: OrbitControls;
@@ -329,8 +347,10 @@ export class AegisWorld {
 
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
-    this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.45, 0.25, 0.6);
+    this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.6, 0.2, 0.45);
     this.composer.addPass(this.bloom);
+    this.dots = new ShaderPass(DotShader);
+    this.composer.addPass(this.dots);
     this.composer.addPass(new OutputPass());
 
     this.build();
@@ -358,11 +378,9 @@ export class AegisWorld {
     (Object.keys(k.L) as Lv[]).forEach(lv => {
       if (!k.L[lv].length) return;
       const g = new LineSegmentsGeometry(); g.setPositions(k.L[lv]);
-      // 모든 선을 점선으로 — 외곽(a · g · r)은 길고 촘촘하게, 층 띠(b · c)는 짧고 성글게
-      const m = new LineMaterial({ color: COL[lv], linewidth: WID[lv], dashed: true, dashSize: DASH[lv][0], gapSize: DASH[lv][1], transparent: true, opacity: OPA[lv], depthWrite: false });
+      const m = new LineMaterial({ color: COL[lv], linewidth: WID[lv], transparent: true, opacity: OPA[lv], depthWrite: false });
       m.resolution.set(this.w, this.h);
       const l = new LineSegments2(g, m);
-      l.computeLineDistances();
       l.renderOrder = 2;
       group.add(l); mats[lv] = m; this.lineMats.push(m);
     });
@@ -436,6 +454,22 @@ export class AegisWorld {
     RES_TWR.filter(t => t.key).forEach(t => { const k = new Kit(); resTower(k, t); this.add(k, t.key!, 'res', true); });
 
     // 섬 화면에서 고르는 큰 상자
+    // 반짝이는 흰 점 — 건물 선 위 아무 곳에, 두 무리가 번갈아 깜빡인다
+    let seed = 9;
+    const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    const src: number[] = [];
+    this.parts.filter(p => p.cat !== 'base').forEach(p => p.group.children.forEach(c => {
+      if (!(c instanceof LineSegments2)) return;
+      const st = (c.geometry as LineSegmentsGeometry).attributes.instanceStart as THREE.InterleavedBufferAttribute;
+      for (let i = 0; i < st.count; i++) if (rnd() < 0.05) src.push(st.getX(i), st.getY(i), st.getZ(i));
+    }));
+    [0, 1].forEach(n => {
+      const pos = src.filter((_, i) => Math.floor(i / 3) % 2 === n);
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      const m = new THREE.PointsMaterial({ color: 0xffffff, size: 3, sizeAttenuation: false, transparent: true, opacity: 0.9, depthWrite: false });
+      const pts = new THREE.Points(g, m); pts.renderOrder = 4; this.scene.add(pts);
+      this.tick.push(t => { m.opacity = 0.25 + 0.7 * Math.max(0, Math.sin(t * 1.7 + n * Math.PI)); });
+    });
     this.addPick('site:hq', 'hq', [-80, Y, -97], [200, SKY_Y + 10, 97]);
     this.addPick('site:res', 'res', [-214, Y, -98], [-106, 110, 98]);
     this.paint();
@@ -507,6 +541,9 @@ export class AegisWorld {
     this.renderer.setSize(w, h, false);
     this.composer.setSize(w, h);
     this.bloom.setSize(w, h);
+    const pr = this.renderer.getPixelRatio();
+    this.dots.uniforms.res.value.set(w * pr, h * pr);
+    this.dots.uniforms.cell.value = (w < 640 ? DOT_CELL_NARROW : DOT_CELL) * pr;
     this.lineMats.forEach(m => m.resolution.set(w, h));
     this.camera.aspect = w / h;
     this.camera.zoom = Math.min(1, w / h / 1.45 + 0.12);   // 좁은 화면은 조금 물러선다
@@ -534,9 +571,6 @@ export class AegisWorld {
     this.applyFocus();
     this.tick.forEach(f => f(time));
     this.controls.update();
-    // 월드 길이 → 화면 픽셀 (카메라가 보는 곳 기준) — 점선 크기를 픽셀로 고정
-    const ds = (this.h * this.camera.zoom) / (2 * this.camera.position.distanceTo(this.controls.target) * Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2)));
-    this.lineMats.forEach(m => { m.dashScale = ds; });
     this.composer.render();
     this.placeLabels();
   };
