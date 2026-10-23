@@ -559,7 +559,12 @@ export default function RelDetailPage() {
     if (rooms.some(stale)) setRooms(rooms.map(r => (stale(r) ? { ...r, lv: 2 } : r)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin, roomsLoaded, rooms]);
-  const relLogs = useMemo(() => logs.filter(l => l.relId === rel?.id), [logs, rel]);
+  // 최근 글 5개만 (v2.0 사용자 요청) — 새로 등록한 순(no)으로 5개를 고르고, 보이는 순서는 목록 순서 그대로
+  const relLogs = useMemo(() => {
+    const mine = logs.filter(l => l.relId === rel?.id);
+    const recent = new Set([...mine].sort((a, b) => b.no - a.no).slice(0, 5));
+    return mine.filter(l => recent.has(l));
+  }, [logs, rel]);
   // 역극 연동 (4.9) — 내가 참여한 방 + 공개 전환된 완결 방만 (비참여 방은 존재 자체 비노출)
   const relRooms = useMemo(() => rooms.filter(rm => rm.relId === rel?.id
     && ((user && rm.memberIds.includes(user.id)) || (rm.status === 'done' && rm.isPublic))),
