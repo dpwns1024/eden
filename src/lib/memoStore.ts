@@ -23,8 +23,10 @@ export const MEMO_SIZE_W: Record<StickyMemo['size'], number> = { s: 128, m: 158,
 export interface MemoSettings {
   allowMember: boolean;      // 회원 작성 허용 (끄면 관리자만)
   showAuthor: boolean;       // 포스트잇에 작성자 표시
+  /** 프롬프트(/prompt) 카테고리 (v2.0 사용자 요청) — 관리자가 만든다. 글에는 id로 적어 이름을 바꿔도 안 끊긴다 */
+  promptCats: { id: string; name: string }[];
 }
-export const DEFAULT_MEMO_SETTINGS: MemoSettings = { allowMember: true, showAuthor: true };
+export const DEFAULT_MEMO_SETTINGS: MemoSettings = { allowMember: true, showAuthor: true, promptCats: [] };
 
 const SET_KEY = 'ohome.memoset.v1';
 
