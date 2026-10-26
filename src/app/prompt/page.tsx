@@ -11,7 +11,7 @@
  * 관리자는 카드를 끌어 순서를 바꾼다(편집모드 없이 — 캐릭터 목록과 같은 방식).
  * 사진은 올릴 때 메타데이터를 지운 사본으로 저장된다(putBlob → lib/imageClean.ts) — 프롬프트는 글로 따로 적는다.
  * 카테고리 (v2.0 사용자 요청) — 관리자가 CATEGORY 창에서 만들고, 목록 위 탭으로 걸러 본다.
- * 목록은 메모 설정(promptCats)에, 글에는 카테고리 id(catId)로 — 지운 카테고리의 글은 「전체」에만 보인다.
+ * 목록은 메모 설정(promptCats)에, 글에는 카테고리 id(catId)로. 탭은 만든 카테고리만(ALL 없음) — 처음엔 첫 카테고리.
  */
 import React, { useState } from 'react';
 import { useAuth } from '@/lib/auth';
@@ -99,12 +99,13 @@ export default function PromptPage() {
   const setItems = (next: PromptItem[]) => setAll([...(next as unknown as AnyMemo[]), ...all.filter(m => !isPrompt(m))]);
   const canEdit = (p: PromptItem) => isAdmin || (!!user && p.authorId === user.id);
 
-  // 카테고리 — 탭으로 걸러 보기 (ALL = 전체)
+  // 카테고리 — 탭으로 걸러 보기
   const [memoSet, patchMemoSet] = useMemoSettings();
   const cats = memoSet.promptCats ?? [];
-  const [cat, setCat] = useState('ALL');
-  const curCat = cats.some(c => c.id === cat) ? cat : 'ALL';   // 지워진 카테고리를 보고 있었으면 전체로
-  const shown = curCat === 'ALL' ? items : items.filter(p => p.catId === curCat);
+  // 탭은 관리자가 만든 카테고리만 (v2.0 사용자 요청 — ALL · ETC 없음). 카테고리가 하나도 없으면 전부 보인다
+  const [cat, setCat] = useState('');
+  const curCat = cats.some(c => c.id === cat) ? cat : cats[0]?.id ?? '';   // 처음 · 지워진 카테고리면 첫 카테고리
+  const shown = curCat ? items.filter(p => p.catId === curCat) : items;
   const [page, setPage] = useState(1);
   const pages = Math.max(1, Math.ceil(shown.length / PER));
   const pg = Math.min(page, pages);
@@ -130,10 +131,10 @@ export default function PromptPage() {
   const [fCat, setFCat] = useState('');
   const [fImgs, setFImgs] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
-  const openNew = () => { setEditId('new'); setFTitle(''); setFPrompt(''); setFNote(''); setFImgs([]); setFCat(curCat === 'ALL' ? '' : curCat); };
+  const openNew = () => { setEditId('new'); setFTitle(''); setFPrompt(''); setFNote(''); setFImgs([]); setFCat(curCat); };
   const openEdit = (p: PromptItem) => {
     setEditId(p.id); setFTitle(p.title); setFPrompt(p.prompt); setFNote(p.note ?? ''); setFImgs(p.images ?? []);
-    setFCat(cats.some(c => c.id === p.catId) ? p.catId! : '');
+    setFCat(cats.some(c => c.id === p.catId) ? p.catId! : curCat);
   };
   const close = () => setEditId(null);
   const addFiles = async (files: FileList | null) => {
@@ -189,16 +190,20 @@ export default function PromptPage() {
       </div>
 
       <div className="toolrow pr-tool">
-        <div className="pr-left">
-          <span className="pr-count">TOTAL {shown.length}</span>
-          {cats.length > 0 && (
-            <div className="seg pr-cats">
-              {[{ id: 'ALL', name: 'ALL' }, ...cats].map(c => (
-                <button key={c.id} className={curCat === c.id ? 'on' : ''} onClick={() => { setCat(c.id); setPage(1); }}>{c.name}</button>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* 카테고리 탭 — 갤러리 말머리 · FIELD REPORT와 같은 탭 줄 모양 (globals.css .arch-tabbar · v2.0 사용자 요청) */}
+        {cats.length > 0 ? (
+          <div className="tag-row arch-tabbar">
+            {cats.map(c => ({ ...c, n: items.filter(p => p.catId === c.id).length })).map(c => (
+              <div key={c.id} className={`tag ${curCat === c.id ? 'on' : ''}`} onClick={() => { setCat(c.id); setPage(1); }}>
+                {c.name} <small>{c.n}</small>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="pr-left">
+            <span className="pr-count">TOTAL {shown.length}</span>
+          </div>
+        )}
         <div className="pr-right">
           {isAdmin && <button className="btn btn-ghost" onClick={openCats}>CATEGORY</button>}
           {user && <button className="btn btn-dark" onClick={openNew}>＋ NEW PROMPT</button>}
@@ -253,8 +258,8 @@ export default function PromptPage() {
           <KInput placeholder="제목 (선택)" value={fTitle} onChange={e => setFTitle(e.target.value)} />
           {cats.length > 0 && (
             <div className="seg pr-cats">
-              {[{ id: '', name: '없음' }, ...cats].map(c => (
-                <button key={c.id || 'none'} type="button" className={fCat === c.id ? 'on' : ''} onClick={() => setFCat(c.id)}>{c.name}</button>
+              {cats.map(c => (
+                <button key={c.id} type="button" className={fCat === c.id ? 'on' : ''} onClick={() => setFCat(c.id)}>{c.name}</button>
               ))}
             </div>
           )}
@@ -279,7 +284,7 @@ export default function PromptPage() {
       </Modal>
       {/* 카테고리 관리 (관리자) */}
       <Modal open={catOpen} onClose={() => setCatOpen(false)} small className="pr-modal" title="CATEGORY"
-        desc="지운 카테고리의 프롬프트는 「ALL」에서만 보입니다"
+        desc="카테고리를 지우면 그 프롬프트는 목록에서 안 보입니다 — 다른 카테고리로 옮긴 뒤 지우세요"
         actions={<>
           <button className="btn btn-ghost" onClick={() => setCatOpen(false)}>CANCEL</button>
           <button className="btn btn-dark" onClick={saveCats}>SAVE</button>

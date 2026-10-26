@@ -3308,7 +3308,7 @@ html.ui-arch .page-prompt .pr-count{font:400 calc(10px*var(--fs,1))/1 'JetBrains
 .pr-form{display:grid;gap:12px}
 /* 프롬프트 카테고리 (v2.0 사용자 요청) */
 .page-prompt .pr-right{display:flex;align-items:center;gap:8px;margin-left:auto}
-.pr-cats{flex-wrap:wrap;max-width:100%}
+.pr-edit .pr-cats{flex-wrap:wrap;max-width:100%}
 .pr-catrow{display:flex;align-items:center;gap:6px}
 .pr-catrow > :first-child{flex:1;min-width:0}
 .pr-up{display:flex;flex-wrap:wrap;gap:8px}
