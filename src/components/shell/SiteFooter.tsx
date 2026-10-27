@@ -14,8 +14,8 @@ export function SiteFooter() {
   const [footer] = useSiteFooter();
   const html = stripScripts(footer).trim();
   const ref = useRef<HTMLDivElement>(null);
-  const slots = useHtmlSlots(ref, [html, pathname, mounted]);
   const { world } = useWorld();   // 페어별 홈 (lib/worldStore.ts) — YJHM이면 ARCH 공통 하단 대신 YJHM 푸터
+  const slots = useHtmlSlots(ref, [html, pathname, mounted, world]);   // 세계가 바뀌면 하단이 새로 그려지므로 다시 찾는다
   if (!mounted || !pathname || pathname === '/') return null;
   if (world === 'yjhm') return <div className="yj-head-wrap"><footer className="yj-foot">© YJHM · our ordinary days</footer></div>;
   if (!html) return null;

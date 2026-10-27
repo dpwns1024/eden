@@ -2,7 +2,6 @@
 // 환경설정 (기획서 5장) — 0차: 「디자인」 탭(테마) 실동작.
 // 나머지 카테고리는 해당 기능 마일스톤에서 함께 구현.
 import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { siteBoardSkin, setBoardSkin, BoardSkin as BoardUiSkin } from '@/lib/boardSkin';
 import { useAuth, inviteCode, setInviteCode, signupOpen, setSignupOpen, loginSkin, setLoginSkin, LoginSkin } from '@/lib/auth';
 import { useMembers } from '@/lib/members';
 import { useTheme } from '@/lib/ThemeProvider';
@@ -714,20 +713,10 @@ function MainPagePane() {
 function SiteHeaderPane() {
   const [head, saveHead, headLoaded] = useSiteHeader();
   const [foot, saveFoot, footLoaded] = useSiteFooter();
-  const [bskin, setBskin] = useState<BoardUiSkin>('default');
-  useEffect(() => { setBskin(siteBoardSkin()); }, []);
   return (
     <>
       <hr style={{ margin: '24px 0', border: 'none', borderTop: '1.5px solid var(--line)' }} />
-      {/* 게시판 디자인 (v2.0) — 레이아웃은 그대로, 모양만 ARCH HTML 페이지처럼 */}
-      <div className="set-row" style={{ marginBottom: 22 }}>
-        <div className="l"><b>게시판 디자인</b><small>ARCH — 어두운 반투명 박스·각진 테두리·은빛 제목 (레이아웃은 그대로) · 적용된 게시판: 캐릭터</small></div>
-        <div className="mini-seg">
-          {(['default', 'arch'] as BoardUiSkin[]).map(k => (
-            <button key={k} className={bskin === k ? 'on' : ''} onClick={() => { setBskin(k); setBoardSkin(k); }}>{k === 'arch' ? 'ARCH' : '기본'}</button>
-          ))}
-        </div>
-      </div>
+      {/* 게시판 디자인은 ARCH로 고정 (v2.0 사용자 요청 — 고르는 칸은 없앴다, lib/boardSkin.ts) */}
       <SiteHtmlBox title="다른 페이지 공통 상단 (HTML)" value={head} save={saveHead} loaded={headLoaded}
         desc="메인이 아닌 모든 페이지 맨 위에 그릴 HTML — 메인 HTML의 상단(로고·메뉴·로그인)을 다른 페이지에서도 그대로 보이게 할 때 씁니다. 비워 두면 원래대로 배너·메뉴 위젯이 나옵니다" />
       <SiteHtmlBox title="다른 페이지 공통 하단 (HTML)" value={foot} save={saveFoot} loaded={footLoaded}
