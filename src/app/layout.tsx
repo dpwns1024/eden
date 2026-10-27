@@ -19,6 +19,7 @@ import { ExcerptMaker } from '@/components/shell/ExcerptMaker';
 import { SecurityMigrate } from '@/components/shell/SecurityMigrate';
 import { LetterSpacingFix } from '@/components/shell/LetterSpacingFix';
 import { BoardSkinSync } from '@/components/shell/BoardSkinSync';
+import { WorldSwitch } from '@/components/world/WorldSwitch';
 import { QuoteNameSync } from '@/components/shell/QuoteNameSync';
 import { ClassifiedSync } from '@/components/shell/ClassifiedSync';
 import { SetupGate } from '@/components/shell/SetupGate';
@@ -100,6 +101,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         <SecurityMigrate />
                         <LetterSpacingFix />
                         <BoardSkinSync />
+                        <WorldSwitch />
                         <QuoteNameSync />
                         <ClassifiedSync />
                         <DocTitle />

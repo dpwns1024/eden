@@ -35,8 +35,11 @@ export function GlobalHeader() {
   const [siteHead] = useSiteHeader();
   const headHtml = stripScripts(siteHead).trim();
   const headRef = useRef<HTMLDivElement>(null);
-  const headSlots = useHtmlSlots(headRef, [headHtml, pathname, mounted]);
-  const { world } = useWorld();   // 페어별 홈 (lib/worldStore.ts) — YJHM이면 ARCH 공통 상단 대신 YJHM 머리
+  // 페어별 홈 (lib/worldStore.ts) — YJHM이면 ARCH 공통 상단 대신 YJHM 머리.
+  // 세계가 바뀌면 HTML 상단이 새로 그려지므로 메뉴 · 로그인 자리도 다시 찾는다 (v2.0 사용자 발견 —
+  // YJHM 페어 페이지에서 EVEDEN 페어 페이지로 넘어가면 주소가 먼저 바뀌고 세계가 뒤따라 바뀌어 메뉴가 사라졌다)
+  const { world } = useWorld();
+  const headSlots = useHtmlSlots(headRef, [headHtml, pathname, mounted, world]);
 
   if (!mounted || !pathname || pathname === '/' || pathname === '') {
     return null;
