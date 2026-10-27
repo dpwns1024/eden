@@ -2,7 +2,7 @@
 // 환경설정 (기획서 5장) — 0차: 「디자인」 탭(테마) 실동작.
 // 나머지 카테고리는 해당 기능 마일스톤에서 함께 구현.
 import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { boardSkin, setBoardSkin, BoardSkin as BoardUiSkin } from '@/lib/boardSkin';
+import { siteBoardSkin, setBoardSkin, BoardSkin as BoardUiSkin } from '@/lib/boardSkin';
 import { useAuth, inviteCode, setInviteCode, signupOpen, setSignupOpen, loginSkin, setLoginSkin, LoginSkin } from '@/lib/auth';
 import { useMembers } from '@/lib/members';
 import { useTheme } from '@/lib/ThemeProvider';
@@ -715,7 +715,7 @@ function SiteHeaderPane() {
   const [head, saveHead, headLoaded] = useSiteHeader();
   const [foot, saveFoot, footLoaded] = useSiteFooter();
   const [bskin, setBskin] = useState<BoardUiSkin>('default');
-  useEffect(() => { setBskin(boardSkin()); }, []);
+  useEffect(() => { setBskin(siteBoardSkin()); }, []);
   return (
     <>
       <hr style={{ margin: '24px 0', border: 'none', borderTop: '1.5px solid var(--line)' }} />

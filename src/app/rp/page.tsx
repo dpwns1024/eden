@@ -17,6 +17,7 @@ import { useToast } from '@/components/ui/Toast';
 import { useBoardSkin } from '@/lib/boardSkin';
 import { useMembers } from '@/lib/members';
 import { pushNotif } from '@/lib/notifStore';
+import { useWorldFilter } from '@/lib/worldStore';
 
 /** 캐릭터 얼굴 칩 (썸네일 or 데모 플레이스홀더) */
 function Face({ ch, className }: { ch?: Character; className: string }) {
@@ -46,6 +47,8 @@ export default function RpPage() {
   const memberIdsOf = (r: RpRoom) => rpMemberIds(r, rels, chars);
   const [chars] = useLocalList<Character>('ohome.chars.v1', CHAR_SEED);
   const [rels] = useLocalList<Relation>('ohome.rels.v1', REL_SEED);
+  // 페어별 홈 (lib/worldStore.ts) — 다른 세계 페어의 채널은 숨긴다
+  const { showPid } = useWorldFilter();
   const [selId, setSelId] = useState<string | null>(null);
   /* 페어링별 탭 (v2.0 사용자 요청 — 상태(LIVE · ALL · CLOSED) 대신 FIELD REPORT처럼 페어링으로 나눈다).
      'all' · 페어링 id · 'none'(페어링 없는 채널) */
@@ -57,12 +60,12 @@ export default function RpPage() {
 
   // 로그인 상태면 본인 참여 방 + (관리자면 전체), 비로그인이면 공개된 방 목록 표시
   const allMine = useMemo(() => {
-    const list = user
+    const list = (user
       ? rooms.filter(r => memberIdsOf(r).includes(user.id) || isAdmin)
-      : rooms.filter(r => r.isPublic);
+      : rooms.filter(r => r.isPublic)).filter(r => showPid(r.relId));
     return list.sort((a, b) => rpLastDate(b, messagesFor(msgRows, b.id, b.messages))
       .localeCompare(rpLastDate(a, messagesFor(msgRows, a.id, a.messages))));
-  }, [rooms, user, isAdmin, msgRows, rels, chars]);
+  }, [rooms, user, isAdmin, msgRows, rels, chars, showPid]);
 
   const relKey = (r: RpRoom) => (r.relId && rels.some(x => x.id === r.relId) ? r.relId : 'none');
   const myRooms = useMemo(() => allMine.filter(r => fRel === 'all' || relKey(r) === fRel),

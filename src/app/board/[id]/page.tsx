@@ -17,7 +17,8 @@ import { Modal, ConfirmModal } from '@/components/ui/Modal';
 import { GuestIdBar } from '@/components/ui/GuestId';
 import { useToast } from '@/components/ui/Toast';
 import { PageTitle } from '@/components/ui/PageText';
-import { usePairings, pairNameOf } from '@/lib/pairLink';
+import { usePairings, pairIdOf, pairNameOf } from '@/lib/pairLink';
+import { useFollowWorld } from '@/lib/worldStore';
 
 const FOLD_LABEL = { spoiler: '스포일러 주의', adult: '수위 주의' };
 
@@ -37,6 +38,7 @@ export default function BoardDetailPage() {
   const [gName, setGName] = useState('');                       
 
   const post = posts.find(p => p.id === id);
+  useFollowWorld(post && pairIdOf(post, rels));   // 세계 페어의 글이면 그 세계 디자인으로 (lib/worldStore.ts)
   const bid = post?.boardId ?? MAIN_BOARD_ID;
   const blocked = useHrefBlock(post && (bid === MAIN_BOARD_ID ? '/board' : extraBoardHref(bid)));
   const html = useMemo(() => (post && loaded ? renderBody(post.mode, post.body) : ''), [post, loaded]);

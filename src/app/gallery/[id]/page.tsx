@@ -13,7 +13,8 @@ import { sanitizeHtml } from '@/lib/sanitize';
 import { PageTitle } from '@/components/ui/PageText';
 import { Lightbox } from '@/components/ui/Lightbox';
 import { useBoardSettings, boardBadgeStyle } from '@/lib/boardStore';
-import { usePairings, pairNameOf } from '@/lib/pairLink';
+import { usePairings, pairIdOf, pairNameOf } from '@/lib/pairLink';
+import { useFollowWorld } from '@/lib/worldStore';
 
 export default function BackupDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -27,6 +28,7 @@ export default function BackupDetailPage() {
   const { st: boardSet } = useBoardSettings(); // 환경설정 > 게시판 관리 설정
 
   const p = findBackupByRef(posts, id);
+  useFollowWorld(p && pairIdOf(p, rels));   // 세계 페어의 글이면 그 세계 디자인으로 (lib/worldStore.ts)
   const nos = backupNos(posts);
   /* 이전·다음 글 (v2.0 사용자 요청) — 목록과 같은 순서·같은 소속(섹션)·볼 수 있는 글만 */
   const sibs = p ? posts.filter(x => (x.secId ?? MAIN_SEC) === (p.secId ?? MAIN_SEC)

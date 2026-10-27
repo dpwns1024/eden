@@ -26,6 +26,7 @@ import { ColorField } from '@/components/ui/ColorField';
 import { CropEditor, CropImg, CropValue } from '@/components/ui/CropEditor';
 import { useToast } from '@/components/ui/Toast';
 import { GUARD_SNIPPET } from '@/components/shell/ContentGuard';
+import { useFollowWorld } from '@/lib/worldStore';
 
 /** 로그 렌더 프레임 — 대형 문서도 안정적으로 로드되도록 srcdoc 대신 Blob URL 사용 */
 function LogFrame({ frameRef, html, title, onFrameLoad }: {
@@ -121,6 +122,7 @@ export default function TrpgDetailPage() {
   // 접근권한 (4.3) — 관리자 / 공개범위 충족 / 비밀번호 입력자 /
   // 연동 자관의 상대방(멤버 캐릭터에 권한이 부여된 회원)은 무조건 열람 (3차 회원-캐릭터 연결, v1.9)
   const logRel = rels.find(r => r.id === l?.relId);
+  useFollowWorld(l?.relId);   // 세계 페어의 로그면 그 세계 디자인으로 (lib/worldStore.ts)
   const isRelPartner = !!user && !!logRel && logRel.members.some(m => {
     const ch = allChars.find(c => c.id === m.charId);
     return ch ? !!charGrant(ch, user.id) : false;
