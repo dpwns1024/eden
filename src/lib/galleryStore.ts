@@ -37,7 +37,8 @@ export interface BackupPost {
   thumbCrop?: CropValue;     // 대표(첫) 이미지의 썸네일 크롭 (6.1)
   phList: string[];          // 데모 플레이스홀더
   desc: string;
-  category: string;          // 말머리
+  category: string;          // 말머리 (예전 글 — 이제는 relId로 페어링을 고른다, lib/pairLink.ts)
+  relId?: string;            // 페어링 연동 (v2.0 사용자 요청 — 탭 · 뱃지)
   madeDate?: string;         // 제작일 (선택)
   date: string;
   author: string;

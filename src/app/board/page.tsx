@@ -1,5 +1,5 @@
 'use client';
-// 일반 게시판 목록 (4.2 / 5.2 다중 게시판) — 말머리 필터 · 검색 · 비밀글 마스킹 · 접기 표시 · 페이지네이션
+// 일반 게시판 목록 (4.2 / 5.2 다중 게시판) — 페어링 탭 · 검색 · 비밀글 마스킹 · 접기 표시 · 페이지네이션
 // ?b=<게시판 id> 로 게시판 구분 (없으면 기본 게시판) · 리스트 스킨: 기본형 / 티켓형 (5.2 v1.9)
 import React, { Suspense, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -14,6 +14,7 @@ import {
 import { SearchBar, Pager } from '@/components/ui/Kit';
 import { CropImg } from '@/components/ui/CropEditor';
 import { EditableDesc, PageTitle } from '@/components/ui/PageText';
+import { usePairings, pairIdOf, pairNameOf, pairTabs, inPairTab, NO_PAIR } from '@/lib/pairLink';
 
 const PER_PAGE = 10;
 
@@ -37,21 +38,24 @@ function BoardInner() {
   const [cmtRows] = useLocalList<CommentRow>(COMMENT_KEY, COMMENT_SEED);
   const cmtCount = (p: Post) => commentsFor(cmtRows, 'post', p.id, p.comments).length;
   const { st: boardSet } = useBoardSettings();   // 시스템 뱃지 색 (환경설정 > 게시판 관리)
-  const [cat, setCat] = useState('전체');
+  // 탭 (v2.0 사용자 요청 — 말머리 대신 PAIRING 게시판의 페어로, FIELD REPORT와 같은 방식).
+  // 'all' · 'notice'(공지) · 페어링 id · NO_PAIR(페어링 없음)
+  const [cat, setCat] = useState('all');
+  const rels = usePairings();
   const [q, setQ] = useState('');
   const [page, setPage] = useState(1);
 
   // 게시판 전환 시 필터·페이지 초기화
   const [prevBid, setPrevBid] = useState(bid);
-  if (prevBid !== bid) { setPrevBid(bid); setCat('전체'); setQ(''); setPage(1); }
+  if (prevBid !== bid) { setPrevBid(bid); setCat('all'); setQ(''); setPage(1); }
 
   // 권한 3단계 — mock 단계에선 로그인 전제 (로드뷰 4.10과 동일 규칙)
   const allow = (p: BoardPerm) => (p === 'admin' ? isAdmin : p === 'member' ? !!user : true);
 
   const visible = useMemo(() => {
     let list = posts.filter(p => (p.boardId ?? MAIN_BOARD_ID) === board.id);
-    if (cat === '공지') list = list.filter(p => p.notice);
-    else if (cat !== '전체') list = list.filter(p => p.category === cat);
+    if (cat === 'notice') list = list.filter(p => p.notice);
+    else list = list.filter(p => inPairTab(cat, pairIdOf(p, rels)));
     if (q) {
       const k = q.toLowerCase();
       list = list.filter(p =>
@@ -63,7 +67,7 @@ function BoardInner() {
     // 공지 상단 고정 + 최신순
     return list.sort((a, b) =>
       (b.notice ? 1 : 0) - (a.notice ? 1 : 0) || b.date.localeCompare(a.date));
-  }, [posts, board.id, cat, q]);
+  }, [posts, board.id, cat, q, rels]);
 
   const totalPages = Math.max(1, Math.ceil(visible.length / PER_PAGE));
   const pageList = visible.slice((page - 1) * PER_PAGE, page * PER_PAGE);
@@ -73,11 +77,21 @@ function BoardInner() {
 
   if (!boardsLoaded) return <section className="page page-arch page-board" />;
 
-  const postBadge = (p: Post) => (
-    <span className="b-badge" style={boardBadgeStyle(badgeFor(boardSet, p, board.cats))}>
-      {p.notice ? boardSet.system[0].label : p.secret ? boardSet.system[1].label : p.category}
-    </span>
-  );
+  // 뱃지 — 공지 · 비밀 · 페어링 이름 (말머리 색 설정에 같은 이름이 있으면 그 색)
+  const postBadge = (p: Post) => {
+    const pair = pairNameOf(p, rels);
+    const label = p.notice ? boardSet.system[0].label : p.secret ? boardSet.system[1].label : pair;
+    return label ? (
+      <span className="b-badge" style={boardBadgeStyle(badgeFor(boardSet, { ...p, category: pair }, board.cats))}>{label}</span>
+    ) : null;
+  };
+  const inBoard = posts.filter(p => (p.boardId ?? MAIN_BOARD_ID) === board.id);
+  const { tabs: pairs, none: noPair } = pairTabs(inBoard, rels, p => pairIdOf(p, rels));
+  const tabList = [
+    { k: 'all', label: '전체' }, { k: 'notice', label: '공지' },
+    ...pairs.map(r => ({ k: r.id, label: r.name })),
+    ...(noPair > 0 && pairs.length > 0 ? [{ k: NO_PAIR, label: '기타' }] : []),
+  ];
 
   return (
     <section className="page page-arch page-board">
@@ -87,8 +101,8 @@ function BoardInner() {
       </div>
       <div className="toolrow">
         <div className="seg">
-          {['전체', '공지', ...board.cats.map(x => x.label)].map(c => (
-            <button key={c} className={cat === c ? 'on' : ''} onClick={() => { setCat(c); setPage(1); }}>{c}</button>
+          {tabList.map(c => (
+            <button key={c.k} className={cat === c.k ? 'on' : ''} onClick={() => { setCat(c.k); setPage(1); }}>{c.label}</button>
           ))}
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>

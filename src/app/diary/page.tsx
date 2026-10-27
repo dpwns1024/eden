@@ -1,6 +1,6 @@
 'use client';
 // 다이어리 (4.14) — 카드 목록 (v2.0 사용자 선택 · JOURNAL 시안 B): 큰 날짜 · 무드색 띠 · 첫 사진 · 세 줄 미리보기,
-// 누르면 그 카드가 한 줄을 다 차지하며 그 자리에서 펼쳐진다 · 무드 필터 · 페이지네이션 · 공개범위(비공개는 관리자만)
+// 누르면 그 카드가 한 줄을 다 차지하며 그 자리에서 펼쳐진다 · 페어링 탭 · 페이지네이션 · 공개범위(비공개는 관리자만)
 // 오른쪽: 미니 달력(일기 쓴 날 무드색 점, 누르면 그 일기) + 달별 보관함
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -14,6 +14,7 @@ import { ConfirmModal } from '@/components/ui/Modal';
 import { Lightbox } from '@/components/ui/Lightbox';
 import { BlobImg } from '@/lib/blobStore';
 import { EditableDesc, PageTitle } from '@/components/ui/PageText';
+import { usePairings, pairIdOf, pairNameOf, pairTabs, inPairTab, NO_PAIR } from '@/lib/pairLink';
 
 const PAGE_SIZE = 12;   // 카드 3열 × 4줄
 const WD = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -43,8 +44,8 @@ function plain(md: string) {
   return renderBody('md', md).replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\s+/g, ' ').trim();
 }
 
-function DiaryCard({ p, mood, opened, isAdmin, onToggle, onImg, onEdit, onDel }: {
-  p: DiaryPost; mood?: Mood; opened: boolean; isAdmin: boolean;
+function DiaryCard({ p, mood, pair, opened, isAdmin, onToggle, onImg, onEdit, onDel }: {
+  p: DiaryPost; mood?: Mood; pair: string; opened: boolean; isAdmin: boolean;
   onToggle: () => void; onImg: (ids: string[], idx: number) => void; onEdit: () => void; onDel: () => void;
 }) {
   const ex = useMemo(() => plain(p.body), [p.body]);
@@ -78,7 +79,7 @@ function DiaryCard({ p, mood, opened, isAdmin, onToggle, onImg, onEdit, onDel }:
         </>
       ) : ex && <p className="dy-ex" onClick={onToggle}>{ex}</p>}
       <div className="dy-cf" onClick={onToggle}>
-        <span style={{ color }}>{mood ? `${mood.icon} ${mood.name}` : ''}</span>
+        <span style={{ color }}>{[mood && `${mood.icon} ${mood.name}`, pair].filter(Boolean).join(' · ')}</span>
         <span>{opened ? 'CLOSE ‹' : 'READ ›'}</span>
       </div>
     </article>
@@ -96,7 +97,10 @@ function DiaryPageInner() {
   const setPosts = sectionSetter(postsAll, sec.id, setPostsAll);
   const [moods] = useLocalList<Mood>('ohome.moods.v1', MOOD_SEED);
   const [open, setOpen] = useState<string | null>(null);
-  const [fMood, setFMood] = useState('all');
+  // 페어링 탭 (v2.0 사용자 요청 — 무드 대신 PAIRING 게시판의 페어로, FIELD REPORT와 같은 방식).
+  // 'all' · 페어링 id · NO_PAIR(페어링 없음)
+  const [fPair, setFPair] = useState('all');
+  const rels = usePairings();
   const [q] = useState('');   // 검색 칸은 없앴다 (v2.0 사용자 요청) — 걸러 내는 자리는 그대로 둔다
   const [page, setPage] = useState(1);
   const [delFor, setDelFor] = useState<DiaryPost | null>(null);
@@ -125,7 +129,7 @@ function DiaryPageInner() {
   const canSee = (p: DiaryPost) => isAdmin || (p.visibility === 'public' || (p.visibility === 'member' && !!user));
   const visible = posts
     .filter(canSee)
-    .filter(p => fMood === 'all' || p.moodId === fMood)
+    .filter(p => inPairTab(fPair, pairIdOf(p, rels)))
     .filter(p => !query || p.title.toLowerCase().includes(query))
     .filter(p => !monthFilter || p.date.startsWith(monthKey))
     .sort((a, b) => b.date.localeCompare(a.date));
@@ -149,30 +153,34 @@ function DiaryPageInner() {
   const archMap = new Map<string, number>();
   posts.filter(canSee).forEach(p => { const k = p.date.slice(0, 7); if (/^\d{4}-\d{2}$/.test(k)) archMap.set(k, (archMap.get(k) ?? 0) + 1); });
   const archive = [...archMap.entries()].sort((a, b) => b[0].localeCompare(a[0])).slice(0, 12);
-  const cnt = (mid: string) => posts
-    .filter(p => isAdmin || (p.visibility === 'public' || (p.visibility === 'member' && !!user)))
-    .filter(p => mid === 'all' || p.moodId === mid).length;
+  const seeable = posts.filter(canSee);
+  const { tabs: pairs, none: noPair } = pairTabs(seeable, rels, p => pairIdOf(p, rels));
 
   return (
     <section className="page page-arch page-diary">
       <div className="page-head">
         <PageTitle>{sec.id === 'main' ? 'DIARY' : sec.name}</PageTitle>
-        <EditableDesc k="diary-desc" def="무드 일기 — 클릭하면 그 자리에서 펼쳐집니다" />
+        <EditableDesc k="diary-desc" def="페어링별 일기 — 클릭하면 그 자리에서 펼쳐집니다" />
       </div>
 
-      {/* 무드 필터 + 달 필터 표시 + WRITE — 필터 줄 오른쪽 정렬 (v1.9 사용자 요청 · 검색 칸은 v2.0에 뺐다).
+      {/* 페어링 탭 + 달 필터 표시 + WRITE — 필터 줄 오른쪽 정렬 (v1.9 사용자 요청 · 검색 칸은 v2.0에 뺐다).
           그리드 밖(풀폭): 캘린더가 일기 패널과 같은 높이에서 시작 */}
       <div className="toolrow" style={{ marginBottom: 16 }}>
         {/* ARCH에선 목차 탭 줄 모양 (v2.0 사용자 요청 — globals.css .arch-tabbar) */}
         <div className="tag-row arch-tabbar">
-          <div className={`tag ${fMood === 'all' ? 'on' : ''}`} onClick={() => { setFMood('all'); setPage(1); }}>
-            전체 <small>{cnt('all')}</small>
+          <div className={`tag ${fPair === 'all' ? 'on' : ''}`} onClick={() => { setFPair('all'); setPage(1); }}>
+            전체 <small>{seeable.length}</small>
           </div>
-          {moods.map(m => (
-            <div key={m.id} className={`tag ${fMood === m.id ? 'on' : ''}`} onClick={() => { setFMood(m.id); setPage(1); }}>
-              <span style={{ color: m.color }}>{m.icon}</span> {m.name} <small>{cnt(m.id)}</small>
+          {pairs.map(r => (
+            <div key={r.id} className={`tag ${fPair === r.id ? 'on' : ''}`} onClick={() => { setFPair(r.id); setPage(1); }}>
+              {r.name} <small>{r.n}</small>
             </div>
           ))}
+          {noPair > 0 && pairs.length > 0 && (
+            <div className={`tag ${fPair === NO_PAIR ? 'on' : ''}`} onClick={() => { setFPair(NO_PAIR); setPage(1); }}>
+              기타 <small>{noPair}</small>
+            </div>
+          )}
           {monthFilter && (
             <div className="tag on" onClick={() => { setMonthFilter(false); setPage(1); }}
               data-tip="달 필터 해제">
@@ -190,7 +198,7 @@ function DiaryPageInner() {
       <div>
       <div className="dy-cards">
         {shown.map(p => (
-          <DiaryCard key={p.id} p={p} mood={moodOf(p.moodId)} opened={open === p.id} isAdmin={isAdmin}
+          <DiaryCard key={p.id} p={p} mood={moodOf(p.moodId)} pair={pairNameOf(p, rels)} opened={open === p.id} isAdmin={isAdmin}
             onToggle={() => setOpen(o => (o === p.id ? null : p.id))}
             onImg={(ids, idx) => setLb({ srcs: ids, idx })}
             onEdit={() => router.push(`/diary/${p.id}/edit`)}
