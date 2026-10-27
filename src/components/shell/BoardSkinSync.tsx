@@ -1,9 +1,8 @@
 'use client';
-// 게시판 디자인(lib/boardSkin.ts)을 <html> 클래스로 — ARCH면 `ui-arch`, 쓰는 글꼴(Jost·JetBrains Mono)도 함께 불러 둔다.
-// 페어별 홈 (lib/worldStore.ts) — YJHM 세계면 ARCH 대신 `ui-yjhm` (components/world/yjhm.css)
+// 게시판 디자인(lib/boardSkin.ts — ARCH 고정)을 <html> 클래스로 — 늘 `ui-arch`, 쓰는 글꼴(Jost·JetBrains Mono)도 함께 불러 둔다.
+// 페어별 홈 (lib/worldStore.ts) — YJHM 세계면 그 위에 `ui-yjhm`을 더한다 (components/world/yjhm.css)
 import { useEffect } from 'react';
-import { BOARD_UI_KEY, boardSkin } from '@/lib/boardSkin';
-import { onSettingChange } from '@/lib/settingStore';
+import { boardSkin } from '@/lib/boardSkin';
 import { currentWorld, onWorldChange } from '@/lib/worldStore';
 import '@/components/world/yjhm.css';
 
@@ -23,9 +22,8 @@ export function BoardSkinSync() {
       }
     };
     apply();
-    const off = onSettingChange(k => { if (k === BOARD_UI_KEY) apply(); });
     const offW = onWorldChange(apply);
-    return () => { off(); offW(); document.documentElement.classList.remove('ui-arch', 'ui-yjhm'); };
+    return () => { offW(); document.documentElement.classList.remove('ui-arch', 'ui-yjhm'); };
   }, []);
   return null;
 }
