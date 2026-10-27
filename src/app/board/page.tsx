@@ -14,7 +14,8 @@ import {
 import { SearchBar, Pager } from '@/components/ui/Kit';
 import { CropImg } from '@/components/ui/CropEditor';
 import { EditableDesc, PageTitle } from '@/components/ui/PageText';
-import { usePairings, pairIdOf, pairNameOf, pairTabs, inPairTab, NO_PAIR } from '@/lib/pairLink';
+import { pairIdOf, pairNameOf, pairTabs, inPairTab, NO_PAIR } from '@/lib/pairLink';
+import { useWorldFilter } from '@/lib/worldStore';
 
 const PER_PAGE = 10;
 
@@ -41,7 +42,8 @@ function BoardInner() {
   // 탭 (v2.0 사용자 요청 — 말머리 대신 PAIRING 게시판의 페어로, FIELD REPORT와 같은 방식).
   // 'all' · 'notice'(공지) · 페어링 id · NO_PAIR(페어링 없음)
   const [cat, setCat] = useState('all');
-  const rels = usePairings();
+  // 페어별 홈 (lib/worldStore.ts) — 다른 세계 페어의 글은 숨긴다
+  const { rels, show } = useWorldFilter();
   const [q, setQ] = useState('');
   const [page, setPage] = useState(1);
 
@@ -53,7 +55,7 @@ function BoardInner() {
   const allow = (p: BoardPerm) => (p === 'admin' ? isAdmin : p === 'member' ? !!user : true);
 
   const visible = useMemo(() => {
-    let list = posts.filter(p => (p.boardId ?? MAIN_BOARD_ID) === board.id);
+    let list = posts.filter(p => (p.boardId ?? MAIN_BOARD_ID) === board.id && show(p));
     if (cat === 'notice') list = list.filter(p => p.notice);
     else list = list.filter(p => inPairTab(cat, pairIdOf(p, rels)));
     if (q) {
@@ -67,7 +69,7 @@ function BoardInner() {
     // 공지 상단 고정 + 최신순
     return list.sort((a, b) =>
       (b.notice ? 1 : 0) - (a.notice ? 1 : 0) || b.date.localeCompare(a.date));
-  }, [posts, board.id, cat, q, rels]);
+  }, [posts, board.id, cat, q, rels, show]);
 
   const totalPages = Math.max(1, Math.ceil(visible.length / PER_PAGE));
   const pageList = visible.slice((page - 1) * PER_PAGE, page * PER_PAGE);
@@ -85,7 +87,7 @@ function BoardInner() {
       <span className="b-badge" style={boardBadgeStyle(badgeFor(boardSet, { ...p, category: pair }, board.cats))}>{label}</span>
     ) : null;
   };
-  const inBoard = posts.filter(p => (p.boardId ?? MAIN_BOARD_ID) === board.id);
+  const inBoard = posts.filter(p => (p.boardId ?? MAIN_BOARD_ID) === board.id && show(p));
   const { tabs: pairs, none: noPair } = pairTabs(inBoard, rels, p => pairIdOf(p, rels));
   const tabList = [
     { k: 'all', label: '전체' }, { k: 'notice', label: '공지' },

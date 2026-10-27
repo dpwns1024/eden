@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useAppPathname } from '@/lib/routeAlias';
 import { useSiteFooter } from '@/lib/htmlPageStore';
 import { useHtmlSlots, stripScripts } from '@/components/main/HtmlSlots';
+import { useWorld } from '@/lib/worldStore';
 
 export function SiteFooter() {
   const pathname = useAppPathname();
@@ -14,7 +15,10 @@ export function SiteFooter() {
   const html = stripScripts(footer).trim();
   const ref = useRef<HTMLDivElement>(null);
   const slots = useHtmlSlots(ref, [html, pathname, mounted]);
-  if (!mounted || !pathname || pathname === '/' || !html) return null;
+  const { world } = useWorld();   // 페어별 홈 (lib/worldStore.ts) — YJHM이면 ARCH 공통 하단 대신 YJHM 푸터
+  if (!mounted || !pathname || pathname === '/') return null;
+  if (world === 'yjhm') return <div className="yj-head-wrap"><footer className="yj-foot">© YJHM · our ordinary days</footer></div>;
+  if (!html) return null;
   return (
     <>
       <div ref={ref} className="site-foot-html" dangerouslySetInnerHTML={{ __html: html }} />

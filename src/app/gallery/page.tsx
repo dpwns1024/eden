@@ -14,7 +14,8 @@ import { EditableDesc, PageTitle } from '@/components/ui/PageText';
 import { useBoardSettings, boardBadgeStyle } from '@/lib/boardStore';
 import { useMainStore } from '@/lib/mainStore';
 import { useCardSort, mergeOrder } from '@/lib/cardSort';
-import { usePairings, pairIdOf, pairNameOf, pairTabs, inPairTab, NO_PAIR } from '@/lib/pairLink';
+import { pairIdOf, pairNameOf, pairTabs, inPairTab, NO_PAIR } from '@/lib/pairLink';
+import { useWorldFilter } from '@/lib/worldStore';
 
 const FOLD_LABEL = { spoiler: '스포일러', adult: '수위 주의' };
 
@@ -31,7 +32,8 @@ function BackupPageInner() {
   // 페어링 탭 (v2.0 사용자 요청 — 말머리 대신 PAIRING 게시판의 페어로, FIELD REPORT와 같은 방식).
   // 'all' · 페어링 id · NO_PAIR(페어링 없음)
   const [fCat, setFCat] = useState<string>('all');
-  const rels = usePairings();
+  // 페어별 홈 (lib/worldStore.ts) — 다른 세계 페어의 글은 숨긴다
+  const { rels, show } = useWorldFilter();
 
   const { st: boardSet } = useBoardSettings();
 
@@ -75,6 +77,7 @@ function BackupPageInner() {
   const [unveiled, setUnveiled] = useState<Record<string, boolean>>({});
 
   const readable = posts
+    .filter(show)
     .filter(p => isAdmin || p.visibility === 'public' || (p.visibility === 'member' && user));
   // 탭 — 글이 있는 페어링만 PAIRING 목록 순서대로. 페어링 없는 글이 있으면 끝에 ETC
   const pidOf = (p: BackupPost) => pairIdOf(p, rels);

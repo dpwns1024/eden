@@ -35,6 +35,7 @@ import { CroppedBlobImg, CropEditor, type CropValue } from '@/components/ui/Crop
 import { Lightbox } from '@/components/ui/Lightbox';
 import { useToast } from '@/components/ui/Toast';
 import { PageTitle, EditableDesc } from '@/components/ui/PageText';
+import { useFollowWorld } from '@/lib/worldStore';
 
 /** 전신 이미지 — 비율 유지, 하단 정렬, 크기 %는 자관 수정 미리보기에서 지정 (v1.9) */
 // 전신 그림자는 「그림자 직접 지정」의 색·강도를 따른다 (v2.0 사용자 요청) — 자관명 그림자와 같은 설정
@@ -401,6 +402,7 @@ export default function RelDetailPage() {
 
   // 별명 주소로도 열린다 (v2.0 사용자 요청 — 주소를 나중에 바꿔도 옛 주소가 살아 있게)
   const rel = findByKey(rels, id);
+  useFollowWorld(rel?.id);   // EVEDEN · YJHM 페어 페이지면 그 세계 디자인으로 (lib/worldStore.ts)
   /* 다음 페어 (v2.0 사용자 요청 — 캐릭터 페이지의 NEXT처럼). 목록과 같은 순서·같은 공개 범위에서 고른다 */
   const relSibs = rels.filter(r => isAdmin || r.visibility !== 'private');
   const relIdx = rel ? relSibs.findIndex(r => r.id === rel.id) : -1;

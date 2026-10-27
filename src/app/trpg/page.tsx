@@ -25,6 +25,7 @@ import { OrderMenu, orderNoOf, moveToOrder } from '@/components/ui/OrderMenu';
 import { useBoardSkin } from '@/lib/boardSkin';
 import { hasLogPw, logPwOnServer, setLogPassword } from '@/lib/logLock';
 import { logPath, normalizeLogSlug } from '@/lib/logPath';
+import { useWorldFilter } from '@/lib/worldStore';
 
 function TrpgPageInner() {
   const router = useRouter();
@@ -49,6 +50,8 @@ function TrpgPageInner() {
   // listHidden으로 느슨해졌는데, 본문까지 같이 있으면 그 질의로 본문도 함께 새어 나간다
   const [bodies, setBodies] = useLocalList<TrpgLogBody>('ohome.trpgbody.v1', TRPG_BODY_SEED);
   const [rels] = useLocalList<Relation>('ohome.rels.v1', REL_SEED);
+  // 페어별 홈 (lib/worldStore.ts) — 다른 세계 페어의 로그는 숨긴다
+  const { showPid } = useWorldFilter();
   const { editOn } = useMainStore();          // 편집모드 — 상단바 토글 (다른 목록과 공통)
   const [filter, setFilter] = useState<string>('all');
   const [skin, setSkin] = useState<'ticket' | 'basic'>('ticket');
@@ -93,9 +96,9 @@ function TrpgPageInner() {
 
   const counts = useMemo(() => {
     const m: Record<string, number> = {};
-    logs.forEach(l => { const k = l.relId ?? 'none'; m[k] = (m[k] ?? 0) + 1; });
+    logs.filter(l => showPid(l.relId)).forEach(l => { const k = l.relId ?? 'none'; m[k] = (m[k] ?? 0) + 1; });
     return m;
-  }, [logs]);
+  }, [logs, showPid]);
 
   // 목록에는 나만보기만 빼고 다 뜬다 — 나만보기는 관리자 목록에만 (v2.0 사용자 요청 · 「목록에서 숨기기」 칸은 없앴다).
   // 서버도 같은 기준이다: 목록 문서의 listHidden을 「나만보기인가」로 저장해(metaOf) 방문자 질의에 아예 안 나온다.
@@ -103,6 +106,7 @@ function TrpgPageInner() {
   const canOpen = (l: TrpgLog) => isAdmin || l.visibility === 'public' || (l.visibility === 'member' && !!user);
   const visible = logs
     .filter(l => isAdmin || l.visibility !== 'private')
+    .filter(l => showPid(l.relId))
     .filter(l => filter === 'all' || (filter === 'none' ? !l.relId : l.relId === filter))
     .filter(l => !q || l.title.includes(q) || l.writer.includes(q) || l.withText.includes(q));
   // 정렬 기준은 저장된 순서 — 편집모드에서 드래그로 바꾼 순서가 그대로 목록에 반영된다 (v2.0).
@@ -363,7 +367,7 @@ function TrpgPageInner() {
           {/* ARCH에선 영어로 (v2.0 사용자 요청) */}
           <h4>{arch ? 'PAIRING FILTER' : '자관 필터'}</h4>
           <div className={`tag ${filter === 'all' ? 'on' : ''}`} onClick={() => setFilter('all')}>
-            {arch ? 'ALL' : '전체'} <small>{logs.length}</small>
+            {arch ? 'ALL' : '전체'} <small>{logs.filter(l => showPid(l.relId)).length}</small>
           </div>
           {rels.filter(r => counts[r.id]).map(r => (
             <div key={r.id} className={`tag ${filter === r.id ? 'on' : ''}`} onClick={() => setFilter(r.id)}>

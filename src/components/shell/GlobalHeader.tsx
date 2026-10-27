@@ -10,6 +10,8 @@ import { useToast } from '@/components/ui/Toast';
 import { useMainZoom } from '@/lib/useMainZoom';
 import { useSiteHeader } from '@/lib/htmlPageStore';
 import { useHtmlSlots, stripScripts } from '@/components/main/HtmlSlots';
+import { useWorld } from '@/lib/worldStore';
+import { YjhmHeader } from '@/components/world/YjhmHeader';
 
 const EDITABLE = ['banner', 'menu_pc', 'menu'];
 
@@ -34,10 +36,13 @@ export function GlobalHeader() {
   const headHtml = stripScripts(siteHead).trim();
   const headRef = useRef<HTMLDivElement>(null);
   const headSlots = useHtmlSlots(headRef, [headHtml, pathname, mounted]);
+  const { world } = useWorld();   // 페어별 홈 (lib/worldStore.ts) — YJHM이면 ARCH 공통 상단 대신 YJHM 머리
 
   if (!mounted || !pathname || pathname === '/' || pathname === '') {
     return null;
   }
+
+  if (world === 'yjhm') return <div className="yj-head-wrap"><YjhmHeader /></div>;
 
   if (headHtml) {
     return (

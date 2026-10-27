@@ -14,7 +14,8 @@ import { ConfirmModal } from '@/components/ui/Modal';
 import { Lightbox } from '@/components/ui/Lightbox';
 import { BlobImg } from '@/lib/blobStore';
 import { EditableDesc, PageTitle } from '@/components/ui/PageText';
-import { usePairings, pairIdOf, pairNameOf, pairTabs, inPairTab, NO_PAIR } from '@/lib/pairLink';
+import { pairIdOf, pairNameOf, pairTabs, inPairTab, NO_PAIR } from '@/lib/pairLink';
+import { useWorldFilter } from '@/lib/worldStore';
 
 const PAGE_SIZE = 12;   // 카드 3열 × 4줄
 const WD = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -100,7 +101,8 @@ function DiaryPageInner() {
   // 페어링 탭 (v2.0 사용자 요청 — 무드 대신 PAIRING 게시판의 페어로, FIELD REPORT와 같은 방식).
   // 'all' · 페어링 id · NO_PAIR(페어링 없음)
   const [fPair, setFPair] = useState('all');
-  const rels = usePairings();
+  // 페어별 홈 (lib/worldStore.ts) — 다른 세계 페어의 일기는 숨긴다 (목록 · 달력 · 보관함 모두)
+  const { rels, show } = useWorldFilter();
   const [q] = useState('');   // 검색 칸은 없앴다 (v2.0 사용자 요청) — 걸러 내는 자리는 그대로 둔다
   const [page, setPage] = useState(1);
   const [delFor, setDelFor] = useState<DiaryPost | null>(null);
@@ -126,7 +128,7 @@ function DiaryPageInner() {
 
   const query = q.trim().toLowerCase();
   const monthKey = `${view.y}-${String(view.m + 1).padStart(2, '0')}`;
-  const canSee = (p: DiaryPost) => isAdmin || (p.visibility === 'public' || (p.visibility === 'member' && !!user));
+  const canSee = (p: DiaryPost) => show(p) && (isAdmin || (p.visibility === 'public' || (p.visibility === 'member' && !!user)));
   const visible = posts
     .filter(canSee)
     .filter(p => inPairTab(fPair, pairIdOf(p, rels)))
