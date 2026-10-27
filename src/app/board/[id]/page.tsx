@@ -17,6 +17,7 @@ import { Modal, ConfirmModal } from '@/components/ui/Modal';
 import { GuestIdBar } from '@/components/ui/GuestId';
 import { useToast } from '@/components/ui/Toast';
 import { PageTitle } from '@/components/ui/PageText';
+import { usePairings, pairNameOf } from '@/lib/pairLink';
 
 const FOLD_LABEL = { spoiler: '스포일러 주의', adult: '수위 주의' };
 
@@ -28,6 +29,7 @@ export default function BoardDetailPage() {
   const [posts, setPosts, loaded] = useLocalList<Post>('ohome.board.v1', BOARD_SEED);
   const [cmtRows, setCmtRows] = useLocalList<CommentRow>(COMMENT_KEY, COMMENT_SEED);
   const { boards } = useBoards();                  
+  const rels = usePairings();   // 머리 줄의 페어링 이름 (v2.0 사용자 요청 — 말머리 대신)
   const [open, setOpen] = useState(false);         
   const [cmt, setCmt] = useState('');
   const [replyTo, setReplyTo] = useState<string | null>(null);
@@ -121,6 +123,7 @@ export default function BoardDetailPage() {
   }
 
   const isAuthor = !!post.authorId && post.authorId === user?.id;
+  const pairName = pairNameOf(post, rels);
   if (post.secret && !isAdmin && !isAuthor) {
     return (
       <section className="page page-arch page-board-detail">
@@ -184,7 +187,7 @@ export default function BoardDetailPage() {
     <section className="page page-arch page-board-detail">
       <div className="page-head">
         <PageTitle href={boardHref(board.id)}>{boardTitle}</PageTitle>
-        <p>{post.notice ? '공지 · ' : `${post.category} · `}{post.author} · {fmtDate(post.date)}</p>
+        <p>{post.notice ? '공지 · ' : pairName ? `${pairName} · ` : ''}{post.author} · {fmtDate(post.date)}</p>
         <div className="head-actions">
           {isAuthor && (
             <button className="btn btn-dark" onClick={() => router.push(`/board/write?edit=${post.id}`)}>EDIT</button>

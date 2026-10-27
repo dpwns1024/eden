@@ -1,14 +1,14 @@
 'use client';
 // 그림백업 작성/수정 공용 폼 (4.11) — 제목/유형/이미지 다중 업로드(원본·최적화·크롭·⠿순서)/설명/설정/접기
 // 수정 모드: 기존 이미지(ref)는 그대로 유지·재정렬·삭제 가능, 새 파일 추가 가능
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useLocalList, newId, FoldType } from '@/lib/postStore';
 import { useSectionParam, secStamp, MAIN_SEC, useSectionTitle } from '@/lib/sectionStore';
 import { BackupPost, BACKUP_SEED, backupNos, backupPath, freezeBackupNos } from '@/lib/galleryStore';
 import { normalizeLogSlug } from '@/lib/logPath';
-import { useBoardSettings, DEFAULT_GALLERY_CATS, galleryCatsOf } from '@/lib/boardStore';
+import { usePairings, pairIdOf, pairOptions, NO_PAIR } from '@/lib/pairLink';
 import { useConfirmDelete } from '@/components/ui/Modal';
 import { Visibility } from '@/lib/charStore';
 import { KInput, KSelect, KRadio, KCheck, KDate } from '@/components/ui/Kit';
@@ -66,25 +66,15 @@ export function BackupForm({ initial }: { initial: BackupPost | null }) {
     })));
   const [desc, setDesc] = useState(initial?.desc ?? '');
   const del = useConfirmDelete();   // 이미지 제거도 되돌릴 수 없어 경고를 거친다
-  // 갤러리 말머리 — 환경설정 > 게시판 관리에서 관리 (v2.0)
-  const { st: boardSet } = useBoardSettings();
-  /* **수정 중이면 그 글이 속한 곳이 기준이다** (v2.0 사용자 발견 — 포크 사용자 제보).
-     수정 주소에는 `?s=`가 없어서 주소만 보면 늘 기본 섹션으로 읽힌다. 그러면 분류 목록이
-     기본 섹션 것으로 바뀌어, 원래 고른 분류가 목록에 없으니 첫 항목으로 풀려 버린다. */
-  const secId = initial ? (initial.secId ?? MAIN_SEC) : sec.id;
-  // 갤러리마다 말머리가 다르다 (v2.0 사용자 요청) — 보고 있는 갤러리 것을 쓴다
-  const secCats = galleryCatsOf(boardSet, secId);
-  const galleryCats = secCats.length ? secCats : DEFAULT_GALLERY_CATS;
-  const [category, setCategory] = useState(initial?.category ?? '');
+  // 페어링 (v2.0 사용자 요청 — 갤러리마다 만들던 말머리 대신 PAIRING 게시판의 페어를 고른다).
+  // 고르기 전에는 글의 페어링(예전 글은 말머리 글자가 페어링 이름과 같으면 그 페어링)
+  const rels = usePairings();
+  const [pickedRel, setRelId] = useState<string>();
+  const relId = pickedRel ?? (initial && pairIdOf(initial, rels)) ?? NO_PAIR;
   // 태그 (v2.0 사용자 요청) — 쉼표로 구분해 입력, 저장할 때 배열로
   const [tagsText, setTagsText] = useState((initial?.tags ?? []).join(', '));
   const parseTags = (v: string) =>
     [...new Set(v.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean))];
-  // 목록이 로드되면 첫 말머리를 기본값으로 (등록 화면)
-  useEffect(() => {
-    if (!category && galleryCats[0]) setCategory(galleryCats[0].label);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [galleryCats.length]);
   const [madeDate, setMadeDate] = useState(initial?.madeDate ?? '');
   const [visibility, setVisibility] = useState<Visibility>(initial?.visibility ?? 'public');
   const [foldType, setFoldType] = useState<FoldType | 'none'>(initial?.fold?.type ?? 'none');
@@ -124,7 +114,7 @@ export function BackupForm({ initial }: { initial: BackupPost | null }) {
         no: Math.max(0, ...backupNos(base).values()) + 1, slug: slug || undefined,
         images: imageIds, phList: files.length ? [] : ['cool'],
         thumbCrop: files[0]?.crop, // 대표 이미지 크롭 (6.1)
-        desc, category, tags: parseTags(tagsText), madeDate: madeDate || undefined,
+        desc, category: '', relId: relId === NO_PAIR ? undefined : relId, tags: parseTags(tagsText), madeDate: madeDate || undefined,
         date: new Date().toISOString(), author: user.nickname, authorId: user.id,
         visibility,
         fold: foldType === 'none' ? null : { type: foldType, label: foldType === 'custom' ? foldLabel : undefined },
@@ -137,7 +127,7 @@ export function BackupForm({ initial }: { initial: BackupPost | null }) {
         ...x, title: title.trim(), type, slug: slug || undefined,
         images: imageIds, phList: files.length ? [] : x.phList,
         thumbCrop: files[0]?.crop,
-        desc, category, tags: parseTags(tagsText), madeDate: madeDate || undefined, visibility,
+        desc, category: '', relId: relId === NO_PAIR ? undefined : relId, tags: parseTags(tagsText), madeDate: madeDate || undefined, visibility,
         fold: foldType === 'none' ? null : { type: foldType, label: foldType === 'custom' ? foldLabel : undefined },
       } : x);
       setPosts(next);
@@ -230,10 +220,9 @@ export function BackupForm({ initial }: { initial: BackupPost | null }) {
           <div className="panel widget" style={{ marginBottom: 14 }}>
             <h4>설정</h4>
             <div className="form-row">
-              <label className="k-label" style={{ width: 70 }}>말머리</label>
-              {/* 말머리 목록은 환경설정 > 게시판 관리에서 관리 (v2.0 — 예전에는 코드에 박혀 있었다) */}
-              <KSelect minWidth={120} value={category} onChange={setCategory}
-                options={galleryCats.map(c => ({ value: c.label, label: c.label }))} />
+              <label className="k-label" style={{ width: 70 }}>페어링</label>
+              {/* PAIRING 게시판에 올라온 페어 (v2.0 — 목록 탭도 이걸로 나뉜다) */}
+              <KSelect minWidth={120} value={relId} onChange={setRelId} options={pairOptions(rels)} />
             </div>
             {/* 태그 (v2.0 사용자 요청) — 목록·카드에 나열되고 검색에 걸린다 */}
             <div className="form-row">

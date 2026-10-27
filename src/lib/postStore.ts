@@ -66,7 +66,8 @@ export interface Post {
   /** 무엇으로 썼는지 (v2.0) — 에디터로 쓴 글을 수정할 때 HTML 소스가 뜨지 않게 기억한다.
    *  렌더는 mode로 하고, 이 값은 수정 화면을 어떤 모드로 열지에만 쓴다. */
   authored?: 'editor';
-  category: string;      // 말머리
+  category: string;      // 말머리 (예전 글 — 이제는 relId로 페어링을 고른다, lib/pairLink.ts)
+  relId?: string;        // 페어링 연동 (v2.0 사용자 요청 — 목록 탭 · 뱃지)
   author: string;
   authorId: string;
   date: string;          // ISO

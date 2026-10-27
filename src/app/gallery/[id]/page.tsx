@@ -13,12 +13,14 @@ import { sanitizeHtml } from '@/lib/sanitize';
 import { PageTitle } from '@/components/ui/PageText';
 import { Lightbox } from '@/components/ui/Lightbox';
 import { useBoardSettings, boardBadgeStyle } from '@/lib/boardStore';
+import { usePairings, pairNameOf } from '@/lib/pairLink';
 
 export default function BackupDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { user, isAdmin } = useAuth();
   const [posts, setPosts, loaded] = useLocalList<BackupPost>('ohome.backup.v1', BACKUP_SEED);
+  const rels = usePairings();   // 제목 옆 페어링 뱃지 (v2.0 사용자 요청 — 말머리 대신)
   const [cur, setCur] = useState(0);
   const [delAsk, setDelAsk] = useState(false);
   const [lbOpen, setLbOpen] = useState(false); // 단일형 — 클릭 확대 보기
@@ -117,15 +119,15 @@ export default function BackupDetailPage() {
       </div>
 
       <div className="panel" style={{ padding: 20, maxWidth: 960, margin: '0 auto' }}>
-        {/* 제목 옆에 갤러리 유형(단일) 대신 말머리(p.category) 뱃지와 설정한 색상 노출 */}
+        {/* 제목 옆에 갤러리 유형(단일) 대신 페어링 뱃지 (v2.0 — 말머리 대신 PAIRING의 페어) */}
         <h2 className="g-title" style={{ fontSize: 18, marginBottom: p.desc ? 8 : 16, display: 'flex', alignItems: 'center', gap: 8 }}>
           {p.title}
-          {p.category && (
-            <span className="g-badge" style={getPrefixStyle(p.category)}>
-              {p.category}
+          {pairNameOf(p, rels) && (
+            <span className="g-badge" style={getPrefixStyle(pairNameOf(p, rels))}>
+              {pairNameOf(p, rels)}
             </span>
           )}
-          {/* 태그는 말머리 옆 (v2.0 사용자 요청) */}
+          {/* 태그는 페어링 옆 (v2.0 사용자 요청) */}
           {(p.tags ?? []).map(t => <i key={t} className="tag-in g-tag">#{t}</i>)}
         </h2>
         {p.desc && (

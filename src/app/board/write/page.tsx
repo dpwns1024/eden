@@ -12,6 +12,7 @@ import { CropEditor, CropImg, CropValue } from '@/components/ui/CropEditor';
 import { RichEditor } from '@/components/ui/RichEditor';
 import { useToast } from '@/components/ui/Toast';
 import { PageTitle, EditableDesc } from '@/components/ui/PageText';
+import { usePairings, pairIdOf, pairOptions, NO_PAIR } from '@/lib/pairLink';
 
 function WriteInner() {
   const router = useRouter();
@@ -27,10 +28,12 @@ function WriteInner() {
   const [title, setTitle] = useState('');
   const [writeMode, setWriteMode] = useState<'editor' | 'md' | 'html'>('editor'); // 에디터가 기본
   const [body, setBody] = useState('');
-  const [category, setCategory] = useState('');
-  // 말머리 기본값 — 게시판별 목록(5.2) 로드 후 첫 항목
-  React.useEffect(() => { if (!category && board.cats[0]) setCategory(board.cats[0].label); // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [board.cats.length]);
+  // 페어링 (v2.0 사용자 요청 — 게시판마다 만들던 말머리 대신 PAIRING 게시판의 페어를 고른다).
+  // 고르기 전에는 고치는 글의 페어링(예전 글은 말머리 글자가 페어링 이름과 같으면 그 페어링)
+  const rels = usePairings();
+  const [pickedRel, setRelId] = useState<string>();
+  const relId = pickedRel ?? (editing && pairIdOf(editing, rels)) ?? NO_PAIR;
+  const relOut = relId === NO_PAIR ? undefined : relId;
   const [secret, setSecret] = useState(false);
   const [notice, setNotice] = useState(false);
   // 태그 (v2.0 사용자 요청) — 쉼표로 구분해 입력, 저장할 때 배열로
@@ -66,7 +69,6 @@ function WriteInner() {
     // 에디터로 쓴 글은 에디터로 다시 연다 — 예전에는 무조건 HTML 소스가 떠서
     // 에디터로 쓴 글을 수정하면 갑자기 태그가 보였다 (authored 없는 옛 글은 지금까지대로 HTML)
     setWriteMode(p.mode === 'md' ? 'md' : (p.authored === 'editor' ? 'editor' : 'html'));
-    setCategory(p.category);
     setSecret(p.secret); setNotice(p.notice);
     setFoldType(p.fold?.type ?? 'none'); setFoldLabel(p.fold?.label ?? '');
     setTagsText((p.tags ?? []).join(', '));
@@ -94,7 +96,7 @@ function WriteInner() {
         title: title.trim(), body,
         mode: writeMode === 'md' ? 'md' : 'html',
         authored: writeMode === 'editor' ? 'editor' : undefined,
-        category,
+        category: '', relId: relOut,
         secret, notice: isAdmin ? notice : p.notice,
         tags: parseTags(tagsText),
         fold: foldType === 'none' ? null : { type: foldType, label: foldType === 'custom' ? foldLabel : undefined },
@@ -106,7 +108,7 @@ function WriteInner() {
     }
     const p: Post = {
       id: newId(), title: title.trim(), body,
-      mode: writeMode === 'md' ? 'md' : 'html', category,
+      mode: writeMode === 'md' ? 'md' : 'html', category: '', relId: relOut,
       author: user.nickname, authorId: user.id, date: new Date().toISOString(),
       secret, notice: isAdmin && notice,
       tags: parseTags(tagsText),
@@ -187,9 +189,8 @@ function WriteInner() {
           <div className="panel widget" style={{ marginBottom: 14 }}>
             <h4>설정</h4>
             <div className="form-row">
-              <label className="k-label" style={{ width: 60 }}>말머리</label>
-              <KSelect minWidth={130} value={category} onChange={setCategory}
-                options={board.cats.map(x => ({ value: x.label, label: x.label }))} placeholder='말머리 선택' />
+              <label className="k-label" style={{ width: 60 }}>페어링</label>
+              <KSelect minWidth={130} value={relId} onChange={setRelId} options={pairOptions(rels)} />
             </div>
             {/* 태그 (v2.0 사용자 요청) — 목록의 작성자 왼쪽에 나열되고 검색에 걸린다 */}
             <div className="form-row">

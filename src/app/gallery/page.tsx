@@ -1,6 +1,6 @@
 'use client';
 // EditableDesc 주입
-// 그림백업게시판 (4.11) — 그리드 보기 고정 · 말머리 탭 · 로그/단일 뱃지 · 접기 썸네일 블러 (v2.0 — 리스트 보기는 뺐다)
+// 그림백업게시판 (4.11) — 그리드 보기 고정 · 페어링 탭 · 로그/단일 뱃지 · 접기 썸네일 블러 (v2.0 — 리스트 보기는 뺐다)
 import React, { Suspense, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
@@ -14,6 +14,7 @@ import { EditableDesc, PageTitle } from '@/components/ui/PageText';
 import { useBoardSettings, boardBadgeStyle } from '@/lib/boardStore';
 import { useMainStore } from '@/lib/mainStore';
 import { useCardSort, mergeOrder } from '@/lib/cardSort';
+import { usePairings, pairIdOf, pairNameOf, pairTabs, inPairTab, NO_PAIR } from '@/lib/pairLink';
 
 const FOLD_LABEL = { spoiler: '스포일러', adult: '수위 주의' };
 
@@ -27,8 +28,10 @@ function BackupPageInner() {
   const posts = filterSection(postsAll, sec.id);
   const setPosts = sectionSetter(postsAll, sec.id, setPostsAll);
 
-  // 말머리 탭 (v2.0 사용자 요청 — FIELD REPORT 페어링 탭처럼). 'all' · 말머리 · '' (말머리 없음)
+  // 페어링 탭 (v2.0 사용자 요청 — 말머리 대신 PAIRING 게시판의 페어로, FIELD REPORT와 같은 방식).
+  // 'all' · 페어링 id · NO_PAIR(페어링 없음)
   const [fCat, setFCat] = useState<string>('all');
+  const rels = usePairings();
 
   const { st: boardSet } = useBoardSettings();
 
@@ -73,13 +76,12 @@ function BackupPageInner() {
 
   const readable = posts
     .filter(p => isAdmin || p.visibility === 'public' || (p.visibility === 'member' && user));
-  // 탭 — 목록에 나온 순서대로 말머리를 모은다. 말머리 없는 글이 있으면 끝에 ETC
-  const cats: string[] = [];
-  readable.forEach(p => { const c = p.category ?? ''; if (c && !cats.includes(c)) cats.push(c); });
-  const catCount = (c: string) => readable.filter(p => (p.category ?? '') === c).length;
-  const noCat = catCount('');
-  useEffect(() => { if (fCat !== 'all' && !catCount(fCat)) setFCat('all'); });   // 고른 말머리 글이 사라지면 전체로
-  const visible = fCat === 'all' ? readable : readable.filter(p => (p.category ?? '') === fCat);
+  // 탭 — 글이 있는 페어링만 PAIRING 목록 순서대로. 페어링 없는 글이 있으면 끝에 ETC
+  const pidOf = (p: BackupPost) => pairIdOf(p, rels);
+  const { tabs: cats, none: noCat } = pairTabs(readable, rels, pidOf);
+  const tabOn = fCat === 'all' || (fCat === NO_PAIR ? noCat > 0 : cats.some(c => c.id === fCat));
+  useEffect(() => { if (!tabOn) setFCat('all'); });   // 고른 페어링 글이 사라지면 전체로
+  const visible = readable.filter(p => inPairTab(fCat, pidOf(p)));
 
   const sort = useCardSort(visible, next => setPosts(mergeOrder(posts, next)), editOn && isAdmin);
 
@@ -96,21 +98,21 @@ function BackupPageInner() {
     <section className="page page-arch page-gallery">
       <div className="page-head">
         <PageTitle>{sec.id === 'main' ? 'GALLERY' : sec.name}</PageTitle>
-        <EditableDesc k="backup-desc" def="로그형(웹툰 스크롤) / 단일형(좌우 넘김) · 말머리별로 나눠 보기" />
+        <EditableDesc k="backup-desc" def="로그형(웹툰 스크롤) / 단일형(좌우 넘김) · 페어링별로 나눠 보기" />
       </div>
       <div className="toolrow">
-        {/* 말머리 탭 — ARCH에선 목차 탭 줄 모양 (globals.css .arch-tabbar · JOURNAL · FIELD REPORT와 같은 모양) */}
+        {/* 페어링 탭 — ARCH에선 목차 탭 줄 모양 (globals.css .arch-tabbar · JOURNAL · FIELD REPORT와 같은 모양) */}
         <div className="tag-row arch-tabbar">
           <div className={`tag ${fCat === 'all' ? 'on' : ''}`} onClick={() => setFCat('all')}>
             {arch ? 'ALL' : '전체'} <small>{readable.length}</small>
           </div>
           {cats.map(c => (
-            <div key={c} className={`tag ${fCat === c ? 'on' : ''}`} onClick={() => setFCat(c)}>
-              {c} <small>{catCount(c)}</small>
+            <div key={c.id} className={`tag ${fCat === c.id ? 'on' : ''}`} onClick={() => setFCat(c.id)}>
+              {c.name} <small>{c.n}</small>
             </div>
           ))}
           {noCat > 0 && cats.length > 0 && (
-            <div className={`tag ${fCat === '' ? 'on' : ''}`} onClick={() => setFCat('')}>
+            <div className={`tag ${fCat === NO_PAIR ? 'on' : ''}`} onClick={() => setFCat(NO_PAIR)}>
               {arch ? 'ETC' : '기타'} <small>{noCat}</small>
             </div>
           )}
@@ -124,6 +126,7 @@ function BackupPageInner() {
           {paged.map((p, si) => {
             const i = start + si;
             const folded = p.fold && !unveiled[p.id];
+            const pair = pairNameOf(p, rels);
             return (
               <div key={p.id} className="panel g-item" {...sort(i)}
                 onClick={() => { if (!folded && !editOn) router.push(backupPath(p, nos)); }}>
@@ -140,12 +143,12 @@ function BackupPageInner() {
                     </div>
                   )}
                 </div>
-                {/* 제목 칸 — 말머리는 제목 옆, 아래엔 태그만 (장수·날짜·작성자는 표시하지 않음, v2.0 사용자 요청) */}
+                {/* 제목 칸 — 페어링은 제목 옆, 아래엔 태그만 (장수·날짜·작성자는 표시하지 않음, v2.0 사용자 요청) */}
                 <div className="info">
                   <div className="g-head">
                     <b>{p.title}</b>
-                    {p.category && <span className="typ" style={getPrefixStyle(p.category)}>{p.category}</span>}
-                    {/* 태그는 말머리 옆 (v2.0 사용자 요청) */}
+                    {pair && <span className="typ" style={getPrefixStyle(pair)}>{pair}</span>}
+                    {/* 태그는 페어링 옆 (v2.0 사용자 요청) */}
                     {(p.tags ?? []).map(t => <i key={t} className="tag-in">#{t}</i>)}
                   </div>
                 </div>
