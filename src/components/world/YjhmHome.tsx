@@ -3,11 +3,12 @@
  * YJHM 메인 화면 (lib/worldStore.ts) — 국가대표 사격선수 × 통역사 · 현대 일상 · 달달 로맨스.
  * 「The Shooting Daily」 트랙 1면 (사용자 확정 시안 「R2 트랙 1면」 — R1 트랙 리스트 무드).
  *  속보 띠 → 외곽선 DAILY 제호 + 스티커 → 알약 메뉴 → 크기가 다른 칸을 맞물린 격자
- *  (머리기사 01 · TRACKS · 점수 · TICKET · 화보 · 페어 · 말풍선 녹취 · 수첩/리스트/투고) → 포토카드 → 대형 DAILY 푸터.
- * 칸은 모두 실제 글이다 — PAIRING의 YJHM 페어와 그 페어로 쓴 글(FIELD REPORT · 갤러리 · JOURNAL · 리스트)과 방명록.
- * 글마다 TRACK 번호(.01 · .02 …)를 최근 순으로 매기고, 어느 칸에 실려도 같은 번호를 단다. 모양은 yjhm.css.
+ *  (머리기사 01 + 기사 본문 · 점수 · TICKET · 화보 · 페어 · 말풍선 녹취 · 수첩/리스트/투고) → 포토카드 → 대형 DAILY 푸터.
+ * 머리기사 01은 관리자가 정한 그림 · 제목 · 본문을 고정해 싣는다 (lib/yjhmFrontStore — 이 자리에서 바로 편집).
+ * 나머지 칸은 실제 글이다 — PAIRING의 YJHM 페어와 그 페어로 쓴 글(FIELD REPORT · 갤러리 · JOURNAL · 리스트)과 방명록.
+ * 글마다 TRACK 번호(.02 · .03 …)를 최근 순으로 매기고, 어느 칸에 실려도 같은 번호를 단다. 모양은 yjhm.css.
  */
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
 import { useLocalList, BOARD_SEED, GUEST_SEED, Post, GuestEntry } from '@/lib/postStore';
@@ -17,7 +18,13 @@ import { DiaryPost, DIARY_SEED } from '@/lib/diaryStore';
 import { logPath } from '@/lib/logPath';
 import { usePairings, pairIdOf } from '@/lib/pairLink';
 import { relOfWorld } from '@/lib/worldStore';
+import { useYjhmFront, YjhmFront } from '@/lib/yjhmFrontStore';
+import { putBlob } from '@/lib/blobStore';
 import { CroppedBlobImg, CropValue } from '@/components/ui/CropEditor';
+import { RichEditor } from '@/components/ui/RichEditor';
+import { HtmlBody } from '@/components/ui/HtmlBody';
+import { KInput } from '@/components/ui/Kit';
+import { useToast } from '@/components/ui/Toast';
 import { YjhmHeader } from './YjhmHeader';
 
 type Kind = 'REPORT' | 'GALLERY' | 'JOURNAL' | 'LIST';
@@ -47,11 +54,64 @@ const two = (n: number) => String(n).padStart(2, '0');
 /** 「취재 수첩 · 10.17」 — 날짜가 없는 글은 칸 이름만 */
 const desk = (s: Story) => [DESK[s.kind], md(s.date)].filter(Boolean).join(' · ');
 
-/** 별 딱지 (머리기사) — 톱니 별 */
-const BURST = Array.from({ length: 40 }, (_, i) => {
-  const r = i % 2 ? 46 : 60, a = (Math.PI * i) / 20 - Math.PI / 2;
-  return `${(60 + r * Math.cos(a)).toFixed(1)},${(60 + r * Math.sin(a)).toFixed(1)}`;
-}).join(' ');
+/** 머리기사 01 — 왼쪽은 고정 그림 · 오른쪽은 기사 본문. 관리자는 이 자리에서 바로 고친다 */
+function Cover({ rel, members }: { rel?: { name: string; arts?: string[]; thumbId?: string; thumbCrop?: CropValue }; members: string[] }) {
+  const { isAdmin } = useAuth();
+  const toast = useToast();
+  const [doc, save, loaded] = useYjhmFront();
+  const [draft, setDraft] = useState<YjhmFront | null>(null);
+  const [busy, setBusy] = useState(false);
+  const cur = draft ?? doc;
+  const img = cur.img ?? rel?.arts?.[0] ?? rel?.thumbId;
+  const title = cur.title?.trim() || rel?.name || 'YJHM';
+  const upload = async (f?: File) => {
+    if (!f || !draft) return;
+    setBusy(true);
+    try { const ref = await putBlob(f); setDraft(d => d && { ...d, img: ref }); } catch (e) { toast(`올리지 못했습니다 — ${e instanceof Error ? e.message : ''}`); }
+    setBusy(false);
+  };
+  const done = () => { if (draft) save(draft); setDraft(null); toast('저장되었습니다'); };
+
+  return (
+    <>
+      <article className="yj-lead yj-box">
+        <Dots className="yj-lead-pic" img={img} crop={cur.img ? undefined : rel?.thumbCrop} alt={`${title} 대표 그림`} />
+        <b className="yj-lead-no" aria-hidden="true">01</b>
+        <div className="yj-lead-cap">
+          <span className="yj-kicker yj-blk">{cur.kicker?.trim() || 'COVER STORY'}</span>
+          <h1><span>{title}</span></h1>
+        </div>
+      </article>
+
+      <section className="yj-box yj-paper yj-story" aria-label="머리기사 본문">
+        <div className="yj-story-h">
+          <dl>
+            <dt>Filed by |</dt><dd>YJHM 편집국</dd>
+            <dt>Featuring |</dt><dd>{members.length ? members.join(', ') : 'SHOOTER × INTERPRETER'}</dd>
+          </dl>
+          {isAdmin && !draft && <button type="button" className="yj-pill" onClick={() => setDraft({ ...doc })}>✎ 편집</button>}
+        </div>
+        {draft ? (
+          <div className="yj-story-edit">
+            <label>대표 그림
+              <input type="file" accept="image/*" disabled={busy} onChange={e => upload(e.target.files?.[0])} />
+            </label>
+            {busy && <small>올리는 중…</small>}
+            <label>딱지<KInput value={draft.kicker ?? ''} placeholder="COVER STORY" onChange={e => setDraft({ ...draft, kicker: e.target.value })} /></label>
+            <label>제목<KInput value={draft.title ?? ''} placeholder={rel?.name ?? 'YJHM'} onChange={e => setDraft({ ...draft, title: e.target.value })} /></label>
+            <RichEditor value={draft.html} onChange={html => setDraft(d => d && { ...d, html })} placeholder="기사 본문" />
+            <div className="yj-story-btns">
+              <button type="button" className="yj-pill yj-blk" disabled={busy} onClick={done}>저장</button>
+              <button type="button" className="yj-pill" onClick={() => setDraft(null)}>취소</button>
+            </div>
+          </div>
+        ) : loaded && !doc.html.trim() ? (
+          <p className="yj-faint">{isAdmin ? '아직 기사 본문이 없습니다 — 오른쪽 위 ✎ 편집으로 그림과 본문을 정해 주세요' : '기사 본문을 준비 중입니다'}</p>
+        ) : <HtmlBody html={doc.html} className="html-body yj-story-body" />}
+      </section>
+    </>
+  );
+}
 
 /** 망점으로 인쇄된 사진 — 이미지가 없으면 망점 자리만 */
 function Dots({ img, crop, label, alt, className }: { img?: string; crop?: CropValue; label?: string; alt?: string; className?: string }) {
@@ -106,15 +166,13 @@ export function YjhmHome() {
     text: plain(p.body), img: p.thumbSrc, crop: p.thumbCrop,
   })).sort(byDate);
   // 머리기사(01) — 가장 최근의 사진 있는 글, 없으면 가장 최근 글. 나머지는 최근 순으로 02, 03 …
-  const recent = [...reports, ...photos, ...journal, ...notes].sort(byDate);
-  const lead = recent.find(s => s.img) ?? recent[0];
-  const all = lead ? [lead, ...recent.filter(s => s !== lead)] : recent;
-  const trackOf = new Map(all.map((s, i) => [s, `.${two(i + 1)}`]));
+  // 01은 고정 머리기사 — 글은 최근 순으로 02, 03 …
+  const all = [...reports, ...photos, ...journal, ...notes].sort(byDate);
+  const trackOf = new Map(all.map((s, i) => [s, `.${two(i + 2)}`]));
   const track = (s: Story) => trackOf.get(s) ?? '';
-  const tracks = all.slice(1, 6);
-  // TICKET — 머리기사가 아닌 가장 최근 취재 수첩(없으면 리스트) · 화보 칸 — 머리기사가 아닌 가장 최근 화보
-  const ticket = journal.find(s => s !== lead) ?? notes.find(s => s !== lead);
-  const feature = photos.find(s => s !== lead);
+  // TICKET — 가장 최근 취재 수첩(없으면 리스트) · 화보 칸 — 가장 최근 화보
+  const ticket = journal[0] ?? notes[0];
+  const feature = photos[0];
   const letters = guest.filter(g => !g.secret).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
 
   const members = (rel?.members ?? []).map(m => ({ m, c: chars.find(c => c.id === m.charId) })).filter((x): x is { m: RelMember; c: Character } => !!x.c);
@@ -134,45 +192,8 @@ export function YjhmHome() {
 
       <div className="yj-wrap">
         <div className="yj-grid">
-          {/* 머리기사 01 */}
-          <article className="yj-lead yj-box">
-            <Dots className="yj-lead-pic" img={lead?.img ?? rel?.arts?.[0] ?? rel?.thumbId} crop={lead?.img ? lead.crop : rel?.thumbCrop}
-              alt={lead ? `${lead.title} 대표 사진` : '페어 대표 그림'} />
-            <b className="yj-lead-no" aria-hidden="true">01</b>
-            {lead && (
-              <span className="yj-burst" role="img" aria-label={lead.date ? `${md(lead.date)} 발행` : '새 기사'}>
-                <svg viewBox="0 0 120 120" aria-hidden="true"><polygon points={BURST} /></svg>
-                <b>NEW{lead.date && <><br />{md(lead.date)}</>}</b>
-              </span>
-            )}
-            <div className="yj-lead-cap">
-              <span className="yj-kicker yj-blk">{lead ? `${DESK_EN[lead.kind]}${lead.kind === 'REPORT' ? ' · 단독' : ''}` : '창간 준비호'}</span>
-              <h1>{lead ? <Link href={lead.href}><span>{lead.title}</span></Link> : <span>{rel?.name ?? 'YJHM'}</span>}</h1>
-            </div>
-          </article>
-
-          <div className="yj-side">
-            <section className="yj-box yj-paper yj-credit" aria-label="머리기사 크레딧">
-              <dl>
-                <dt>Filed by |</dt><dd>{lead ? [DESK[lead.kind], lead.date.slice(0, 10).replace(/-/g, '.')].filter(Boolean).join(' · ') : 'YJHM 편집국'}</dd>
-                <dt>Featuring |</dt><dd>{members.length ? members.map(x => x.c.name).join(', ') : 'SHOOTER × INTERPRETER'}</dd>
-                <dt>Venue |</dt><dd>{rel?.name ?? 'THE SHOOTING DAILY'}</dd>
-              </dl>
-              <p>{lead?.text ? cut(lead.text, 160) : rel?.catchphrase || (lead ? `${DESK[lead.kind]} 「${lead.title}」 — 기사 전문에서 이어집니다` : rel ? '아직 이 페어로 쓴 글이 없습니다' : 'PAIRING 게시판에 「YJHM」 페어를 올리면 이 지면이 채워집니다')}</p>
-              {lead && <Link className="yj-pill yj-blk" href={lead.href}>기사 전문 ↗</Link>}
-            </section>
-
-            <section className="yj-box yj-tracks" aria-label="이번 호 수록 기사">
-              <div className="yj-tracks-h"><h2>TRACKS</h2><span>이번 호 수록 기사</span></div>
-              {tracks.length ? tracks.map(s => (
-                <Link key={`${s.kind}-${s.id}`} href={s.href}>
-                  <b className="yj-tno">{track(s)}</b>
-                  <span><b>{s.title}</b> <small>{desk(s)}</small></span>
-                  <i aria-hidden="true">↗</i>
-                </Link>
-              )) : <p className="yj-faint">아직 실린 기사가 없습니다</p>}
-            </section>
-          </div>
+          {/* 머리기사 01 — 관리자가 정한 그림 · 제목 · 기사 본문 */}
+          <Cover rel={rel} members={members.map(x => x.c.name)} />
 
           {/* 점수판 — 경기 기록 */}
           <section className="yj-score yj-blk" aria-label="경기 기록">
