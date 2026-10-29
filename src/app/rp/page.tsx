@@ -48,7 +48,7 @@ export default function RpPage() {
   const [chars] = useLocalList<Character>('ohome.chars.v1', CHAR_SEED);
   const [rels] = useLocalList<Relation>('ohome.rels.v1', REL_SEED);
   // 페어별 홈 (lib/worldStore.ts) — 다른 세계 페어의 채널은 숨긴다
-  const { showPid } = useWorldFilter();
+  const { showPid, world } = useWorldFilter();
   const [selId, setSelId] = useState<string | null>(null);
   /* 페어링별 탭 (v2.0 사용자 요청 — 상태(LIVE · ALL · CLOSED) 대신 FIELD REPORT처럼 페어링으로 나눈다).
      'all' · 페어링 id · 'none'(페어링 없는 채널) */
@@ -483,7 +483,7 @@ ${rows}
             </>
           ) : (
             <div style={{ display: 'grid', placeItems: 'center', flex: 1 }}>
-              <p className="hint">{cw('채널을 열거나 선택하면 교신 기록이 표시됩니다 — NO SIGNAL', '방을 개설하거나 선택하면 여기에 채팅이 표시됩니다')}</p>
+              <p className="hint">{world === 'yjhm' ? '채널을 열거나 선택하면 녹취록이 표시됩니다 — OFF THE RECORD' : cw('채널을 열거나 선택하면 교신 기록이 표시됩니다 — NO SIGNAL', '방을 개설하거나 선택하면 여기에 채팅이 표시됩니다')}</p>
             </div>
           )}
         </div>

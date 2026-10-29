@@ -5,6 +5,8 @@ import { useEffect } from 'react';
 import { boardSkin } from '@/lib/boardSkin';
 import { currentWorld, onWorldChange } from '@/lib/worldStore';
 import '@/components/world/yjhm.css';
+import '@/components/world/yjhmArch.gen.css';
+import '@/components/world/yjhmBoard.css';
 
 const FONT_ID = 'ui-arch-fonts';
 const FONT_URL = 'https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap';   // 인용구 딱지가 500

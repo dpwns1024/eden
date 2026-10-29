@@ -29,7 +29,7 @@ import { YjhmHeader } from './YjhmHeader';
 
 type Kind = 'REPORT' | 'GALLERY' | 'JOURNAL' | 'LIST';
 const DESK: Record<Kind, string> = { REPORT: '경기 기록', GALLERY: '화보', JOURNAL: '취재 수첩', LIST: '리스트' };
-const DESK_EN: Record<Kind, string> = { REPORT: 'FIELD REPORT', GALLERY: 'PHOTO', JOURNAL: 'JOURNAL', LIST: 'NOTES' };
+const DESK_EN: Record<Kind, string> = { REPORT: 'MATCH REPORT', GALLERY: 'PHOTO', JOURNAL: 'PRESS NOTE', LIST: 'NOTES' };   // 메뉴 이름(lib/yjhmNames.ts)과 같게
 
 interface Story {
   id: string; kind: Kind; title: string; date: string; href: string;
@@ -215,7 +215,7 @@ export function YjhmHome() {
 
           {/* 점수판 — 경기 기록 */}
           <section className="yj-score yj-blk" aria-label="경기 기록">
-            <div className="yj-score-h"><b>FIELD REPORT</b><Link href="/trpg">경기 기록 ↗</Link></div>
+            <div className="yj-score-h"><b>MATCH REPORT</b><Link href="/trpg">경기 기록 ↗</Link></div>
             <b className="yj-score-n">{two(reports.length)}<small>건</small></b>
             <div className="yj-score-l">
               {reports.length ? reports.slice(0, 3).map(s => (
@@ -288,7 +288,7 @@ export function YjhmHome() {
 
           {/* 취재 수첩 · 리스트 · 독자 투고 */}
           <section className="yj-list yj-box yj-paper" aria-label="취재 수첩">
-            <Head en="JOURNAL" ko="취재 수첩" href="/diary" />
+            <Head en="PRESS NOTE" ko="취재 수첩" href="/diary" />
             {journal.length ? journal.slice(0, 3).map(s => (
               <Link key={s.id} href={s.href}><time>{md(s.date)}</time><span>{s.title}</span></Link>
             )) : <p className="yj-faint">아직 실린 수첩이 없습니다</p>}

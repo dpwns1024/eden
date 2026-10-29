@@ -120,7 +120,7 @@ body:has(.yj-main)::before{display:none !important}
 
 /* 머리기사 01 */
 .yj-lead{position:relative;min-height:clamp(420px,50vw,680px);overflow:hidden}
-.yj-lead-pic{position:absolute;inset:0}
+.yj-lead-pic{position:absolute;inset:-1px}   /* 상자 안쪽을 1px 넘겨 깐다 — 모바일에서 그림 위 끝이 소수점 반올림으로 1px 떠 종이색 줄이 비쳤다 */
 .yj-lead-no{position:absolute;left:-10px;top:-46px;font:400 clamp(170px,23.4vw,300px)/1 var(--yj-black);color:transparent;-webkit-text-stroke:4px var(--yj-ac);pointer-events:none}
 .yj-lead-cap{position:absolute;left:0;right:0;bottom:0;padding:0 22px 22px;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
 .yj-kicker{padding:6px 12px;font:700 18px/1.2 var(--yj-narrow);letter-spacing:.12em}

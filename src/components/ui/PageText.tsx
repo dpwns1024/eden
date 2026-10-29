@@ -8,6 +8,8 @@ import { useAuth } from '@/lib/auth';
 import { useMenuSettings, pageTitleFor, menuLabelOf } from '@/lib/menuStore';
 import { canonSecKey } from '@/lib/sectionStore';
 import { refreshPage } from '@/lib/pageRefresh';
+import { useWorld } from '@/lib/worldStore';
+import { YJHM_PAGE } from '@/lib/yjhmNames';
 import { getRawSetting, setSetting } from '@/lib/settingStore';
 
 const STORAGE_KEY = 'ohome.pagetext.v1';
@@ -43,6 +45,9 @@ export function PageTitle({ children, href, style }: {
      알려 주는 경우로, 여기서도 메뉴에 적은 이름까지 끌어온다 (v2.0 사용자 제보 — 「추가한
      게시판의 상세로 가면 원래 페이지 제목이 뜬다」) */
   const isExtra = (h: string) => /[?&][sb]=/.test(h);
+  // YJHM 세계면 아는 주소는 신문 지면 이름으로 (lib/yjhmNames.ts) — 그 주소의 목록 · 상세 · 글쓰기 모두
+  const { world } = useWorld();
+  const yjName = world === 'yjhm' ? YJHM_PAGE[href ?? full] : undefined;
   const custom = href
     ? pageTitleFor(ms, href) ?? (isExtra(href) ? menuLabelOf(ms, href) : null)
     : full !== pathname
@@ -56,7 +61,7 @@ export function PageTitle({ children, href, style }: {
       if (t === pathname || t === full) refreshPage();   // 새로고침 아님 — 페이지만 처음 상태로 (v1.9)
       else router.push(t);
     }}>
-      {custom ?? children}
+      {yjName ?? custom ?? children}
     </h1>
   );
 }

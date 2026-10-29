@@ -51,7 +51,8 @@ function TrpgPageInner() {
   const [bodies, setBodies] = useLocalList<TrpgLogBody>('ohome.trpgbody.v1', TRPG_BODY_SEED);
   const [rels] = useLocalList<Relation>('ohome.rels.v1', REL_SEED);
   // 페어별 홈 (lib/worldStore.ts) — 다른 세계 페어의 로그는 숨긴다
-  const { showPid } = useWorldFilter();
+  const { showPid, world } = useWorldFilter();
+  const yj = world === 'yjhm';   // YJHM 세계 — 단말기 말투 대신 신문 지면 말투 (lib/yjhmNames.ts)
   const { editOn } = useMainStore();          // 편집모드 — 상단바 토글 (다른 목록과 공통)
   const [filter, setFilter] = useState<string>('all');
   const [skin, setSkin] = useState<'ticket' | 'basic'>('ticket');
@@ -308,8 +309,8 @@ function TrpgPageInner() {
             ? (
               <div className="panel fr-term">
                 <div className="fr-top">
-                  <span>ARCH://FIELD_REPORT — {visible.length} RECORD{visible.length === 1 ? '' : 'S'} FOUND</span>
-                  <span>ACCESS LEVEL: {isAdmin ? 'COMMAND' : user ? 'AGENT' : 'GUEST'}</span>
+                  <span>{yj ? `THE SHOOTING DAILY · MATCH REPORT — ${visible.length}건 수록` : `ARCH://FIELD_REPORT — ${visible.length} RECORD${visible.length === 1 ? '' : 'S'} FOUND`}</span>
+                  <span>{yj ? `PRESS PASS: ${isAdmin ? 'EDITOR' : user ? 'REPORTER' : 'READER'}` : `ACCESS LEVEL: ${isAdmin ? 'COMMAND' : user ? 'AGENT' : 'GUEST'}`}</span>
                 </div>
                 <DragList items={pageLogs} keyOf={l => l.id}
                   onReorder={reorderPage}
@@ -365,7 +366,7 @@ function TrpgPageInner() {
         {/* ARCH에선 PC · 폰 모두 목록 위 탭 줄로 — JOURNAL 무드 필터와 같은 모양 (v2.0 사용자 요청 · globals.css .arch-tabbar) */}
         <div className={`panel tagside${arch ? ' arch-tabbar' : ''}`}>
           {/* ARCH에선 영어로 (v2.0 사용자 요청) */}
-          <h4>{arch ? 'PAIRING FILTER' : '자관 필터'}</h4>
+          <h4>{yj ? 'MIXED TEAM' : arch ? 'PAIRING FILTER' : '자관 필터'}</h4>
           <div className={`tag ${filter === 'all' ? 'on' : ''}`} onClick={() => setFilter('all')}>
             {arch ? 'ALL' : '전체'} <small>{logs.filter(l => showPid(l.relId)).length}</small>
           </div>
