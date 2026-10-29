@@ -106,7 +106,7 @@ body:has(.yj-main)::before{display:none !important}
 .yj-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:18px}
 .yj-grid > *{min-width:0}
 .yj-lead,.yj-comms{grid-column:span 7}
-.yj-side,.yj-pair{grid-column:span 5}
+.yj-story,.yj-pair{grid-column:span 5}
 .yj-score,.yj-ticket,.yj-feature,.yj-list,.yj-letters{grid-column:span 4}
 
 /* 칸 머리 */
@@ -124,32 +124,26 @@ body:has(.yj-main)::before{display:none !important}
 .yj-lead{position:relative;min-height:clamp(420px,50vw,680px);overflow:hidden}
 .yj-lead-pic{position:absolute;inset:0}
 .yj-lead-no{position:absolute;left:-10px;top:-46px;font:400 clamp(170px,23.4vw,300px)/1 var(--yj-black);color:transparent;-webkit-text-stroke:4px var(--yj-ac);pointer-events:none}
-.yj-burst{position:absolute;right:26px;top:22px;width:132px;height:132px;transform:rotate(10deg)}
-.yj-burst svg{width:100%;height:100%;fill:var(--yj-ac)}
-.yj-burst b{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font:700 26px/.95 var(--yj-narrow);color:#f7f6f2}
 .yj-lead-cap{position:absolute;left:0;right:0;bottom:0;padding:0 22px 22px;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
 .yj-kicker{padding:6px 12px;font:700 18px/1.2 var(--yj-narrow);letter-spacing:.12em}
 .yj-lead h1{margin:0;max-width:100%;font:900 clamp(27px,3.9vw,50px)/1.32 var(--yj-sans);letter-spacing:-.03em;word-break:keep-all}
 .yj-lead h1 span{background:#f7f6f2;padding:2px 14px;box-shadow:5px 5px 0 var(--yj-ac);-webkit-box-decoration-break:clone;box-decoration-break:clone}
 
-/* 오른쪽 — 크레딧 · TRACKS */
-.yj-side{display:flex;flex-direction:column;gap:18px}
-.yj-credit{padding:22px 24px;display:flex;flex-direction:column;gap:12px}
-.yj-credit dl{margin:0;display:grid;grid-template-columns:104px minmax(0,1fr);gap:4px 0;font:700 15px/1.5 var(--yj-narrow)}
-.yj-credit dd{margin:0;font:500 15px/1.5 var(--yj-sans);word-break:keep-all}
-.yj-credit p{margin:0;font:400 16px/1.85 var(--yj-sans);word-break:keep-all}
-.yj-credit .yj-pill{align-self:flex-start}
-.yj-tracks{flex:1;display:flex;flex-direction:column}
-.yj-tracks-h{display:flex;justify-content:space-between;align-items:baseline;padding:14px 20px 10px;border-bottom:3px solid var(--yj-ac)}
-.yj-tracks-h h2{margin:0;font:400 30px/1 var(--yj-black);color:var(--yj-ac)}
-.yj-tracks-h span{font:900 14px/1 var(--yj-sans)}
-.yj-tracks > a{display:grid;grid-template-columns:56px minmax(0,1fr) 24px;gap:10px;align-items:center;min-height:54px;padding:6px 20px;border-bottom:1.5px dashed var(--yj-ln);box-sizing:border-box}
-.yj-tracks > a:last-child{border-bottom:0}
-.yj-tno{font:400 24px/1 var(--yj-black);color:var(--yj-ac)}
-.yj-tracks > a span{min-width:0;word-break:keep-all}
-.yj-tracks > a span b{font:900 16px/1.4 var(--yj-sans)}
-.yj-tracks > a small{font:700 12.5px/1 var(--yj-narrow);white-space:nowrap}
-.yj-tracks > a i{font:900 20px/1 var(--yj-sans);font-style:normal;color:var(--yj-ac)}
+/* 오른쪽 — 머리기사 본문 (관리자가 이 자리에서 편집) */
+.yj-story{padding:22px 24px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.yj-story-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding-bottom:12px;border-bottom:3px solid var(--yj-ac)}
+.yj-story-h dl{margin:0;display:grid;grid-template-columns:104px minmax(0,1fr);gap:4px 0;font:700 15px/1.5 var(--yj-narrow)}
+.yj-story-h dd{margin:0;font:500 15px/1.5 var(--yj-sans);word-break:keep-all}
+.yj-story-h .yj-pill{flex:none;background:transparent;color:var(--yj-ink);cursor:pointer}
+.yj-story-body{font:400 16px/1.85 var(--yj-sans);word-break:keep-all;overflow-wrap:anywhere}
+.yj-story-body img{max-width:100%;height:auto}
+.yj-story .yj-faint{padding:0}
+.yj-story-edit{display:flex;flex-direction:column;gap:10px}
+.yj-story-edit > label{display:flex;flex-direction:column;gap:4px;font:700 13px/1.3 var(--yj-sans)}
+.yj-story-edit > small{font:700 12.5px/1 var(--yj-narrow);color:var(--yj-faint)}
+.yj-story-btns{display:flex;gap:8px}
+.yj-story-btns .yj-pill{min-height:40px;padding:0 18px;cursor:pointer;background-color:transparent;color:var(--yj-ink)}
+.yj-story-btns .yj-pill.yj-blk{background-color:var(--yj-ac);color:#f7f6f2}
 
 /* 점수판 — 경기 기록 */
 .yj-score{padding:22px 24px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-height:300px;box-sizing:border-box}
@@ -236,20 +230,18 @@ body:has(.yj-main)::before{display:none !important}
 
 /* ── 줄어드는 화면 ── */
 @media (max-width:1099px){
-  .yj-lead,.yj-side,.yj-pair,.yj-comms{grid-column:1 / -1}
-  .yj-side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .yj-lead,.yj-story,.yj-pair,.yj-comms{grid-column:1 / -1}
   .yj-cards-row{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 @media (max-width:860px){
   .yj-strip{grid-template-columns:1fr auto}
   .yj-strip-mid{display:none}
-  .yj-side{display:flex}
   .yj-score,.yj-ticket{grid-column:span 6}
   .yj-feature{grid-column:1 / -1;min-height:320px}
   .yj-list{grid-column:span 6}
   .yj-letters{grid-column:1 / -1}
-  .yj-front .yj-menu,.yj-top .yj-menu{overflow-x:auto;scrollbar-width:none}
-  .yj-menu .oh-menu{flex-wrap:nowrap;white-space:nowrap}
+  /* 가로 스크롤(overflow)은 펼친 하위 메뉴 상자를 잘라 가렸다 (v2.0 사용자 제보) — 줄바꿈으로 감싼다 */
+  .yj-menu .oh-sub{z-index:60}
   .yj-top{grid-template-columns:1fr auto;grid-template-areas:"brand member" "menu menu";gap:10px}
   .yj-brand{grid-area:brand}.yj-top .yj-member{grid-area:member}.yj-top .yj-menu{grid-area:menu;justify-content:flex-start}
   .yj-top .yj-menu .oh-menu{justify-content:flex-start}
@@ -271,31 +263,26 @@ body:has(.yj-main)::before{display:none !important}
   .yj-deco-talk{right:-14px;top:-12px;width:24px}
   .yj-deco-phone{left:-6px;top:30px;width:20px}
   .yj-front .yj-menu{padding-top:12px;padding-bottom:18px}
-  .yj-menu .oh-menu{gap:8px}
-  .yj-menu .oh-item{padding:0 14px;font-size:14px}
+  /* 메뉴는 작게 (v2.0 사용자 요청) — 누를 자리는 36px 남긴다 */
+  .yj-front .yj-menu{min-height:0}
+  .yj-menu .oh-menu{gap:6px}
+  .yj-menu .oh-item{min-height:36px;padding:0 11px;gap:5px;font-size:12.5px;border-width:2px !important}
+  .yj-menu .oh-item::before{font-size:10px}
+  .yj-top .yj-menu .oh-item{min-height:34px;padding:0 10px;font-size:12px}
+  .yj-menu .oh-link{padding:9px 12px;font-size:12.5px}
+  .yj-story{padding:16px;gap:12px}
+  .yj-story-h dl{grid-template-columns:84px minmax(0,1fr);font-size:12.5px}
+  .yj-story-h dd{font-size:12.5px}
+  .yj-story-body{font-size:15px;line-height:1.8}
   .yj-grid{gap:14px}
   .yj-score,.yj-ticket{grid-column:span 6}
   .yj-list{grid-column:1 / -1}
   .yj-lead{min-height:420px}
   .yj-lead-no{left:-6px;top:-26px;-webkit-text-stroke-width:3px}
-  .yj-burst{right:12px;top:14px;width:90px;height:90px}
-  .yj-burst b{font-size:18px}
-  .yj-lead-cap{padding:0 12px 14px;gap:6px}
+      .yj-lead-cap{padding:0 12px 14px;gap:6px}
   .yj-kicker{padding:4px 10px;font-size:14px;letter-spacing:.1em}
   .yj-lead h1 span{padding:1px 10px;box-shadow:4px 4px 0 var(--yj-ac)}
-  .yj-credit{padding:16px}
-  .yj-credit dl{grid-template-columns:84px minmax(0,1fr);font-size:12.5px}
-  .yj-credit dd{font-size:12.5px}
-  .yj-credit p{font-size:15px;line-height:1.8}
   a.yj-pill.yj-blk{font-size:14px;padding:0 18px}
-  .yj-tracks-h{padding:10px 14px 8px}
-  .yj-tracks-h h2{font-size:24px}
-  .yj-tracks-h span{font-size:12px}
-  .yj-tracks > a{grid-template-columns:42px minmax(0,1fr) 18px;gap:8px;min-height:52px;padding:6px 14px}
-  .yj-tracks > a span{display:flex;flex-direction:column}
-  .yj-tracks > a span b{font-size:14.5px}
-  .yj-tracks > a small{font-size:11.5px}
-  .yj-tno{font-size:19px}
   .yj-score{padding:14px;min-height:170px}
   .yj-score-h{flex-direction:column;gap:0}
   .yj-score-h b{font-size:14px;letter-spacing:.1em}
