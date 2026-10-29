@@ -12,14 +12,8 @@ import { setMemberSlot, clearMemberSlot } from '@/lib/htmlSlots';
 /** YJHM 화면들이 쓰는 웹폰트 (Archivo Black · Archivo Narrow · Rubik Bubbles · Noto Sans KR) */
 const YJ_FONTS = 'https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo+Narrow:ital,wght@0,500;0,700;1,700&family=Rubik+Bubbles&family=Noto+Sans+KR:wght@400;500;700;900&display=swap';
 
-/** 스티커 옆 별 딱지 */
-const STAR = Array.from({ length: 10 }, (_, i) => {
-  const r = i % 2 ? 13 : 29, a = (Math.PI * i) / 5 - Math.PI / 2;
-  return `${(30 + r * Math.cos(a)).toFixed(1)},${(31 + r * Math.sin(a)).toFixed(1)}`;
-}).join(' ');
-
-/** front — 메인 1면 제호에 찍을 날짜 · 호수 · 스티커 이름 · 속보 띠 글 (없으면 한 줄 제호) */
-export function YjhmHeader({ front }: { front?: { date: string; issue: string; names: string[]; ticker: string[] } }) {
+/** front — 메인 1면 제호에 찍을 날짜 · 호수 · 속보 띠 글 (없으면 한 줄 제호) */
+export function YjhmHeader({ front }: { front?: { date: string; issue: string; ticker: string[] } }) {
   const memberRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = memberRef.current;
@@ -30,7 +24,6 @@ export function YjhmHeader({ front }: { front?: { date: string; issue: string; n
   const fonts = <link rel="stylesheet" href={YJ_FONTS} precedence="default" />;
 
   if (front) {
-    const [a, b] = front.names;
     // 띠는 끝없이 흐르도록 같은 글을 두 번 잇는다
     const run = front.ticker.map((t, i) => <span key={i}>{i ? `✦ ${t}` : t}</span>);
     return (
@@ -52,11 +45,25 @@ export function YjhmHeader({ front }: { front?: { date: string; issue: string; n
               <small>사 격 일 보<br />두 사람의 기록만 싣습니다</small>
             </span>
           </Link>
-          <div className="yj-sticker" style={{ '--yj-n': Math.max(3, a.length + (b ? 1 : 0), b?.length ?? 0) } as React.CSSProperties}
-            role="img" aria-label={`${a}${b ? ` × ${b}` : ''} 스티커`}>
-            <svg viewBox="0 0 60 60" aria-hidden="true"><polygon points={STAR} /></svg>
-            <b>{a}{b ? '×' : ''}</b>
-            {b && <b>{b}</b>}
+          {/* 스티커 — 영문 YJ× / HM 고정 (Rubik Bubbles에 한글이 없다) · 조준선 말풍선(통역 × 사격) · 과녁 마이크 헤드셋 딱지 */}
+          <div className="yj-sticker" role="img" aria-label="YJ × HM 스티커 — 조준선 말풍선과 통역 헤드셋 딱지">
+            <svg className="yj-deco yj-deco-talk" viewBox="0 0 84 76" aria-hidden="true">
+              <path d="M16 4h52a12 12 0 0 1 12 12v28a12 12 0 0 1-12 12H38l-14 14 3-14H16A12 12 0 0 1 4 44V16A12 12 0 0 1 16 4z" fill="#f2f1ec" stroke="#607ca0" strokeWidth="4.5" strokeLinejoin="round" />
+              <circle cx="42" cy="30" r="13" fill="none" stroke="#2c3e57" strokeWidth="3.5" />
+              <path d="M42 11v8M42 41v8M23 30h8M53 30h8" stroke="#2c3e57" strokeWidth="3.5" strokeLinecap="round" />
+              <circle cx="42" cy="30" r="4.5" fill="#607ca0" />
+            </svg>
+            <svg className="yj-deco yj-deco-spark" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#607ca0" strokeWidth="3" strokeLinecap="round"><path d="M4 12h5M15 12h5M12 4v5" /></svg>
+            <svg className="yj-deco yj-deco-phone" viewBox="0 0 80 84" aria-hidden="true">
+              <path d="M14 46a26 26 0 0 1 52 0" fill="none" stroke="#607ca0" strokeWidth="6" strokeLinecap="round" />
+              <rect x="6" y="40" width="16" height="24" rx="7" fill="#607ca0" stroke="#2c3e57" strokeWidth="3" />
+              <rect x="58" y="40" width="16" height="24" rx="7" fill="#607ca0" stroke="#2c3e57" strokeWidth="3" />
+              <path d="M14 64c0 10 8 14 18 14" fill="none" stroke="#2c3e57" strokeWidth="3.5" strokeLinecap="round" />
+              <circle cx="40" cy="77" r="6.5" fill="#f2f1ec" stroke="#2c3e57" strokeWidth="3" />
+              <circle cx="40" cy="77" r="2.5" fill="#607ca0" />
+            </svg>
+            <b>YJ×</b>
+            <b>HM</b>
             <small>SHOOTER × INTERPRETER</small>
           </div>
         </div>

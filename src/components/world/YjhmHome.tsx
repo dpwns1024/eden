@@ -122,7 +122,6 @@ export function YjhmHome() {
   const front = {
     date: `${now.getFullYear()}.${two(now.getMonth() + 1)}.${two(now.getDate())} ${['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][now.getDay()]}`,
     issue: String(all.length).padStart(4, '0'),
-    names: members.length ? members.map(x => x.c.name) : ['YJ', 'HM'],
     ticker: all.slice(0, 6).map((s, i) => `${i ? '' : 'BREAKING ✦ '}${s.title}`),
   };
   if (!front.ticker.length) front.ticker = ['BREAKING ✦ 창간 준비호', rel?.name ?? 'YJHM', '두 사람의 기록만 싣습니다'];
