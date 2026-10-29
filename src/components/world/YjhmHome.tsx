@@ -44,6 +44,8 @@ const cut = (s: string, n: number) => (s.length > n ? `${s.slice(0, n).trimEnd()
 /** 2026-10-28… → 10.28 */
 const md = (d: string) => (d.length >= 10 ? `${d.slice(5, 7)}.${d.slice(8, 10)}` : d);
 const two = (n: number) => String(n).padStart(2, '0');
+/** 「취재 수첩 · 10.17」 — 날짜가 없는 글은 칸 이름만 */
+const desk = (s: Story) => [DESK[s.kind], md(s.date)].filter(Boolean).join(' · ');
 
 /** 별 딱지 (머리기사) — 톱니 별 */
 const BURST = Array.from({ length: 40 }, (_, i) => {
@@ -122,7 +124,7 @@ export function YjhmHome() {
   const front = {
     date: `${now.getFullYear()}.${two(now.getMonth() + 1)}.${two(now.getDate())} ${['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][now.getDay()]}`,
     issue: String(all.length).padStart(4, '0'),
-    ticker: all.slice(0, 6).map((s, i) => `${i ? '' : 'BREAKING ✦ '}${s.title}`),
+    ticker: all.map(s => s.title.trim()).filter(Boolean).slice(0, 6).map((t, i) => `${i ? '' : 'BREAKING ✦ '}${t}`),
   };
   if (!front.ticker.length) front.ticker = ['BREAKING ✦ 창간 준비호', rel?.name ?? 'YJHM', '두 사람의 기록만 싣습니다'];
 
@@ -138,9 +140,9 @@ export function YjhmHome() {
               alt={lead ? `${lead.title} 대표 사진` : '페어 대표 그림'} />
             <b className="yj-lead-no" aria-hidden="true">01</b>
             {lead && (
-              <span className="yj-burst" role="img" aria-label={`${md(lead.date)} 발행`}>
+              <span className="yj-burst" role="img" aria-label={lead.date ? `${md(lead.date)} 발행` : '새 기사'}>
                 <svg viewBox="0 0 120 120" aria-hidden="true"><polygon points={BURST} /></svg>
-                <b>NEW<br />{md(lead.date)}</b>
+                <b>NEW{lead.date && <><br />{md(lead.date)}</>}</b>
               </span>
             )}
             <div className="yj-lead-cap">
@@ -152,11 +154,11 @@ export function YjhmHome() {
           <div className="yj-side">
             <section className="yj-box yj-paper yj-credit" aria-label="머리기사 크레딧">
               <dl>
-                <dt>Filed by |</dt><dd>{lead ? `${DESK[lead.kind]} · ${lead.date.slice(0, 10).replace(/-/g, '.')}` : 'YJHM 편집국'}</dd>
+                <dt>Filed by |</dt><dd>{lead ? [DESK[lead.kind], lead.date.slice(0, 10).replace(/-/g, '.')].filter(Boolean).join(' · ') : 'YJHM 편집국'}</dd>
                 <dt>Featuring |</dt><dd>{members.length ? members.map(x => x.c.name).join(', ') : 'SHOOTER × INTERPRETER'}</dd>
                 <dt>Venue |</dt><dd>{rel?.name ?? 'THE SHOOTING DAILY'}</dd>
               </dl>
-              <p>{lead?.text ? cut(lead.text, 160) : rel?.catchphrase || (rel ? '아직 이 페어로 쓴 글이 없습니다' : 'PAIRING 게시판에 「YJHM」 페어를 올리면 이 지면이 채워집니다')}</p>
+              <p>{lead?.text ? cut(lead.text, 160) : rel?.catchphrase || (lead ? `${DESK[lead.kind]} 「${lead.title}」 — 기사 전문에서 이어집니다` : rel ? '아직 이 페어로 쓴 글이 없습니다' : 'PAIRING 게시판에 「YJHM」 페어를 올리면 이 지면이 채워집니다')}</p>
               {lead && <Link className="yj-pill yj-blk" href={lead.href}>기사 전문 ↗</Link>}
             </section>
 
@@ -165,7 +167,7 @@ export function YjhmHome() {
               {tracks.length ? tracks.map(s => (
                 <Link key={`${s.kind}-${s.id}`} href={s.href}>
                   <b className="yj-tno">{track(s)}</b>
-                  <span><b>{s.title}</b> <small>{DESK[s.kind]} · {md(s.date)}</small></span>
+                  <span><b>{s.title}</b> <small>{desk(s)}</small></span>
                   <i aria-hidden="true">↗</i>
                 </Link>
               )) : <p className="yj-faint">아직 실린 기사가 없습니다</p>}
@@ -178,7 +180,7 @@ export function YjhmHome() {
             <b className="yj-score-n">{two(reports.length)}<small>건</small></b>
             <div className="yj-score-l">
               {reports.length ? reports.slice(0, 3).map(s => (
-                <Link key={s.id} href={s.href}>{md(s.date)} · {s.title}</Link>
+                <Link key={s.id} href={s.href}>{[md(s.date), s.title].filter(Boolean).join(' · ')}</Link>
               )) : <span>아직 실린 기록이 없습니다</span>}
             </div>
           </section>
@@ -186,7 +188,7 @@ export function YjhmHome() {
           {/* TICKET — 취재 수첩 한 장 */}
           <article className="yj-ticket yj-box yj-paper">
             <div className="yj-ticket-h">
-              <span>BOARDING · {ticket ? `${DESK[ticket.kind]} · ${md(ticket.date)}` : '취재 수첩'}</span>
+              <span>BOARDING · {ticket ? desk(ticket) : '취재 수첩'}</span>
               {ticket && <b>{track(ticket)}</b>}
             </div>
             {ticket ? (
@@ -209,7 +211,7 @@ export function YjhmHome() {
             </span>
             {feature ? (
               <Link href={feature.href}>
-                <small>Filed by | 화보 · {md(feature.date)}</small>
+                <small>Filed by | {desk(feature)}</small>
                 <b>{feature.title}</b>
               </Link>
             ) : (

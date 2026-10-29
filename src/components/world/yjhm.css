@@ -94,11 +94,10 @@ body:has(.yj-main)::before{display:none !important}
 .yj-mast small{font:700 clamp(11px,1.33vw,18px)/1.5 var(--yj-narrow);letter-spacing:.24em;color:var(--yj-ink)}
 .yj-sticker{position:relative;height:230px;display:flex;flex-direction:column;justify-content:center;align-items:center;transform:rotate(7deg);color:var(--yj-ac)}
 .yj-sticker b{font:400 96px/.88 var(--yj-bubble);text-shadow:4px 4px 0 var(--yj-bg),7px 7px 0 var(--yj-ink);white-space:nowrap}
-/* 딱지 — 오른쪽 위 조준선 말풍선(+ 반짝 선) · 왼쪽 아래 HM에 걸친 통역 헤드셋 */
-.yj-deco{position:absolute;z-index:1;height:auto;filter:drop-shadow(3px 3px 0 var(--yj-ink))}
-.yj-deco-talk{right:-34px;top:-30px;width:76px;transform:rotate(12deg)}
-.yj-deco-spark{right:-44px;top:46px;width:18px;filter:none}
-.yj-deco-phone{left:-22px;bottom:40px;width:64px;transform:rotate(-14deg)}
+/* 딱지 — 작게, 글자에 붙여서: YJ× 오른쪽 위 끝에 조준선 말풍선 · HM의 H 머리에 걸친 통역 헤드셋 */
+.yj-deco{position:absolute;z-index:1;height:auto;filter:drop-shadow(2px 2px 0 var(--yj-ink))}
+.yj-deco-talk{right:-12px;top:4px;width:46px;transform:rotate(10deg)}
+.yj-deco-phone{left:14px;top:86px;width:38px;transform:rotate(-18deg)}
 .yj-sticker small{margin-top:8px;font:700 12px/1 var(--yj-narrow);letter-spacing:.3em;color:var(--yj-ink)}
 .yj-front .yj-menu{padding-top:14px;padding-bottom:26px}
 
@@ -268,10 +267,9 @@ body:has(.yj-main)::before{display:none !important}
   .yj-sticker{position:absolute;right:calc(var(--yj-gut) + 6px);top:118px;height:auto;transform:rotate(8deg)}
   .yj-sticker small{display:none}
   .yj-sticker b{font-size:44px;text-shadow:2px 2px 0 var(--yj-bg),4px 4px 0 var(--yj-ink)}
-  .yj-deco{filter:drop-shadow(2px 2px 0 var(--yj-ink))}
-  .yj-deco-talk{right:-10px;top:-34px;width:38px}
-  .yj-deco-spark{right:-14px;top:2px;width:10px}
-  .yj-deco-phone{left:-20px;bottom:2px;width:28px}
+  .yj-deco{filter:drop-shadow(1.5px 1.5px 0 var(--yj-ink))}
+  .yj-deco-talk{right:-14px;top:-12px;width:24px}
+  .yj-deco-phone{left:-6px;top:30px;width:20px}
   .yj-front .yj-menu{padding-top:12px;padding-bottom:18px}
   .yj-menu .oh-menu{gap:8px}
   .yj-menu .oh-item{padding:0 14px;font-size:14px}
