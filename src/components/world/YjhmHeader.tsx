@@ -45,7 +45,7 @@ export function YjhmHeader({ front }: { front?: { date: string; issue: string; t
               <small>사 격 일 보<br />두 사람의 기록만 싣습니다</small>
             </span>
           </Link>
-          {/* 스티커 — 영문 YJ× / HM 고정 (Rubik Bubbles에 한글이 없다) · 조준선 말풍선(통역 × 사격) · 과녁 마이크 헤드셋 딱지 */}
+          {/* 스티커 — 영문 YJ× / HM 고정 (Rubik Bubbles에 한글이 없다) · YJ× 끝에 조준선 말풍선(통역 × 사격) · HM 머리에 과녁 마이크 헤드셋 */}
           <div className="yj-sticker" role="img" aria-label="YJ × HM 스티커 — 조준선 말풍선과 통역 헤드셋 딱지">
             <svg className="yj-deco yj-deco-talk" viewBox="0 0 84 76" aria-hidden="true">
               <path d="M16 4h52a12 12 0 0 1 12 12v28a12 12 0 0 1-12 12H38l-14 14 3-14H16A12 12 0 0 1 4 44V16A12 12 0 0 1 16 4z" fill="#f2f1ec" stroke="#607ca0" strokeWidth="4.5" strokeLinejoin="round" />
@@ -53,7 +53,6 @@ export function YjhmHeader({ front }: { front?: { date: string; issue: string; t
               <path d="M42 11v8M42 41v8M23 30h8M53 30h8" stroke="#2c3e57" strokeWidth="3.5" strokeLinecap="round" />
               <circle cx="42" cy="30" r="4.5" fill="#607ca0" />
             </svg>
-            <svg className="yj-deco yj-deco-spark" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#607ca0" strokeWidth="3" strokeLinecap="round"><path d="M4 12h5M15 12h5M12 4v5" /></svg>
             <svg className="yj-deco yj-deco-phone" viewBox="0 0 80 84" aria-hidden="true">
               <path d="M14 46a26 26 0 0 1 52 0" fill="none" stroke="#607ca0" strokeWidth="6" strokeLinecap="round" />
               <rect x="6" y="40" width="16" height="24" rx="7" fill="#607ca0" stroke="#2c3e57" strokeWidth="3" />
