@@ -8,7 +8,7 @@
  * 나머지 칸은 실제 글이다 — PAIRING의 YJHM 페어와 그 페어로 쓴 글(FIELD REPORT · 갤러리 · JOURNAL · 리스트)과 방명록.
  * 글마다 TRACK 번호(.02 · .03 …)를 최근 순으로 매기고, 어느 칸에 실려도 같은 번호를 단다. 모양은 yjhm.css.
  */
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
 import { useLocalList, BOARD_SEED, GUEST_SEED, Post, GuestEntry } from '@/lib/postStore';
@@ -19,8 +19,8 @@ import { logPath } from '@/lib/logPath';
 import { usePairings, pairIdOf } from '@/lib/pairLink';
 import { relOfWorld } from '@/lib/worldStore';
 import { useYjhmFront, YjhmFront } from '@/lib/yjhmFrontStore';
-import { putBlob } from '@/lib/blobStore';
-import { CroppedBlobImg, CropValue } from '@/components/ui/CropEditor';
+import { putBlob, useBlobUrl } from '@/lib/blobStore';
+import { CroppedBlobImg, CropEditor, CropValue } from '@/components/ui/CropEditor';
 import { RichEditor } from '@/components/ui/RichEditor';
 import { HtmlBody } from '@/components/ui/HtmlBody';
 import { KInput } from '@/components/ui/Kit';
@@ -48,6 +48,9 @@ const plain = (s: string | undefined) => (s ?? '')
   .replace(/\s+/g, ' ')
   .trim();
 const cut = (s: string, n: number) => (s.length > n ? `${s.slice(0, n).trimEnd()}…` : s);
+/** 2026.03.05부터 센 날 (그날이 1일 — 사용자 요청) */
+const DDAY_FROM = new Date(2026, 2, 5);
+const dday = (now: Date) => Math.floor((new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() - DDAY_FROM.getTime()) / 86400000) + 1;
 /** 2026-10-28… → 10.28 */
 const md = (d: string) => (d.length >= 10 ? `${d.slice(5, 7)}.${d.slice(8, 10)}` : d);
 const two = (n: number) => String(n).padStart(2, '0');
@@ -61,21 +64,29 @@ function Cover({ rel, members }: { rel?: { name: string; arts?: string[]; thumbI
   const [doc, save, loaded] = useYjhmFront();
   const [draft, setDraft] = useState<YjhmFront | null>(null);
   const [busy, setBusy] = useState(false);
+  const [cropAt, setCropAt] = useState<number | null>(null);   // 위치 조정 창 — 지금 그림 칸의 가로/세로 비
+  const leadRef = useRef<HTMLElement>(null);
   const cur = draft ?? doc;
   const img = cur.img ?? rel?.arts?.[0] ?? rel?.thumbId;
+  const crop = cur.crop ?? (cur.img ? undefined : rel?.thumbCrop);
+  const src = useBlobUrl(img);
+  const openCrop = () => {
+    const r = leadRef.current?.getBoundingClientRect();
+    setCropAt(r && r.height > 1 ? r.width / r.height : 4 / 3);
+  };
   const title = cur.title?.trim() || rel?.name || 'YJHM';
   const upload = async (f?: File) => {
     if (!f || !draft) return;
     setBusy(true);
-    try { const ref = await putBlob(f); setDraft(d => d && { ...d, img: ref }); } catch (e) { toast(`올리지 못했습니다 — ${e instanceof Error ? e.message : ''}`); }
+    try { const ref = await putBlob(f); setDraft(d => d && { ...d, img: ref, crop: undefined }); } catch (e) { toast(`올리지 못했습니다 — ${e instanceof Error ? e.message : ''}`); }
     setBusy(false);
   };
   const done = () => { if (draft) save(draft); setDraft(null); toast('저장되었습니다'); };
 
   return (
     <>
-      <article className="yj-lead yj-box">
-        <Dots className="yj-lead-pic" img={img} crop={cur.img ? undefined : rel?.thumbCrop} alt={`${title} 대표 그림`} />
+      <article className="yj-lead yj-box" ref={leadRef}>
+        <Dots className="yj-lead-pic" img={img} crop={crop} alt={`${title} 대표 그림`} />
         <b className="yj-lead-no" aria-hidden="true">01</b>
         <div className="yj-lead-cap">
           <span className="yj-kicker yj-blk">{cur.kicker?.trim() || 'COVER STORY'}</span>
@@ -97,6 +108,7 @@ function Cover({ rel, members }: { rel?: { name: string; arts?: string[]; thumbI
               <input type="file" accept="image/*" disabled={busy} onChange={e => upload(e.target.files?.[0])} />
             </label>
             {busy && <small>올리는 중…</small>}
+            {src && <button type="button" className="yj-pill yj-story-crop" onClick={openCrop}>⤧ 그림 위치 조정</button>}
             <label>딱지<KInput value={draft.kicker ?? ''} placeholder="COVER STORY" onChange={e => setDraft({ ...draft, kicker: e.target.value })} /></label>
             <label>제목<KInput value={draft.title ?? ''} placeholder={rel?.name ?? 'YJHM'} onChange={e => setDraft({ ...draft, title: e.target.value })} /></label>
             <RichEditor value={draft.html} onChange={html => setDraft(d => d && { ...d, html })} placeholder="기사 본문" />
@@ -109,6 +121,11 @@ function Cover({ rel, members }: { rel?: { name: string; arts?: string[]; thumbI
           <p className="yj-faint">{isAdmin ? '아직 기사 본문이 없습니다 — 오른쪽 위 ✎ 편집으로 그림과 본문을 정해 주세요' : '기사 본문을 준비 중입니다'}</p>
         ) : <HtmlBody html={doc.html} className="html-body yj-story-body" />}
       </section>
+      {draft && src && cropAt != null && (
+        <CropEditor open src={src} aspect={cropAt} aspectLabel="지금 화면의 그림 칸" initial={crop}
+          onClose={() => setCropAt(null)}
+          onApply={c => { setDraft(d => d && { ...d, crop: c }); setCropAt(null); }} />
+      )}
     </>
   );
 }
@@ -182,6 +199,7 @@ export function YjhmHome() {
   const front = {
     date: `${now.getFullYear()}.${two(now.getMonth() + 1)}.${two(now.getDate())} ${['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][now.getDay()]}`,
     issue: String(all.length).padStart(4, '0'),
+    dday: `D+${dday(now)}`,
     ticker: all.map(s => s.title.trim()).filter(Boolean).slice(0, 6).map((t, i) => `${i ? '' : 'BREAKING ✦ '}${t}`),
   };
   if (!front.ticker.length) front.ticker = ['BREAKING ✦ 창간 준비호', rel?.name ?? 'YJHM', '두 사람의 기록만 싣습니다'];

@@ -12,8 +12,8 @@ import { setMemberSlot, clearMemberSlot } from '@/lib/htmlSlots';
 /** YJHM 화면들이 쓰는 웹폰트 (Archivo Black · Archivo Narrow · Rubik Bubbles · Noto Sans KR) */
 const YJ_FONTS = 'https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo+Narrow:ital,wght@0,500;0,700;1,700&family=Rubik+Bubbles&family=Noto+Sans+KR:wght@400;500;700;900&display=swap';
 
-/** front — 메인 1면 제호에 찍을 날짜 · 호수 · 속보 띠 글 (없으면 한 줄 제호) */
-export function YjhmHeader({ front }: { front?: { date: string; issue: string; ticker: string[] } }) {
+/** front — 메인 1면 제호에 찍을 날짜 · D-day · 속보 띠 글 (없으면 한 줄 제호) */
+export function YjhmHeader({ front }: { front?: { date: string; dday: string; ticker: string[] } }) {
   const memberRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = memberRef.current;
@@ -31,7 +31,7 @@ export function YjhmHeader({ front }: { front?: { date: string; issue: string; t
         {fonts}
         <div className="yj-strip">
           <span>{front.date}</span>
-          <span className="yj-strip-mid">NO.{front.issue} · YJHM EDITION</span>
+          <span className="yj-strip-mid">{front.dday} · SINCE 2026.03.05</span>
           <div className="yj-member" ref={memberRef} />
         </div>
         <div className="yj-ticker yj-blk" aria-hidden="true">
@@ -40,10 +40,7 @@ export function YjhmHeader({ front }: { front?: { date: string; issue: string; t
         <div className="yj-masthead">
           <Link className="yj-mast" href="/">
             <b>THE SHOOTING</b>
-            <span>
-              <b className="yj-out">DAILY</b>
-              <small>사 격 일 보<br />두 사람의 기록만 싣습니다</small>
-            </span>
+            <b className="yj-out">DAILY</b>
           </Link>
           {/* 스티커 — 영문 YJ× / HM 고정 (Rubik Bubbles에 한글이 없다) · YJ× 끝에 조준선 말풍선(통역 × 사격) · HM 머리에 과녁 마이크 헤드셋 */}
           <div className="yj-sticker" role="img" aria-label="YJ × HM 스티커 — 조준선 말풍선과 통역 헤드셋 딱지">
