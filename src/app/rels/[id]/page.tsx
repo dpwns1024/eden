@@ -35,7 +35,7 @@ import { CroppedBlobImg, CropEditor, type CropValue } from '@/components/ui/Crop
 import { Lightbox } from '@/components/ui/Lightbox';
 import { useToast } from '@/components/ui/Toast';
 import { PageTitle, EditableDesc } from '@/components/ui/PageText';
-import { useFollowWorld } from '@/lib/worldStore';
+import { useFollowWorld, useWorld } from '@/lib/worldStore';
 
 /** 전신 이미지 — 비율 유지, 하단 정렬, 크기 %는 자관 수정 미리보기에서 지정 (v1.9) */
 // 전신 그림자는 「그림자 직접 지정」의 색·강도를 따른다 (v2.0 사용자 요청) — 자관명 그림자와 같은 설정
@@ -451,6 +451,7 @@ export default function RelDetailPage() {
   const isBaseAu = (au?.id ?? 'base') === 'base';
   // 게시판 디자인 ARCH — 히어로 배치(가운데 인장형)와 아래 상자 이름이 달라진다 (v2.0 사용자 선택)
   const arch = useBoardSkin() === 'arch';
+  const yj = useWorld().world === 'yjhm';   // YJHM 세계 — 단말기 말투 대신 신문 지면 말투 (lib/yjhmNames.ts)
   /* ARCH에선 QUESTIONS 칸을 「면담 기록」 말투로 (v2.0 사용자 요청) — 질문→문항, 질문 리스트→문항지,
      문답→면담 기록, 답변→진술. 환경설정 메뉴 이름(자관 질문)을 가리키는 문구에는 쓰지 않는다 */
   const qw = (t: string) => (arch
@@ -1256,9 +1257,9 @@ export default function RelDetailPage() {
       {/* 타임라인 / 페어 문답 탭 (v1.8) */}
       <div className={`panel timeline ${!isDuo ? 'multi' : ''}`} style={{ fontFamily: familyOf(rel.bodyFontId) }}>
         <div className="rel-tabs">
-          <button className={tab === 'tl' ? 'on' : ''} onClick={() => setTab('tl')}><span className="lb-pc">{arch ? 'CASE HISTORY' : 'TIMELINE'}</span><span className="lb-m">{arch ? 'C' : 'T'}</span></button>
+          <button className={tab === 'tl' ? 'on' : ''} onClick={() => setTab('tl')}><span className="lb-pc">{yj ? 'MATCH HISTORY' : arch ? 'CASE HISTORY' : 'TIMELINE'}</span><span className="lb-m">{yj ? 'M' : arch ? 'C' : 'T'}</span></button>
           {/* QUESTIONS 섹션은 ＋로 추가해야 생김 (v1.9) — 처음에는 타임라인만 */}
-          {qaOn && <button className={tab === 'qa' ? 'on' : ''} onClick={() => setTab('qa')}><span className="lb-pc">{arch ? 'INTERVIEW' : 'QUESTIONS'}</span><span className="lb-m">{arch ? 'I' : 'Q'}</span></button>}
+          {qaOn && <button className={tab === 'qa' ? 'on' : ''} onClick={() => setTab('qa')}><span className="lb-pc">{yj ? 'PRESS Q&A' : arch ? 'INTERVIEW' : 'QUESTIONS'}</span><span className="lb-m">{arch ? 'I' : 'Q'}</span></button>}
           {isAdmin && !qaOn && (
             <button data-tip={arch ? 'INTERVIEW 섹션 추가' : 'QUESTIONS 섹션 추가'} style={{ color: 'var(--faint)', fontSize: 14, padding: '0 6px' }}
               onClick={() => setQsetOpen(true)}>＋</button>
@@ -1502,7 +1503,7 @@ export default function RelDetailPage() {
         {!au?.hideRp && (
         <div className="panel widget" style={{ margin: 0, ...(au?.hideLog ? { gridColumn: '1/-1' } : null) }}>
           {/* ARCH에선 기관 홈페이지 말투 — 두 사람의 임무·일상 기록 (v2.0 사용자 요청) */}
-          <h4>{arch ? <span>COMMS ARCHIVE <small className="kr">교신 기록</small></span> : '역극'} <span className="more" onClick={() => router.push('/rp')}>더보기 ›</span></h4>
+          <h4>{yj ? <span>TRANSCRIPT <small className="kr">대화 녹취</small></span> : arch ? <span>COMMS ARCHIVE <small className="kr">교신 기록</small></span> : '역극'} <span className="more" onClick={() => router.push('/rp')}>더보기 ›</span></h4>
           {relRooms.length > 0 ? relRooms.map(rm => (
             <div key={rm.id} className="dday-row" style={{ cursor: 'var(--cur-pointer,pointer)' }} onClick={() => router.push('/rp')}>
               <span>{rm.title}</span>
@@ -1514,20 +1515,20 @@ export default function RelDetailPage() {
               )}
             </div>
           )) : (
-            <p className="hint" style={{ margin: 0 }}>{arch ? '보관된 교신 기록이 없습니다 — NO SIGNAL' : '이 자관 기반으로 진행된 역극이 여기에 표시됩니다'}</p>
+            <p className="hint" style={{ margin: 0 }}>{yj ? '아직 실린 녹취록이 없습니다' : arch ? '보관된 교신 기록이 없습니다 — NO SIGNAL' : '이 자관 기반으로 진행된 역극이 여기에 표시됩니다'}</p>
           )}
         </div>
         )}
         {!au?.hideLog && (
         <div className="panel widget" style={{ margin: 0, ...(au?.hideRp ? { gridColumn: '1/-1' } : null) }}>
-          <h4>{arch ? <span>FIELD REPORT <small className="kr">현장 보고</small></span> : '로그'} <span className="more" onClick={() => router.push('/trpg')}>더보기 ›</span></h4>
+          <h4>{yj ? <span>MATCH REPORT <small className="kr">경기 기록</small></span> : arch ? <span>FIELD REPORT <small className="kr">현장 보고</small></span> : '로그'} <span className="more" onClick={() => router.push('/trpg')}>더보기 ›</span></h4>
           {relLogs.length > 0 ? relLogs.map(l => (
             <div key={l.id} className="dday-row" style={{ cursor: 'var(--cur-pointer,pointer)' }} onClick={() => router.push(logPath(l))}>
               {/* 번호 없이 제목만 — 연동 리스트에서는 순번이 의미가 없다 (사용자 확정) */}
               <span>{l.title}</span>
               <b style={{ fontSize: 11, color: 'var(--faint)' }}>{l.date?.replace(/-/g, '.') ?? ''}</b>
             </div>
-          )) : <p className="hint" style={{ margin: 0 }}>{arch ? '아직 등록된 현장 보고가 없습니다' : '연동된 로그가 없습니다 — 로그 등록 시 자관을 선택하면 여기에 표시'}</p>}
+          )) : <p className="hint" style={{ margin: 0 }}>{yj ? '아직 실린 경기 기록이 없습니다' : arch ? '아직 등록된 현장 보고가 없습니다' : '연동된 로그가 없습니다 — 로그 등록 시 자관을 선택하면 여기에 표시'}</p>}
         </div>
         )}
       </div>

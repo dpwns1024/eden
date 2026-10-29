@@ -1,0 +1,80 @@
+/* YJHM 게시판 — 「The Shooting Daily」 지면 손질 (v2.0 사용자 요청 — 「ARCH에 맞춰 고친 게시판 · 글쓰기 화면 전부 YJHM판도」).
+ * 배치는 ARCH 그대로, 색 · 글꼴은 yjhmArch.gen.css(자동 변환)가 YJHM으로 뒤집고, 여기서 메인 컨셉에 맞게 손본다 —
+ * Archivo Black 제목 · 굵은 포인트색 상자 + 어긋난 그림자 · 알약 버튼/탭 · 망점 반전 블록. 꺾쇠 · 빛 번짐은 뺀다.
+ * 선택자는 html.ui-yjhm.ui-arch body … — 자동 변환 규칙보다 한 단계 세게. */
+html.ui-yjhm.ui-arch body .page-arch{--a-pn:var(--yj-pn);--a-ln:rgba(96,124,160,.28);--a-ln2:rgba(96,124,160,.55);--a-tx:var(--yj-ink);--a-mu:var(--yj-faint);--a-dim:#9aa6b4;--a-ac:var(--yj-ac);--a-acr:96,124,160;--a-sil:linear-gradient(var(--yj-ac),var(--yj-ac));color:var(--yj-ink)}
+
+/* 제목 줄 — 굵은 Archivo Black + 3px 줄 */
+html.ui-yjhm.ui-arch body .page-arch .page-head{border-bottom:3px solid var(--yj-ac)}
+html.ui-yjhm.ui-arch body .page-arch .page-head::after{display:none}
+html.ui-yjhm.ui-arch body .page-arch .page-head h1{font:400 clamp(34px,5vw,64px)/1 var(--yj-black);letter-spacing:-.02em;background:none;-webkit-background-clip:border-box;background-clip:border-box;color:var(--yj-ac);-webkit-text-fill-color:currentColor;padding-bottom:0;margin-bottom:0}
+html.ui-yjhm.ui-arch body .page-arch .page-head p{font:500 14px/1.7 var(--yj-sans);letter-spacing:0;color:var(--yj-sub)}
+
+/* 버튼 — 알약 (채운 것 = 망점 반전 블록) */
+html.ui-yjhm.ui-arch body .page-arch :is(.btn-dark,.btn-ghost,.form-actions .btn-onbk,.form-actions .btn-accent){height:38px;padding:0 18px;border:2.5px solid var(--yj-ac);border-radius:999px;background:transparent;color:var(--yj-ink);font:900 13px/1 var(--yj-sans);letter-spacing:.02em;box-shadow:none}
+html.ui-yjhm.ui-arch body .page-arch .form-actions .btn{height:44px}
+html.ui-yjhm.ui-arch body .page-arch :is(.btn-dark,.form-actions .btn-accent){background-color:var(--yj-ac);background-image:radial-gradient(rgba(242,241,236,.2) .8px,transparent 1.3px);background-size:5px 5px;color:#f7f6f2}
+html.ui-yjhm.ui-arch body .page-arch :is(.btn-dark,.btn-ghost,.form-actions .btn-onbk,.form-actions .btn-accent):hover{border-color:var(--yj-ac);box-shadow:3px 3px 0 rgba(96,124,160,.35);color:inherit}
+html.ui-yjhm.ui-arch body .page-arch :is(.btn-dark,.form-actions .btn-accent):hover{background-color:#4f6a8c;color:#f7f6f2}
+html.ui-yjhm.ui-arch body .page-arch .btn-ghost:hover,html.ui-yjhm.ui-arch body .page-arch .form-actions .btn-onbk:hover{background:rgba(96,124,160,.1)}
+
+/* 상자 — 굵은 테두리 + 어긋난 그림자, 꺾쇠 없음 */
+html.ui-yjhm.ui-arch body .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.mp-quote,.rel-bn),
+html.ui-yjhm.ui-arch body .page-gallery .g-item{border:3px solid var(--yj-ac);border-radius:0;background:var(--yj-pn);color:var(--yj-ink);box-shadow:5px 5px 0 rgba(96,124,160,.22)}
+html.ui-yjhm.ui-arch body .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.mp-quote,.rel-bn)::before,
+html.ui-yjhm.ui-arch body .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.mp-quote,.rel-bn)::after,
+html.ui-yjhm.ui-arch body .page-gallery .g-item::before,html.ui-yjhm.ui-arch body .page-gallery .g-item::after{display:none}
+html.ui-yjhm.ui-arch body .page-arch :is(.char-card,.rel-card):hover,html.ui-yjhm.ui-arch body .page-gallery .g-item:hover{border-color:var(--yj-ac);box-shadow:7px 7px 0 rgba(96,124,160,.32);transform:translate(-2px,-2px)}
+html.ui-yjhm.ui-arch body .page-arch :is(.char-card,.rel-card) .thumb{border-bottom:3px solid var(--yj-ac)}
+html.ui-yjhm.ui-arch body .page-arch :is(.char-card,.rel-card) .thumb::after{background:none}
+html.ui-yjhm.ui-arch body .page-arch .char-card .nm b{font:900 calc(14px*var(--fs,1))/1.25 var(--yj-sans);letter-spacing:.02em;color:var(--yj-ink)}
+
+/* 프로필 이름 · 소제목 — 그라데이션 글자 대신 포인트색 */
+html.ui-yjhm.ui-arch body .page-arch :is(.profile-info .pf-name,.profile-info h3){background:none !important;-webkit-background-clip:border-box !important;background-clip:border-box !important;color:var(--cc,var(--yj-ac)) !important;-webkit-text-fill-color:currentColor !important}
+html.ui-yjhm.ui-arch body .page-arch .profile-info .pf-name:not([data-font]){font-family:var(--yj-black);font-weight:400;letter-spacing:-.01em !important}
+html.ui-yjhm.ui-arch body .page-arch .profile-info h3{font:400 calc(20px*var(--fs,1))/1.2 var(--yj-black);letter-spacing:0}
+html.ui-yjhm.ui-arch body .page-char-detail{--cc:var(--yj-ac)}
+
+/* 본문 */
+html.ui-yjhm.ui-arch body .page-arch .prose{color:var(--yj-ink);font-weight:400}
+html.ui-yjhm.ui-arch body .page-arch :is(.prose,.post-body) :is(b,strong){color:var(--yj-ink);font-weight:700}
+
+/* 입력 칸 */
+html.ui-yjhm.ui-arch body .page-arch :is(.k-input,.k-textarea,.k-select .cur,.searchbar){border:2px solid var(--yj-ln);border-radius:0;background:#fbfaf7;color:var(--yj-ink)}
+html.ui-yjhm.ui-arch body .page-arch :is(.k-input,.k-textarea):focus,html.ui-yjhm.ui-arch body .page-arch .k-select.open .cur{border-color:var(--yj-ac);box-shadow:3px 3px 0 rgba(96,124,160,.22)}
+html.ui-yjhm.ui-arch body .page-arch .k-select .opts{background:var(--yj-pn);border:3px solid var(--yj-ac);box-shadow:5px 5px 0 rgba(96,124,160,.3)}
+html.ui-yjhm.ui-arch body .page-arch .k-select .opts div{color:var(--yj-ink)}
+html.ui-yjhm.ui-arch body .page-arch .k-select .opts div.sel{background:var(--yj-ac);color:#f7f6f2}
+html.ui-yjhm.ui-arch body .page-arch .upzone{border:2.5px dashed var(--yj-ac);background:rgba(96,124,160,.05);color:var(--yj-sub)}
+
+/* 탭 · 세그먼트 — 알약, 고른 칸은 반전 블록 */
+html.ui-yjhm.ui-arch body .page-arch :is(.seg,.mini-seg){padding:3px;gap:3px;border:2.5px solid var(--yj-ac);border-radius:999px;background:transparent}
+html.ui-yjhm.ui-arch body .page-arch :is(.seg,.mini-seg) button{border-radius:999px;color:var(--yj-ink);font:700 12.5px/1 var(--yj-sans);letter-spacing:.02em}
+html.ui-yjhm.ui-arch body .page-arch :is(.seg,.mini-seg) button.on{background:var(--yj-ac);color:#f7f6f2;box-shadow:none}
+html.ui-yjhm.ui-arch body .page-arch .arch-tabbar{gap:8px;padding:0;background:none;border:0;box-shadow:none}
+html.ui-yjhm.ui-arch body .page-arch .arch-tabbar::before,html.ui-yjhm.ui-arch body .page-arch .arch-tabbar::after{display:none}
+html.ui-yjhm.ui-arch body .page-arch .arch-tabbar .tag{padding:0 16px;min-height:38px;border:2.5px solid var(--yj-ac);border-radius:999px;background:transparent;color:var(--yj-ink);font:900 13px/1 var(--yj-sans);letter-spacing:.02em;box-shadow:none}
+html.ui-yjhm.ui-arch body .page-arch .arch-tabbar .tag:hover{background:rgba(96,124,160,.1);border-color:var(--yj-ac);color:var(--yj-ink)}
+html.ui-yjhm.ui-arch body .page-arch .arch-tabbar .tag.on{background:var(--yj-ac);border-color:var(--yj-ac);color:#f7f6f2;box-shadow:none}
+html.ui-yjhm.ui-arch body .page-arch .arch-tabbar .tag small{font:400 1em/1 var(--yj-black);color:var(--yj-ac)}
+html.ui-yjhm.ui-arch body .page-arch .arch-tabbar .tag.on small{color:#f7f6f2}
+
+/* 창(관리 모달) */
+html.ui-yjhm .mng-box.arch-modal{border:3px solid var(--yj-ac);background:var(--yj-pn);color:var(--yj-ink);box-shadow:8px 8px 0 rgba(96,124,160,.3)}
+html.ui-yjhm .mng-box.arch-modal::before,html.ui-yjhm .mng-box.arch-modal::after{display:none}
+html.ui-yjhm .mng-box.arch-modal h3{font:400 20px/1.2 var(--yj-black);letter-spacing:0;color:var(--yj-ac)}
+
+@media (max-width:640px){
+  html.ui-yjhm.ui-arch body .page-arch .page-head h1{font-size:clamp(28px,9vw,40px)}
+  html.ui-yjhm.ui-arch body .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.mp-quote,.rel-bn),
+  html.ui-yjhm.ui-arch body .page-gallery .g-item{border-width:2.5px;box-shadow:4px 4px 0 rgba(96,124,160,.22)}
+  html.ui-yjhm.ui-arch body .page-arch :is(.btn-dark,.btn-ghost){height:36px;padding:0 14px;font-size:12px}
+  html.ui-yjhm.ui-arch body .page-arch .arch-tabbar .tag{min-height:36px;padding:0 13px;font-size:12px}
+}
+
+/* BGM 다이얼 (components/shell/bgmDial.css) — 카드는 굵은 상자 + 어긋난 그림자 */
+html.ui-yjhm .bgm-d .bd-card{background:var(--yj-pn);backdrop-filter:none;border:3px solid var(--yj-ac);border-radius:0;box-shadow:5px 5px 0 rgba(96,124,160,.3)}
+
+/* 그림 없는 자리(.ph) — 어두운 그라데이션 대신 메인과 같은 망점 */
+html.ui-yjhm.ui-arch body .page-arch .ph{background-color:var(--yj-bg);background-image:linear-gradient(160deg,rgba(242,241,236,.9) 0%,rgba(242,241,236,0) 45%,rgba(242,241,236,0) 72%,rgba(242,241,236,.65) 100%),radial-gradient(var(--yj-ac) 38%,transparent 42%);background-size:auto,5px 5px;color:var(--yj-ac)}
+html.ui-yjhm.ui-arch body .page-arch .ph span{background:var(--yj-bg);padding:0 8px;font-family:var(--yj-narrow);letter-spacing:.2em}

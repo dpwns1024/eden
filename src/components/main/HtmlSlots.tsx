@@ -11,6 +11,8 @@ import { useMenuSettings, buildMenu, boardEntries } from '@/lib/menuStore';
 import { useSections, sectionMenuEntries } from '@/lib/sectionStore';
 import { useCustomLinks, linkEntries } from '@/lib/linkStore';
 import { SLOT_ATTR, setMemberSlot, clearMemberSlot } from '@/lib/htmlSlots';
+import { useWorld } from '@/lib/worldStore';
+import { yjhmMenuLabel, YJHM_PAGE } from '@/lib/yjhmNames';
 
 /** 사용자 HTML에서 스크립트만 걷어 낸다 — HTML 블록·HTML 페이지·공통 상단 공통 */
 export const stripScripts = (h?: string) =>
@@ -51,6 +53,11 @@ export function SlotMenu() {
   const { links } = useCustomLinks();
   const [open, setOpen] = useState<string | null>(null);
   const ref = useRef<HTMLElement>(null);
+  // YJHM 세계면 메뉴 이름을 신문 지면 이름으로 (lib/yjhmNames.ts — 저장된 메뉴 설정은 그대로)
+  const { world } = useWorld();
+  const yj = world === 'yjhm';
+  const nm = (m: { label: string; href?: string; children?: { href: string }[] }) => (yj ? yjhmMenuLabel(m) : m.label);
+  const sub = (c: { href: string; label: string }) => (yj ? YJHM_PAGE[c.href] ?? c.label : c.label);
 
   // 바깥을 누르거나 페이지를 옮기면 접는다
   useEffect(() => {
@@ -86,16 +93,16 @@ export function SlotMenu() {
       {items.map(m => (m.children ? (
         <div key={m.label} className={`oh-grp${open === m.label ? ' open' : ''}${m.children.some(c => isOn(c.href)) ? ' on' : ''}`}>
           <button type="button" className="oh-item" aria-expanded={open === m.label}
-            onClick={() => setOpen(o => (o === m.label ? null : m.label))}>{m.label}</button>
+            onClick={() => setOpen(o => (o === m.label ? null : m.label))}>{nm(m)}</button>
           <div className="oh-sub">
             {m.children.map(c => (ext(c.href)
-              ? <a key={c.href} className="oh-link" href={c.href} target="_blank" rel="noreferrer">{c.label}</a>
-              : <Link key={c.href} className={`oh-link${isOn(c.href) ? ' on' : ''}`} href={toPublicHref(c.href)}>{c.label}</Link>))}
+              ? <a key={c.href} className="oh-link" href={c.href} target="_blank" rel="noreferrer">{sub(c)}</a>
+              : <Link key={c.href} className={`oh-link${isOn(c.href) ? ' on' : ''}`} href={toPublicHref(c.href)}>{sub(c)}</Link>))}
           </div>
         </div>
       ) : m.href && (ext(m.href)
-        ? <a key={m.href} className="oh-item" href={m.href} target="_blank" rel="noreferrer">{m.label}</a>
-        : <Link key={m.href} className={`oh-item${isOn(m.href) ? ' on' : ''}`} href={toPublicHref(m.href)}>{m.label}</Link>)))}
+        ? <a key={m.href} className="oh-item" href={m.href} target="_blank" rel="noreferrer">{nm(m)}</a>
+        : <Link key={m.href} className={`oh-item${isOn(m.href) ? ' on' : ''}`} href={toPublicHref(m.href)}>{nm(m)}</Link>)))}
     </nav>
   );
 }
