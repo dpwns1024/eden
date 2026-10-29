@@ -5,11 +5,13 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 import { getRawSetting, setSetting } from './settingStore';
+import type { CropValue } from '@/components/ui/CropEditor';
 
 const KEY = 'ohome.yjhmfront.v1';
 
 export interface YjhmFront {
   img?: string;     // 대표 그림 (blobStore 참조)
+  crop?: CropValue; // 그림 위치 (관리자가 위치 조정 창에서 정한다)
   kicker?: string;  // 그림 위 작은 딱지 (비우면 COVER STORY)
   title?: string;   // 그림 위 큰 제목 (비우면 페어 이름)
   html: string;     // 기사 본문 HTML
