@@ -18,6 +18,8 @@ import { useBoardSkin } from '@/lib/boardSkin';
 import { useMembers } from '@/lib/members';
 import { pushNotif } from '@/lib/notifStore';
 import { useWorldFilter } from '@/lib/worldStore';
+import { useBoardCats, useCatMode, catTabs, catIdOf, catOptions, NO_CAT } from '@/lib/boardCats';
+import { BoardCatModal } from '@/components/ui/BoardCatModal';
 
 /** 캐릭터 얼굴 칩 (썸네일 or 데모 플레이스홀더) */
 function Face({ ch, className }: { ch?: Character; className: string }) {
@@ -53,10 +55,18 @@ export default function RpPage() {
   /* 페어링별 탭 (v2.0 사용자 요청 — 상태(LIVE · ALL · CLOSED) 대신 FIELD REPORT처럼 페어링으로 나눈다).
      'all' · 페어링 id · 'none'(페어링 없는 채널) */
   const [fRel, setFRel] = useState<string>('all');
+  // EVEDEN 세계는 페어링 대신 관리자가 만든 카테고리로 나눈다 (v2.0 사용자 요청 — lib/boardCats.ts).
+  // 같은 fRel 자리에 'all' · 카테고리 id · NO_CAT를 담는다
+  const catMode = useCatMode();
+  const [cats] = useBoardCats('rp');
+  const [catOpen, setCatOpen] = useState(false);
   const [mListOpen, setMListOpen] = useState(false);
   const [mFocus, setMFocus] = useState(false);
   const [renameOpen, setRenameOpen] = useState(false);   // 채널 이름 고치기 (v2.0)
   const [renameText, setRenameText] = useState('');
+  const [renameCat, setRenameCat] = useState('none');   // EVEDEN 카테고리도 같은 창에서 바꾼다
+  const renamePatch = (title: string): Partial<RpRoom> =>
+    catMode ? { title, catId: renameCat === NO_CAT ? undefined : renameCat } : { title };
 
   // 로그인 상태면 본인 참여 방 + (관리자면 전체), 비로그인이면 공개된 방 목록 표시
   const allMine = useMemo(() => {
@@ -67,19 +77,25 @@ export default function RpPage() {
       .localeCompare(rpLastDate(a, messagesFor(msgRows, a.id, a.messages))));
   }, [rooms, user, isAdmin, msgRows, rels, chars, showPid]);
 
-  const relKey = (r: RpRoom) => (r.relId && rels.some(x => x.id === r.relId) ? r.relId : 'none');
+  const relKey = (r: RpRoom) => catMode
+    ? catIdOf(r, cats) ?? NO_CAT
+    : (r.relId && rels.some(x => x.id === r.relId) ? r.relId : 'none');
   const myRooms = useMemo(() => allMine.filter(r => fRel === 'all' || relKey(r) === fRel),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [allMine, fRel, rels]);
+    [allMine, fRel, rels, catMode, cats]);
   const sel = myRooms.find(r => r.id === selId) ?? myRooms[0];
   const relCounts = useMemo(() => {
     const m: Record<string, number> = {};
     allMine.forEach(r => { const k = relKey(r); m[k] = (m[k] ?? 0) + 1; });
     return m;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allMine, rels]);
+  }, [allMine, rels, catMode, cats]);
   // 고른 탭의 채널이 사라지면(지움 · 페어링 변경) 전체로
-  useEffect(() => { if (fRel !== 'all' && !relCounts[fRel]) setFRel('all'); }, [fRel, relCounts]);
+  // 카테고리는 비어 있어도 탭이 남으므로, 지워진 카테고리일 때만
+  useEffect(() => {
+    if (fRel === 'all') return;
+    if (catMode ? fRel !== NO_CAT && !cats.some(c => c.id === fRel) : !relCounts[fRel]) setFRel('all');
+  }, [fRel, relCounts, catMode, cats]);
 
   const rel = rels.find(r => r.id === sel?.relId);
   const auCharKey = sel?.relId && sel?.auId && sel.auId !== 'base' ? `${sel.relId}:${sel.auId}` : null;
@@ -183,6 +199,7 @@ export default function RpPage() {
   const [newOpen, setNewOpen] = useState(false);
   const [nTitle, setNTitle] = useState('');
   const [nRel, setNRel] = useState('none');
+  const [nCat, setNCat] = useState(NO_CAT);
   const [nAu, setNAu] = useState('base');
   const [nMembers, setNMembers] = useState<string[]>([]);
   const pool = useMembers();
@@ -201,13 +218,14 @@ export default function RpPage() {
     const room: RpRoom = {
       id: newId(), title: nTitle.trim(), relId: nRel === 'none' ? undefined : nRel,
       auId: nRel !== 'none' && nAu !== 'base' ? nAu : undefined,
+      catId: nCat === NO_CAT ? undefined : nCat,
       memberIds: members, status: 'ongoing', isPublic: false,
       createdBy: user.id, created: new Date().toISOString(), lastRead: {}, messages: [],
     };
     setRooms([room, ...rooms]);
     setSelId(room.id);
     setNewOpen(false);
-    setNTitle(''); setNRel('none'); setNMembers([]);
+    setNTitle(''); setNRel('none'); setNCat(NO_CAT); setNMembers([]);
   };
 
   const canManage = Boolean(sel && user && (sel.createdBy === user.id || isAdmin));
@@ -388,7 +406,7 @@ ${rows}
                   {/* 채널 이름 고치기 (v2.0 사용자 요청 — 만든 뒤엔 바꿀 수 없었다) */}
                   {canManage && (
                     <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 10.5 }}
-                      onClick={() => { setRenameText(sel.title); setRenameOpen(true); }}>RENAME</button>
+                      onClick={() => { setRenameText(sel.title); setRenameCat(catIdOf(sel, cats) ?? NO_CAT); setRenameOpen(true); }}>RENAME</button>
                   )}
                   {canManage && (
                     <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 10.5 }}
@@ -491,22 +509,48 @@ ${rows}
         {/* 페어링 필터 (v2.0 사용자 요청 — 상태 대신 페어링별 · FIELD REPORT와 같은 모양).
             ARCH에선 PC · 폰 모두 위 탭 줄(globals.css .rp-layout.tabs · .arch-tabbar), 기본 디자인은 오른쪽 상자 */}
         <div className={`panel tagside${arch ? ' arch-tabbar' : ''}`} style={arch ? undefined : { padding: 16, alignSelf: 'start' }}>
-          <h4>{cw('PAIRING FILTER', '자관 필터')}</h4>
-          <div className={`tag ${fRel === 'all' ? 'on' : ''}`} onClick={() => setFRel('all')}>
-            {cw('ALL', '전체')} <small>{allMine.length}</small>
-          </div>
-          {rels.filter(r => relCounts[r.id]).map(r => (
-            <div key={r.id} className={`tag ${fRel === r.id ? 'on' : ''}`} onClick={() => setFRel(r.id)}>
-              {r.name} <small>{relCounts[r.id]}</small>
+          {catMode ? (
+            <>
+              <h4>{cw('CATEGORY', '카테고리')}</h4>
+              <div className={`tag ${fRel === 'all' ? 'on' : ''}`} onClick={() => setFRel('all')}>
+                {cw('ALL', '전체')} <small>{allMine.length}</small>
+              </div>
+              {catTabs(allMine, cats).tabs.map(c => (
+                <div key={c.id} className={`tag ${fRel === c.id ? 'on' : ''}`} onClick={() => setFRel(c.id)}>
+                  {c.name} <small>{c.n}</small>
+                </div>
+              ))}
+              {relCounts[NO_CAT] > 0 && cats.length > 0 && (
+                <div className={`tag ${fRel === NO_CAT ? 'on' : ''}`} onClick={() => setFRel(NO_CAT)}>
+                  {cw('ETC', '기타')} <small>{relCounts[NO_CAT]}</small>
+                </div>
+              )}
+              {isAdmin && (
+                <div className="tag" onClick={() => setCatOpen(true)} data-tip="카테고리 관리">⚙</div>
+              )}
+            </>
+          ) : (
+            <>
+                        <h4>{cw('PAIRING FILTER', '자관 필터')}</h4>
+            <div className={`tag ${fRel === 'all' ? 'on' : ''}`} onClick={() => setFRel('all')}>
+              {cw('ALL', '전체')} <small>{allMine.length}</small>
             </div>
-          ))}
-          {relCounts['none'] > 0 && (
-            <div className={`tag ${fRel === 'none' ? 'on' : ''}`} onClick={() => setFRel('none')}>
-              {cw('ONE-SHOT', '단발')} <small>{relCounts['none']}</small>
-            </div>
+            {rels.filter(r => relCounts[r.id]).map(r => (
+              <div key={r.id} className={`tag ${fRel === r.id ? 'on' : ''}`} onClick={() => setFRel(r.id)}>
+                {r.name} <small>{relCounts[r.id]}</small>
+              </div>
+            ))}
+            {relCounts['none'] > 0 && (
+              <div className={`tag ${fRel === 'none' ? 'on' : ''}`} onClick={() => setFRel('none')}>
+                {cw('ONE-SHOT', '단발')} <small>{relCounts['none']}</small>
+              </div>
+            )}
+            </>
           )}
         </div>
       </div>
+
+      <BoardCatModal board="rp" open={catOpen} onClose={() => setCatOpen(false)} />
 
       {/* 채널 이름 고치기 (v2.0 사용자 요청) */}
       <Modal open={renameOpen} onClose={() => setRenameOpen(false)} small title={cw('채널 이름 변경', '방 이름 변경')}
@@ -515,12 +559,17 @@ ${rows}
           <button className="btn btn-dark" onClick={() => {
             const t = renameText.trim();
             if (!t) { toast(cw('채널 이름을 입력하세요', '방 이름을 입력하세요')); return; }
-            patchRoom({ title: t });
+            patchRoom(renamePatch(t));
             setRenameOpen(false);
           }}>SAVE</button>
         </>}>
         <KInput value={renameText} onChange={e => setRenameText(e.target.value)} autoFocus
-          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); const t = renameText.trim(); if (t) { patchRoom({ title: t }); setRenameOpen(false); } } }} />
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); const t = renameText.trim(); if (t) { patchRoom(renamePatch(t)); setRenameOpen(false); } } }} />
+        {catMode && cats.length > 0 && (
+          <div style={{ marginTop: 10 }}>
+            <KSelect value={renameCat} onChange={setRenameCat} minWidth={160} options={catOptions(cats)} />
+          </div>
+        )}
       </Modal>
 
       {/* 방 개설 모달 */}
@@ -549,6 +598,12 @@ ${rows}
                 )}
               </div>
             </div>
+            {catMode && cats.length > 0 && (
+              <div>
+                <label className="k-label" style={{ marginBottom: 5 }}>{cw('Category', '카테고리')}</label>
+                <KSelect value={nCat} onChange={setNCat} minWidth={160} options={catOptions(cats)} />
+              </div>
+            )}
             <div>
               <label className="k-label" style={{ marginBottom: 7 }}>{cw('참여 요원', '참여 회원')}</label>
               {nRel === 'none' ? (

@@ -27,6 +27,7 @@ import { CropEditor, CropImg, CropValue } from '@/components/ui/CropEditor';
 import { useToast } from '@/components/ui/Toast';
 import { GUARD_SNIPPET } from '@/components/shell/ContentGuard';
 import { useFollowWorld } from '@/lib/worldStore';
+import { useBoardCats, useCatMode, catIdOf, catOptions } from '@/lib/boardCats';
 
 /** 로그 렌더 프레임 — 대형 문서도 안정적으로 로드되도록 srcdoc 대신 Blob URL 사용 */
 function LogFrame({ frameRef, html, title, onFrameLoad }: {
@@ -170,9 +171,11 @@ export default function TrpgDetailPage() {
 
   // 로그 정보 수정 — 메타 + 본문 교체(파일/직접 입력) + 썸네일 교체(이미지 크롭/단색·그라데이션)
   const [eOpen, setEOpen] = useState(false);
+  const catMode = useCatMode();
+  const [cats] = useBoardCats('trpg');
   const [e, setE] = useState({
     noText: '', slug: '', title: '', catchphrase: '', writer: '', withText: '',
-    relId: 'none', date: '', visibility: 'public' as TrpgLog['visibility'], password: '',
+    relId: 'none', catId: 'none', date: '', visibility: 'public' as TrpgLog['visibility'], password: '',
     pwClear: false,      // 걸려 있던 열람 비밀번호 풀기 (서버 대조 방식은 지금 비밀번호를 보여 줄 수 없어 따로 둔다)
   });
   // 본문 교체
@@ -252,6 +255,7 @@ export default function TrpgDetailPage() {
       title: e.title.trim(), catchphrase: e.catchphrase.trim() || undefined,
       writer: e.writer.trim(), withText: e.withText.trim(),
       relId: e.relId === 'none' ? undefined : e.relId,
+      catId: e.catId === 'none' ? undefined : e.catId,
       date: e.date || undefined,
       visibility: e.visibility, password, pwLock,
       listHidden: e.visibility === 'private',   // 목록 노출 = 나만보기가 아닌가 (목록 페이지 참고)
@@ -441,7 +445,7 @@ html,body{margin:0!important;padding:0!important;height:auto!important;min-heigh
           {isAdmin && <button className="btn btn-dark" onClick={() => {
             setE({
               noText: l.noText ?? '', slug: l.slug ?? '', title: l.title, catchphrase: l.catchphrase ?? '', writer: l.writer,
-              withText: l.withText, relId: l.relId ?? 'none', date: l.date ?? '',
+              withText: l.withText, relId: l.relId ?? 'none', catId: catIdOf(l, cats) ?? 'none', date: l.date ?? '',
               // 서버 대조 방식은 비밀번호를 내려받지 않으므로 칸을 비워 두고 「바꿀 때만 입력」
               visibility: l.visibility, password: logPwOnServer() ? '' : l.password ?? '', pwClear: false,
             });
@@ -566,6 +570,10 @@ html,body{margin:0!important;padding:0!important;height:auto!important;min-heigh
               options={[{ value: 'none', label: '자관 연동 없음' }, ...rels.map(r => ({ value: r.id, label: r.name }))]} />
             <KDate value={e.date} onChange={v => setE(s => ({ ...s, date: v }))} style={{ flex: 1 }} />
           </div>
+          {/* EVEDEN 카테고리 (v2.0 사용자 요청 — lib/boardCats.ts) */}
+          {catMode && (
+            <KSelect minWidth={140} value={e.catId} onChange={v => setE(s => ({ ...s, catId: v }))} options={catOptions(cats)} />
+          )}
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <KSelect minWidth={140} value={e.visibility} onChange={v => setE(s => ({ ...s, visibility: v as TrpgLog['visibility'] }))}
               options={[

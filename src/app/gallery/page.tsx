@@ -16,6 +16,8 @@ import { useMainStore } from '@/lib/mainStore';
 import { useCardSort, mergeOrder } from '@/lib/cardSort';
 import { pairIdOf, pairNameOf, pairTabs, inPairTab, NO_PAIR } from '@/lib/pairLink';
 import { useWorldFilter } from '@/lib/worldStore';
+import { useBoardCats, useCatMode, catTabs, inCatTab, catNameOf, NO_CAT } from '@/lib/boardCats';
+import { BoardCatModal } from '@/components/ui/BoardCatModal';
 
 const FOLD_LABEL = { spoiler: '스포일러', adult: '수위 주의' };
 
@@ -34,6 +36,11 @@ function BackupPageInner() {
   const [fCat, setFCat] = useState<string>('all');
   // 페어별 홈 (lib/worldStore.ts) — 다른 세계 페어의 글은 숨긴다
   const { rels, show } = useWorldFilter();
+  // EVEDEN 세계는 페어링 대신 관리자가 만든 카테고리로 나눈다 (v2.0 사용자 요청 — lib/boardCats.ts).
+  // 같은 fCat 자리에 'all' · 카테고리 id · NO_CAT를 담는다
+  const catMode = useCatMode();
+  const [boardCats] = useBoardCats('gallery');
+  const [catOpen, setCatOpen] = useState(false);
 
   const { st: boardSet } = useBoardSettings();
 
@@ -81,10 +88,11 @@ function BackupPageInner() {
     .filter(p => isAdmin || p.visibility === 'public' || (p.visibility === 'member' && user));
   // 탭 — 글이 있는 페어링만 PAIRING 목록 순서대로. 페어링 없는 글이 있으면 끝에 ETC
   const pidOf = (p: BackupPost) => pairIdOf(p, rels);
-  const { tabs: cats, none: noCat } = pairTabs(readable, rels, pidOf);
-  const tabOn = fCat === 'all' || (fCat === NO_PAIR ? noCat > 0 : cats.some(c => c.id === fCat));
-  useEffect(() => { if (!tabOn) setFCat('all'); });   // 고른 페어링 글이 사라지면 전체로
-  const visible = readable.filter(p => inPairTab(fCat, pidOf(p)));
+  const { tabs: cats, none: noCat } = catMode ? catTabs(readable, boardCats) : pairTabs(readable, rels, pidOf);
+  const noKey = catMode ? NO_CAT : NO_PAIR;
+  const tabOn = fCat === 'all' || (fCat === noKey ? noCat > 0 : cats.some(c => c.id === fCat));
+  useEffect(() => { if (!tabOn) setFCat('all'); });   // 고른 페어링 · 카테고리가 사라지면 전체로
+  const visible = readable.filter(p => catMode ? inCatTab(fCat, p, boardCats) : inPairTab(fCat, pidOf(p)));
 
   const sort = useCardSort(visible, next => setPosts(mergeOrder(posts, next)), editOn && isAdmin);
 
@@ -115,12 +123,13 @@ function BackupPageInner() {
             </div>
           ))}
           {noCat > 0 && cats.length > 0 && (
-            <div className={`tag ${fCat === NO_PAIR ? 'on' : ''}`} onClick={() => setFCat(NO_PAIR)}>
+            <div className={`tag ${fCat === noKey ? 'on' : ''}`} onClick={() => setFCat(noKey)}>
               {arch ? 'ETC' : '기타'} <small>{noCat}</small>
             </div>
           )}
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {isAdmin && catMode && <button className="btn btn-ghost" onClick={() => setCatOpen(true)}>CATEGORY</button>}
           {user && <button className="btn btn-dark" onClick={() => router.push('/gallery/write' + secQuery('gallery', sec.id))}>✎ WRITE</button>}
         </div>
       </div>
@@ -129,7 +138,7 @@ function BackupPageInner() {
           {paged.map((p, si) => {
             const i = start + si;
             const folded = p.fold && !unveiled[p.id];
-            const pair = pairNameOf(p, rels);
+            const pair = catMode ? catNameOf(p, boardCats) : pairNameOf(p, rels);
             return (
               <div key={p.id} className="panel g-item" {...sort(i)}
                 onClick={() => { if (!folded && !editOn) router.push(backupPath(p, nos)); }}>
@@ -166,6 +175,7 @@ function BackupPageInner() {
         </div>
       )}
       {visible.length > PER && <Pager page={cur} total={pages} onChange={setPage} />}
+      <BoardCatModal board="gallery" open={catOpen} onClose={() => setCatOpen(false)} />
     </section>
   );
 }

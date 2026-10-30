@@ -26,6 +26,8 @@ import { useBoardSkin } from '@/lib/boardSkin';
 import { hasLogPw, logPwOnServer, setLogPassword } from '@/lib/logLock';
 import { logPath, normalizeLogSlug } from '@/lib/logPath';
 import { useWorldFilter } from '@/lib/worldStore';
+import { useBoardCats, useCatMode, catTabs, inCatTab, catOptions, NO_CAT } from '@/lib/boardCats';
+import { BoardCatModal } from '@/components/ui/BoardCatModal';
 
 function TrpgPageInner() {
   const router = useRouter();
@@ -55,6 +57,11 @@ function TrpgPageInner() {
   const yj = world === 'yjhm';   // YJHM 세계 — 단말기 말투 대신 신문 지면 말투 (lib/yjhmNames.ts)
   const { editOn } = useMainStore();          // 편집모드 — 상단바 토글 (다른 목록과 공통)
   const [filter, setFilter] = useState<string>('all');
+  // EVEDEN 세계는 페어링 대신 관리자가 만든 카테고리로 나눈다 (v2.0 사용자 요청 — lib/boardCats.ts)
+  const catMode = useCatMode();
+  const [cats] = useBoardCats('trpg');
+  const [catOpen, setCatOpen] = useState(false);
+  useEffect(() => { setFilter('all'); }, [catMode]);
   const [skin, setSkin] = useState<'ticket' | 'basic'>('ticket');
   const [q, setQ] = useState('');
   // 모바일은 티켓 스킨 대신 항상 기본형 리스트 — 좁은 폭에서 티켓이 뭉개지지 않게 (v1.9 사용자 확정)
@@ -77,6 +84,7 @@ function TrpgPageInner() {
   const [nWriter, setNWriter] = useState('');
   const [nWith, setNWith] = useState('');
   const [nRel, setNRel] = useState('none');
+  const [nCat, setNCat] = useState(NO_CAT);
   const [nDate, setNDate] = useState('');
   // 본문 입력 — 기본은 사이트 에디터 (v2.0 사용자 요청: 코드 칸에 쓰기 불편했다). 붙여넣기·파일은 로그 툴 내보내기용
   const [nMode, setNMode] = useState<'editor' | 'file' | 'paste'>('editor');
@@ -101,6 +109,10 @@ function TrpgPageInner() {
     return m;
   }, [logs, showPid]);
 
+  // 카테고리 탭 — 이 방문자에게 목록에 뜨는 로그 기준
+  const catLogs = logs.filter(l => (isAdmin || l.visibility !== 'private') && showPid(l.relId));
+  const catTab = catTabs(catLogs, cats);
+
   // 목록에는 나만보기만 빼고 다 뜬다 — 나만보기는 관리자 목록에만 (v2.0 사용자 요청 · 「목록에서 숨기기」 칸은 없앴다).
   // 서버도 같은 기준이다: 목록 문서의 listHidden을 「나만보기인가」로 저장해(metaOf) 방문자 질의에 아예 안 나온다.
   // 열 수 있는지는 상세 페이지가 다시 독립적으로 확인하므로, 목록에 뜬다고 내용이 새지 않는다
@@ -108,7 +120,7 @@ function TrpgPageInner() {
   const visible = logs
     .filter(l => isAdmin || l.visibility !== 'private')
     .filter(l => showPid(l.relId))
-    .filter(l => filter === 'all' || (filter === 'none' ? !l.relId : l.relId === filter))
+    .filter(l => catMode ? inCatTab(filter, l, cats) : filter === 'all' || (filter === 'none' ? !l.relId : l.relId === filter))
     .filter(l => !q || l.title.includes(q) || l.writer.includes(q) || l.withText.includes(q));
   // 정렬 기준은 저장된 순서 — 편집모드에서 드래그로 바꾼 순서가 그대로 목록에 반영된다 (v2.0).
   // 새 로그는 앞에 넣으므로 기본은 지금까지처럼 최신순이고, № 번호는 표시용으로만 남는다.
@@ -211,6 +223,7 @@ function TrpgPageInner() {
       title: nTitle.trim(), catchphrase: nCatch.trim() || undefined,
       writer: nWriter.trim(), withText: nWith.trim(),
       relId: nRel === 'none' ? undefined : nRel,
+      catId: nCat === NO_CAT ? undefined : nCat,
       date: nDate || undefined, ph: 'cool',
       visibility: nVis,
       password: pw && !pwServer ? pw : undefined,
@@ -233,7 +246,7 @@ function TrpgPageInner() {
     setLogs([log, ...logs]);
     setBodies([...bodies, body]);
     setAddOpen(false);
-    setNNo(''); setNSlug(''); setNVis('public'); setNPw(''); setNTitle(''); setNCatch(''); setNWriter(''); setNWith(''); setNBody(''); setNRich(''); setNFileName(''); setNDate(''); setNFile(null);
+    setNNo(''); setNSlug(''); setNVis('public'); setNPw(''); setNTitle(''); setNCatch(''); setNWriter(''); setNWith(''); setNCat(NO_CAT); setNBody(''); setNRich(''); setNFileName(''); setNDate(''); setNFile(null);
     setNThumb(null); setNThumbUrl(''); setNThumbCrop(undefined);
     toast(nFile ? '로그가 등록되었습니다 — 원본 파일도 보관됩니다' : '로그가 등록되었습니다');
   };
@@ -300,6 +313,7 @@ function TrpgPageInner() {
         <EditableDesc k="trpg-desc" def="티켓형 스킨 · 시나리오 타이틀 폰트 개별 설정 · 우측 자관 뱃지로 필터" />
         <div className="head-actions">
           <SearchBar onSearch={setQ} />
+          {isAdmin && catMode && <button className="btn btn-ghost" style={{ whiteSpace: 'nowrap' }} onClick={() => setCatOpen(true)}>CATEGORY</button>}
           {isAdmin && <button className="btn btn-dark" style={{ whiteSpace: 'nowrap' }} onClick={() => setAddOpen(true)}>＋ ADD LOG</button>}
         </div>
       </div>
@@ -366,19 +380,40 @@ function TrpgPageInner() {
         {/* ARCH에선 PC · 폰 모두 목록 위 탭 줄로 — JOURNAL 무드 필터와 같은 모양 (v2.0 사용자 요청 · globals.css .arch-tabbar) */}
         <div className={`panel tagside${arch ? ' arch-tabbar' : ''}`}>
           {/* ARCH에선 영어로 (v2.0 사용자 요청) */}
-          <h4>{yj ? 'MIXED TEAM' : arch ? 'PAIRING FILTER' : '자관 필터'}</h4>
-          <div className={`tag ${filter === 'all' ? 'on' : ''}`} onClick={() => setFilter('all')}>
-            {arch ? 'ALL' : '전체'} <small>{logs.filter(l => showPid(l.relId)).length}</small>
-          </div>
-          {rels.filter(r => counts[r.id]).map(r => (
-            <div key={r.id} className={`tag ${filter === r.id ? 'on' : ''}`} onClick={() => setFilter(r.id)}>
-              {r.name} <small>{counts[r.id]}</small>
+          {catMode ? (
+            <>
+              <h4>{arch ? 'CATEGORY' : '카테고리'}</h4>
+              <div className={`tag ${filter === 'all' ? 'on' : ''}`} onClick={() => setFilter('all')}>
+                {arch ? 'ALL' : '전체'} <small>{catLogs.length}</small>
+              </div>
+              {catTab.tabs.map(c => (
+                <div key={c.id} className={`tag ${filter === c.id ? 'on' : ''}`} onClick={() => setFilter(c.id)}>
+                  {c.name} <small>{c.n}</small>
+                </div>
+              ))}
+              {catTab.none > 0 && catTab.tabs.length > 0 && (
+                <div className={`tag ${filter === NO_CAT ? 'on' : ''}`} onClick={() => setFilter(NO_CAT)}>
+                  {arch ? 'ETC' : '기타'} <small>{catTab.none}</small>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <h4>{yj ? 'MIXED TEAM' : arch ? 'PAIRING FILTER' : '자관 필터'}</h4>
+            <div className={`tag ${filter === 'all' ? 'on' : ''}`} onClick={() => setFilter('all')}>
+              {arch ? 'ALL' : '전체'} <small>{logs.filter(l => showPid(l.relId)).length}</small>
             </div>
-          ))}
-          {counts['none'] > 0 && (
-            <div className={`tag ${filter === 'none' ? 'on' : ''}`} onClick={() => setFilter('none')}>
-              {arch ? 'ONE-SHOT' : '단발'} <small>{counts['none']}</small>
-            </div>
+            {rels.filter(r => counts[r.id]).map(r => (
+              <div key={r.id} className={`tag ${filter === r.id ? 'on' : ''}`} onClick={() => setFilter(r.id)}>
+                {r.name} <small>{counts[r.id]}</small>
+              </div>
+            ))}
+            {counts['none'] > 0 && (
+              <div className={`tag ${filter === 'none' ? 'on' : ''}`} onClick={() => setFilter('none')}>
+                {arch ? 'ONE-SHOT' : '단발'} <small>{counts['none']}</small>
+              </div>
+            )}
+            </>
           )}
           {!isMobile && !arch && (
             <>
@@ -414,6 +449,9 @@ function TrpgPageInner() {
               options={[{ value: 'none', label: '자관 연동 없음' }, ...rels.map(r => ({ value: r.id, label: r.name }))]} />
             <KDate value={nDate} onChange={setNDate} style={{ flex: 1 }} />
           </div>
+          {catMode && (
+            <KSelect minWidth={140} value={nCat} onChange={setNCat} options={catOptions(cats)} />
+          )}
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <KSelect minWidth={140} value={nVis} onChange={v => setNVis(v as 'public')}
               options={[
@@ -490,6 +528,8 @@ function TrpgPageInner() {
           )}
         </div>
       </Modal>
+
+      <BoardCatModal board="trpg" open={catOpen} onClose={() => setCatOpen(false)} />
 
       {nThumbUrl && (
         <CropEditor open={cropOpen} src={nThumbUrl} aspect="16:9" initial={nThumbCrop}
