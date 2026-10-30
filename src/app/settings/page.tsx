@@ -16,7 +16,7 @@ import { DiaryPost, DIARY_SEED } from '@/lib/diaryStore';
 import { newId } from '@/lib/postStore';
 import { useCommSettings, badgeStyle, CommBadge, CommSettings } from '@/lib/commStore';
 import {
-  useBoardSettings, boardBadgeStyle, BoardBadge, galleryCatsOf,
+  useBoardSettings, boardBadgeStyle, BoardBadge,
   useBoards, Board, BoardSkin, BoardPerm, DEFAULT_BOARD_CATS, MAIN_BOARD_ID,
 } from '@/lib/boardStore';
 import { useThreadSettings, ThreadWork, THREAD_SEED, ThreadCat, threadBadgeStyle, threadCats, threadCatsPatch } from '@/lib/threadStore';
@@ -899,20 +899,13 @@ function MenuLockSection({ tree, labelOf }: { tree: MenuGroupNode[]; labelOf: (h
 function BoardPane() {
   const {
     st, patchSystem, patchGallery,
-    patchGalleryCat, addGalleryCat, removeGalleryCat, setGalleryCats,
   } = useBoardSettings();
   const { boards, setBoards, patchBoard } = useBoards();
-  const [catBoard, setCatBoard] = useState(MAIN_BOARD_ID);   // 말머리 편집 대상 게시판
-  /* 갤러리 말머리도 갤러리마다 따로 (v2.0 사용자 요청) — 어느 갤러리 것을 고칠지 고른다.
-     하나뿐이면 고를 것이 없으니 선택 줄을 아예 두지 않는다 (감상타래와 같은 방식) */
-  const { list: secList } = useSections();
-  const galSecs = secList('gallery');
-  const [galSecSel, setGalSec] = useState(MAIN_SEC);
-  const galSec = galSecs.some(s2 => s2.id === galSecSel) ? galSecSel : MAIN_SEC;
-  const galCats = galleryCatsOf(st, galSec);
   const del = useConfirmDelete();
 
-  const sel = boards.find(b => b.id === catBoard) ?? boards[0];
+  // 말머리는 모든 게시판 공통 하나 (v2.0 사용자 요청) — 기본 게시판의 cats 자리에 저장 (lib/boardCats.ts).
+  // 갤러리 말머리 · 게시판별 말머리는 따로 두지 않는다
+  const sel = boards.find(b => b.id === MAIN_BOARD_ID) ?? boards[0];
   const setCats = (cats: BoardBadge[]) => patchBoard(sel.id, { cats });
   const patchCat = (id: string, p: Partial<BoardBadge>) =>
     patchBoard(sel.id, { cats: sel.cats.map(c => (c.id === id ? { ...c, ...p } : c)) });
@@ -962,7 +955,6 @@ function BoardPane() {
                 <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 10.5 }}
                   onClick={() => del.ask(`게시판 「${b.name}」를 삭제하시겠습니까?`, () => {
                     setBoards(boards.filter(x => x.id !== b.id));
-                    if (catBoard === b.id) setCatBoard(MAIN_BOARD_ID);
                   }, '메뉴에서 사라지지만 이 게시판에 쓴 글 데이터는 보존됩니다 (3장 원칙).')}>DELETE</button>
               )}
             </div>
@@ -979,14 +971,7 @@ function BoardPane() {
       <hr style={{ margin: '24px 0', border: 'none', borderTop: '1.5px solid var(--line)' }} />
 
       <h3>말머리</h3>
-      <div className="d">게시판을 고른 뒤 ⠿ 드래그로 순서 · 이름 수정 · 추가/삭제 — 이름을 바꿔도 기존 글은 이전 이름으로 남습니다</div>
-      {boards.length > 1 && (
-        <div className="mini-seg" style={{ marginBottom: 12 }}>
-          {boards.map(b => (
-            <button key={b.id} className={sel.id === b.id ? 'on' : ''} onClick={() => setCatBoard(b.id)}>{b.name}</button>
-          ))}
-        </div>
-      )}
+      <div className="d">모든 게시판 공통 — 리스트 · FIELD REPORT · COMMS ARCHIVE · JOURNAL · 갤러리의 EVEDEN 탭과 글쓰기가 이 목록을 씁니다 · ⠿ 드래그로 순서(탭 순서) · 이름 수정 · 추가/삭제 — 이름을 바꿔도 글은 그대로 따라갑니다</div>
       <DragList items={sel.cats} keyOf={c => c.id} onReorder={setCats}
         render={c => (
           <div className="set-row" style={{ width: '100%' }}>
@@ -1001,7 +986,7 @@ function BoardPane() {
               <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 10.5 }}
                 onClick={() => del.ask(`말머리 「${c.label}」를 삭제하시겠습니까?`, () =>
                   patchBoard(sel.id, { cats: sel.cats.filter(x => x.id !== c.id) }),
-                  '이 말머리로 쓴 기존 글은 유지되며 중립색 뱃지로 표시됩니다.')}>DELETE</button>
+                  '이 말머리로 쓴 글은 그대로 남고 「기타」 탭으로 옮겨집니다.')}>DELETE</button>
             </div>
           </div>
         )} />
@@ -1038,40 +1023,6 @@ function BoardPane() {
         </div>
       ))}
 
-      {/* 갤러리 말머리 (v2.0 사용자 요청) — 예전에는 코드에 박혀 있어 바꿀 수 없었다.
-          여러 개로 만든 갤러리마다 따로 정한다 (v2.0 사용자 요청) */}
-      <h3 style={{ marginTop: 20 }}>갤러리 말머리</h3>
-      <div className="d">
-        그림백업 글쓰기에서 고르는 말머리 — ⠿ 드래그로 순서 · 추가·수정·삭제 자유
-        {galSecs.length > 1 && <><br />갤러리마다 따로 정합니다 — <b>손대기 전까지는 기본 갤러리의 말머리를 그대로 씁니다</b></>}
-      </div>
-      {galSecs.length > 1 && (
-        <div className="mini-seg" style={{ flexWrap: 'wrap', marginBottom: 10 }}>
-          {galSecs.map(s2 => (
-            <button key={s2.id} className={galSec === s2.id ? 'on' : ''} onClick={() => setGalSec(s2.id)}>{s2.name}</button>
-          ))}
-        </div>
-      )}
-      <DragList items={galCats} keyOf={c => c.id} onReorder={next => setGalleryCats(galSec, next)}
-        render={c => (
-          <div className="set-row" style={{ width: '100%' }}>
-            <div className="l" style={{ display: 'flex', gap: 11, alignItems: 'center' }}>
-              <span className="drag-h">⠿</span>
-              <span style={boardBadgeStyle(c)}>{c.label || '말머리'}</span>
-            </div>
-            <div className="cp-group" style={{ justifyContent: 'flex-end' }}>
-              <KInput value={c.label} onChange={e => patchGalleryCat(galSec, c.id, { label: e.target.value })}
-                style={{ width: 100, textAlign: 'right' }} />
-              {colorCells(c, p => patchGalleryCat(galSec, c.id, p))}
-              <span className="fx" data-tip="말머리 삭제"
-                onClick={() => del.ask(`말머리 「${c.label}」를 삭제하시겠습니까?`,
-                  () => removeGalleryCat(galSec, c.id),
-                  '이미 이 말머리로 등록된 글은 그대로 남습니다.')}>✕</span>
-            </div>
-          </div>
-        )} />
-      <button className="btn btn-ghost" style={{ marginTop: 8, padding: '7px 14px', fontSize: 11 }}
-        onClick={() => addGalleryCat(galSec)}>＋ 말머리 추가</button>
 
       <hr style={{ margin: '24px 0', border: 'none', borderTop: '1.5px solid var(--line)' }} />
       {/* 갤러리·다이어리 등도 여러 개로 (v2.0 사용자 요청) — 목록이 몇 개인지는 여기 한곳에서 */}

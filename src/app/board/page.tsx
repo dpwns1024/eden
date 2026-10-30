@@ -16,6 +16,7 @@ import { CropImg } from '@/components/ui/CropEditor';
 import { EditableDesc, PageTitle } from '@/components/ui/PageText';
 import { pairIdOf, pairNameOf, pairTabs, inPairTab, NO_PAIR } from '@/lib/pairLink';
 import { useWorldFilter } from '@/lib/worldStore';
+import { useBoardCats, useCatMode, catTabs, inCatTab, catOf, NO_CAT } from '@/lib/boardCats';
 
 const PER_PAGE = 10;
 
@@ -44,12 +45,18 @@ function BoardInner() {
   const [cat, setCat] = useState('all');
   // 페어별 홈 (lib/worldStore.ts) — 다른 세계 페어의 글은 숨긴다
   const { rels, show } = useWorldFilter();
+  // EVEDEN 세계는 페어링 대신 환경설정의 말머리(모든 게시판 공통)로 나눈다 (v2.0 사용자 요청 — lib/boardCats.ts)
+  const catMode = useCatMode();
+  const cats = useBoardCats();
   const [q, setQ] = useState('');
   const [page, setPage] = useState(1);
 
   // 게시판 전환 시 필터·페이지 초기화
   const [prevBid, setPrevBid] = useState(bid);
   if (prevBid !== bid) { setPrevBid(bid); setCat('all'); setQ(''); setPage(1); }
+  // 세계를 바꾸면 탭 종류(말머리 ↔ 페어링)가 바뀌므로 처음부터
+  const [prevMode, setPrevMode] = useState(catMode);
+  if (prevMode !== catMode) { setPrevMode(catMode); setCat('all'); setPage(1); }
 
   // 권한 3단계 — mock 단계에선 로그인 전제 (로드뷰 4.10과 동일 규칙)
   const allow = (p: BoardPerm) => (p === 'admin' ? isAdmin : p === 'member' ? !!user : true);
@@ -57,7 +64,7 @@ function BoardInner() {
   const visible = useMemo(() => {
     let list = posts.filter(p => (p.boardId ?? MAIN_BOARD_ID) === board.id && show(p));
     if (cat === 'notice') list = list.filter(p => p.notice);
-    else list = list.filter(p => inPairTab(cat, pairIdOf(p, rels)));
+    else list = list.filter(p => catMode ? inCatTab(cat, p, cats) : inPairTab(cat, pairIdOf(p, rels)));
     if (q) {
       const k = q.toLowerCase();
       list = list.filter(p =>
@@ -69,7 +76,7 @@ function BoardInner() {
     // 공지 상단 고정 + 최신순
     return list.sort((a, b) =>
       (b.notice ? 1 : 0) - (a.notice ? 1 : 0) || b.date.localeCompare(a.date));
-  }, [posts, board.id, cat, q, rels, show]);
+  }, [posts, board.id, cat, q, rels, show, catMode, cats]);
 
   const totalPages = Math.max(1, Math.ceil(visible.length / PER_PAGE));
   const pageList = visible.slice((page - 1) * PER_PAGE, page * PER_PAGE);
@@ -81,18 +88,24 @@ function BoardInner() {
 
   // 뱃지 — 공지 · 비밀 · 페어링 이름 (말머리 색 설정에 같은 이름이 있으면 그 색)
   const postBadge = (p: Post) => {
+    if (catMode) {   // EVEDEN — 말머리 이름 · 색 그대로
+      const c = catOf(p, cats);
+      const sys = p.notice ? boardSet.system[0] : p.secret ? boardSet.system[1] : undefined;
+      const b = sys ?? c;
+      return b ? <span className="b-badge" style={boardBadgeStyle(b)}>{b.label}</span> : null;
+    }
     const pair = pairNameOf(p, rels);
     const label = p.notice ? boardSet.system[0].label : p.secret ? boardSet.system[1].label : pair;
     return label ? (
-      <span className="b-badge" style={boardBadgeStyle(badgeFor(boardSet, { ...p, category: pair }, board.cats))}>{label}</span>
+      <span className="b-badge" style={boardBadgeStyle(badgeFor(boardSet, { ...p, category: pair }, cats))}>{label}</span>
     ) : null;
   };
   const inBoard = posts.filter(p => (p.boardId ?? MAIN_BOARD_ID) === board.id && show(p));
-  const { tabs: pairs, none: noPair } = pairTabs(inBoard, rels, p => pairIdOf(p, rels));
+  const { tabs: pairs, none: noPair } = catMode ? catTabs(inBoard, cats) : pairTabs(inBoard, rels, p => pairIdOf(p, rels));
   const tabList = [
     { k: 'all', label: '전체' }, { k: 'notice', label: '공지' },
     ...pairs.map(r => ({ k: r.id, label: r.name })),
-    ...(noPair > 0 && pairs.length > 0 ? [{ k: NO_PAIR, label: '기타' }] : []),
+    ...(noPair > 0 && pairs.length > 0 ? [{ k: catMode ? NO_CAT : NO_PAIR, label: '기타' }] : []),
   ];
 
   return (

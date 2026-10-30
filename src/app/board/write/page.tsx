@@ -13,6 +13,7 @@ import { RichEditor } from '@/components/ui/RichEditor';
 import { useToast } from '@/components/ui/Toast';
 import { PageTitle, EditableDesc } from '@/components/ui/PageText';
 import { usePairings, pairIdOf, pairOptions, NO_PAIR } from '@/lib/pairLink';
+import { useBoardCats, useCatMode, catIdOf, catOptions, NO_CAT } from '@/lib/boardCats';
 
 function WriteInner() {
   const router = useRouter();
@@ -34,6 +35,12 @@ function WriteInner() {
   const [pickedRel, setRelId] = useState<string>();
   const relId = pickedRel ?? (editing && pairIdOf(editing, rels)) ?? NO_PAIR;
   const relOut = relId === NO_PAIR ? undefined : relId;
+  // EVEDEN 말머리 (v2.0 사용자 요청 — 모든 게시판 공통 · lib/boardCats.ts) — EVEDEN 세계에서만 고르고, 아니면 원래 값 유지
+  const catMode = useCatMode();
+  const cats = useBoardCats();
+  const [pickedCat, setCatId] = useState<string>();
+  const catId = pickedCat ?? (editing && catIdOf(editing, cats)) ?? NO_CAT;
+  const catOut = catId === NO_CAT ? undefined : catId;
   const [secret, setSecret] = useState(false);
   const [notice, setNotice] = useState(false);
   // 태그 (v2.0 사용자 요청) — 쉼표로 구분해 입력, 저장할 때 배열로
@@ -96,7 +103,7 @@ function WriteInner() {
         title: title.trim(), body,
         mode: writeMode === 'md' ? 'md' : 'html',
         authored: writeMode === 'editor' ? 'editor' : undefined,
-        category: '', relId: relOut,
+        category: '', relId: relOut, catId: catOut,
         secret, notice: isAdmin ? notice : p.notice,
         tags: parseTags(tagsText),
         fold: foldType === 'none' ? null : { type: foldType, label: foldType === 'custom' ? foldLabel : undefined },
@@ -108,7 +115,7 @@ function WriteInner() {
     }
     const p: Post = {
       id: newId(), title: title.trim(), body,
-      mode: writeMode === 'md' ? 'md' : 'html', category: '', relId: relOut,
+      mode: writeMode === 'md' ? 'md' : 'html', category: '', relId: relOut, catId: catOut,
       author: user.nickname, authorId: user.id, date: new Date().toISOString(),
       secret, notice: isAdmin && notice,
       tags: parseTags(tagsText),
@@ -192,6 +199,12 @@ function WriteInner() {
               <label className="k-label" style={{ width: 60 }}>페어링</label>
               <KSelect minWidth={130} value={relId} onChange={setRelId} options={pairOptions(rels)} />
             </div>
+            {catMode && (
+              <div className="form-row">
+                <label className="k-label" style={{ width: 60 }}>말머리</label>
+                <KSelect minWidth={130} value={catId} onChange={setCatId} options={catOptions(cats)} />
+              </div>
+            )}
             {/* 태그 (v2.0 사용자 요청) — 목록의 작성자 왼쪽에 나열되고 검색에 걸린다 */}
             <div className="form-row">
               <label className="k-label" style={{ width: 60 }}>태그</label>

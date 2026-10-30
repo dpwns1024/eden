@@ -172,7 +172,7 @@ export default function TrpgDetailPage() {
   // 로그 정보 수정 — 메타 + 본문 교체(파일/직접 입력) + 썸네일 교체(이미지 크롭/단색·그라데이션)
   const [eOpen, setEOpen] = useState(false);
   const catMode = useCatMode();
-  const [cats] = useBoardCats('trpg');
+  const cats = useBoardCats();
   const [e, setE] = useState({
     noText: '', slug: '', title: '', catchphrase: '', writer: '', withText: '',
     relId: 'none', catId: 'none', date: '', visibility: 'public' as TrpgLog['visibility'], password: '',
@@ -570,7 +570,7 @@ html,body{margin:0!important;padding:0!important;height:auto!important;min-heigh
               options={[{ value: 'none', label: '자관 연동 없음' }, ...rels.map(r => ({ value: r.id, label: r.name }))]} />
             <KDate value={e.date} onChange={v => setE(s => ({ ...s, date: v }))} style={{ flex: 1 }} />
           </div>
-          {/* EVEDEN 카테고리 (v2.0 사용자 요청 — lib/boardCats.ts) */}
+          {/* EVEDEN 말머리 (v2.0 사용자 요청 — lib/boardCats.ts) */}
           {catMode && (
             <KSelect minWidth={140} value={e.catId} onChange={v => setE(s => ({ ...s, catId: v }))} options={catOptions(cats)} />
           )}

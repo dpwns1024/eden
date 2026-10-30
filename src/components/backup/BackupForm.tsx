@@ -72,9 +72,9 @@ export function BackupForm({ initial }: { initial: BackupPost | null }) {
   const rels = usePairings();
   const [pickedRel, setRelId] = useState<string>();
   const relId = pickedRel ?? (initial && pairIdOf(initial, rels)) ?? NO_PAIR;
-  // EVEDEN 카테고리 (v2.0 사용자 요청 — lib/boardCats.ts) — EVEDEN 세계에서만 고르고, 아니면 원래 값 유지
+  // EVEDEN 말머리 (v2.0 사용자 요청 — lib/boardCats.ts) — EVEDEN 세계에서만 고르고, 아니면 원래 값 유지
   const catMode = useCatMode();
-  const [cats] = useBoardCats('gallery');
+  const cats = useBoardCats();
   const [pickedCat, setCatId] = useState<string>();
   const catId = pickedCat ?? (initial && catIdOf(initial, cats)) ?? NO_CAT;
   const catOut = catId === NO_CAT ? undefined : catId;
@@ -233,7 +233,7 @@ export function BackupForm({ initial }: { initial: BackupPost | null }) {
             </div>
             {catMode && (
               <div className="form-row">
-                <label className="k-label" style={{ width: 70 }}>카테고리</label>
+                <label className="k-label" style={{ width: 70 }}>말머리</label>
                 <KSelect minWidth={120} value={catId} onChange={setCatId} options={catOptions(cats)} />
               </div>
             )}

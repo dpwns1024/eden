@@ -27,7 +27,6 @@ import { hasLogPw, logPwOnServer, setLogPassword } from '@/lib/logLock';
 import { logPath, normalizeLogSlug } from '@/lib/logPath';
 import { useWorldFilter } from '@/lib/worldStore';
 import { useBoardCats, useCatMode, catTabs, inCatTab, catOptions, NO_CAT } from '@/lib/boardCats';
-import { BoardCatModal } from '@/components/ui/BoardCatModal';
 
 function TrpgPageInner() {
   const router = useRouter();
@@ -57,10 +56,9 @@ function TrpgPageInner() {
   const yj = world === 'yjhm';   // YJHM 세계 — 단말기 말투 대신 신문 지면 말투 (lib/yjhmNames.ts)
   const { editOn } = useMainStore();          // 편집모드 — 상단바 토글 (다른 목록과 공통)
   const [filter, setFilter] = useState<string>('all');
-  // EVEDEN 세계는 페어링 대신 관리자가 만든 카테고리로 나눈다 (v2.0 사용자 요청 — lib/boardCats.ts)
+  // EVEDEN 세계는 페어링 대신 환경설정의 말머리(모든 게시판 공통)로 나눈다 (v2.0 사용자 요청 — lib/boardCats.ts)
   const catMode = useCatMode();
-  const [cats] = useBoardCats('trpg');
-  const [catOpen, setCatOpen] = useState(false);
+  const cats = useBoardCats();
   useEffect(() => { setFilter('all'); }, [catMode]);
   const [skin, setSkin] = useState<'ticket' | 'basic'>('ticket');
   const [q, setQ] = useState('');
@@ -109,7 +107,7 @@ function TrpgPageInner() {
     return m;
   }, [logs, showPid]);
 
-  // 카테고리 탭 — 이 방문자에게 목록에 뜨는 로그 기준
+  // 말머리 탭 — 이 방문자에게 목록에 뜨는 로그 기준
   const catLogs = logs.filter(l => (isAdmin || l.visibility !== 'private') && showPid(l.relId));
   const catTab = catTabs(catLogs, cats);
 
@@ -313,7 +311,6 @@ function TrpgPageInner() {
         <EditableDesc k="trpg-desc" def="티켓형 스킨 · 시나리오 타이틀 폰트 개별 설정 · 우측 자관 뱃지로 필터" />
         <div className="head-actions">
           <SearchBar onSearch={setQ} />
-          {isAdmin && catMode && <button className="btn btn-ghost" style={{ whiteSpace: 'nowrap' }} onClick={() => setCatOpen(true)}>CATEGORY</button>}
           {isAdmin && <button className="btn btn-dark" style={{ whiteSpace: 'nowrap' }} onClick={() => setAddOpen(true)}>＋ ADD LOG</button>}
         </div>
       </div>
@@ -382,7 +379,7 @@ function TrpgPageInner() {
           {/* ARCH에선 영어로 (v2.0 사용자 요청) */}
           {catMode ? (
             <>
-              <h4>{arch ? 'CATEGORY' : '카테고리'}</h4>
+              <h4>{arch ? 'CATEGORY' : '말머리'}</h4>
               <div className={`tag ${filter === 'all' ? 'on' : ''}`} onClick={() => setFilter('all')}>
                 {arch ? 'ALL' : '전체'} <small>{catLogs.length}</small>
               </div>
@@ -529,7 +526,6 @@ function TrpgPageInner() {
         </div>
       </Modal>
 
-      <BoardCatModal board="trpg" open={catOpen} onClose={() => setCatOpen(false)} />
 
       {nThumbUrl && (
         <CropEditor open={cropOpen} src={nThumbUrl} aspect="16:9" initial={nThumbCrop}

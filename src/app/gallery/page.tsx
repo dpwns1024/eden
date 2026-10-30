@@ -16,8 +16,7 @@ import { useMainStore } from '@/lib/mainStore';
 import { useCardSort, mergeOrder } from '@/lib/cardSort';
 import { pairIdOf, pairNameOf, pairTabs, inPairTab, NO_PAIR } from '@/lib/pairLink';
 import { useWorldFilter } from '@/lib/worldStore';
-import { useBoardCats, useCatMode, catTabs, inCatTab, catNameOf, NO_CAT } from '@/lib/boardCats';
-import { BoardCatModal } from '@/components/ui/BoardCatModal';
+import { useBoardCats, useCatMode, catTabs, inCatTab, catOf, NO_CAT } from '@/lib/boardCats';
 
 const FOLD_LABEL = { spoiler: '스포일러', adult: '수위 주의' };
 
@@ -36,11 +35,10 @@ function BackupPageInner() {
   const [fCat, setFCat] = useState<string>('all');
   // 페어별 홈 (lib/worldStore.ts) — 다른 세계 페어의 글은 숨긴다
   const { rels, show } = useWorldFilter();
-  // EVEDEN 세계는 페어링 대신 관리자가 만든 카테고리로 나눈다 (v2.0 사용자 요청 — lib/boardCats.ts).
-  // 같은 fCat 자리에 'all' · 카테고리 id · NO_CAT를 담는다
+  // EVEDEN 세계는 페어링 대신 환경설정의 말머리(모든 게시판 공통)로 나눈다 (v2.0 사용자 요청 — lib/boardCats.ts).
+  // 같은 fCat 자리에 'all' · 말머리 id · NO_CAT를 담는다
   const catMode = useCatMode();
-  const [boardCats] = useBoardCats('gallery');
-  const [catOpen, setCatOpen] = useState(false);
+  const boardCats = useBoardCats();
 
   const { st: boardSet } = useBoardSettings();
 
@@ -91,7 +89,7 @@ function BackupPageInner() {
   const { tabs: cats, none: noCat } = catMode ? catTabs(readable, boardCats) : pairTabs(readable, rels, pidOf);
   const noKey = catMode ? NO_CAT : NO_PAIR;
   const tabOn = fCat === 'all' || (fCat === noKey ? noCat > 0 : cats.some(c => c.id === fCat));
-  useEffect(() => { if (!tabOn) setFCat('all'); });   // 고른 페어링 · 카테고리가 사라지면 전체로
+  useEffect(() => { if (!tabOn) setFCat('all'); });   // 고른 페어링 · 말머리가 사라지면 전체로
   const visible = readable.filter(p => catMode ? inCatTab(fCat, p, boardCats) : inPairTab(fCat, pidOf(p)));
 
   const sort = useCardSort(visible, next => setPosts(mergeOrder(posts, next)), editOn && isAdmin);
@@ -129,7 +127,6 @@ function BackupPageInner() {
           )}
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          {isAdmin && catMode && <button className="btn btn-ghost" onClick={() => setCatOpen(true)}>CATEGORY</button>}
           {user && <button className="btn btn-dark" onClick={() => router.push('/gallery/write' + secQuery('gallery', sec.id))}>✎ WRITE</button>}
         </div>
       </div>
@@ -138,7 +135,9 @@ function BackupPageInner() {
           {paged.map((p, si) => {
             const i = start + si;
             const folded = p.fold && !unveiled[p.id];
-            const pair = catMode ? catNameOf(p, boardCats) : pairNameOf(p, rels);
+            // EVEDEN은 말머리 — 뱃지 색도 환경설정 말머리 그대로
+            const cat = catMode ? catOf(p, boardCats) : undefined;
+            const pair = catMode ? cat?.label ?? '' : pairNameOf(p, rels);
             return (
               <div key={p.id} className="panel g-item" {...sort(i)}
                 onClick={() => { if (!folded && !editOn) router.push(backupPath(p, nos)); }}>
@@ -159,7 +158,7 @@ function BackupPageInner() {
                 <div className="info">
                   <div className="g-head">
                     <b>{p.title}</b>
-                    {pair && <span className="typ" style={getPrefixStyle(pair)}>{pair}</span>}
+                    {pair && <span className="typ" style={cat ? { ...getPrefixStyle(pair), ...boardBadgeStyle(cat) } : getPrefixStyle(pair)}>{pair}</span>}
                     {/* 태그는 페어링 옆 (v2.0 사용자 요청) */}
                     {(p.tags ?? []).map(t => <i key={t} className="tag-in">#{t}</i>)}
                   </div>
@@ -175,7 +174,6 @@ function BackupPageInner() {
         </div>
       )}
       {visible.length > PER && <Pager page={cur} total={pages} onChange={setPage} />}
-      <BoardCatModal board="gallery" open={catOpen} onClose={() => setCatOpen(false)} />
     </section>
   );
 }
