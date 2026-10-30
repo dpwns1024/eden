@@ -13,7 +13,7 @@ export const YJHM_PAGE: Record<string, string> = {
   '/diary': 'PRESS NOTE',        // 취재 수첩 (JOURNAL)
   '/gallery': 'PHOTO',           // 화보 (CONFIRMED)
   '/gallery?s=gift': 'B-CUT',    // 미공개 컷 (UNCONFIRMED)
-  '/prompt': 'BRIEFING',         // 브리핑 (PROMPT)
+  // '/prompt'는 메뉴 관리 이름(PROMPT) 그대로 (사용자 요청)
   '/board': 'DRAFT',             // 초고 (LOG)
   '/memo2': 'MEMO PAD',          // 메모 (MEMO)
 };

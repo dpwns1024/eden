@@ -17,6 +17,7 @@ import { useMainStore } from '@/lib/mainStore';
 import { useCardSort, mergeOrder } from '@/lib/cardSort';
 import { useClassified, mergeStubs, isStub } from '@/lib/classified';
 import { AccessDenied } from '@/components/ui/AccessDenied';
+import { useWorldShow } from '@/lib/worldStore';
 
 function CharsInner() {
   const router = useRouter();
@@ -46,8 +47,10 @@ function CharsInner() {
       .catch(() => { /* 무시 — 다음 세션에 다시 */ });
   }, [isAdmin, charsAll]);
 
+  const { showChar } = useWorldShow();
   const visible = chars
     .filter(c => c.own)
+    .filter(showChar)   // 보이는 세계 (lib/worldStore.ts)
     .filter(c => isAdmin || c.visibility === 'public');
 
   // 카드 드래그 정렬 — 관리자는 편집모드가 아니어도 끌어서 옮긴다 (v2.0 사용자 요청 · 평소엔 표시 없이)

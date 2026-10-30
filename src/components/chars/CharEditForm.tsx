@@ -10,6 +10,7 @@ import { newId } from '@/lib/postStore';
 import { putBlob, getBlob, useBlobUrl } from '@/lib/blobStore';
 import { useFonts } from '@/lib/fontStore';
 import { KInput, KSelect, KStep } from '@/components/ui/Kit';
+import { WORLD_PICKS, WorldPick } from '@/lib/worldStore';
 import { RichEditor } from '@/components/ui/RichEditor';
 import { ColorField } from '@/components/ui/ColorField';
 import { CropEditor, CropValue, CropImg } from '@/components/ui/CropEditor';
@@ -54,6 +55,7 @@ export function CharEditForm({ initial, onSave, onCancel, auMode, existingIds }:
   // 공개범위 + 기밀(v2.0) — 기밀은 저장할 때 private + classified로 나뉜다 (lib/classified.ts)
   const [visibility, setVisibility] = useState<Visibility | 'classified'>(
     initial?.classified && initial.visibility === 'private' ? 'classified' : initial?.visibility ?? 'public');
+  const [world, setWorld] = useState<'' | WorldPick>(initial?.world ?? '');   // 보이는 세계 (lib/worldStore.ts)
   const [fontId, setFontId] = useState(initial?.fontId ?? 'serif');
   const [nameSize, setNameSize] = useState(initial?.nameSize ?? 38);   // 상세 큰 이름 크기 (v2.0)
   const [bodyFontId, setBodyFontId] = useState(initial?.bodyFontId ?? 'default');
@@ -110,6 +112,7 @@ export function CharEditForm({ initial, onSave, onCancel, auMode, existingIds }:
       basicHtml,
       visibility: visibility === 'classified' ? 'private' : visibility,
       classified: visibility === 'classified' || undefined,
+      world: world || undefined,
       fontId,
       nameSize,
       bodyFontId,
@@ -322,6 +325,7 @@ export function CharEditForm({ initial, onSave, onCancel, auMode, existingIds }:
                   { value: 'classified', label: '기밀 (관리자만 · 목록엔 잠긴 카드)' },
                 ]} />
             )}
+            {!auMode && <KSelect value={world} onChange={v => setWorld(v as '' | WorldPick)} options={WORLD_PICKS} />}
             <KSelect value={fontId} onChange={setFontId}
               options={fonts.map(f => ({
                 value: f.id,

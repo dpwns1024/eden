@@ -11,6 +11,7 @@ import { newId } from '@/lib/postStore';
 import { useFonts } from '@/lib/fontStore';
 import { putBlob, useBlobUrl } from '@/lib/blobStore';
 import { KInput, KSelect, KCheck, KStep } from '@/components/ui/Kit';
+import { WORLD_PICKS, WorldPick } from '@/lib/worldStore';
 import { CropEditor, CropValue, CropImg } from '@/components/ui/CropEditor';
 import { DragList } from '@/components/ui/DragList';
 import { Lightbox } from '@/components/ui/Lightbox';
@@ -25,6 +26,7 @@ export interface RelFormValue {
   kind: 'pair' | 'multi';
   visibility: Visibility;
   classified?: boolean;      // 기밀 (v2.0 — lib/classified.ts)
+  world?: WorldPick;         // 보이는 세계 (v2.0 — 비우면 자동, lib/worldStore.ts)
   fontId: string;
   bodyFontId: string;
   arts: string[];            // 첫 장 = 대표 = 리스트 썸네일 원본
@@ -179,6 +181,7 @@ export function RelForm({ initial, auId, myChars, memberNames, existingIds, onSa
   const [slug, setSlug] = useState(initial?.slug ?? '');
   const [catchphrase, setCatchphrase] = useState(auObj ? auObj.catchphrase : (initial?.catchphrase ?? ''));
   // 공개범위 + 기밀(v2.0) — 기밀은 저장할 때 private + classified로 나뉜다 (lib/classified.ts)
+  const [world, setWorld] = useState<'' | WorldPick>(initial?.world ?? '');   // 보이는 세계 (lib/worldStore.ts)
   const [visibility, setVisibility] = useState<Visibility | 'classified'>(
     initial?.classified && initial.visibility === 'private' ? 'classified' : initial?.visibility ?? 'public');
   // 뱃지 글자 (v2.0 사용자 요청 — CP/NCP 고르기 대신 직접 쓴다). 새 자관은 예전 기본값대로 「CP」
@@ -319,6 +322,7 @@ export function RelForm({ initial, auId, myChars, memberNames, existingIds, onSa
       name: name.trim().toUpperCase(),
       catchphrase: catchphrase.trim(),
       kind, visibility: visibility === 'classified' ? 'private' : visibility, classified: visibility === 'classified' || undefined,
+      world: world || undefined,
       fontId, bodyFontId,
       arts: artIds,
       thumbCrop,
@@ -842,6 +846,7 @@ export function RelForm({ initial, auId, myChars, memberNames, existingIds, onSa
                 { value: 'private', label: '나만보기' },
                 { value: 'classified', label: '기밀 (관리자만 · 목록엔 잠긴 카드)' },
               ]} />
+            {!auObj && <KSelect value={world} onChange={v => setWorld(v as '' | WorldPick)} options={WORLD_PICKS} />}
           </div>
         </div>
         <div className="form-actions">
