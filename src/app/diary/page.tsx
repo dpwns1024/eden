@@ -15,8 +15,7 @@ import { Lightbox } from '@/components/ui/Lightbox';
 import { BlobImg } from '@/lib/blobStore';
 import { EditableDesc, PageTitle } from '@/components/ui/PageText';
 import { pairIdOf, pairNameOf, pairTabs, inPairTab, NO_PAIR } from '@/lib/pairLink';
-import { useBoardCats, useCatMode, catTabs, inCatTab, catNameOf, NO_CAT } from '@/lib/boardCats';
-import { BoardCatModal } from '@/components/ui/BoardCatModal';
+import { useBoardCats, useCatMode, catTabs, inCatTab, catOf, NO_CAT } from '@/lib/boardCats';
 import { useWorldFilter } from '@/lib/worldStore';
 
 const PAGE_SIZE = 12;   // 카드 3열 × 4줄
@@ -105,11 +104,10 @@ function DiaryPageInner() {
   const [fPair, setFPair] = useState('all');
   // 페어별 홈 (lib/worldStore.ts) — 다른 세계 페어의 일기는 숨긴다 (목록 · 달력 · 보관함 모두)
   const { rels, show } = useWorldFilter();
-  // EVEDEN 세계는 페어링 대신 관리자가 만든 카테고리로 나눈다 (v2.0 사용자 요청 — lib/boardCats.ts).
-  // 같은 fPair 자리에 'all' · 카테고리 id · NO_CAT를 담는다
+  // EVEDEN 세계는 페어링 대신 환경설정의 말머리(모든 게시판 공통)로 나눈다 (v2.0 사용자 요청 — lib/boardCats.ts).
+  // 같은 fPair 자리에 'all' · 말머리 id · NO_CAT를 담는다
   const catMode = useCatMode();
-  const [cats] = useBoardCats('diary');
-  const [catOpen, setCatOpen] = useState(false);
+  const cats = useBoardCats();
   useEffect(() => { setFPair('all'); }, [catMode]);
   const [q] = useState('');   // 검색 칸은 없앴다 (v2.0 사용자 요청) — 걸러 내는 자리는 그대로 둔다
   const [page, setPage] = useState(1);
@@ -200,7 +198,6 @@ function DiaryPageInner() {
           )}
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          {isAdmin && catMode && <button className="btn btn-ghost" onClick={() => setCatOpen(true)}>CATEGORY</button>}
           {isAdmin && <button className="btn btn-dark" onClick={() => router.push('/diary/write')}>＋ WRITE</button>}
         </div>
       </div>
@@ -210,7 +207,7 @@ function DiaryPageInner() {
       <div>
       <div className="dy-cards">
         {shown.map(p => (
-          <DiaryCard key={p.id} p={p} mood={moodOf(p.moodId)} pair={catMode ? catNameOf(p, cats) : pairNameOf(p, rels)} opened={open === p.id} isAdmin={isAdmin}
+          <DiaryCard key={p.id} p={p} mood={moodOf(p.moodId)} pair={catMode ? catOf(p, cats)?.label ?? '' : pairNameOf(p, rels)} opened={open === p.id} isAdmin={isAdmin}
             onToggle={() => setOpen(o => (o === p.id ? null : p.id))}
             onImg={(ids, idx) => setLb({ srcs: ids, idx })}
             onEdit={() => router.push(`/diary/${p.id}/edit`)}
@@ -278,7 +275,6 @@ function DiaryPageInner() {
           { label: 'DELETE', kind: 'accent', onClick: () => { setPosts(posts.filter(x => x.id !== delFor!.id)); setDelFor(null); } },
           { label: 'CANCEL', kind: 'ghost', onClick: () => setDelFor(null) },
         ]} />
-      <BoardCatModal board="diary" open={catOpen} onClose={() => setCatOpen(false)} />
       {/* 이미지 뷰어 — 썸네일 클릭 시 (v1.9 사용자 확정) */}
       {lb && <Lightbox srcs={lb.srcs} index={lb.idx} onClose={() => setLb(null)} />}
     </section>

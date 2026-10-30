@@ -19,7 +19,6 @@ import { useMembers } from '@/lib/members';
 import { pushNotif } from '@/lib/notifStore';
 import { useWorldFilter } from '@/lib/worldStore';
 import { useBoardCats, useCatMode, catTabs, catIdOf, catOptions, NO_CAT } from '@/lib/boardCats';
-import { BoardCatModal } from '@/components/ui/BoardCatModal';
 
 /** 캐릭터 얼굴 칩 (썸네일 or 데모 플레이스홀더) */
 function Face({ ch, className }: { ch?: Character; className: string }) {
@@ -55,16 +54,15 @@ export default function RpPage() {
   /* 페어링별 탭 (v2.0 사용자 요청 — 상태(LIVE · ALL · CLOSED) 대신 FIELD REPORT처럼 페어링으로 나눈다).
      'all' · 페어링 id · 'none'(페어링 없는 채널) */
   const [fRel, setFRel] = useState<string>('all');
-  // EVEDEN 세계는 페어링 대신 관리자가 만든 카테고리로 나눈다 (v2.0 사용자 요청 — lib/boardCats.ts).
-  // 같은 fRel 자리에 'all' · 카테고리 id · NO_CAT를 담는다
+  // EVEDEN 세계는 페어링 대신 환경설정의 말머리(모든 게시판 공통)로 나눈다 (v2.0 사용자 요청 — lib/boardCats.ts).
+  // 같은 fRel 자리에 'all' · 말머리 id · NO_CAT를 담는다
   const catMode = useCatMode();
-  const [cats] = useBoardCats('rp');
-  const [catOpen, setCatOpen] = useState(false);
+  const cats = useBoardCats();
   const [mListOpen, setMListOpen] = useState(false);
   const [mFocus, setMFocus] = useState(false);
   const [renameOpen, setRenameOpen] = useState(false);   // 채널 이름 고치기 (v2.0)
   const [renameText, setRenameText] = useState('');
-  const [renameCat, setRenameCat] = useState('none');   // EVEDEN 카테고리도 같은 창에서 바꾼다
+  const [renameCat, setRenameCat] = useState('none');   // EVEDEN 말머리도 같은 창에서 바꾼다
   const renamePatch = (title: string): Partial<RpRoom> =>
     catMode ? { title, catId: renameCat === NO_CAT ? undefined : renameCat } : { title };
 
@@ -91,7 +89,7 @@ export default function RpPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allMine, rels, catMode, cats]);
   // 고른 탭의 채널이 사라지면(지움 · 페어링 변경) 전체로
-  // 카테고리는 비어 있어도 탭이 남으므로, 지워진 카테고리일 때만
+  // 말머리는 비어 있어도 탭이 남으므로, 지워진 말머리일 때만
   useEffect(() => {
     if (fRel === 'all') return;
     if (catMode ? fRel !== NO_CAT && !cats.some(c => c.id === fRel) : !relCounts[fRel]) setFRel('all');
@@ -511,7 +509,7 @@ ${rows}
         <div className={`panel tagside${arch ? ' arch-tabbar' : ''}`} style={arch ? undefined : { padding: 16, alignSelf: 'start' }}>
           {catMode ? (
             <>
-              <h4>{cw('CATEGORY', '카테고리')}</h4>
+              <h4>{cw('CATEGORY', '말머리')}</h4>
               <div className={`tag ${fRel === 'all' ? 'on' : ''}`} onClick={() => setFRel('all')}>
                 {cw('ALL', '전체')} <small>{allMine.length}</small>
               </div>
@@ -525,13 +523,10 @@ ${rows}
                   {cw('ETC', '기타')} <small>{relCounts[NO_CAT]}</small>
                 </div>
               )}
-              {isAdmin && (
-                <div className="tag" onClick={() => setCatOpen(true)} data-tip="카테고리 관리">⚙</div>
-              )}
             </>
           ) : (
             <>
-                        <h4>{cw('PAIRING FILTER', '자관 필터')}</h4>
+              <h4>{cw('PAIRING FILTER', '자관 필터')}</h4>
             <div className={`tag ${fRel === 'all' ? 'on' : ''}`} onClick={() => setFRel('all')}>
               {cw('ALL', '전체')} <small>{allMine.length}</small>
             </div>
@@ -550,7 +545,6 @@ ${rows}
         </div>
       </div>
 
-      <BoardCatModal board="rp" open={catOpen} onClose={() => setCatOpen(false)} />
 
       {/* 채널 이름 고치기 (v2.0 사용자 요청) */}
       <Modal open={renameOpen} onClose={() => setRenameOpen(false)} small title={cw('채널 이름 변경', '방 이름 변경')}
@@ -600,7 +594,7 @@ ${rows}
             </div>
             {catMode && cats.length > 0 && (
               <div>
-                <label className="k-label" style={{ marginBottom: 5 }}>{cw('Category', '카테고리')}</label>
+                <label className="k-label" style={{ marginBottom: 5 }}>{cw('Prefix', '말머리')}</label>
                 <KSelect value={nCat} onChange={setNCat} minWidth={160} options={catOptions(cats)} />
               </div>
             )}

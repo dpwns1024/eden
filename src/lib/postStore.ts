@@ -68,6 +68,7 @@ export interface Post {
   authored?: 'editor';
   category: string;      // 말머리 (예전 글 — 이제는 relId로 페어링을 고른다, lib/pairLink.ts)
   relId?: string;        // 페어링 연동 (v2.0 사용자 요청 — 목록 탭 · 뱃지)
+  catId?: string;        // EVEDEN 말머리 (v2.0 사용자 요청 — lib/boardCats.ts)
   author: string;
   authorId: string;
   date: string;          // ISO

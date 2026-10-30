@@ -15,6 +15,7 @@ import { Lightbox } from '@/components/ui/Lightbox';
 import { useBoardSettings, boardBadgeStyle } from '@/lib/boardStore';
 import { usePairings, pairIdOf, pairNameOf } from '@/lib/pairLink';
 import { useFollowWorld } from '@/lib/worldStore';
+import { useBoardCats, useCatMode, catOf } from '@/lib/boardCats';
 
 export default function BackupDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -29,6 +30,9 @@ export default function BackupDetailPage() {
 
   const p = findBackupByRef(posts, id);
   useFollowWorld(p && pairIdOf(p, rels));   // 세계 페어의 글이면 그 세계 디자인으로 (lib/worldStore.ts)
+  const catMode = useCatMode();   // EVEDEN — 페어링 뱃지 대신 말머리 (lib/boardCats.ts)
+  const boardCats = useBoardCats();
+  const cat = p ? catOf(p, boardCats) : undefined;
   const nos = backupNos(posts);
   /* 이전·다음 글 (v2.0 사용자 요청) — 목록과 같은 순서·같은 소속(섹션)·볼 수 있는 글만 */
   const sibs = p ? posts.filter(x => (x.secId ?? MAIN_SEC) === (p.secId ?? MAIN_SEC)
@@ -124,7 +128,10 @@ export default function BackupDetailPage() {
         {/* 제목 옆에 갤러리 유형(단일) 대신 페어링 뱃지 (v2.0 — 말머리 대신 PAIRING의 페어) */}
         <h2 className="g-title" style={{ fontSize: 18, marginBottom: p.desc ? 8 : 16, display: 'flex', alignItems: 'center', gap: 8 }}>
           {p.title}
-          {pairNameOf(p, rels) && (
+          {catMode ? cat && (
+            /* EVEDEN — 페어링 대신 말머리 (환경설정 말머리 이름 · 색) */
+            <span className="g-badge" style={{ ...getPrefixStyle(cat.label), ...boardBadgeStyle(cat) }}>{cat.label}</span>
+          ) : pairNameOf(p, rels) && (
             <span className="g-badge" style={getPrefixStyle(pairNameOf(p, rels))}>
               {pairNameOf(p, rels)}
             </span>
