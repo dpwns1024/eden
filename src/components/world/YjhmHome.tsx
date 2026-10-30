@@ -199,7 +199,7 @@ export function YjhmHome() {
   const front = {
     date: `${now.getFullYear()}.${two(now.getMonth() + 1)}.${two(now.getDate())} ${['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][now.getDay()]}`,
     issue: String(all.length).padStart(4, '0'),
-    dday: `D+${dday(now)}`,
+    dday: `NO.${String(dday(now)).padStart(4, '0')}`,   // D-day를 호수처럼 (사용자 요청 — NO.0241)
     ticker: all.map(s => s.title.trim()).filter(Boolean).slice(0, 6).map((t, i) => `${i ? '' : 'BREAKING ✦ '}${t}`),
   };
   if (!front.ticker.length) front.ticker = ['BREAKING ✦ 창간 준비호', rel?.name ?? 'YJHM', '두 사람의 기록만 싣습니다'];

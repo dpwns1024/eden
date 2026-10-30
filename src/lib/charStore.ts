@@ -38,6 +38,8 @@ export interface Character {
   /** 기밀 (v2.0 사용자 요청 · lib/classified.ts) — 공개범위 private와 함께 쓴다. 관리자만 열 수 있고
    *  다른 사람에게는 목록에 카드만 보이며 누르면 붉은 「접근 권한 없음」 창 */
   classified?: boolean;
+  /** 보이는 세계 (v2.0 사용자 요청 — lib/worldStore.ts) — 없으면 자동(소속 페어의 세계), 'all'이면 모든 세계 */
+  world?: 'all' | import('@/lib/worldStore').WorldKey;
   /** 페이지 주소 별명 (v2.0 사용자 요청) — /chars/{별명}. 만들 때 정하는 주소(id)와 달리
    *  **나중에 수정 화면에서 바꿀 수 있다.** 참조(자관 멤버·권한 등)는 언제나 id로 저장되므로
    *  바꿔도 아무것도 끊어지지 않고, 옛 주소(id)로도 계속 열린다. */
@@ -384,6 +386,7 @@ export interface Relation {
   members: RelMember[];          // 2인 = 좌/우, 3인+ = 다인 리스트
   visibility: Visibility;
   classified?: boolean;          // 기밀 (v2.0 — Character.classified와 같다)
+  world?: 'all' | import('@/lib/worldStore').WorldKey;   // 보이는 세계 (v2.0 — 없으면 자동: 페어 이름으로, lib/worldStore.ts)
   thumbClass: string;
   illustMode: 'duo' | 'one';     // 2인: 전신 2장 / 일러 1장 (v1.8)
   aus: RelAu[];                  // AU 리스트 (첫 항목 = 원본 base)

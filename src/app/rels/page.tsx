@@ -15,6 +15,7 @@ import { useBoardSkin } from '@/lib/boardSkin';
 import { cpLabelFor } from '@/lib/relqStore';
 import { useClassified, mergeStubs, isStub } from '@/lib/classified';
 import { AccessDenied } from '@/components/ui/AccessDenied';
+import { useWorldShow } from '@/lib/worldStore';
 
 export default function RelsPage() {
   const router = useRouter();
@@ -35,8 +36,10 @@ export default function RelsPage() {
   const colorOf = (id: string) => chars.find(c => c.id === id)?.color ?? '#666';
   const nameOf = (id: string) => chars.find(c => c.id === id)?.name ?? '';
   const arch = useBoardSkin() === 'arch';   // ARCH 디자인이면 가로 배너 목록 (v2.0 사용자 선택 E)
+  const { showRel } = useWorldShow();
   const visible = rels
-    .filter(r => isAdmin || r.visibility !== 'private');
+    .filter(r => isAdmin || r.visibility !== 'private')
+    .filter(showRel);   // 보이는 세계 (lib/worldStore.ts)
 
   // 카드 드래그 정렬 — 관리자는 편집모드가 아니어도 끌어서 옮긴다 (v2.0 사용자 요청 · 평소엔 표시 없이)
   const sort = useCardSort(visible, next => setRels(mergeOrder(rels, next)), isAdmin, !editOn);

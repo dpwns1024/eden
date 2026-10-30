@@ -53,7 +53,7 @@ a.yj-pill.yj-blk{min-height:44px;padding:0 22px;font-weight:900;font-size:16px}
 .yj-menu .oh-item.on,.yj-menu .oh-grp.on > .oh-item{background-color:var(--yj-ac);background-image:radial-gradient(rgba(242,241,236,.2) .8px,transparent 1.3px);background-size:5px 5px;color:#f7f6f2}
 .yj-menu .oh-item.on::before,.yj-menu .oh-grp.on > .oh-item::before{color:#f7f6f2}
 .yj-menu .oh-sub{margin-top:6px;background:var(--yj-pn);border:3px solid var(--yj-ac);border-radius:0;box-shadow:5px 5px 0 rgba(96,124,160,.3);padding:4px}
-.yj-menu .oh-link{display:block;padding:10px 14px;font:700 13.5px/1.2 var(--yj-sans);color:var(--yj-ink)}
+.yj-menu .oh-link{display:block;padding:10px 14px;text-align:center;font:700 13.5px/1.2 var(--yj-sans);color:var(--yj-ink)}
 .yj-menu .oh-link:hover,.yj-menu .oh-link.on{color:#f7f6f2;background:var(--yj-ac)}
 .yj-member{display:flex;justify-content:flex-end;align-items:center;min-height:30px}
 .yj-member .login-link{min-height:34px;padding:0 18px;border:2.5px solid var(--yj-ac);border-radius:999px;background:transparent;font:700 13px/1 var(--yj-sans);color:var(--yj-ink);cursor:pointer}
