@@ -15,6 +15,8 @@ import { Lightbox } from '@/components/ui/Lightbox';
 import { BlobImg } from '@/lib/blobStore';
 import { EditableDesc, PageTitle } from '@/components/ui/PageText';
 import { pairIdOf, pairNameOf, pairTabs, inPairTab, NO_PAIR } from '@/lib/pairLink';
+import { useBoardCats, useCatMode, catTabs, inCatTab, catNameOf, NO_CAT } from '@/lib/boardCats';
+import { BoardCatModal } from '@/components/ui/BoardCatModal';
 import { useWorldFilter } from '@/lib/worldStore';
 
 const PAGE_SIZE = 12;   // 카드 3열 × 4줄
@@ -103,6 +105,12 @@ function DiaryPageInner() {
   const [fPair, setFPair] = useState('all');
   // 페어별 홈 (lib/worldStore.ts) — 다른 세계 페어의 일기는 숨긴다 (목록 · 달력 · 보관함 모두)
   const { rels, show } = useWorldFilter();
+  // EVEDEN 세계는 페어링 대신 관리자가 만든 카테고리로 나눈다 (v2.0 사용자 요청 — lib/boardCats.ts).
+  // 같은 fPair 자리에 'all' · 카테고리 id · NO_CAT를 담는다
+  const catMode = useCatMode();
+  const [cats] = useBoardCats('diary');
+  const [catOpen, setCatOpen] = useState(false);
+  useEffect(() => { setFPair('all'); }, [catMode]);
   const [q] = useState('');   // 검색 칸은 없앴다 (v2.0 사용자 요청) — 걸러 내는 자리는 그대로 둔다
   const [page, setPage] = useState(1);
   const [delFor, setDelFor] = useState<DiaryPost | null>(null);
@@ -131,7 +139,7 @@ function DiaryPageInner() {
   const canSee = (p: DiaryPost) => show(p) && (isAdmin || (p.visibility === 'public' || (p.visibility === 'member' && !!user)));
   const visible = posts
     .filter(canSee)
-    .filter(p => inPairTab(fPair, pairIdOf(p, rels)))
+    .filter(p => catMode ? inCatTab(fPair, p, cats) : inPairTab(fPair, pairIdOf(p, rels)))
     .filter(p => !query || p.title.toLowerCase().includes(query))
     .filter(p => !monthFilter || p.date.startsWith(monthKey))
     .sort((a, b) => b.date.localeCompare(a.date));
@@ -156,7 +164,8 @@ function DiaryPageInner() {
   posts.filter(canSee).forEach(p => { const k = p.date.slice(0, 7); if (/^\d{4}-\d{2}$/.test(k)) archMap.set(k, (archMap.get(k) ?? 0) + 1); });
   const archive = [...archMap.entries()].sort((a, b) => b[0].localeCompare(a[0])).slice(0, 12);
   const seeable = posts.filter(canSee);
-  const { tabs: pairs, none: noPair } = pairTabs(seeable, rels, p => pairIdOf(p, rels));
+  const { tabs: pairs, none: noPair } = catMode ? catTabs(seeable, cats) : pairTabs(seeable, rels, p => pairIdOf(p, rels));
+  const noKey = catMode ? NO_CAT : NO_PAIR;
 
   return (
     <section className="page page-arch page-diary">
@@ -179,7 +188,7 @@ function DiaryPageInner() {
             </div>
           ))}
           {noPair > 0 && pairs.length > 0 && (
-            <div className={`tag ${fPair === NO_PAIR ? 'on' : ''}`} onClick={() => { setFPair(NO_PAIR); setPage(1); }}>
+            <div className={`tag ${fPair === noKey ? 'on' : ''}`} onClick={() => { setFPair(noKey); setPage(1); }}>
               기타 <small>{noPair}</small>
             </div>
           )}
@@ -191,6 +200,7 @@ function DiaryPageInner() {
           )}
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {isAdmin && catMode && <button className="btn btn-ghost" onClick={() => setCatOpen(true)}>CATEGORY</button>}
           {isAdmin && <button className="btn btn-dark" onClick={() => router.push('/diary/write')}>＋ WRITE</button>}
         </div>
       </div>
@@ -200,7 +210,7 @@ function DiaryPageInner() {
       <div>
       <div className="dy-cards">
         {shown.map(p => (
-          <DiaryCard key={p.id} p={p} mood={moodOf(p.moodId)} pair={pairNameOf(p, rels)} opened={open === p.id} isAdmin={isAdmin}
+          <DiaryCard key={p.id} p={p} mood={moodOf(p.moodId)} pair={catMode ? catNameOf(p, cats) : pairNameOf(p, rels)} opened={open === p.id} isAdmin={isAdmin}
             onToggle={() => setOpen(o => (o === p.id ? null : p.id))}
             onImg={(ids, idx) => setLb({ srcs: ids, idx })}
             onEdit={() => router.push(`/diary/${p.id}/edit`)}
@@ -268,6 +278,7 @@ function DiaryPageInner() {
           { label: 'DELETE', kind: 'accent', onClick: () => { setPosts(posts.filter(x => x.id !== delFor!.id)); setDelFor(null); } },
           { label: 'CANCEL', kind: 'ghost', onClick: () => setDelFor(null) },
         ]} />
+      <BoardCatModal board="diary" open={catOpen} onClose={() => setCatOpen(false)} />
       {/* 이미지 뷰어 — 썸네일 클릭 시 (v1.9 사용자 확정) */}
       {lb && <Lightbox srcs={lb.srcs} index={lb.idx} onClose={() => setLb(null)} />}
     </section>

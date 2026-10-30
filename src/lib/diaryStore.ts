@@ -21,6 +21,7 @@ export interface DiaryPost {
   date: string;              // YYYY-MM-DD
   moodId: string;
   relId?: string;            // 페어링 연동 (v2.0 사용자 요청 — 목록 탭이 무드 대신 페어링으로 나뉜다)
+  catId?: string;            // EVEDEN 카테고리 (v2.0 사용자 요청 — lib/boardCats.ts)
   body: string;              // MD
   imgIds: string[];          // 첨부 이미지 (IndexedDB)
   visibility: Visibility;

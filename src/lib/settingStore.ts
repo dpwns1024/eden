@@ -45,7 +45,7 @@ export const SETTING_KEYS = [
   'ohome.membertags.v1', 'ohome.invite.v1', 'ohome.roadnext.v1', 'ohome.repo.v1',
   'ohome.sections.v1', 'ohome.intro.v1', 'ohome.links.v1', 'ohome.splash.v1',
   'ohome.htmlpages.v1', 'ohome.archdoc.v1', 'ohome.siteheader.v1', 'ohome.sitefooter.v1', 'ohome.signup.v1', 'ohome.loginui.v1',
-  'ohome.boardui.v1', 'ohome.classified.v1', 'ohome.quotenames.v1', 'ohome.yjhmfront.v1',
+  'ohome.boardui.v1', 'ohome.classified.v1', 'ohome.quotenames.v1', 'ohome.yjhmfront.v1', 'ohome.boardcats.v1',
 ];
 
 /** 앱 시작 시 1회 — 서버에 저장된 설정을 전부 받아 캐시 */

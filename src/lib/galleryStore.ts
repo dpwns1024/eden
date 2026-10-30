@@ -39,6 +39,7 @@ export interface BackupPost {
   desc: string;
   category: string;          // 말머리 (예전 글 — 이제는 relId로 페어링을 고른다, lib/pairLink.ts)
   relId?: string;            // 페어링 연동 (v2.0 사용자 요청 — 탭 · 뱃지)
+  catId?: string;            // EVEDEN 카테고리 (v2.0 사용자 요청 — lib/boardCats.ts)
   madeDate?: string;         // 제작일 (선택)
   date: string;
   author: string;
@@ -107,6 +108,7 @@ export interface TrpgLog {
   writer: string;            // 라이터 (필수)
   withText: string;          // 같이 간 사람 표기 (필수)
   relId?: string;            // 자관 연동 (필터)
+  catId?: string;            // EVEDEN 카테고리 (v2.0 사용자 요청 — lib/boardCats.ts)
   date?: string;             // 선택
   ph: string;
   thumbUrl?: string;

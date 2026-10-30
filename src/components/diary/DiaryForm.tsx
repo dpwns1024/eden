@@ -10,9 +10,10 @@ import { useConfirmDelete } from '@/components/ui/Modal';
 import { putBlob, useBlobUrl } from '@/lib/blobStore';
 import { useToast } from '@/components/ui/Toast';
 import { usePairings, pairIdOf, pairOptions, NO_PAIR } from '@/lib/pairLink';
+import { useBoardCats, useCatMode, catIdOf, catOptions, NO_CAT } from '@/lib/boardCats';
 
 export interface DiaryFormValue {
-  title: string; date: string; moodId: string; relId?: string; body: string;
+  title: string; date: string; moodId: string; relId?: string; catId?: string; body: string;
   imgIds: string[]; visibility: Visibility;
 }
 
@@ -42,6 +43,11 @@ export function DiaryForm({ initial, moods, onSave, onCancel }: {
   const rels = usePairings();
   const [pickedRel, setRelId] = useState<string>();
   const relId = pickedRel ?? (initial && pairIdOf(initial, rels)) ?? NO_PAIR;
+  // EVEDEN 카테고리 (v2.0 사용자 요청 — lib/boardCats.ts) — EVEDEN 세계에서만 고르고, 아니면 원래 값 유지
+  const catMode = useCatMode();
+  const [cats] = useBoardCats('diary');
+  const [pickedCat, setCatId] = useState<string>();
+  const catId = pickedCat ?? (initial && catIdOf(initial, cats)) ?? NO_CAT;
   const [body, setBody] = useState(initial?.body ?? '');
   const [imgs, setImgs] = useState<ImgItem[]>(() => (initial?.imgIds ?? []).map(r => ({ id: newId(), ref: r })));
   const [visibility, setVisibility] = useState<Visibility>(initial?.visibility ?? 'public');
@@ -51,7 +57,7 @@ export function DiaryForm({ initial, moods, onSave, onCancel }: {
     if (!title.trim()) { toast('제목을 입력해 주세요'); return; }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { toast('날짜를 YYYY-MM-DD 형식으로 입력해 주세요'); return; }
     const imgIds = await Promise.all(imgs.map(i => (i.file ? putBlob(i.file) : Promise.resolve(i.ref!))));
-    onSave({ title: title.trim(), date, moodId, relId: relId === NO_PAIR ? undefined : relId, body, imgIds, visibility });
+    onSave({ title: title.trim(), date, moodId, relId: relId === NO_PAIR ? undefined : relId, catId: catId === NO_CAT ? undefined : catId, body, imgIds, visibility });
   };
 
   return (
@@ -65,6 +71,12 @@ export function DiaryForm({ initial, moods, onSave, onCancel }: {
           <label className="k-label" style={{ marginBottom: 6 }}>페어링</label>
           <KSelect minWidth={160} value={relId} onChange={setRelId} options={pairOptions(rels)} />
         </div>
+        {catMode && (
+          <div>
+            <label className="k-label" style={{ marginBottom: 6 }}>카테고리</label>
+            <KSelect minWidth={160} value={catId} onChange={setCatId} options={catOptions(cats)} />
+          </div>
+        )}
         {moods.length > 0 && <div>
           <label className="k-label" style={{ marginBottom: 6 }}>무드</label>
           <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>

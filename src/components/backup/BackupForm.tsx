@@ -9,6 +9,7 @@ import { useSectionParam, secStamp, MAIN_SEC, useSectionTitle } from '@/lib/sect
 import { BackupPost, BACKUP_SEED, backupNos, backupPath, freezeBackupNos } from '@/lib/galleryStore';
 import { normalizeLogSlug } from '@/lib/logPath';
 import { usePairings, pairIdOf, pairOptions, NO_PAIR } from '@/lib/pairLink';
+import { useBoardCats, useCatMode, catIdOf, catOptions, NO_CAT } from '@/lib/boardCats';
 import { useConfirmDelete } from '@/components/ui/Modal';
 import { Visibility } from '@/lib/charStore';
 import { KInput, KSelect, KRadio, KCheck, KDate } from '@/components/ui/Kit';
@@ -71,6 +72,12 @@ export function BackupForm({ initial }: { initial: BackupPost | null }) {
   const rels = usePairings();
   const [pickedRel, setRelId] = useState<string>();
   const relId = pickedRel ?? (initial && pairIdOf(initial, rels)) ?? NO_PAIR;
+  // EVEDEN 카테고리 (v2.0 사용자 요청 — lib/boardCats.ts) — EVEDEN 세계에서만 고르고, 아니면 원래 값 유지
+  const catMode = useCatMode();
+  const [cats] = useBoardCats('gallery');
+  const [pickedCat, setCatId] = useState<string>();
+  const catId = pickedCat ?? (initial && catIdOf(initial, cats)) ?? NO_CAT;
+  const catOut = catId === NO_CAT ? undefined : catId;
   // 태그 (v2.0 사용자 요청) — 쉼표로 구분해 입력, 저장할 때 배열로
   const [tagsText, setTagsText] = useState((initial?.tags ?? []).join(', '));
   const parseTags = (v: string) =>
@@ -114,7 +121,7 @@ export function BackupForm({ initial }: { initial: BackupPost | null }) {
         no: Math.max(0, ...backupNos(base).values()) + 1, slug: slug || undefined,
         images: imageIds, phList: files.length ? [] : ['cool'],
         thumbCrop: files[0]?.crop, // 대표 이미지 크롭 (6.1)
-        desc, category: '', relId: relId === NO_PAIR ? undefined : relId, tags: parseTags(tagsText), madeDate: madeDate || undefined,
+        desc, category: '', relId: relId === NO_PAIR ? undefined : relId, catId: catOut, tags: parseTags(tagsText), madeDate: madeDate || undefined,
         date: new Date().toISOString(), author: user.nickname, authorId: user.id,
         visibility,
         fold: foldType === 'none' ? null : { type: foldType, label: foldType === 'custom' ? foldLabel : undefined },
@@ -127,7 +134,7 @@ export function BackupForm({ initial }: { initial: BackupPost | null }) {
         ...x, title: title.trim(), type, slug: slug || undefined,
         images: imageIds, phList: files.length ? [] : x.phList,
         thumbCrop: files[0]?.crop,
-        desc, category: '', relId: relId === NO_PAIR ? undefined : relId, tags: parseTags(tagsText), madeDate: madeDate || undefined, visibility,
+        desc, category: '', relId: relId === NO_PAIR ? undefined : relId, catId: catOut, tags: parseTags(tagsText), madeDate: madeDate || undefined, visibility,
         fold: foldType === 'none' ? null : { type: foldType, label: foldType === 'custom' ? foldLabel : undefined },
       } : x);
       setPosts(next);
@@ -224,6 +231,12 @@ export function BackupForm({ initial }: { initial: BackupPost | null }) {
               {/* PAIRING 게시판에 올라온 페어 (v2.0 — 목록 탭도 이걸로 나뉜다) */}
               <KSelect minWidth={120} value={relId} onChange={setRelId} options={pairOptions(rels)} />
             </div>
+            {catMode && (
+              <div className="form-row">
+                <label className="k-label" style={{ width: 70 }}>카테고리</label>
+                <KSelect minWidth={120} value={catId} onChange={setCatId} options={catOptions(cats)} />
+              </div>
+            )}
             {/* 태그 (v2.0 사용자 요청) — 목록·카드에 나열되고 검색에 걸린다 */}
             <div className="form-row">
               <label className="k-label" style={{ width: 70 }}>태그</label>
