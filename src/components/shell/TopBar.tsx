@@ -107,7 +107,7 @@ export function TopBar() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {avatarSrc && <img src={avatarSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
           </div>
-          {user.nickname} <span style={{ fontSize: 9, color: '#8d939d' }}>▾</span>
+          <span className="uc-nick">{user.nickname}</span> <span className="uc-caret" style={{ fontSize: 9, color: '#8d939d' }}>▾</span>
         </div>
 
         {/* 알림 드롭다운 */}

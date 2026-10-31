@@ -622,11 +622,17 @@ export function SplashView({ bgUrl, targetX, targetY, targetSize, label, profile
   const doneRef = useRef(onDone);
   doneRef.current = onDone;
 
+  // 그림을 못 불러오면(지워진 파일 · 네트워크 끊김) 검은 바탕에서 멈추지 않고 바로 사이트로 —
+  // 오류가 안 오고 늘어지는 경우도 8초 뒤엔 넘긴다
   useEffect(() => {
     const im = new Image();
-    im.onload = () => setImg(im);
+    let ok = false;
+    const skip = () => { if (!ok) doneRef.current(); };
+    const t = setTimeout(skip, 8000);
+    im.onload = () => { ok = true; clearTimeout(t); setImg(im); };
+    im.onerror = () => { clearTimeout(t); skip(); };
     im.src = bgUrl;
-    return () => { im.onload = null; };
+    return () => { clearTimeout(t); im.onload = null; im.onerror = null; };
   }, [bgUrl]);
 
   // 오버레이의 실제 크기·위치로 계산 — iOS Safari는 주소창이 접히고 펴질 때 innerHeight가
@@ -742,6 +748,13 @@ function SplashInner() {
       return () => { document.body.style.overflow = ''; };
     }
   }, [conf.enabled, conf.bgBlobId]);
+
+  // 그림 파일 자체를 못 받으면(bgUrl이 끝내 안 옴) 스크롤만 막힌 채 남지 않게 8초 뒤 접는다
+  useEffect(() => {
+    if (!show || bgUrl) return;
+    const t = setTimeout(() => { setShow(false); document.body.style.overflow = ''; }, 8000);
+    return () => clearTimeout(t);
+  }, [show, bgUrl]);
 
   if (!show || !bgUrl) return null;
   return (
