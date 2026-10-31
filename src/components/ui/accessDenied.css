@@ -7,38 +7,41 @@
 .ad-ov::before{content:'';position:absolute;inset:0;pointer-events:none;
   background:repeating-linear-gradient(0deg,rgba(255,59,48,.035) 0 1px,transparent 1px 3px);animation:adScan 6s linear infinite}
 .ad-page{display:grid;place-items:center;min-height:62vh;padding:40px 16px}
-.ad-win{position:relative;width:min(420px,calc(100vw - 32px));padding:22px 24px 20px;color:var(--tx);
-  background:linear-gradient(180deg,rgba(var(--adr),.09),transparent 130px),linear-gradient(180deg,rgba(255,255,255,.03),transparent 46%),rgba(9,13,18,.95);
+.ad-win{position:relative;width:min(420px,calc(100vw - 32px));padding:24px;color:var(--tx);
+  background-color:rgba(9,13,18,.95);background-image:linear-gradient(180deg,rgba(var(--adr),.1),transparent 130px),linear-gradient(180deg,rgba(255,255,255,.03),transparent 46%);
   border:1px solid rgba(var(--adr),.42);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 30px 70px -28px #000;
-  font:400 12px/1.5 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;animation:adIn .5s cubic-bezier(.2,.8,.2,1) both,adPulse 2.4s ease-in-out .6s infinite}
-/* 꺾쇠 — ARCH 카드와 같은 9px · 1px, 경고라 빨강 */
-.ad-c{position:absolute;width:9px;height:9px;border:solid var(--ad);pointer-events:none}
-.ad-c.tl{left:-1px;top:-1px;border-width:1px 0 0 1px}.ad-c.tr{right:-1px;top:-1px;border-width:1px 1px 0 0}
-.ad-c.bl{left:-1px;bottom:-1px;border-width:0 0 1px 1px}.ad-c.br{right:-1px;bottom:-1px;border-width:0 1px 1px 0}
-.ad-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:14px;margin-bottom:16px;border-bottom:1px solid var(--ln)}
-.ad-h b{display:flex;align-items:center;gap:12px;font:300 19px/1 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.3em;color:#fff}
-.ad-h>span{font:400 8.5px/1 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.24em;color:rgba(var(--adr),.85)}
-.ad-ic{display:grid;place-items:center;width:18px;height:16px;flex:0 0 18px;font:700 11px/1 'JetBrains Mono',monospace;letter-spacing:0;color:#14040a;
-  background:var(--ad);clip-path:polygon(50% 0,100% 100%,0 100%);padding-top:4px;box-sizing:border-box;animation:adBlink 1.1s steps(1,end) infinite;
+  font:400 12px/1.5 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;animation:adIn .5s cubic-bezier(.2,.8,.2,1) both,adPulse 1.6s ease-in-out .5s infinite}
+/* 화면 쪽 붉은 경고등 — 창과 같은 박자로 화면 가운데가 붉게 차올랐다 빠진다 */
+.ad-ov::after{content:'';position:absolute;inset:0;pointer-events:none;opacity:0;
+  background:radial-gradient(ellipse 70% 60% at center,rgba(150,10,8,.42),transparent 72%);animation:adGlow 1.6s ease-in-out .5s infinite}
+/* 꺾쇠 — ARCH 카드처럼 가는 1px. 테두리도 빨강이라 겹치면 묻혀서 모서리 바깥으로 4px 빼 둔다 */
+.ad-c{position:absolute;width:10px;height:10px;border:solid var(--ad);pointer-events:none}
+.ad-c.tl{left:-5px;top:-5px;border-width:1px 0 0 1px}.ad-c.tr{right:-5px;top:-5px;border-width:1px 1px 0 0}
+.ad-c.bl{left:-5px;bottom:-5px;border-width:0 0 1px 1px}.ad-c.br{right:-5px;bottom:-5px;border-width:0 1px 1px 0}
+.ad-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--ln)}
+.ad-h b{display:flex;align-items:center;gap:12px;min-width:0;font:300 19px/1 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.3em;color:#fff}
+.ad-h>span{flex:none;font:400 8.5px/1 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.24em;margin-right:-.24em;color:rgba(var(--adr),.85)}   /* 마지막 글자 뒤 자간만큼 당겨 오른쪽 끝을 버튼과 맞춘다 */
+.ad-ic{display:grid;place-items:center;width:20px;height:18px;flex:0 0 20px;font:700 11px/1 'JetBrains Mono',monospace;letter-spacing:0;color:#14040a;
+  background:var(--ad);clip-path:polygon(50% 0,100% 100%,0 100%);padding-top:5px;box-sizing:border-box;animation:adBlink 1.1s steps(1,end) infinite;
   filter:drop-shadow(0 0 6px rgba(var(--adr),.8))}
 /* 제목 — 조준 창 이름과 같은 붉은 강철 그라데이션, 지지직 글리치는 그대로 */
-.ad-gl{position:relative;display:inline-block;padding-bottom:.08em;margin-bottom:-.08em;animation:adJit 3.2s steps(1,end) infinite;
+.ad-gl{position:relative;display:inline-block;white-space:nowrap;padding-bottom:.08em;margin-bottom:-.08em;animation:adJit 3.2s steps(1,end) infinite;
   background:linear-gradient(180deg,#fff 0%,#ffc4bf 30%,#ff3b30 52%,#ffb0a9 70%,#c42a20 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 0 8px rgba(var(--adr),.45))}
 .ad-gl::before,.ad-gl::after{content:attr(data-t);position:absolute;left:0;top:0;width:100%;overflow:hidden;pointer-events:none}
 .ad-gl::before{color:#ff8a80;clip-path:inset(0 0 55% 0);transform:translateX(-2px);opacity:.75;animation:adSlice 2.4s steps(1,end) infinite}
 .ad-gl::after{color:#8b0000;clip-path:inset(60% 0 0 0);transform:translateX(2px);opacity:.8;animation:adSlice 1.9s steps(1,end) infinite reverse}
-.ad-ko{margin:0 0 16px;font:400 15px/1.4 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.02em;color:#fff}
+.ad-ko{margin:0 0 18px;font:400 15px/1.4 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.02em;color:#fff}
 /* 정보 칸 — ARCH 카드의 항목 줄(모노 라벨 · Jost 값), 왼쪽만 빨강 한 줄 */
-.ad-dl{display:grid;gap:0;margin:0 0 16px;padding:4px 14px;background:rgba(5,7,10,.55);border:1px solid var(--ln);border-left:1px solid var(--ad)}
-.ad-dl div{display:grid;grid-template-columns:96px 1fr;align-items:baseline;gap:8px;padding:8px 0}
+.ad-dl{display:grid;gap:0;margin:0 0 18px;padding:0 16px;background:rgba(5,7,10,.55);border:1px solid var(--ln);border-left:1px solid var(--ad)}
+.ad-dl div{display:grid;grid-template-columns:96px 1fr;align-items:center;gap:8px;min-height:40px}   /* 줄마다 같은 높이 · 라벨과 값 세로 가운데 */
 .ad-dl div + div{border-top:1px solid var(--ln)}
-.ad-dl dt{font:400 8px/1.6 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.24em;color:var(--dim)}
-.ad-dl dd{margin:0;font:400 12px/1.4 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.16em;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ad-dl dt{font:400 8px/1 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.24em;color:var(--dim)}
+.ad-dl dd{margin:0;font:400 12px/1.2 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.16em;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ad-dl em{font-style:normal;color:#fff}
-.ad-log{margin:0 0 18px;font:400 9px/1.6 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.2em;color:rgba(var(--adr),.75)}
-.ad-log i{display:inline-block;width:6px;height:10px;margin-left:6px;vertical-align:-1px;background:var(--ad);animation:adBlink .9s steps(1,end) infinite}
-.ad-act{display:flex;justify-content:flex-end;padding-top:16px;border-top:1px solid var(--ln)}
+.ad-log{display:flex;align-items:center;margin:0;font:400 9px/1 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.2em;color:rgba(var(--adr),.75)}
+.ad-log i{flex:none;display:inline-block;width:6px;height:10px;margin-left:4px;background:var(--ad);animation:adBlink .9s steps(1,end) infinite}
+.ad-act{display:flex;justify-content:flex-end;margin-top:18px;padding-top:18px;border-top:1px solid var(--ln)}
 /* 버튼 — ARCH 버튼(각진 테두리 · Jost 10px 넓은 자간), 경고라 테두리만 빨강 */
 .ad-act button,.ad-act a{all:unset;box-sizing:border-box;cursor:var(--cur-pointer,pointer);display:inline-flex;align-items:center;height:34px;padding:0 20px;
   font:400 10px/1 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.3em;color:#fff;
@@ -50,12 +53,15 @@
   18%{opacity:1;transform:scale(1.01) translateX(-6px)}30%{transform:translateX(5px)}42%{transform:translateX(-3px)}54%{transform:translateX(2px)}
   70%{filter:brightness(1)}100%{transform:none}}
 /* 테두리 숨쉬기 — 스플래시 조준 창과 같은 결로 천천히 붉게 (창 안쪽에만) */
-@keyframes adPulse{0%,100%{border-color:rgba(var(--adr),.42)}50%{border-color:rgba(var(--adr),.85);box-shadow:inset 0 0 26px rgba(var(--adr),.16),inset 0 1px 0 rgba(255,255,255,.05),0 30px 70px -28px #000}}
+/* 창 바탕이 경고등처럼 붉게 차올랐다 빠진다 (스플래시 조준 창과 같은 결, 빛은 창 안쪽에만) */
+@keyframes adPulse{0%,100%{border-color:rgba(var(--adr),.42);background-color:rgba(9,13,18,.95)}
+  50%{border-color:rgba(var(--adr),.95);background-color:rgba(72,8,8,.94);box-shadow:inset 0 0 40px rgba(var(--adr),.3),inset 0 1px 0 rgba(255,255,255,.05),0 30px 70px -28px #000}}
+@keyframes adGlow{0%,100%{opacity:0}50%{opacity:1}}
 @keyframes adBlink{0%,55%{opacity:1}56%,100%{opacity:.25}}
 @keyframes adJit{0%,88%,100%{transform:none}89%{transform:translate(2px,-1px)}91%{transform:translate(-2px,1px)}93%{transform:none}}
 @keyframes adSlice{0%,80%,100%{clip-path:inset(0 0 100% 0)}82%{clip-path:inset(10% 0 55% 0)}86%{clip-path:inset(60% 0 8% 0)}90%{clip-path:inset(30% 0 40% 0)}}
-@media (prefers-reduced-motion:reduce){.ad-ov,.ad-ov::before,.ad-win,.ad-ic,.ad-gl,.ad-gl::before,.ad-gl::after,.ad-log i{animation:none}}
-@media (max-width:420px){.ad-win{padding:18px 18px 16px}.ad-h b{font-size:16px;letter-spacing:.24em}.ad-dl div{grid-template-columns:84px 1fr}}
+@media (prefers-reduced-motion:reduce){.ad-ov,.ad-ov::before,.ad-ov::after,.ad-win,.ad-ic,.ad-gl,.ad-gl::before,.ad-gl::after,.ad-log i{animation:none}}
+@media (max-width:420px){.ad-win{padding:18px}.ad-h b{font-size:16px;letter-spacing:.24em}.ad-dl div{grid-template-columns:84px 1fr}}
 /* 목록의 기밀 카드 — 붉은 「CLASSIFIED」 표시 (방문자 · 관리자 공통) */
 .cls-tag{position:absolute;left:8px;top:8px;z-index:2;padding:3px 7px 3px 8px;font:500 9px/1 'JetBrains Mono',monospace;letter-spacing:.22em;
   color:#fff;background:rgba(200,20,26,.88);box-shadow:0 0 12px -2px rgba(255,59,59,.8);pointer-events:none}
