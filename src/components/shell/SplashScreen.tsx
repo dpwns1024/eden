@@ -79,7 +79,6 @@ function ScopeHud({ aim, R, hot, vp }: { aim: Pt; R: number; hot: boolean; vp: {
     fan.push(<line key={i} x1={Math.cos(a) * r1} y1={Math.sin(a) * r1} x2={Math.cos(a) * r2} y2={Math.sin(a) * r2} />);
   }
   const tri = hot ? R + 14 : R + 56;
-  const la = (-128 * Math.PI) / 180;
   return (
     <div className={`sp-hudring ${hot ? 'hot' : ''}`} style={{ left: aim.x - S / 2, top: aim.y - S / 2, width: S, height: S }}>
       <svg viewBox={`${-S / 2} ${-S / 2} ${S} ${S}`} aria-hidden>
@@ -94,9 +93,11 @@ function ScopeHud({ aim, R, hot, vp }: { aim: Pt; R: number; hot: boolean; vp: {
             <line x1={R + 70} y1={0} x2={R + 122} y2={0} className="ext side" />
           </g>
         ))}
-        <text x={Math.cos(la) * (R + 58)} y={Math.sin(la) * (R + 58)} textAnchor="end" className="lb side">AZ {az}°</text>
+        {/* 글자는 네 방향 모두 같은 규칙 — 바깥 선(R+70~R+122)의 안쪽 끝에서 선과 9px 떨어져 붙는다
+            (좌우는 선 위, 위아래는 선 오른쪽). 예전엔 RNG가 아래 선에 겹치고 AZ는 대각선에 떠 있었다 */}
+        <text x={9} y={-R - 70} className="lb side">AZ {az}°</text>
         <text x={R + 70} y={-9} className="lb side">×{ZOOM.toFixed(1)}</text>
-        <text x={0} y={R + 78} textAnchor="middle" className="lb side">RNG {rng} M</text>
+        <text x={9} y={R + 70} dominantBaseline="hanging" className="lb side">RNG {rng} M</text>
         <text x={-R - 70} y={-9} textAnchor="end" className="lb side">ELV {elv}</text>
       </svg>
     </div>
@@ -142,16 +143,16 @@ function ProfilePanels({ aim, R, vp, profile }: { aim: Pt; R: number; vp: { w: n
     boxes.push({ key: 'm', w, h, x: (vp.w - w) / 2, y: below ? aim.y + R + 34 : Math.max(14, aim.y - R - 34 - h) });
   } else {
     const gap = R + 80;
-    const A = { w: 300, h: 124 }, B = { w: 260, h: 74 + rowsH }, C = { w: 244, h: 150 };
+    const A = { w: 280, h: 124 }, B = { w: 280, h: 74 + rowsH }, C = { w: 280, h: 150 };
     const spR = vp.w - (aim.x + gap) - 16, spL = aim.x - gap - 16;
     const bR = spR >= B.w || spR >= spL;
-    const split = (bR ? spL : spR) >= Math.max(A.w, C.w) + 26;
+    const split = (bR ? spL : spR) >= Math.max(A.w, C.w);
     const bx = cx(bR ? aim.x + gap : aim.x - gap - B.w, B.w);
     if (split) {
       const oR = !bR;
       boxes.push({ key: 'b', ...B, x: bx, y: cy(aim.y - B.h / 2 + 30, B.h) });
       const ay = cy(aim.y - R - 30, A.h);
-      boxes.push({ key: 'a', ...A, x: cx(oR ? aim.x + gap + 26 : aim.x - gap - 26 - A.w, A.w), y: ay });
+      boxes.push({ key: 'a', ...A, x: cx(oR ? aim.x + gap : aim.x - gap - A.w, A.w), y: ay });
       boxes.push({ key: 'c', ...C, x: cx(oR ? aim.x + gap : aim.x - gap - C.w, C.w), y: Math.max(cy(aim.y + R * 0.45, C.h), ay + A.h + 18) });
     } else {
       // 한쪽에 세로로 쌓기 — 전체 묶음을 한 번에 배치해야 서로 겹치지 않는다
@@ -167,7 +168,7 @@ function ProfilePanels({ aim, R, vp, profile }: { aim: Pt; R: number; vp: { w: n
   const links = boxes.map(b => {
     const right = b.x + b.w / 2 > aim.x;
     const ax = compact ? b.x + b.w / 2 : right ? b.x : b.x + b.w;
-    const ay = compact ? (b.y > aim.y ? b.y : b.y + b.h) : b.y + 22;
+    const ay = compact ? (b.y > aim.y ? b.y : b.y + b.h) : b.y + 21;
     const ang = Math.atan2(ay - aim.y, ax - aim.x);
     const sx = aim.x + Math.cos(ang) * (R + 21), sy = aim.y + Math.sin(ang) * (R + 21);
     const pts = compact
