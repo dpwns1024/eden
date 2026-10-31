@@ -3,26 +3,21 @@
    남색 검정 반투명 칸 · 가는 테두리 · 9px 꺾쇠 · 모노 라벨 · Jost 값. 빨강은 경고 포인트(테두리 · 꺾쇠 · 제목 · 로그)에만 */
 .ad-ov,.ad-page{--ad:#ff3b30;--adr:255,59,48;--tx:#e4e9ef;--mu:#8592a0;--dim:#6f7b89;--ln:rgba(190,208,228,.10)}
 .ad-ov{position:fixed;inset:0;z-index:400;display:grid;place-items:center;padding:16px;cursor:default;
-  background:radial-gradient(ellipse at center,rgba(60,6,6,.32),rgba(3,5,8,.86) 70%);animation:adFade .18s ease-out}
-.ad-ov::before{content:'';position:absolute;inset:0;pointer-events:none;
-  background:repeating-linear-gradient(0deg,rgba(255,59,48,.035) 0 1px,transparent 1px 3px);animation:adScan 6s linear infinite}
+  background:rgba(3,5,8,.82);animation:adFade .18s ease-out}
 .ad-page{display:grid;place-items:center;min-height:62vh;padding:40px 16px}
 .ad-win{position:relative;width:min(420px,calc(100vw - 32px));padding:24px;color:var(--tx);
-  background-color:rgba(9,13,18,.95);background-image:linear-gradient(180deg,rgba(var(--adr),.1),transparent 130px),linear-gradient(180deg,rgba(255,255,255,.03),transparent 46%);
-  border:1px solid rgba(var(--adr),.42);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 30px 70px -28px #000;
+  background-color:rgba(9,13,18,.95);background-image:linear-gradient(180deg,rgba(255,255,255,.035),transparent 46%);
+  border:1px solid rgba(190,208,228,.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 24px 50px -28px #000;
   font:400 12px/1.5 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;animation:adIn .5s cubic-bezier(.2,.8,.2,1) both,adPulse 1.6s ease-in-out .5s infinite}
-/* 화면 쪽 붉은 경고등 — 창과 같은 박자로 화면 가운데가 붉게 차올랐다 빠진다 */
-.ad-ov::after{content:'';position:absolute;inset:0;pointer-events:none;opacity:0;
-  background:radial-gradient(ellipse 70% 60% at center,rgba(150,10,8,.42),transparent 72%);animation:adGlow 1.6s ease-in-out .5s infinite}
-/* 꺾쇠 — ARCH 카드처럼 가는 1px. 테두리도 빨강이라 겹치면 묻혀서 모서리 바깥으로 4px 빼 둔다 */
-.ad-c{position:absolute;width:10px;height:10px;border:solid var(--ad);pointer-events:none}
-.ad-c.tl{left:-5px;top:-5px;border-width:1px 0 0 1px}.ad-c.tr{right:-5px;top:-5px;border-width:1px 1px 0 0}
-.ad-c.bl{left:-5px;bottom:-5px;border-width:0 0 1px 1px}.ad-c.br{right:-5px;bottom:-5px;border-width:0 1px 1px 0}
+/* 꺾쇠 — 스플래시 조준 창과 똑같이: 은빛 9px · 1px, 모서리에 딱 붙인다 */
+.ad-c{position:absolute;width:9px;height:9px;border:solid rgba(220,230,240,.55);pointer-events:none}
+.ad-c.tl{left:-1px;top:-1px;border-width:1px 0 0 1px}.ad-c.tr{right:-1px;top:-1px;border-width:1px 1px 0 0}
+.ad-c.bl{left:-1px;bottom:-1px;border-width:0 0 1px 1px}.ad-c.br{right:-1px;bottom:-1px;border-width:0 1px 1px 0}
 .ad-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--ln)}
 .ad-h b{display:flex;align-items:center;gap:12px;min-width:0;font:300 19px/1 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.3em;color:#fff}
 .ad-h>span{flex:none;font:400 8.5px/1 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.24em;margin-right:-.24em;color:rgba(var(--adr),.85)}   /* 마지막 글자 뒤 자간만큼 당겨 오른쪽 끝을 버튼과 맞춘다 */
 .ad-ic{display:grid;place-items:center;width:20px;height:18px;flex:0 0 20px;font:700 11px/1 'JetBrains Mono',monospace;letter-spacing:0;color:#14040a;
-  background:var(--ad);clip-path:polygon(50% 0,100% 100%,0 100%);padding-top:5px;box-sizing:border-box;animation:adBlink 1.1s steps(1,end) infinite;
+  background:var(--ad);clip-path:polygon(50% 0,100% 100%,0 100%);padding-top:5px;box-sizing:border-box;animation:adIcon 1.6s ease-in-out .5s infinite;
   filter:drop-shadow(0 0 6px rgba(var(--adr),.8))}
 /* 제목 — 조준 창 이름과 같은 붉은 강철 그라데이션, 지지직 글리치는 그대로 */
 .ad-gl{position:relative;display:inline-block;white-space:nowrap;padding-bottom:.08em;margin-bottom:-.08em;animation:adJit 3.2s steps(1,end) infinite;
@@ -48,19 +43,19 @@
   border:1px solid rgba(var(--adr),.5);background:rgba(8,11,15,.72);transition:background .2s,box-shadow .2s,border-color .2s}
 .ad-act button:hover,.ad-act a:hover,.ad-act button:focus-visible,.ad-act a:focus-visible{border-color:rgba(var(--adr),.85);background:rgba(var(--adr),.12);box-shadow:0 0 18px -4px rgba(var(--adr),.6)}
 @keyframes adFade{from{opacity:0}to{opacity:1}}
-@keyframes adScan{from{background-position:0 0}to{background-position:0 120px}}
 @keyframes adIn{0%{opacity:0;transform:scale(.96) translateX(0);filter:brightness(2)}
   18%{opacity:1;transform:scale(1.01) translateX(-6px)}30%{transform:translateX(5px)}42%{transform:translateX(-3px)}54%{transform:translateX(2px)}
   70%{filter:brightness(1)}100%{transform:none}}
 /* 테두리 숨쉬기 — 스플래시 조준 창과 같은 결로 천천히 붉게 (창 안쪽에만) */
-/* 창 바탕이 경고등처럼 붉게 차올랐다 빠진다 (스플래시 조준 창과 같은 결, 빛은 창 안쪽에만) */
-@keyframes adPulse{0%,100%{border-color:rgba(var(--adr),.42);background-color:rgba(9,13,18,.95)}
-  50%{border-color:rgba(var(--adr),.95);background-color:rgba(72,8,8,.94);box-shadow:inset 0 0 40px rgba(var(--adr),.3),inset 0 1px 0 rgba(255,255,255,.05),0 30px 70px -28px #000}}
-@keyframes adGlow{0%,100%{opacity:0}50%{opacity:1}}
+/* 붉은 깜빡임 — 스플래시 조준 창(globals.css spAlert)과 같은 값 · 같은 박자. 창은 뒤가 비치지 않게 바탕만 불투명하게 섞은 색 */
+@keyframes adPulse{0%,100%{border-color:rgba(190,208,228,.16);background-color:rgba(9,13,18,.95);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 24px 50px -28px #000}
+  50%{border-color:rgba(255,59,48,.95);background-color:rgba(42,11,12,.95);box-shadow:inset 0 0 26px rgba(255,59,48,.35),0 24px 50px -28px #000}}
+/* 경고 아이콘 — 딱딱 끊기던 깜빡임 대신 창과 같은 박자로 부드럽게 */
+@keyframes adIcon{0%,100%{opacity:.55}50%{opacity:1}}
 @keyframes adBlink{0%,55%{opacity:1}56%,100%{opacity:.25}}
 @keyframes adJit{0%,88%,100%{transform:none}89%{transform:translate(2px,-1px)}91%{transform:translate(-2px,1px)}93%{transform:none}}
 @keyframes adSlice{0%,80%,100%{clip-path:inset(0 0 100% 0)}82%{clip-path:inset(10% 0 55% 0)}86%{clip-path:inset(60% 0 8% 0)}90%{clip-path:inset(30% 0 40% 0)}}
-@media (prefers-reduced-motion:reduce){.ad-ov,.ad-ov::before,.ad-ov::after,.ad-win,.ad-ic,.ad-gl,.ad-gl::before,.ad-gl::after,.ad-log i{animation:none}}
+@media (prefers-reduced-motion:reduce){.ad-ov,.ad-win,.ad-ic,.ad-gl,.ad-gl::before,.ad-gl::after,.ad-log i{animation:none}}
 @media (max-width:420px){.ad-win{padding:18px}.ad-h b{font-size:16px;letter-spacing:.24em}.ad-dl div{grid-template-columns:84px 1fr}}
 /* 목록의 기밀 카드 — 붉은 「CLASSIFIED」 표시 (방문자 · 관리자 공통) */
 .cls-tag{position:absolute;left:8px;top:8px;z-index:2;padding:3px 7px 3px 8px;font:500 9px/1 'JetBrains Mono',monospace;letter-spacing:.22em;
