@@ -2776,7 +2776,7 @@ body.sp-reveal > *:not(.splash-overlay){animation:spReveal 1.1s cubic-bezier(.2,
 @keyframes spReveal{from{opacity:0;filter:blur(8px)}to{opacity:1;filter:none}}
 .sp-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .sp-lens{position:absolute;border-radius:50%;overflow:hidden;background-repeat:no-repeat;pointer-events:none;
-  box-shadow:inset 0 0 0 1px rgba(255,90,90,.28),inset 0 0 0 2.5px rgba(90,200,255,.16),inset 0 0 46px 24px rgba(0,0,0,.9),0 0 70px 14px rgba(3,5,8,.92)}
+  box-shadow:inset 0 0 0 1px rgba(255,90,90,.28),inset 0 0 0 2.5px rgba(184,216,255,.18),inset 0 0 46px 24px rgba(0,0,0,.9),0 0 70px 14px rgba(3,5,8,.92)}
 .sp-lens::before{content:'';position:absolute;inset:0;border-radius:50%;z-index:1;pointer-events:none;
   background:radial-gradient(ellipse 60% 45% at 30% 22%,rgba(255,255,255,.17),transparent 60%),radial-gradient(circle,transparent 58%,rgba(16,48,72,.28) 100%)}
 .sp-reticle{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:2}
@@ -2786,22 +2786,25 @@ body.sp-reveal > *:not(.splash-overlay){animation:spReveal 1.1s cubic-bezier(.2,
 /* scope HUD ring */
 .sp-hudring{position:absolute;pointer-events:none}
 .sp-hudring svg{width:100%;height:100%;overflow:visible}
-.sp-hudring .tube{fill:none;stroke:#0d1218;stroke-width:8}
-.sp-hudring .hair{fill:none;stroke:rgba(255,255,255,.2);stroke-width:1}
-.sp-hudring .seg{fill:none;stroke:rgba(255,255,255,.62);stroke-width:3;transition:stroke .2s}
-.sp-hudring .dots{fill:none;stroke:rgba(255,255,255,.38);stroke-width:1;stroke-dasharray:1 5}
+.sp-hudring .tube{fill:none;stroke:#0b1016;stroke-width:5}
+/* 링 · 눈금 — ARCH 결(가는 은빛 선 · 하늘빛 눈금). 조준되면(hot) 불속성 빨강 */
+.sp-hudring .hair{fill:none;stroke:rgba(190,208,228,.24);stroke-width:1}
+.sp-hudring .seg{fill:none;stroke:rgba(220,230,240,.6);stroke-width:1.6;transition:stroke .2s}
+.sp-hudring .dots{fill:none;stroke:rgba(190,208,228,.34);stroke-width:1;stroke-dasharray:1 5}
 .sp-hudring .spin{transform-origin:0 0;animation:spSpin 26s linear infinite}
 .sp-hudring .spin.rev{animation-duration:44s;animation-direction:reverse}
 .sp-hudring.hot .spin{animation-duration:2.6s}
 .sp-hudring.hot .spin.rev{animation-duration:4s}
-.sp-hudring .fan line{stroke:rgba(255,255,255,.55);stroke-width:1.2;transition:stroke .2s}
-.sp-hudring .tri{fill:rgba(255,255,255,.78);transition:transform .38s cubic-bezier(.2,.8,.2,1),fill .2s}
-.sp-hudring .ext{stroke:rgba(255,255,255,.4);stroke-width:1}
-.sp-hudring .lb{fill:rgba(255,255,255,.62);font:10px 'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em}
+.sp-hudring .fan line{stroke:rgba(184,216,255,.42);stroke-width:1;transition:stroke .2s}
+.sp-hudring .tri{fill:rgba(5,7,10,.6);stroke:rgba(220,230,240,.75);stroke-width:1;transition:transform .38s cubic-bezier(.2,.8,.2,1),fill .2s,stroke .2s}
+.sp-hudring .brk{fill:none;stroke:rgba(184,216,255,.7);stroke-width:1.2;filter:drop-shadow(0 0 4px rgba(184,216,255,.45));transition:transform .38s cubic-bezier(.2,.8,.2,1),stroke .2s,filter .2s}
+.sp-hudring .ext{stroke:rgba(190,208,228,.3);stroke-width:1}
+.sp-hudring .lb{fill:rgba(201,212,224,.68);font:400 9.5px 'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.2em}
 .sp-hudring .side{transition:opacity .2s}
 .sp-hudring.hot .side{opacity:0}
 .sp-hudring.hot .seg{stroke:#ff3b30}
-.sp-hudring.hot .tri{fill:#ff3b30}
+.sp-hudring.hot .tri{fill:#ff3b30;stroke:#ff3b30}
+.sp-hudring.hot .brk{stroke:#ff3b30;filter:drop-shadow(0 0 5px rgba(255,59,48,.6))}
 .sp-hudring.hot .fan line{stroke:rgba(255,59,48,.75)}
 @keyframes spSpin{to{transform:rotate(360deg)}}
 
@@ -2811,6 +2814,9 @@ body.sp-reveal > *:not(.splash-overlay){animation:spReveal 1.1s cubic-bezier(.2,
 .sp-corner.tl{left:20px}
 .sp-corner.tr{right:20px;text-align:right}
 .sp-corner.tr.hot{color:#ff3b30}
+/* 상태 점 — 글꼴에 ○ ● 글자가 없어 기기 글꼴로 대신 그려지던 것을 칸으로 그린다 (탐색 중 빈 원 · 조준되면 채운 원) */
+.sp-corner .dot{display:inline-block;width:6px;height:6px;margin:0 .7em 1px 0;border:1px solid currentColor;border-radius:50%;vertical-align:middle}
+.sp-corner.tr.hot .dot{background:currentColor;box-shadow:0 0 6px rgba(255,59,48,.8)}
 .sp-hud{position:absolute;left:50%;bottom:7%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;
   font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;color:rgba(255,255,255,.45);font-size:11px;letter-spacing:.35em;pointer-events:none;white-space:nowrap;text-transform:uppercase}
 .sp-hud b{color:#ff3b30;font-size:15px;letter-spacing:.45em;text-shadow:0 0 18px rgba(255,59,48,.6)}
@@ -2850,6 +2856,7 @@ body.sp-reveal > *:not(.splash-overlay){animation:spReveal 1.1s cubic-bezier(.2,
 .sp-panel .rw{display:grid;grid-template-columns:66px 1fr;align-items:baseline;height:21px;font:400 11.5px/21px 'Jost','Noto Sans KR',sans-serif;letter-spacing:.18em;white-space:nowrap;color:#e4e9ef}
 .sp-panel .rw b{font:400 8px/21px 'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.24em;color:#6f7b89}
 .sp-panel .rw span{overflow:hidden;text-overflow:ellipsis}
+.sp-panel .rw .ar{display:inline-block;width:.8em;height:.8em;vertical-align:-.02em;fill:none;stroke:currentColor;stroke-width:1.2}   /* ↗는 Jost · JetBrains Mono 둘 다 없어 기기 글꼴로 대신 그려졌다 — 선으로 그린다 */
 .sp-panel .rw.alert span{color:#ff3b30;text-shadow:0 0 10px rgba(255,59,48,.6);animation:spBlink 1s steps(2) 3}
 .sp-panel .lk{display:grid;grid-template-columns:66px 1fr 38px;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(190,208,228,.10);font:400 10px/1 'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em}
 .sp-panel .lk b{font-weight:400;font-size:8px;letter-spacing:.24em;color:#6f7b89}

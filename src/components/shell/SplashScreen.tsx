@@ -30,7 +30,7 @@ type Profile = { name: string; sub: string; rows: [string, string][] };
 const rangeM = (aim: Pt, vp: { h: number }) => Math.round(24 + (aim.y / vp.h) * 30);
 
 function Reticle({ hot }: { hot: boolean }) {
-  const c = hot ? '#ff3b30' : '#0a0a0a';
+  const c = hot ? '#ff3b30' : '#0b1016';
   const marks: React.ReactNode[] = [];
   for (let i = 1; i <= 11; i++) {
     const p = i * 5, L = i % 2 === 0 ? 2.8 : 1.6;
@@ -47,7 +47,7 @@ function Reticle({ hot }: { hot: boolean }) {
   });
   return (
     <svg viewBox="-100 -100 200 200" className="sp-reticle" aria-hidden>
-      <g stroke="#0a0a0a" strokeWidth="4.2">
+      <g stroke="#0b1016" strokeWidth="2.6">
         <line x1="0" y1="-100" x2="0" y2="-60" /><line x1="0" y1="100" x2="0" y2="60" />
         <line x1="-100" y1="0" x2="-60" y2="0" /><line x1="100" y1="0" x2="60" y2="0" />
       </g>
@@ -79,6 +79,8 @@ function ScopeHud({ aim, R, hot, vp }: { aim: Pt; R: number; hot: boolean; vp: {
     fan.push(<line key={i} x1={Math.cos(a) * r1} y1={Math.sin(a) * r1} x2={Math.cos(a) * r2} y2={Math.sin(a) * r2} />);
   }
   const tri = hot ? R + 14 : R + 56;
+  // 꺾쇠 — 탐색 중엔 넓게, 조준되면 안으로 조여 잠긴다
+  const bk = hot ? R + 30 : R + 62;
   const la = (-128 * Math.PI) / 180;
   return (
     <div className={`sp-hudring ${hot ? 'hot' : ''}`} style={{ left: aim.x - S / 2, top: aim.y - S / 2, width: S, height: S }}>
@@ -90,9 +92,12 @@ function ScopeHud({ aim, R, hot, vp }: { aim: Pt; R: number; hot: boolean; vp: {
         <g className="fan">{fan}</g>
         {[0, 90, 180, 270].map(d => (
           <g key={d} transform={`rotate(${d})`}>
-            <path d="M 0 0 l 10 -5.5 l 0 11 z" className="tri" style={{ transform: `translateX(${tri}px)` }} />
+            <path d="M 0 0 l 5 -5 l 5 5 l -5 5 z" className="tri" style={{ transform: `translateX(${tri}px)` }} />
             <line x1={R + 70} y1={0} x2={R + 122} y2={0} className="ext side" />
           </g>
+        ))}
+        {[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([x, y]) => (
+          <path key={`${x}${y}`} d="M 0 16 V 0 H 16" className="brk" style={{ transform: `translate(${x * bk}px, ${y * bk}px) scale(${-x}, ${-y})` }} />
         ))}
         <text x={Math.cos(la) * (R + 58)} y={Math.sin(la) * (R + 58)} textAnchor="end" className="lb side">AZ {az}°</text>
         <text x={R + 70} y={-9} className="lb side">×{ZOOM.toFixed(1)}</text>
@@ -205,18 +210,18 @@ function ProfilePanels({ aim, R, vp, profile }: { aim: Pt; R: number; vp: { w: n
       {boxes.map(b => (
         <div key={b.key} className={`sp-panel sp-panel-${b.key}`}
           style={{ left: b.x, top: b.y, width: b.w, '--d': `${0.16 + order[b.key] * 0.12}s` } as React.CSSProperties}>
-          {b.key === 'a' && <>{head('TARGET ID', 'CH-02')}{idBlock('a')}</>}
-          {b.key === 'b' && <>{head('PROFILE', 'CLASSIFIED')}<div className="mr">{rowsBlock('b')}</div></>}
+          {b.key === 'a' && <>{head('TARGET ID', 'LOCKED')}{idBlock('a')}</>}
+          {b.key === 'b' && <>{head('PROFILE', 'CLEARANCE LV.4')}<div className="mr">{rowsBlock('b')}</div></>}
           {b.key === 'c' && (
             <>
-              {head('TELEMETRY', `×${ZOOM.toFixed(1)} · FFP`)}
+              {head('TELEMETRY', 'LIVE')}
               <div className="mr"><div className="rw"><b>DIST</b><span>{rng} M</span></div>
-              <div className="rw"><b>WIND</b><span>2.1 M/S ↗</span></div>
+              <div className="rw"><b>WIND</b><span>2.1 M/S <svg className="ar" viewBox="0 0 10 10" aria-hidden><path d="M2 8 8 2M3.5 2H8v4.5" /></svg></span></div>
               <div className="rw"><b>ELEV</b><span>{elv} MIL</span></div></div>
               <div className="lk"><b>LOCK</b><div className="bar"><i /></div><span>100%</span></div>
             </>
           )}
-          {b.key === 'm' && <>{head('TARGET ID', 'CLASSIFIED')}{idBlock('m')}<div className="mr">{rowsBlock('m')}</div></>}
+          {b.key === 'm' && <>{head('TARGET ID', 'LOCKED')}{idBlock('m')}<div className="mr">{rowsBlock('m')}</div></>}
         </div>
       ))}
     </>
@@ -662,7 +667,7 @@ export function SplashView({ bgUrl, targetX, targetY, targetSize, label, profile
           <ScopeHud aim={aim} R={R} hot={hit} vp={vp} />
           {hit && profile && <ProfilePanels aim={aim} R={R} vp={vp} profile={profile} />}
           <div className="sp-corner tl">EVEDEN TACTICAL OPTICS<br /><span>WIND STABILIZER · ×{ZOOM.toFixed(1)} · FFP</span></div>
-          <div className={`sp-corner tr ${hit ? 'hot' : ''}`}>{hit ? '● LOCK' : '○ SCAN'}<br /><span>CH-02</span></div>
+          <div className={`sp-corner tr ${hit ? 'hot' : ''}`}><i className="dot" />{hit ? 'LOCK' : 'SCAN'}<br /><span>CH-02</span></div>
           <div className={`sp-hud ${hit ? 'hot' : ''} ${mobile && aim.y > vp.h * 0.6 ? 'up' : ''}`}>
             {hit
               ? <span className="found">...찾았네.</span>
