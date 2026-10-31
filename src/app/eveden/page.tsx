@@ -5,10 +5,10 @@
  * 페어 기록 · 현장 메모는 검게 가린 줄(기록 준비 중)로 자리만 잡아 두었다. 스타일은 pairFile.css.
  */
 import React from 'react';
-import Link from 'next/link';
 import { usePairProfiles, type PairProfile } from '@/lib/pairChars';
 import { CroppedBlobImg } from '@/components/ui/CropEditor';
 import { ARCH_FONTS } from '@/lib/archFonts';
+import { useWorldOnly } from '@/lib/worldStore';
 import './pairFile.css';
 
 const SYNC = '98.7';
@@ -53,6 +53,7 @@ function Dossier({ p, n }: { p: PairProfile; n: string }) {
 
 export default function PairFilePage() {
   const { eve, eden } = usePairProfiles();
+  useWorldOnly('eveden');   // EVEDEN 전용 — 여기서 YJHM으로 넘기면 YJHM 메인으로 (v2.0 사용자 요청)
   const LOG: [number, number, string][] = [[46, 100, '██.█'], [58, 70, '██.█'], [38, 90, '██.█'], [64, 80, '██.█']];
 
   return (
@@ -60,17 +61,12 @@ export default function PairFilePage() {
       <link rel="stylesheet" href={ARCH_FONTS} precedence="default" />
       <div className="pf-scan" aria-hidden="true" />
       <div className="pf-wrap">
-        <nav className="pf-crumb">
-          <Link href="/">← MAIN</Link>
-          <span>ARCH <i>›</i> CLASSIFIED <i>›</i> <b>PAIR FILE</b></span>
-        </nav>
-
-        {/* 제목 · 기밀 도장 */}
+        {/* 제목 · 기밀 도장 — 게시판 제목(.page-head)과 같은 자리 · 크기 (v2.0 사용자 요청 — 경로 줄 · 파일 번호 줄은 뺐다,
+            파일 번호는 아래 MATCH ID에 그대로 있다) */}
         <header className="pf-head">
           <div className="pf-ttl">
-            <small>PAIR DOSSIER <i>//</i> FILE NO. EV-ED-0987</small>
             <h1>{eden.name}<em>×</em>{eve.name}</h1>
-            <p>GUIDE — SENTINEL PAIR <i>·</i> SYNC RATE {SYNC}% <i>·</i> STATUS <b>ACTIVE</b></p>
+            <p><span className="pf-kind">GUIDE — SENTINEL PAIR <i>·</i> </span>SYNC RATE {SYNC}% <i>·</i> STATUS <b>ACTIVE</b></p>
           </div>
           <div className="pf-stamp"><b>CLASSIFIED</b><span>LEVEL 4 · EYES ONLY</span></div>
         </header>

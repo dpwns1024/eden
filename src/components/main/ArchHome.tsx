@@ -18,6 +18,7 @@ import { SyncMatch } from '@/components/main/SyncMatch';
 import { setMemberSlot, clearMemberSlot } from '@/lib/htmlSlots';
 import { useSections, MAIN_SEC } from '@/lib/sectionStore';
 import { ARCH_FONTS } from '@/lib/archFonts';
+import { useWorldOnly } from '@/lib/worldStore';
 import './archHome.css';
 
 
@@ -160,6 +161,8 @@ export function ArchHome({ about: aboutRoute = false }: { about?: boolean } = {}
   const oldAbout = useSearchParams().get('view') === 'arch';   // 옛 주소(/?view=arch)
   const about = aboutRoute || oldAbout;
   useEffect(() => { if (oldAbout && !aboutRoute) router.replace(ABOUT_HREF); }, [oldAbout, aboutRoute, router]);
+  // ARCH 소개(/arch)는 EVEDEN 전용 — 여기서 YJHM으로 넘기면 YJHM 메인으로 (v2.0 사용자 요청 · lib/worldStore.ts)
+  useWorldOnly('eveden', aboutRoute);
   const { list } = useSections();
   const aboutName = list('page').find(s => s.id === MAIN_SEC)?.name ?? 'ARCH';
   const [leaving, setLeaving] = useState(false);

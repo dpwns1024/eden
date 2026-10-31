@@ -11,6 +11,7 @@
  * 페어는 PAIRING 게시판의 이름으로 찾는다 (대소문자 · 앞뒤 공백 무시).
  */
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Relation } from '@/lib/charStore';
 import { usePairings, pairIdOf } from '@/lib/pairLink';
 
@@ -137,4 +138,19 @@ export function useFollowWorld(relId: string | undefined) {
   const ks = rel ? relWorlds(rel) : undefined;
   const k = ks?.length === 1 ? ks[0] : undefined;
   useEffect(() => { if (k) setWorld(k); }, [k]);
+}
+
+/**
+ * 한 세계에만 있는 페이지 (v2.0 사용자 요청 — ARCH 소개 /arch · 이브 × 에덴 기밀 파일 /eveden은 EVEDEN 전용).
+ * 들어오면 그 세계로 바꾸고(주소로 바로 들어온 경우는 layout.tsx의 인라인 스크립트가 첫 그림 전에 먼저 바꾼다),
+ * 여기서 다른 세계로 넘기면 그 세계의 메인으로 간다 — 예전엔 YJHM으로 넘겨도 ARCH 화면이 그대로 남거나
+ * 머리만 YJHM인 채 색이 뒤섞여 보였다
+ */
+export function useWorldOnly(k: WorldKey, on = true) {
+  const router = useRouter();
+  useEffect(() => {
+    if (!on) return;
+    if (currentWorld() !== k) setWorld(k);
+    return onWorldChange(w => { if (w !== k) router.replace('/'); });
+  }, [k, on, router]);
 }
