@@ -23,6 +23,9 @@
 .pf-ttl h1{font:300 clamp(30px,4.4vw,52px)/1.05 'Jost',sans-serif;letter-spacing:.24em;color:#fff;white-space:nowrap;
   background:linear-gradient(180deg,#fff 0%,#d3dbe4 34%,#8a95a2 54%,#e6ebf1 70%,#a3adb9 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
 .pf-ttl h1 em{font-style:normal;margin:0 .32em 0 .1em;font-weight:200;-webkit-text-fill-color:var(--ac);color:var(--ac)}
+.pf-ttl small{display:block;margin-top:12px;font:400 10px/14px 'JetBrains Mono',monospace;letter-spacing:.26em;color:var(--dim)}
+.pf-ttl small i{font-style:normal;margin:0 6px}
+.pf-ttl small + p{margin-top:4px}
 .pf-ttl p{margin-top:12px;font:500 12px/22px 'Saira Semi Condensed','Jost',sans-serif;letter-spacing:.16em;color:var(--mu)}
 .pf-ttl p i{font-style:normal;margin:0 8px;color:var(--dim)}
 .pf-ttl p b{font-weight:600;color:#7fdcae}
@@ -132,6 +135,7 @@ dd .pf-x{display:inline-block;vertical-align:middle}
   .pf-stamp span{font-size:6.5px}
   .pf-ttl h1{font-size:30px;letter-spacing:.18em}
   .pf-ttl p{font-size:11px;letter-spacing:.1em}
+  .pf-ttl small{font-size:9px;letter-spacing:.18em}
   .pf-ttl .pf-kind{display:none}   /* 설명을 한 줄로 — 게시판 제목 줄 높이와 같게 */
   .pf-pair{grid-template-columns:1fr 1fr;gap:16px 12px;padding:18px 16px}
   .pf-sync{grid-column:1 / -1;grid-row:2;width:auto}
