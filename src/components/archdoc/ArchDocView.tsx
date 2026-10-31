@@ -863,6 +863,22 @@ export function ArchDocView({ doc, canEdit, onSave, onUseHtml, fromHtml }: {
   useEffect(() => { if (!edit) setDraft(doc); }, [doc, edit]);
   const cur = edit ? draft : doc;
 
+  /* 모든 탭의 글꼴 조각을 미리 받아 둔다 (v2.0 사용자 제보 — 「ARCH 내부 탭에서 예전 글꼴이 떴다가 바뀐다」).
+     Pretendard는 쓰는 글자가 든 조각만, 영문 글꼴은 굵기별로 따로 받는다. 탭을 처음 누를 때에야
+     그 탭의 글자 · 굵기 조각을 받기 시작해, 받는 사이 기기 글꼴로 그렸다가 바뀌어 보였다 */
+  useEffect(() => {
+    if (typeof document === 'undefined' || !document.fonts?.load) return;
+    const chars = Array.from(new Set(JSON.stringify(doc))).join('');
+    const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789·/-';
+    const specs: [string, string][] = [
+      ...[300, 400, 500, 600, 700].map(w => [`${w} 16px "Pretendard Variable"`, chars] as [string, string]),
+      ...[300, 400, 500].map(w => [`${w} 16px Jost`, latin] as [string, string]),
+      ...[300, 400, 500].map(w => [`${w} 16px "JetBrains Mono"`, latin] as [string, string]),
+      ...[300, 400, 500, 600].map(w => [`${w} 16px "Saira Semi Condensed"`, latin] as [string, string]),
+    ];
+    specs.forEach(([font, text]) => { document.fonts.load(font, text).catch(() => { /* 없는 글꼴 — 무시 */ }); });
+  }, [doc]);
+
   // 탭 — 주소(?tab=이름)에 남겨 링크로 바로 열 수 있게
   const want = params.get('tab');
   const [tabId, setTabId] = useState<string | null>(null);
