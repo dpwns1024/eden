@@ -79,8 +79,6 @@ function ScopeHud({ aim, R, hot, vp }: { aim: Pt; R: number; hot: boolean; vp: {
     fan.push(<line key={i} x1={Math.cos(a) * r1} y1={Math.sin(a) * r1} x2={Math.cos(a) * r2} y2={Math.sin(a) * r2} />);
   }
   const tri = hot ? R + 14 : R + 56;
-  // 꺾쇠 — 탐색 중엔 넓게, 조준되면 안으로 조여 잠긴다
-  const bk = hot ? R + 30 : R + 62;
   const la = (-128 * Math.PI) / 180;
   return (
     <div className={`sp-hudring ${hot ? 'hot' : ''}`} style={{ left: aim.x - S / 2, top: aim.y - S / 2, width: S, height: S }}>
@@ -92,12 +90,9 @@ function ScopeHud({ aim, R, hot, vp }: { aim: Pt; R: number; hot: boolean; vp: {
         <g className="fan">{fan}</g>
         {[0, 90, 180, 270].map(d => (
           <g key={d} transform={`rotate(${d})`}>
-            <path d="M 0 0 l 5 -5 l 5 5 l -5 5 z" className="tri" style={{ transform: `translateX(${tri}px)` }} />
+            <path d="M 0 0 l 10 -5.5 l 0 11 z" className="tri" style={{ transform: `translateX(${tri}px)` }} />
             <line x1={R + 70} y1={0} x2={R + 122} y2={0} className="ext side" />
           </g>
-        ))}
-        {[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([x, y]) => (
-          <path key={`${x}${y}`} d="M 0 16 V 0 H 16" className="brk" style={{ transform: `translate(${x * bk}px, ${y * bk}px) scale(${-x}, ${-y})` }} />
         ))}
         <text x={Math.cos(la) * (R + 58)} y={Math.sin(la) * (R + 58)} textAnchor="end" className="lb side">AZ {az}°</text>
         <text x={R + 70} y={-9} className="lb side">×{ZOOM.toFixed(1)}</text>
@@ -210,18 +205,18 @@ function ProfilePanels({ aim, R, vp, profile }: { aim: Pt; R: number; vp: { w: n
       {boxes.map(b => (
         <div key={b.key} className={`sp-panel sp-panel-${b.key}`}
           style={{ left: b.x, top: b.y, width: b.w, '--d': `${0.16 + order[b.key] * 0.12}s` } as React.CSSProperties}>
-          {b.key === 'a' && <>{head('TARGET ID', 'LOCKED')}{idBlock('a')}</>}
-          {b.key === 'b' && <>{head('PROFILE', 'CLEARANCE LV.4')}<div className="mr">{rowsBlock('b')}</div></>}
+          {b.key === 'a' && <>{head('TARGET ID', 'CH-02')}{idBlock('a')}</>}
+          {b.key === 'b' && <>{head('PROFILE', 'CLASSIFIED')}<div className="mr">{rowsBlock('b')}</div></>}
           {b.key === 'c' && (
             <>
-              {head('TELEMETRY', 'LIVE')}
+              {head('TELEMETRY', `×${ZOOM.toFixed(1)} · FFP`)}
               <div className="mr"><div className="rw"><b>DIST</b><span>{rng} M</span></div>
               <div className="rw"><b>WIND</b><span>2.1 M/S <svg className="ar" viewBox="0 0 10 10" aria-hidden><path d="M2 8 8 2M3.5 2H8v4.5" /></svg></span></div>
               <div className="rw"><b>ELEV</b><span>{elv} MIL</span></div></div>
               <div className="lk"><b>LOCK</b><div className="bar"><i /></div><span>100%</span></div>
             </>
           )}
-          {b.key === 'm' && <>{head('TARGET ID', 'LOCKED')}{idBlock('m')}<div className="mr">{rowsBlock('m')}</div></>}
+          {b.key === 'm' && <>{head('TARGET ID', 'CLASSIFIED')}{idBlock('m')}<div className="mr">{rowsBlock('m')}</div></>}
         </div>
       ))}
     </>

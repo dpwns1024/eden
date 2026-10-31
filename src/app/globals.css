@@ -2796,15 +2796,13 @@ body.sp-reveal > *:not(.splash-overlay){animation:spReveal 1.1s cubic-bezier(.2,
 .sp-hudring.hot .spin{animation-duration:2.6s}
 .sp-hudring.hot .spin.rev{animation-duration:4s}
 .sp-hudring .fan line{stroke:rgba(184,216,255,.42);stroke-width:1;transition:stroke .2s}
-.sp-hudring .tri{fill:rgba(5,7,10,.6);stroke:rgba(220,230,240,.75);stroke-width:1;transition:transform .38s cubic-bezier(.2,.8,.2,1),fill .2s,stroke .2s}
-.sp-hudring .brk{fill:none;stroke:rgba(184,216,255,.7);stroke-width:1.2;filter:drop-shadow(0 0 4px rgba(184,216,255,.45));transition:transform .38s cubic-bezier(.2,.8,.2,1),stroke .2s,filter .2s}
+.sp-hudring .tri{fill:rgba(220,230,240,.75);transition:transform .38s cubic-bezier(.2,.8,.2,1),fill .2s}
 .sp-hudring .ext{stroke:rgba(190,208,228,.3);stroke-width:1}
 .sp-hudring .lb{fill:rgba(201,212,224,.68);font:400 9.5px 'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.2em}
 .sp-hudring .side{transition:opacity .2s}
 .sp-hudring.hot .side{opacity:0}
 .sp-hudring.hot .seg{stroke:#ff3b30}
-.sp-hudring.hot .tri{fill:#ff3b30;stroke:#ff3b30}
-.sp-hudring.hot .brk{stroke:#ff3b30;filter:drop-shadow(0 0 5px rgba(255,59,48,.6))}
+.sp-hudring.hot .tri{fill:#ff3b30}
 .sp-hudring.hot .fan line{stroke:rgba(255,59,48,.75)}
 @keyframes spSpin{to{transform:rotate(360deg)}}
 
