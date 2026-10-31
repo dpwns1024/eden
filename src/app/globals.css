@@ -52,6 +52,11 @@ body{
     linear-gradient(var(--bg-angle,180deg),var(--bg-g1) 0%,var(--bg-g2) 100%); /* 각도 = 환경설정 (v1.9) */
   background-attachment:fixed;
 }
+/* 화면이 아직 안 그려진 동안(서버 연결 · 새로 고침) — 저장된 옛 테마의 밝은 그라데이션이 잠깐 보였다 (v2.0 사용자 제보).
+   html.ui-arch · ui-yjhm은 첫 그림 전에 붙으므로 그 세계 바탕색으로 칠해 둔다 */
+html.ui-arch:not(.ui-yjhm) body:not(:has(#appMain)){background:#05070a}
+html.ui-yjhm body:not(:has(#appMain)){background:#f7f6f2}
+html.ui-arch body:not(:has(#appMain))::before{display:none}
 /* 배경 이미지 레이어 (v1.9) — 그라데이션 위·콘텐츠 아래, 블러는 가장자리 번짐 방지로 살짝 확장 */
 body::before{
   content:"";position:fixed;z-index:-1;inset:calc(var(--bg-blur,0px)*-2);
