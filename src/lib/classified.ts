@@ -9,6 +9,7 @@
  */
 import { useEffect, useState } from 'react';
 import type { CropValue } from '@/components/ui/CropEditor';
+import type { WorldKey } from './worldStore';
 import { getSetting, onSettingChange, setSetting } from './settingStore';
 
 export const CLASSIFIED_KEY = 'ohome.classified.v1';
@@ -29,7 +30,13 @@ export interface ClassifiedStub {
   members?: { name: string; color: string }[];   // 자관 멤버 표시
   cp?: string;           // 자관 CP 표시
   after: string | null;  // 목록에서 바로 앞(기밀이 아닌) 항목 id — 방문자 목록에서 같은 자리에 끼운다
+  /** 보이는 세계 (lib/worldStore.ts) — 비면 모든 세계. 방문자는 기밀 항목 · 그 페어를 못 읽어 직접 셀 수 없으니
+   *  관리자 화면이 계산해 적어 둔다 (v2.0 사용자 제보 — EVEDEN에서만 보이게 한 기밀 캐릭터가 YJHM 목록에도 떴다) */
+  worlds?: WorldKey[];
 }
+
+/** 지금 세계에서 보일 기밀 카드만 */
+export const stubsIn = (stubs: ClassifiedStub[], world: WorldKey) => stubs.filter(s => !s.worlds || s.worlds.includes(world));
 export interface ClassifiedState { chars: ClassifiedStub[]; rels: ClassifiedStub[] }
 const EMPTY: ClassifiedState = { chars: [], rels: [] };
 

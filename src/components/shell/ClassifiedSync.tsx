@@ -10,13 +10,14 @@ import { useLocalList } from '@/lib/postStore';
 import { Character, CHAR_SEED, Relation, REL_SEED } from '@/lib/charStore';
 import { cpLabelFor } from '@/lib/relqStore';
 import { afterOf, saveClassified, type ClassifiedStub } from '@/lib/classified';
+import { charWorlds, relWorlds } from '@/lib/worldStore';
 
 function SyncInner() {
   const [chars, , cLoaded] = useLocalList<Character>('ohome.chars.v1', CHAR_SEED);
   const [rels, , rLoaded] = useLocalList<Relation>('ohome.rels.v1', REL_SEED);
 
   useEffect(() => {
-    if (!cLoaded) return;
+    if (!cLoaded || !rLoaded) return;   // 보이는 세계(자동)는 소속 페어로 정해지니 페어까지 읽은 뒤에
     const own = chars.filter(c => c.own);
     const stubs: ClassifiedStub[] = [];
     own.forEach((c, i) => {
@@ -24,10 +25,11 @@ function SyncInner() {
       stubs.push({
         id: c.id, slug: c.slug, secId: c.secId, name: c.name, color: c.color,
         img: c.arts?.[0] ?? c.thumbId, crop: c.thumbCrop, ph: c.thumbClass, after: afterOf(own, i),
+        worlds: charWorlds(c, rels),
       });
     });
     saveClassified('chars', stubs);
-  }, [chars, cLoaded]);
+  }, [chars, rels, cLoaded, rLoaded]);
 
   useEffect(() => {
     if (!rLoaded || !cLoaded) return;
@@ -44,6 +46,7 @@ function SyncInner() {
           return { name: c?.name ?? '', color: c?.color ?? '#666' };
         }),
         after: afterOf(rels, i),
+        worlds: relWorlds(r),
       });
     });
     saveClassified('rels', stubs);

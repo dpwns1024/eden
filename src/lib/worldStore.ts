@@ -49,9 +49,13 @@ export function onWorldChange(cb: (k: WorldKey) => void): () => void {
   return () => { window.removeEventListener(EVT, h); window.removeEventListener('storage', s); };
 }
 
-/** 지금 세계 — 읽기 전(첫 그림)에는 loaded=false */
+/** 지금 세계 — 읽기 전(첫 그림)에는 loaded=false.
+ *  브라우저에선 처음 그릴 때부터 저장된 세계를 읽는다 — 예전엔 페이지를 옮길 때마다 새 화면이 기본값(EVEDEN)으로
+ *  한 번 그려진 뒤 YJHM으로 바뀌어, 제목 · 목록 · 머리가 다른 세계로 잠깐 떴다 사라졌다 (v2.0 사용자 제보).
+ *  사이트 화면은 서버에서 미리 그리지 않으므로(ServerBoot가 연결 뒤에 그린다) 처음부터 읽어도 어긋남이 없다 */
 export function useWorld(): { world: WorldKey; loaded: boolean } {
-  const [st, setSt] = useState<{ world: WorldKey; loaded: boolean }>({ world: DEFAULT_WORLD, loaded: false });
+  const [st, setSt] = useState<{ world: WorldKey; loaded: boolean }>(() =>
+    typeof window === 'undefined' ? { world: DEFAULT_WORLD, loaded: false } : { world: currentWorld(), loaded: true });
   useEffect(() => {
     setSt({ world: currentWorld(), loaded: true });
     return onWorldChange(world => setSt({ world, loaded: true }));
