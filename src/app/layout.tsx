@@ -50,13 +50,19 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko">
+    // 아래 스크립트가 첫 그림 전에 <html>의 style · class를 채운다 — 서버가 그린 것과 다른 게 정상이라 경고를 끈다
+    <html lang="ko" suppressHydrationWarning>
       <head>
         {/* 아이폰 「홈 화면에 추가」로 연 경우 사파리가 아니라 앱처럼 — Next는 mobile-web-app-capable만 넣어 줘서
             예전 iOS를 위해 애플 이름으로도 직접 둔다 */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <script dangerouslySetInnerHTML={{
           __html: `(function(){try{var m=JSON.parse(localStorage.getItem('ohome.themeCss.v1'));if(m){var s=document.documentElement.style;for(var k in m)s.setProperty(k,m[k]);}}catch(e){}})();`,
+        }} />
+        {/* 게시판 디자인(ARCH 고정) · 고른 세계(YJHM) 클래스도 첫 그림 전에 — BoardSkinSync가 붙이기 전 한 순간
+            다른 세계 색으로 그려지던 것 방지 (lib/boardSkin.ts · lib/worldStore.ts) */}
+        <script dangerouslySetInnerHTML={{
+          __html: `(function(){var c=document.documentElement.classList;c.add('ui-arch');try{if(localStorage.getItem('ohome.world.v1')==='yjhm')c.add('ui-yjhm');}catch(e){}})();`,
         }} />
         {/* 본문 글꼴 Pretendard — 기기 글꼴(맑은 고딕 · 애플 산돌고딕 …)마다 굵기 · 폭이 달라 보이던 것을 홈에서 직접 내려 맞춘다
             (v2.0 사용자 요청). 쓰는 글자가 든 조각만 받는다(dynamic subset) */}

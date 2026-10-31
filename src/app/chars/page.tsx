@@ -15,7 +15,7 @@ import { useToast } from '@/components/ui/Toast';
 import { EditableDesc, PageTitle } from '@/components/ui/PageText';
 import { useMainStore } from '@/lib/mainStore';
 import { useCardSort, mergeOrder } from '@/lib/cardSort';
-import { useClassified, mergeStubs, isStub } from '@/lib/classified';
+import { useClassified, mergeStubs, isStub, stubsIn } from '@/lib/classified';
 import { AccessDenied } from '@/components/ui/AccessDenied';
 import { useWorldShow } from '@/lib/worldStore';
 
@@ -47,7 +47,7 @@ function CharsInner() {
       .catch(() => { /* 무시 — 다음 세션에 다시 */ });
   }, [isAdmin, charsAll]);
 
-  const { showChar } = useWorldShow();
+  const { showChar, world } = useWorldShow();
   const visible = chars
     .filter(c => c.own)
     .filter(showChar)   // 보이는 세계 (lib/worldStore.ts)
@@ -58,7 +58,7 @@ function CharsInner() {
   // 기밀 캐릭터 (v2.0 · lib/classified.ts) — 관리자 아닌 사람에겐 목록에 잠긴 카드만, 누르면 접근 거부 창
   const cls = useClassified();
   const [denied, setDenied] = useState<string | null>(null);
-  const shown = isAdmin ? visible : mergeStubs(visible, filterSection(cls.chars, sec.id));
+  const shown = isAdmin ? visible : mergeStubs(visible, stubsIn(filterSection(cls.chars, sec.id), world));   // 기밀 카드도 보이는 세계만
 
   return (
     <section className="page page-arch page-chars">

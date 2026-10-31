@@ -13,7 +13,7 @@ import { useMainStore } from '@/lib/mainStore';
 import { useCardSort, mergeOrder } from '@/lib/cardSort';
 import { useBoardSkin } from '@/lib/boardSkin';
 import { cpLabelFor } from '@/lib/relqStore';
-import { useClassified, mergeStubs, isStub } from '@/lib/classified';
+import { useClassified, mergeStubs, isStub, stubsIn } from '@/lib/classified';
 import { AccessDenied } from '@/components/ui/AccessDenied';
 import { useWorldShow } from '@/lib/worldStore';
 
@@ -36,7 +36,7 @@ export default function RelsPage() {
   const colorOf = (id: string) => chars.find(c => c.id === id)?.color ?? '#666';
   const nameOf = (id: string) => chars.find(c => c.id === id)?.name ?? '';
   const arch = useBoardSkin() === 'arch';   // ARCH 디자인이면 가로 배너 목록 (v2.0 사용자 선택 E)
-  const { showRel } = useWorldShow();
+  const { showRel, world } = useWorldShow();
   const visible = rels
     .filter(r => isAdmin || r.visibility !== 'private')
     .filter(showRel);   // 보이는 세계 (lib/worldStore.ts)
@@ -46,7 +46,7 @@ export default function RelsPage() {
   // 기밀 자관 (v2.0 · lib/classified.ts) — 관리자 아닌 사람에겐 목록에 잠긴 카드만, 누르면 접근 거부 창
   const cls = useClassified();
   const [denied, setDenied] = useState<string | null>(null);
-  const shown = isAdmin ? visible : mergeStubs(visible, cls.rels);
+  const shown = isAdmin ? visible : mergeStubs(visible, stubsIn(cls.rels, world));   // 기밀 카드도 보이는 세계만
 
   return (
     <section className="page page-arch">
