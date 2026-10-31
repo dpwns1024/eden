@@ -16,7 +16,13 @@ import { yjhmMenuLabel, YJHM_PAGE } from '@/lib/yjhmNames';
 
 /** 사용자 HTML에서 스크립트만 걷어 낸다 — HTML 블록·HTML 페이지·공통 상단 공통 */
 export const stripScripts = (h?: string) =>
-  (h ? h.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') : '');
+  (h ? ptdFonts(h.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')) : '');
+
+/** 한글 글꼴 통일 (v2.0 사용자 요청 — 「Pretendard가 메인이니 전부 Pretendard로」) — 저장해 둔 HTML(공통 상단 · HTML 페이지 · 메인 블록)이
+ *  Noto Sans KR을 쓰고 있어도 그릴 때 Pretendard로 바꾼다. 글꼴 이름만 바꾸고, 구글 글꼴 주소의 Noto Sans KR은 빼서 받지 않게 한다 */
+const ptdFonts = (h: string) => h
+  .replace(/(['"]?)Noto Sans KR\1/g, "'Pretendard Variable',Pretendard")
+  .replace(/&(?:amp;)?family=Noto\+Sans\+KR(?::[^&'")]*)?/g, '');
 
 /**
  * 그려진 사용자 HTML 안의 자리(data-ohome)를 찾아 채운다 — 메뉴는 여기서 포털로 그리고,

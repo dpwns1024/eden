@@ -5,7 +5,7 @@
  * body 바로 아래에 뜨는 화면이라 ARCH 색은 여기서 다시 정한다. */
 .sm-root{--hud:#ff3d3d;--hudr:255,61,61;--ink:#2a0205;--hi:#ffd9d6;
   position:fixed;inset:0;z-index:400;overflow:hidden;color:var(--hud);background:#070102;
-  font:500 12px/1.5 'Saira Semi Condensed','Jost','Noto Sans KR',sans-serif;font-variant-numeric:tabular-nums;animation:smIn .3s ease both}
+  font:500 12px/1.5 'Saira Semi Condensed','Jost','Pretendard Variable',Pretendard,sans-serif;font-variant-numeric:tabular-nums;animation:smIn .3s ease both}
 .sm-paired,.sm-open{--hud:#b8d8ff;--hudr:184,216,255;--ink:#04101d;--hi:#ffffff}
 .sm-root *{box-sizing:border-box;margin:0;padding:0}
 @keyframes smIn{from{opacity:0}to{opacity:1}}
@@ -76,12 +76,12 @@
 .sm-bars i{position:absolute;left:12%;right:12%;top:12%;bottom:34%;width:auto;height:auto;opacity:.85}
 .sm-bars span{position:absolute;left:0;right:0;bottom:7px;width:auto;height:auto;font:700 7px/1 'Saira Semi Condensed',sans-serif;letter-spacing:.14em;text-align:center}
 .sm-wi{min-width:0}
-.sm-wi strong{display:block;font:600 19px/1.05 'Saira Semi Condensed','Jost','Noto Sans KR',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--hi);text-shadow:0 0 10px rgba(var(--hudr),.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sm-wi small{display:block;margin-top:5px;font:400 10px/1.35 'Noto Sans KR',sans-serif;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sm-wi strong{display:block;font:600 19px/1.05 'Saira Semi Condensed','Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--hi);text-shadow:0 0 10px rgba(var(--hudr),.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sm-wi small{display:block;margin-top:5px;font:400 10px/1.35 'Pretendard Variable',Pretendard,sans-serif;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sm-wi dl{margin-top:7px}
 .sm-wi dl div{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:3px 0;border-top:1px dashed rgba(var(--hudr),.4)}
 .sm-wi dt{font:600 8px/1.2 'Saira Semi Condensed',sans-serif;letter-spacing:.16em;opacity:.7;white-space:nowrap}
-.sm-wi dd{min-width:0;font:600 10px/1.2 'Saira Semi Condensed','Noto Sans KR',sans-serif;letter-spacing:.08em;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sm-wi dd{min-width:0;font:600 10px/1.2 'Saira Semi Condensed','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.08em;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sm-wf{display:flex;gap:6px;padding:0 10px 10px}
 .sm-wf span{padding:3px 10px 2px;border:1.5px solid var(--hud);font:700 10px/1 'Saira Semi Condensed',sans-serif;letter-spacing:.4em;white-space:nowrap}
 .sm-wf i{flex:1;border:1.5px solid var(--hud);background:repeating-linear-gradient(90deg,rgba(var(--hudr),.55) 0 2px,transparent 2px 5px);clip-path:polygon(0 0,100% 0,100% 55%,calc(100% - 9px) 100%,0 100%)}

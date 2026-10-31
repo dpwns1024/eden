@@ -1,7 +1,7 @@
 /* 이브 × 에덴 기밀 파일 (app/eveden/page.tsx) — ARCH 메인과 같은 은빛 · 푸른 선, 기밀 도장만 붉게.
  * 폭 · 좌우 여백은 공통 상단(.ar-wrap)과 같게 맞춘다 — 왼쪽 끝선이 상단 로고와 한 줄에 선다. */
 .pf-root{--tx:#e4e9ef;--mu:#8f9bab;--dim:#6b7684;--ln:rgba(190,208,228,.12);--ln2:rgba(190,208,228,.24);--ac:#b8d8ff;--acr:184,216,255;--red:#ff3d3d;--redr:255,61,61;--pn:rgba(13,18,25,.66);
-  position:relative;overflow:hidden;color:var(--tx);font:400 13px/1.6 'Jost','Noto Sans KR',sans-serif;font-variant-numeric:tabular-nums}
+  position:relative;overflow:hidden;color:var(--tx);font:400 13px/1.6 'Jost','Pretendard Variable',Pretendard,sans-serif;font-variant-numeric:tabular-nums}
 .pf-root *{box-sizing:border-box;margin:0;padding:0}
 .pf-root a{color:inherit;text-decoration:none}
 .pf-wrap{position:relative;max-width:1280px;margin:0 auto;padding:0 clamp(16px,3.6vw,48px) clamp(40px,5vw,64px)}
@@ -80,9 +80,9 @@
 .pf-sh{display:flex;align-items:flex-end;gap:16px;margin-bottom:20px;font-weight:400}
 .pf-sh > span{font:300 34px/.8 'Saira Semi Condensed',sans-serif;color:transparent;-webkit-text-stroke:1px rgba(220,230,240,.4)}
 .pf-sh b{display:block;font:400 15px/1 'Jost',sans-serif;letter-spacing:.42em;color:#fff}
-.pf-sh b small{display:block;margin-top:8px;font:400 11px/1 'Noto Sans KR',sans-serif;letter-spacing:.2em;color:var(--mu)}
+.pf-sh b small{display:block;margin-top:8px;font:400 11px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.2em;color:var(--mu)}
 .pf-sh i{flex:1;height:1px;margin-bottom:4px;background:linear-gradient(90deg,var(--ln2),transparent)}
-.pf-sh em{margin-bottom:2px;font:normal 400 10px/1 'Noto Sans KR',sans-serif;letter-spacing:.14em;color:var(--dim);white-space:nowrap}
+.pf-sh em{margin-bottom:2px;font:normal 400 10px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.14em;color:var(--dim);white-space:nowrap}
 
 /* 대상자 기록 */
 .pf-subjects{display:grid;grid-template-columns:1fr 1fr;gap:18px}
@@ -98,8 +98,8 @@
 .pf-di dl{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:18px;margin-top:16px;border-top:1px solid var(--ln)}
 .pf-di dl > div{display:contents}
 .pf-di dt,.pf-di dd{padding:9px 0;border-bottom:1px dashed var(--ln)}
-.pf-di dt{font:400 10px/1.4 'Noto Sans KR','JetBrains Mono',sans-serif;letter-spacing:.12em;color:var(--mu);white-space:nowrap}
-.pf-di dd{min-width:0;font:500 13px/1.4 'Saira Semi Condensed','Noto Sans KR',sans-serif;letter-spacing:.06em;color:var(--tx);word-break:keep-all}
+.pf-di dt{font:400 10px/1.4 'Pretendard Variable',Pretendard,'JetBrains Mono',sans-serif;letter-spacing:.12em;color:var(--mu);white-space:nowrap}
+.pf-di dd{min-width:0;font:500 13px/1.4 'Saira Semi Condensed','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.06em;color:var(--tx);word-break:keep-all}
 .pf-eval{padding:14px 22px 20px;border-top:1px solid var(--ln)}
 .pf-eval small,.pf-log header b,.pf-notes header b{font:600 10px/1 'Saira Semi Condensed',sans-serif;letter-spacing:.26em;color:var(--mu)}
 .pf-eval p{display:flex;flex-direction:column;gap:7px;margin-top:12px}

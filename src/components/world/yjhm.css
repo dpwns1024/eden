@@ -322,8 +322,24 @@ body:has(.yj-main)::before{display:none !important}
 }
 
 /* 세계 전환 버튼 — 모든 페이지 왼쪽 아래 (오른쪽 아래는 BGM 플레이어, 맨 왼쪽은 관리자 발췌 버튼 자리 · 두 세계 공용 · 모양은 세계마다) */
-.world-switch{position:fixed;left:58px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:60;display:flex;padding:3px;gap:2px}
-.world-switch button{height:30px;padding:0 14px;border:0;background:transparent;cursor:pointer;font-size:10.5px;letter-spacing:.2em}
+/* 머리의 로그인 버튼 왼쪽 (TopBar). 여백은 클래스 두 개로 — ARCH 머리의 초기화 규칙(.arx *{margin:0;padding:0})에 지워지지 않게 */
+.world-switch{display:flex;align-items:center;flex-shrink:0;gap:2px}
+.world-switch.world-switch{margin-right:10px;padding:2px}
+/* 폰 — 로고 옆에 자리가 모자라 머리 맨 윗줄(상단 정보 띠) 오른쪽으로 올리고, 그 자리의 장식 글자(ALL SECTORS NOMINAL)는 숨긴다 */
+@media (max-width:560px){
+  .arx .ar-member > .world-switch.world-switch{position:absolute;right:0;top:-31px;margin:0;z-index:2}
+  .arx .ar-member > .world-switch button{height:22px;padding:0 9px;font-size:9px;letter-spacing:.16em}
+  .arx .ar-util > :last-child{visibility:hidden}
+}
+/* YJHM 다른 페이지 머리(폰) — 제호 옆에 전환 버튼 · 로그인이 다 들어가지 않아, 제호는 한 줄을 다 쓰고
+   그 아래 줄 왼쪽에 전환 버튼 · 오른쪽에 로그인 (로그인 자리를 풀어 머리 격자에 바로 놓는다) */
+@media (max-width:560px){
+  .yj-top{grid-template-columns:1fr auto;grid-template-areas:"brand brand" "ws login" "menu menu"}
+  .yj-top .yj-member{display:contents}
+  .yj-top .yj-member > .world-switch{grid-area:ws;justify-self:start;margin:0}
+  .yj-top .yj-member > :not(.world-switch){grid-area:login;justify-self:end}
+}
+.world-switch button{height:28px;padding:0 12px;border:0;background:transparent;cursor:pointer;font-size:10.5px;letter-spacing:.2em}
 .world-switch.ws-eveden{background:rgba(8,11,15,.86);border:1px solid rgba(190,208,228,.22)}
 .world-switch.ws-eveden button{color:#8592a0;font-family:'JetBrains Mono',monospace}
 .world-switch.ws-eveden button.on{color:#fff;background:rgba(184,216,255,.14)}
