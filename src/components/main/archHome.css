@@ -131,6 +131,21 @@ body:has(.ah-main)::before{display:none !important}
   .arx:where(.ah-main) .ar-menu .oh-item{padding:0 10px;letter-spacing:.2em}
   .arx:where(.ah-main) .ar-menu .oh-item::after{left:10px;right:calc(10px + .2em)}
   .arx:where(.ah-main) .ar-brand small{letter-spacing:.26em;white-space:nowrap}
+  /* 폰 · 로그인 상태 — 로고 옆에 종 · 아바타 · 닉네임이 다 들어가지 않아 화면 밖으로 잘렸다.
+     닉네임은 숨기고(아바타를 누르면 메뉴) 로고 칸이 줄어들 수 있게 */
+  .arx:where(.ah-main) .ar-top{grid-template-columns:minmax(0,1fr) auto}
+  .arx:where(.ah-main) .ar-brand{min-width:0}
+  .arx:where(.ah-main) .ar-member .user-chip{gap:8px;padding:3px 2px 3px 4px}
+  .arx:where(.ah-main) .ar-member .user-chip :is(.uc-nick,.uc-caret){display:none}
+  /* 맨 윗줄 왼쪽 글씨가 그 오른쪽으로 올라간 세계 전환 버튼 밑으로 들어가지 않게 */
+  .arx:where(.ah-main) .ar-util > :first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;padding-right:146px}
+}
+@media (max-width:400px){
+  .arx:where(.ah-main) .ar-brand{gap:10px}
+  .arx:where(.ah-main) .ar-brand .mk{width:34px;height:34px}
+  .arx:where(.ah-main) .ar-brand small{letter-spacing:.16em;font-size:7px}
+  .arx:where(.ah-main) .ar-top{gap:14px 10px}
+  .arx:where(.ah-main) .ar-member .login-link{padding:0 14px;letter-spacing:.2em}
 }
 @media (prefers-reduced-motion:reduce){
   .arx:where(.ah-main) *,.arx:where(.ah-main) *::before,.arx:where(.ah-main) *::after{animation:none !important}
