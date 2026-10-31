@@ -14,7 +14,16 @@ const SEL = [
   '.cls-tag', '.pill', '.typ', '.g-badge', '.gi-tag', '.rel-bn .bn-m em', '.cat-badge', '.dt-badge', '.b-badge', '.cm-badge',
   '[data-box-head] > [data-box-tag]',
 ].join(',');
+/** 버튼 · 탭도 — 테두리나 바탕이 있는 「상자」이고 글자가 원래 가운데 놓이도록 만든 것만 (글자만 든 것).
+ *  예전엔 자간 보정(LetterSpacingFix)이 자간만큼만 옮겨, 글자 옆 여백(O · L 모양)까지는 못 맞춰 1~2px씩 쏠렸다 (v2.0 사용자 제보 — ORIGINAL 탭) */
+const BTN = 'button, a, .btn, [role=button]';
 const ORIG = 'tagfixOrig';
+
+/** 테두리나 바탕이 보이는 상자인지 — 메뉴 글자처럼 상자 없는 링크는 건드리지 않는다 */
+const boxed = (cs: CSSStyleDeclaration) => {
+  const vis = (c: string) => { const m = c.match(/rgba?\(([^)]+)\)/); if (!m) return false; const a = m[1].split(',')[3]; return a == null || parseFloat(a) > 0.02; };
+  return (parseFloat(cs.borderTopWidth) > 0 && cs.borderTopStyle !== 'none' && vis(cs.borderTopColor)) || vis(cs.backgroundColor);
+};
 
 let ctx: CanvasRenderingContext2D | null = null;
 
@@ -26,40 +35,67 @@ function restore(el: HTMLElement) {
   delete el.dataset[ORIG];
 }
 
-function fix(el: HTMLElement) {
+function fix(el: HTMLElement, guard = false) {
   if (el.childElementCount || !el.offsetWidth) return;
   const raw = el.textContent?.trim() ?? '';
   if (!raw || raw.includes('\n')) return;
+  // 한글은 건드리지 않는다 — canvas가 한글 글꼴(Pretendard 조각 글꼴)의 잉크를 잘못 재 오히려 어긋났다.
+  // 화면 픽셀로 재 보면 한글 버튼 · 딱지는 이미 0.5px 안으로 가운데다
+  if (/[\u3131-\u318e\uac00-\ud7a3]/.test(raw)) return;
   const cs = getComputedStyle(el);
   if (cs.transform !== 'none') return;   // 돌린 딱지는 상자 재기가 어긋난다
+  if (guard && !boxed(cs)) return;
   ctx ??= document.createElement('canvas').getContext('2d');
   if (!ctx) return;
+  // 재는 동안 변화 애니메이션(transition)을 끈다 — 켜 두면 방금 바꾼 들여쓰기 · 여백이 천천히 움직이는 중간값을 잰다
+  const trans = el.style.getPropertyValue('transition');
+  el.style.setProperty('transition', 'none');
+  const done = () => { void el.offsetWidth; el.style.setProperty('transition', trans); };
+  // 자간 보정(LetterSpacingFix)이 넣은 들여쓰기는 걷고 여기서 한 번에 맞춘다
+  if (el.dataset.lsfix) { el.style.textIndent = ''; el.style.removeProperty('--lsfix'); delete el.dataset.lsfix; }
   const text = cs.textTransform === 'uppercase' ? raw.toUpperCase() : cs.textTransform === 'lowercase' ? raw.toLowerCase() : raw;
-  ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+  // 10배 크기로 재서 나눈다 — 작은 글씨는 canvas가 잉크 높이를 정수 px로 반올림해 1px 가까이 틀렸다
+  const K = 10;
+  ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${parseFloat(cs.fontSize) * K}px ${cs.fontFamily}`;
   const ls = parseFloat(cs.letterSpacing) || 0;
   const c2 = ctx as CanvasRenderingContext2D & { letterSpacing?: string };
   const lsCanvas = 'letterSpacing' in c2;
-  if (lsCanvas) c2.letterSpacing = `${ls}px`;
-  const m = ctx.measureText(text);
+  if (lsCanvas) c2.letterSpacing = `${ls * K}px`;
+  const mk = ctx.measureText(text);
+  const m = { actualBoundingBoxLeft: mk.actualBoundingBoxLeft / K, actualBoundingBoxRight: mk.actualBoundingBoxRight / K,
+    actualBoundingBoxAscent: mk.actualBoundingBoxAscent / K, actualBoundingBoxDescent: mk.actualBoundingBoxDescent / K };
 
-  // 글자 기준선 · 글자 시작 자리 — 글자 앞에 크기 0인 표시를 잠깐 넣어 잰다
+  // 글자 시작 자리 — 글자 범위(Range)의 왼쪽 끝
+  const node = [...el.childNodes].find(n => n.nodeType === 3 && n.nodeValue?.trim()) as Text | undefined;
+  if (!node) { done(); return; }
+  const rg = document.createRange();
+  rg.setStart(node, node.nodeValue!.length - node.nodeValue!.trimStart().length);
+  rg.setEnd(node, node.nodeValue!.trimEnd().length);
+  const lr = rg.getClientRects()[0];
+  if (!lr) { done(); return; }
+  // 기준선 — 글자를 잠깐 인라인 상자로 감싸고 그 안 맨 앞에 크기 0인 표시를 기준선에 놓아 잰다
+  // (상자가 flex여도 감싼 안쪽은 보통 줄이라 표시가 정확히 기준선에 선다)
+  const wrap = document.createElement('span');
   const probe = document.createElement('span');
   probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline;padding:0;margin:0;border:0';
-  el.insertBefore(probe, el.firstChild);
-  const p = probe.getBoundingClientRect();
-  probe.remove();
+  node.replaceWith(wrap); wrap.append(probe, node);
+  const baseY = probe.getBoundingClientRect().top;
+  wrap.replaceWith(node);
 
   const r = el.getBoundingClientRect();
   const s = el.offsetWidth ? r.width / el.offsetWidth : 1;   // 확대 · 축소(zoom) 보정
-  const inkL = p.left - m.actualBoundingBoxLeft * s;
-  const inkR = p.left + (m.actualBoundingBoxRight + (lsCanvas ? 0 : ls * (text.length - 1))) * s;
-  const inkT = p.top - m.actualBoundingBoxAscent * s;
-  const inkB = p.top + m.actualBoundingBoxDescent * s;
+  const base = baseY;
+  const inkL = lr.left - m.actualBoundingBoxLeft * s;
+  const inkR = lr.left + (m.actualBoundingBoxRight + (lsCanvas ? 0 : ls * (text.length - 1))) * s;
+  const inkT = base - m.actualBoundingBoxAscent * s;
+  const inkB = base + m.actualBoundingBoxDescent * s;
   const boxCx = r.left + (el.clientLeft + el.clientWidth / 2) * s;
   const boxCy = r.top + (el.clientTop + el.clientHeight / 2) * s;
   const dx = (boxCx - (inkL + inkR) / 2) / s;
   const dy = (boxCy - (inkT + inkB) / 2) / s;
-  if (Math.abs(dx) < 0.3 && Math.abs(dy) < 0.3) return;
+  if (Math.abs(dx) < 0.3 && Math.abs(dy) < 0.3) { done(); return; }
+  // 버튼은 글자가 원래 가운데 근처일 때만 — 왼쪽 정렬로 둔 넓은 버튼은 그대로
+  if (guard && (Math.abs(dx) > Math.max(4, ls + 2) || Math.abs(dy) > 3)) { done(); return; }
 
   const keys = ['padding-left', 'padding-right', 'padding-top', 'padding-bottom', 'display'];
   el.dataset[ORIG] = JSON.stringify(Object.fromEntries(keys.map(k => [k, el.style.getPropertyValue(k)])));
@@ -73,34 +109,50 @@ function fix(el: HTMLElement) {
     el.style.setProperty('padding-top', `${Math.max(0, pt + dy)}px`);
     el.style.setProperty('padding-bottom', `${Math.max(0, pb - dy)}px`);
   }
+  done();
 }
 
 export function TagAlign() {
   useEffect(() => {
-    const seen = new WeakMap<Element, string>();
+    let seen = new WeakMap<Element, string>();
+    // 지금 모습의 열쇠 — 글자 · 글꼴 · 상자 크기(소수점까지) · 상자 안 글자 시작 자리. 하나라도 바뀌면 다시 잰다
+    // (상자 크기만 보면 글꼴이 늦게 와서 글자만 옮겨 간 경우를 놓쳐, 옛 글꼴로 잰 값이 남았다)
+    const keyOf = (el: HTMLElement) => {
+      const cs = getComputedStyle(el);
+      const r = el.getBoundingClientRect();
+      let off = '';
+      if (!el.childElementCount && el.firstChild) {
+        const rg = document.createRange(); rg.selectNodeContents(el);
+        const q = rg.getBoundingClientRect();
+        off = `${(q.left - r.left).toFixed(2)},${(q.top - r.top).toFixed(2)}`;
+      }
+      return `${el.textContent}|${cs.font}|${cs.letterSpacing}|${r.width.toFixed(2)}x${r.height.toFixed(2)}|${off}`;
+    };
     const scan = () => {
-      document.querySelectorAll<HTMLElement>(SEL).forEach(el => {
-        const cs = getComputedStyle(el);
-        const key = `${el.textContent}|${cs.font}|${cs.letterSpacing}|${el.offsetWidth}x${el.offsetHeight}`;
-        if (seen.get(el) === key) return;
+      const run = (el: HTMLElement, guard: boolean) => {
+        if (seen.get(el) === keyOf(el)) return;
         restore(el);
-        fix(el);
-        const c2 = getComputedStyle(el);
-        seen.set(el, `${el.textContent}|${c2.font}|${c2.letterSpacing}|${el.offsetWidth}x${el.offsetHeight}`);
-      });
+        fix(el, guard);
+        seen.set(el, keyOf(el));
+      };
+      document.querySelectorAll<HTMLElement>(SEL).forEach(el => run(el, false));
+      document.querySelectorAll<HTMLElement>(BTN).forEach(el => { if (!el.matches(SEL)) run(el, true); });
     };
     let timer = 0;
     const later = () => { clearTimeout(timer); timer = window.setTimeout(scan, 150); };
+    // 화면 폭 · 글꼴이 바뀌면 처음부터 다시 잰다 (잰 기록도 지운다 — 남겨 두면 되돌린 채로 건너뛰었다)
     const reset = () => {
-      document.querySelectorAll<HTMLElement>(SEL).forEach(el => restore(el));
+      seen = new WeakMap();
+      document.querySelectorAll<HTMLElement>(`${SEL},${BTN}`).forEach(el => restore(el));
       later();
     };
     const mo = new MutationObserver(later);
     mo.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class'] });
     window.addEventListener('resize', reset);
     document.fonts?.ready.then(reset).catch(() => {});
+    document.fonts?.addEventListener?.('loadingdone', reset);   // 늦게 붙는 글꼴(ARCH 웹폰트)이 도착하면 다시 잰다
     later();
-    return () => { mo.disconnect(); window.removeEventListener('resize', reset); clearTimeout(timer); };
+    return () => { mo.disconnect(); window.removeEventListener('resize', reset); document.fonts?.removeEventListener?.('loadingdone', reset); clearTimeout(timer); };
   }, []);
   return null;
 }
