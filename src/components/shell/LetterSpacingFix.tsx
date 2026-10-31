@@ -8,7 +8,7 @@
  * 화면에서 직접 재서 「좌우 여백 차이 = 자간」인 것만 골라 같은 크기의 text-indent로 앞을 채운다.
  * 왼쪽 정렬된 넓은 버튼처럼 원래 좌우가 다른 것은 차이가 자간과 달라서 건드리지 않는다.
  */
-import { useEffect } from 'react';
+import { useLayoutEffect } from 'react';
 
 const SEL = 'button, a, .btn, [role=button]';
 const MIN_LS = 1; // 1px 미만 자간은 눈에 안 띈다 — 재지 않음
@@ -61,24 +61,31 @@ const ownText = (el: Element) => {
   for (const n of el.childNodes) if (n.nodeType === 3) t += n.nodeValue;
   return t;
 };
-function markKo() {
+function markOne(el: HTMLElement) {
+  if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+    const ko = HANGUL.test(el.placeholder || '');
+    if (ko !== (el.dataset.koPh === '1')) { if (ko) el.dataset.koPh = '1'; else delete el.dataset.koPh; }
+    return;
+  }
+  const ko = HANGUL.test(ownText(el));
+  if (!ko) { if (el.dataset.ko) delete el.dataset.ko; return; }
+  if (el.dataset.ko) return;
+  const cs = getComputedStyle(el);
+  if ((parseFloat(cs.letterSpacing) || 0) > parseFloat(cs.fontSize) * 0.1) el.dataset.ko = '1';
+}
+const KO_SEL = '*:not(script):not(style):not(svg *)';
+/** root 안(root 포함)만 — 바뀐 곳만 바로 표시하려고 */
+function markKo(root: Element = document.body) {
   if (!document.documentElement.classList.contains('ui-arch')) return;
-  document.querySelectorAll<HTMLElement>('body *:not(script):not(style):not(svg *)').forEach(el => {
-    if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
-      const ko = HANGUL.test(el.placeholder || '');
-      if (ko !== (el.dataset.koPh === '1')) { if (ko) el.dataset.koPh = '1'; else delete el.dataset.koPh; }
-      return;
-    }
-    const ko = HANGUL.test(ownText(el));
-    if (!ko) { if (el.dataset.ko) delete el.dataset.ko; return; }
-    if (el.dataset.ko) return;
-    const cs = getComputedStyle(el);
-    if ((parseFloat(cs.letterSpacing) || 0) > parseFloat(cs.fontSize) * 0.1) el.dataset.ko = '1';
-  });
+  if (root instanceof HTMLElement && root.matches(KO_SEL)) markOne(root);
+  root.querySelectorAll<HTMLElement>(KO_SEL).forEach(markOne);
 }
 
 export function LetterSpacingFix() {
-  useEffect(() => {
+  /* 한글 자간 표시는 화면을 그리기 전에 (v2.0 사용자 제보 — ARCH 소개에서 「인류의 방패 · 아크」가 띄엄띄엄 넓게 떴다가 좁아졌다).
+     예전엔 바뀐 뒤 0.12초 기다렸다 훑어서, 그 사이 넓은 자간으로 한 번 그려졌다. MutationObserver 콜백은
+     화면을 그리기 전에 돌므로 바뀐 곳만 거기서 바로 표시하고, 무거운 버튼 들여쓰기 측정만 기다렸다 한다 */
+  useLayoutEffect(() => {
     const seen = new WeakMap<Element, string>();
     const scan = () => {
       markKo();
@@ -111,7 +118,19 @@ export function LetterSpacingFix() {
       document.querySelectorAll<HTMLElement>('[data-lsfix]').forEach(el => { undo(el); seen.delete(el); });
       later();
     };
-    const mo = new MutationObserver(later);
+    const mo = new MutationObserver(recs => {
+      const roots = new Set<Element>();
+      for (const r of recs) {
+        if (r.type === 'childList') r.addedNodes.forEach(n => {
+          if (n.nodeType === 1) roots.add(n as Element);
+          else if (n.parentElement) roots.add(n.parentElement);
+        });
+        else { const t = r.target.nodeType === 1 ? r.target as Element : r.target.parentElement; if (t) roots.add(t); }
+      }
+      roots.forEach(el => { if (el.isConnected) markKo(el); });
+      later();
+    });
+    markKo();
     mo.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class'] });
     window.addEventListener('resize', reset);
     // 디자인(스킨)이 늦게 붙으며 자간이 transition으로 커지는 버튼 — 다 커진 뒤 다시 잰다
