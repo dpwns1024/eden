@@ -3,6 +3,7 @@ import React, { Component, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { getSplashConf, splashSeenThisSession, markSplashSeen } from '@/lib/splashStore';
 import { useBlobUrl } from '@/lib/blobStore';
+import { ARCH_FONTS } from '@/lib/archFonts';
 
 const ZOOM = 1.8;
 const T_CRACK = 0.22;
@@ -29,7 +30,7 @@ type Profile = { name: string; sub: string; rows: [string, string][] };
 const rangeM = (aim: Pt, vp: { h: number }) => Math.round(24 + (aim.y / vp.h) * 30);
 
 function Reticle({ hot }: { hot: boolean }) {
-  const c = hot ? '#ff3b30' : '#0a0a0a';
+  const c = hot ? '#ff3b30' : '#0b1016';
   const marks: React.ReactNode[] = [];
   for (let i = 1; i <= 11; i++) {
     const p = i * 5, L = i % 2 === 0 ? 2.8 : 1.6;
@@ -46,7 +47,7 @@ function Reticle({ hot }: { hot: boolean }) {
   });
   return (
     <svg viewBox="-100 -100 200 200" className="sp-reticle" aria-hidden>
-      <g stroke="#0a0a0a" strokeWidth="4.2">
+      <g stroke="#0b1016" strokeWidth="2.6">
         <line x1="0" y1="-100" x2="0" y2="-60" /><line x1="0" y1="100" x2="0" y2="60" />
         <line x1="-100" y1="0" x2="-60" y2="0" /><line x1="100" y1="0" x2="60" y2="0" />
       </g>
@@ -56,7 +57,7 @@ function Reticle({ hot }: { hot: boolean }) {
         {marks}
       </g>
       <g fill={c}>{tree}</g>
-      <g fill={c} fontSize="3.4" fontFamily="ui-monospace,monospace" textAnchor="middle">
+      <g fill={c} fontSize="3.4" fontFamily="'JetBrains Mono',ui-monospace,monospace" textAnchor="middle">
         {[2, 4, 6, 8].map(n => <text key={`nx${n}`} x={n * 5} y={6.6}>{n}</text>)}
         {[2, 4, 6, 8].map(n => <text key={`ny${n}`} x={-5.5} y={-n * 5 + 1.2}>{n}</text>)}
       </g>
@@ -136,12 +137,12 @@ function ProfilePanels({ aim, R, vp, profile }: { aim: Pt; R: number; vp: { w: n
   if (compact) {
     const phone = vp.w <= 620;
     const w = phone ? Math.min(vp.w - 32, 300) : Math.min(vp.w - 24, 360);
-    const h = phone ? 84 + profile.rows.length * 18 : 104 + rowsH;
+    const h = phone ? 104 + profile.rows.length * 18 : 124 + rowsH;
     const below = aim.y + R + 34 + h < vp.h - 64;
     boxes.push({ key: 'm', w, h, x: (vp.w - w) / 2, y: below ? aim.y + R + 34 : Math.max(14, aim.y - R - 34 - h) });
   } else {
     const gap = R + 80;
-    const A = { w: 300, h: 118 }, B = { w: 250, h: 64 + rowsH }, C = { w: 236, h: 132 };
+    const A = { w: 300, h: 124 }, B = { w: 260, h: 74 + rowsH }, C = { w: 244, h: 150 };
     const spR = vp.w - (aim.x + gap) - 16, spL = aim.x - gap - 16;
     const bR = spR >= B.w || spR >= spL;
     const split = (bR ? spL : spR) >= Math.max(A.w, C.w) + 26;
@@ -178,7 +179,8 @@ function ProfilePanels({ aim, R, vp, profile }: { aim: Pt; R: number; vp: { w: n
   const elv = ((0.5 - aim.y / vp.h) * 2).toFixed(1);
   const ms = (key: Box['key']) => (0.3 + order[key] * 0.12) * 1000;
 
-  const head = (label: string) => <div className="hd"><span>{label}</span><i className="bc" /></div>;
+  // 머리줄 — ARCH 카드(소개 페이지 ar-card)처럼 왼쪽 항목 이름 · 오른쪽 분류 글자
+  const head = (label: string, code: string) => <div className="hd"><span>{label}</span><em>{code}</em></div>;
   const idBlock = (k: Box['key']) => (
     <>
       <div className="nm"><Decode text={profile.name} delay={ms(k)} /></div>
@@ -188,7 +190,6 @@ function ProfilePanels({ aim, R, vp, profile }: { aim: Pt; R: number; vp: { w: n
   const rowsBlock = (k: Box['key']) => profile.rows.map(([a, v], i) => (
     <div className={`rw ${/^status$/i.test(a) ? 'alert' : ''}`} key={i}><b>{a}</b><span><Decode text={v} delay={ms(k) + 120 + i * 90} dur={300} /></span></div>
   ));
-  const foot = <div className="ft"><i /><i /><i className="l" /><i /></div>;
 
   return (
     <>
@@ -204,18 +205,18 @@ function ProfilePanels({ aim, R, vp, profile }: { aim: Pt; R: number; vp: { w: n
       {boxes.map(b => (
         <div key={b.key} className={`sp-panel sp-panel-${b.key}`}
           style={{ left: b.x, top: b.y, width: b.w, '--d': `${0.16 + order[b.key] * 0.12}s` } as React.CSSProperties}>
-          {b.key === 'a' && <>{head('TARGET ID')}{idBlock('a')}{foot}</>}
-          {b.key === 'b' && <>{head('PROFILE')}{rowsBlock('b')}</>}
+          {b.key === 'a' && <>{head('TARGET ID', 'CH-02')}{idBlock('a')}</>}
+          {b.key === 'b' && <>{head('PROFILE', 'CLASSIFIED')}<div className="mr">{rowsBlock('b')}</div></>}
           {b.key === 'c' && (
             <>
-              {head('TELEMETRY')}
-              <div className="rw"><b>DIST</b><span>{rng} M</span></div>
-              <div className="rw"><b>WIND</b><span>2.1 M/S ↗</span></div>
-              <div className="rw"><b>ELEV</b><span>{elv} MIL</span></div>
+              {head('TELEMETRY', `×${ZOOM.toFixed(1)} · FFP`)}
+              <div className="mr"><div className="rw"><b>DIST</b><span>{rng} M</span></div>
+              <div className="rw"><b>WIND</b><span>2.1 M/S <svg className="ar" viewBox="0 0 10 10" aria-hidden><path d="M2 8 8 2M3.5 2H8v4.5" /></svg></span></div>
+              <div className="rw"><b>ELEV</b><span>{elv} MIL</span></div></div>
               <div className="lk"><b>LOCK</b><div className="bar"><i /></div><span>100%</span></div>
             </>
           )}
-          {b.key === 'm' && <>{head('TARGET ID')}{idBlock('m')}<div className="mr">{rowsBlock('m')}</div></>}
+          {b.key === 'm' && <>{head('TARGET ID', 'CLASSIFIED')}{idBlock('m')}<div className="mr">{rowsBlock('m')}</div></>}
         </div>
       ))}
     </>
@@ -661,7 +662,7 @@ export function SplashView({ bgUrl, targetX, targetY, targetSize, label, profile
           <ScopeHud aim={aim} R={R} hot={hit} vp={vp} />
           {hit && profile && <ProfilePanels aim={aim} R={R} vp={vp} profile={profile} />}
           <div className="sp-corner tl">EVEDEN TACTICAL OPTICS<br /><span>WIND STABILIZER · ×{ZOOM.toFixed(1)} · FFP</span></div>
-          <div className={`sp-corner tr ${hit ? 'hot' : ''}`}>{hit ? '● LOCK' : '○ SCAN'}<br /><span>CH-02</span></div>
+          <div className={`sp-corner tr ${hit ? 'hot' : ''}`}><i className="dot" />{hit ? 'LOCK' : 'SCAN'}<br /><span>CH-02</span></div>
           <div className={`sp-hud ${hit ? 'hot' : ''} ${mobile && aim.y > vp.h * 0.6 ? 'up' : ''}`}>
             {hit
               ? <span className="found">...찾았네.</span>
@@ -693,21 +694,25 @@ function SplashInner() {
 
   if (!show || !bgUrl) return null;
   return (
-    <SplashView
-      bgUrl={bgUrl}
-      targetX={conf.targetX}
-      targetY={conf.targetY}
-      targetSize={conf.targetSize}
-      label={conf.targetLabel}
-      profile={conf.profileOn ? {
-        name: conf.profileName,
-        sub: conf.profileSub,
-        rows: conf.profileRows.split('\n').map(l => l.split('|')).filter(p => p.length >= 2 && p[0].trim())
-          .map(p => [p[0].trim(), p.slice(1).join('|').trim()] as [string, string]),
-      } : null}
-      onFire={markSplashSeen}
-      onDone={() => { setShow(false); document.body.style.overflow = ''; }}
-    />
+    <>
+      {/* 스코프 글씨(JetBrains Mono) · 이름(Jost) · 한글(Noto Sans KR) — 사이트 ARCH 화면과 같은 글꼴 */}
+      <link rel="stylesheet" href={ARCH_FONTS} precedence="default" />
+      <SplashView
+        bgUrl={bgUrl}
+        targetX={conf.targetX}
+        targetY={conf.targetY}
+        targetSize={conf.targetSize}
+        label={conf.targetLabel}
+        profile={conf.profileOn ? {
+          name: conf.profileName,
+          sub: conf.profileSub,
+          rows: conf.profileRows.split('\n').map(l => l.split('|')).filter(p => p.length >= 2 && p[0].trim())
+            .map(p => [p[0].trim(), p.slice(1).join('|').trim()] as [string, string]),
+        } : null}
+        onFire={markSplashSeen}
+        onDone={() => { setShow(false); document.body.style.overflow = ''; }}
+      />
+    </>
   );
 }
 
