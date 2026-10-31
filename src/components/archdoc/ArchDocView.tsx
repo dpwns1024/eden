@@ -915,8 +915,8 @@ export function ArchDocView({ doc, canEdit, onSave, onUseHtml, fromHtml }: {
           {cur.doc && <div className="doc">{cur.doc.split('\n').map((l, i) => <React.Fragment key={i}>{i > 0 && <br />}{l}</React.Fragment>)}</div>}
         </section>
 
-        {/* 목차 탭 */}
-        <nav className="ar-pn ad-tabs" aria-label="목차">
+        {/* 목차 탭 — 테두리 · 꺾쇠는 바깥 틀(ar-pn), 가로 스크롤은 안쪽 줄(ad-tabs) — 스크롤 칸에 꺾쇠를 그리면 스크롤에 같이 밀린다 */}
+        <nav className="ar-pn ad-tabs-box" aria-label="목차"><div className="ad-tabs">
           {cur.tabs.map(t => (
             <button key={t.id} type="button" className={t.id === tab.id ? 'on' : ''} onClick={() => pickTab(t.id)}>{t.label || '(이름 없음)'}</button>
           ))}
@@ -927,7 +927,7 @@ export function ArchDocView({ doc, canEdit, onSave, onUseHtml, fromHtml }: {
               setTabId(t.id);
             }}>＋ 탭</button>
           )}
-        </nav>
+        </div></nav>
         {edit && (
           <div className="ad-tabtools ad-ui">
             <KInput value={tab.label} placeholder="탭 이름" onChange={e => setTab(t => ({ ...t, label: e.target.value }))} />

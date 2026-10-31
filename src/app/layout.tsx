@@ -18,6 +18,7 @@ import { ScrollTop } from '@/components/shell/ScrollTop';
 import { ExcerptMaker } from '@/components/shell/ExcerptMaker';
 import { SecurityMigrate } from '@/components/shell/SecurityMigrate';
 import { LetterSpacingFix } from '@/components/shell/LetterSpacingFix';
+import { TagAlign } from '@/components/shell/TagAlign';
 import { BoardSkinSync } from '@/components/shell/BoardSkinSync';
 import { QuoteNameSync } from '@/components/shell/QuoteNameSync';
 import { ClassifiedSync } from '@/components/shell/ClassifiedSync';
@@ -105,6 +106,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         <ExcerptMaker />
                         <SecurityMigrate />
                         <LetterSpacingFix />
+                        <TagAlign />
                         <BoardSkinSync />
                         <QuoteNameSync />
                         <ClassifiedSync />

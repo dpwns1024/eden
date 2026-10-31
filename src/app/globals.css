@@ -218,12 +218,7 @@ html.content-guard :is([contenteditable="true"],[contenteditable=""],.re-content
    다른 게시판을 옮길 때는 그 페이지 <section>에 page-arch를 붙이고, 그 게시판만의 부품 모양을 아래에 더한다 */
 html.ui-arch .page-arch,.mng-box.arch-modal{--a-pn:rgba(13,18,25,.64);--a-ln:rgba(190,208,228,.10);--a-ln2:rgba(190,208,228,.22);--a-tx:#e4e9ef;--a-mu:#8592a0;--a-dim:#4a5461;
   --a-ac:#b8d8ff;--a-acr:184,216,255;--a-sil:linear-gradient(180deg,#fff 0%,#d3dbe4 34%,#7f8a97 52%,#e6ebf1 68%,#98a3b0 100%);
-  /* 꺾쇠(왼쪽 위 · 오른쪽 아래, 은빛 9px)를 칸 바탕에 테두리 자리(border-box)로 그리는 층 — 넘치는 부분을 잘라내는 칸(overflow:hidden)은
-     따로 붙인 꺾쇠(::before/::after)를 테두리 위로 뺄 수 없어 안쪽 1px에 붙어 있었고, 그래서 꺾쇠 바깥에 테두리 선이 한 줄 더 보여
-     어긋나 보였다 (v2.0 사용자 제보). 바탕으로 그리면 테두리 선과 같은 픽셀에 정확히 겹친다 */
-  --a-bkc:linear-gradient(rgba(220,230,240,.55),rgba(220,230,240,.55));
-  --a-bks:var(--a-bkc) left top/9px 1px no-repeat border-box,var(--a-bkc) left top/1px 9px no-repeat border-box,
-    var(--a-bkc) right bottom/9px 1px no-repeat border-box,var(--a-bkc) right bottom/1px 9px no-repeat border-box;
+  --a-bkcol:rgba(220,230,240,.55);   /* 꺾쇠 색 (YJHM판이 이 값만 바꾼다) */
 }
 /* 제목 줄 — 은빛 큰 제목 + 아래 가는 선(앞 120px만 빛나는 포인트) */
 html.ui-arch .page-arch .page-head{padding-bottom:18px;margin-bottom:26px;border-bottom:1px solid var(--a-ln)}
@@ -244,10 +239,43 @@ html.ui-arch .page-arch .searchbar input{color:var(--a-tx);font-family:'Pretenda
 html.ui-arch .page-arch .searchbar input::placeholder{color:var(--a-dim)}
 /* 공통 박스 — 어두운 반투명 + 가는 테두리 + 꺾쇠(왼쪽 위·오른쪽 아래) */
 html.ui-arch .page-arch .panel,html.ui-arch .page-arch .char-card,html.ui-arch .page-arch .rel-card{position:relative;border-radius:0;border:1px solid var(--a-ln);color:var(--a-tx);
-  background:var(--a-bks),linear-gradient(180deg,rgba(255,255,255,.028),transparent 46%),var(--a-pn);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 24px 50px -28px rgba(0,0,0,.9)}
-/* 그림 칸(프로필 · 페어 가운데 일러, PAIRING 배너, 갤러리 칸)도 꺾쇠를 바탕 층으로 — 바탕색은 각자 그대로 두고 그림 층만 */
-html.ui-arch .page-arch :is(.profile-center,.rel-center,.rel-bn),html.ui-arch .page-gallery .g-item{background-image:var(--a-bkc),var(--a-bkc),var(--a-bkc),var(--a-bkc);
-  background-size:9px 1px,1px 9px,9px 1px,1px 9px;background-position:left top,left top,right bottom,right bottom;background-repeat:no-repeat;background-origin:border-box}
+  background:linear-gradient(180deg,rgba(255,255,255,.028),transparent 46%),var(--a-pn);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 24px 50px -28px rgba(0,0,0,.9)}
+/* ═══ 꺾쇠 공통 (v2.0 사용자 제보 — 「어떤 배율에서도 꺾쇠가 단정하게」) ═══
+   예전엔 테두리는 칸이, 꺾쇠는 따로 붙인 9px 조각이 그려서, 화면 배율(125% · 150% …)이나 칸이 소수점 자리에 놓일 때
+   둘이 따로 반올림돼 꺾쇠가 테두리보다 1픽셀 바깥 · 안쪽에 찍혔다.
+   이제 칸의 원래 테두리는 색만 남기고 그리지 않으며(border-image 투명 — 두께 · 자리는 그대로),
+   ::before가 그 색을 물려받아 테두리 선을, ::after가 같은 크기로 꺾쇠를 그린다(왼쪽 위 · 오른쪽 아래만 남기는 mask).
+   두 층은 크기 · 자리 · 그리는 방식이 같아 어떤 배율에서도 같은 픽셀에 찍힌다. 호버 · 붉은 깜빡임으로 바뀌는 테두리 색도 그대로 따라온다.
+   A) 테두리 위에(inset:-1px)  B) 넘치는 부분을 잘라내는 칸은 잘리지 않게 안쪽에(inset:0) — 바깥 1px은 바탕도 비워 선이 칸 끝이 되게 */
+:is(.sp-panel,.ad-win,.arx .ar-btn,.arx .ar-pn,.pf-pn,.pf-pair,.pf-dos,.login-page.login-arch .login-card,.bgm.skin-arch,html.ui-arch .toast),
+html.ui-arch .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.rel-bn),html.ui-arch .page-gallery .g-item,.mng-box.ar-more-modal,.arx .ar-ag{
+  border-image:linear-gradient(transparent,transparent) 1 !important}
+:is(.sp-panel,.ad-win,.arx .ar-btn,.arx .ar-pn,.pf-pn,.pf-pair,.pf-dos,.login-page.login-arch .login-card,.bgm.skin-arch,html.ui-arch .toast)::before,
+:is(.sp-panel,.ad-win,.arx .ar-btn,.arx .ar-pn,.pf-pn,.pf-pair,.pf-dos,.login-page.login-arch .login-card,.bgm.skin-arch,html.ui-arch .toast)::after{
+  content:'' !important;display:block !important;position:absolute !important;inset:-1px !important;width:auto !important;height:auto !important;transform:none !important;
+  box-sizing:border-box !important;border-style:solid !important;border-width:1px !important;pointer-events:none;background:none !important}
+:is(html.ui-arch .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.rel-bn),html.ui-arch .page-gallery .g-item,.mng-box.ar-more-modal,.arx .ar-ag){background-clip:padding-box !important}
+:is(html.ui-arch .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.rel-bn),html.ui-arch .page-gallery .g-item,.mng-box.ar-more-modal,.arx .ar-ag)::before,
+:is(html.ui-arch .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.rel-bn),html.ui-arch .page-gallery .g-item,.mng-box.ar-more-modal,.arx .ar-ag)::after{
+  content:'' !important;display:block !important;position:absolute !important;inset:0 !important;width:auto !important;height:auto !important;transform:none !important;
+  box-sizing:border-box !important;border-style:solid !important;border-width:1px !important;pointer-events:none;background:none !important}
+/* 테두리 선 — 칸의 테두리 색을 그대로 */
+:is(.sp-panel,.ad-win,.arx .ar-btn,.arx .ar-pn,.pf-pn,.pf-pair,.pf-dos,.login-page.login-arch .login-card,.bgm.skin-arch,html.ui-arch .toast,
+  html.ui-arch .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.rel-bn),html.ui-arch .page-gallery .g-item,.mng-box.ar-more-modal,.arx .ar-ag)::before{
+  border-color:inherit !important;opacity:1 !important;z-index:4;-webkit-mask:none !important;mask:none !important}
+/* 꺾쇠 — 같은 크기의 테두리에서 왼쪽 위 · 오른쪽 아래 모서리만 남긴다 (--bks 길이 · --bkc 색) */
+:is(.sp-panel,.ad-win,.arx .ar-btn,.arx .ar-pn,.pf-pn,.pf-pair,.pf-dos,.login-page.login-arch .login-card,.bgm.skin-arch,html.ui-arch .toast,
+  html.ui-arch .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.rel-bn),html.ui-arch .page-gallery .g-item,.mng-box.ar-more-modal,.arx .ar-ag)::after{
+  border-color:var(--bkc,var(--a-bkcol,rgba(220,230,240,.55))) !important;opacity:1 !important;z-index:5;
+  -webkit-mask:linear-gradient(#000,#000) left top/var(--bks,9px) var(--bks,9px) no-repeat,linear-gradient(#000,#000) right bottom/var(--bks,9px) var(--bks,9px) no-repeat !important;
+  mask:linear-gradient(#000,#000) left top/var(--bks,9px) var(--bks,9px) no-repeat,linear-gradient(#000,#000) right bottom/var(--bks,9px) var(--bks,9px) no-repeat !important}
+/* 칸마다 꺾쇠 길이 · 색 (예전 값 그대로) */
+.login-page.login-arch .login-card{overflow:visible !important}   /* .panel 기본값(overflow:hidden)이 테두리 위 꺾쇠를 잘랐다 */
+.arx .ar-btn{--bks:6px;--bkc:rgba(184,216,255,.8)}
+.login-page.login-arch .login-card{--bks:12px;--bkc:rgba(184,216,255,.75)}
+.bgm.skin-arch{--bks:8px;--bkc:rgba(184,216,255,.7)}
+html.ui-arch .toast{--bks:7px;--bkc:rgba(184,216,255,.85)}
+.mng-box.ar-more-modal{--bkc:rgba(184,216,255,.75)}
 /* 캐릭터 카드 */
 html.ui-arch .page-arch .char-card:hover,html.ui-arch .page-arch .rel-card:hover{border-color:rgba(var(--a-acr),.45);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 26px -8px rgba(var(--a-acr),.45),0 24px 50px -28px rgba(0,0,0,.9)}
 html.ui-arch .page-arch .char-card .thumb,html.ui-arch .page-arch .rel-card .thumb{border-bottom:1px solid var(--a-ln)}
@@ -978,7 +1006,7 @@ html.ui-arch .page-rel-edit .ph span{font-family:'JetBrains Mono',monospace;lett
 }
 @media (max-width:620px){
   .bgm.skin-arch,.bgm.skin-arch.folded{border-radius:0;border-right:0;padding:13px 14px 12px}
-  .bgm.skin-arch::after{display:none}   /* 오른쪽 아래 꺾쇠는 화면 끝에 붙으므로 생략 */
+  .bgm.skin-arch::after{-webkit-mask:linear-gradient(#000,#000) left top/8px 8px no-repeat !important;mask:linear-gradient(#000,#000) left top/8px 8px no-repeat !important}   /* 오른쪽 아래 꺾쇠는 화면 끝에 붙으므로 생략 — 왼쪽 위만 */
   .bgm.skin-arch .bgm-tab{border-radius:0;background:rgba(8,11,15,.92);border-color:rgba(190,208,228,.18);color:#b8d8ff;box-shadow:-6px 0 18px -8px rgba(184,216,255,.35)}
   .bgm.skin-arch .ctrl button:nth-child(2){border-radius:0;border-color:rgba(184,216,255,.4);color:#fff}
   .bgm.skin-arch .bgm-list{background:transparent;border:0;border-top:1px solid rgba(190,208,228,.14);box-shadow:none}

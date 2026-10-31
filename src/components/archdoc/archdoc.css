@@ -135,11 +135,8 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-rawhtml{display:flow-root}
 
 /* 목차 탭 — 환경설정 카테고리와 같은 모양. 꺾쇠는 배경으로 그린다(가로로 넘겨도 칸 모서리에 고정) */
-.arx .ad-tabs{--cn:linear-gradient(rgba(220,230,240,.55),rgba(220,230,240,.55));display:flex;gap:4px;margin-top:clamp(18px,2.4vw,26px);padding:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;
-  border:1px solid var(--ln);box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
-  background:var(--cn) 0 0/9px 1px no-repeat border-box,var(--cn) 0 0/1px 9px no-repeat border-box,var(--cn) 100% 100%/9px 1px no-repeat border-box,var(--cn) 100% 100%/1px 9px no-repeat border-box,   /* 꺾쇠는 테두리 자리(border-box)에 — 안쪽 1px에 붙으면 바깥 테두리 선이 한 줄 더 보였다 */
-    linear-gradient(180deg,rgba(255,255,255,.028),transparent 46%),var(--pn)}
-.arx .ad-tabs::before,.arx .ad-tabs::after{display:none}
+.arx .ad-tabs-box{margin-top:clamp(18px,2.4vw,26px)}
+.arx .ad-tabs{display:flex;gap:4px;padding:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .arx .ad-tabs::-webkit-scrollbar{display:none}
 .arx .ad-tabs button{flex:0 0 auto;white-space:nowrap;padding:9px 18px;border:0;border-bottom:1px solid transparent;background:none;cursor:pointer;
   font:400 12px/1.3 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.14em;color:var(--mu);transition:color .2s,background .2s}
@@ -517,7 +514,7 @@ body:has(.arx)::before{display:none !important}
   .arx .ar-ag .tx small{font-size:9px;letter-spacing:.02em}
   .arx .ar-ag .ar-ag-el{height:16px;gap:3px;padding:0 6px 0 4px;font-size:9px}
   .arx .ar-ag .ar-ag-el i{width:10px;height:10px}
-  .arx .ar-ag::before,.arx .ar-ag::after{width:7px;height:7px}
+  .arx .ar-ag{--bks:7px}
   .arx .ar-ag-gh b{font-size:14px;letter-spacing:.24em}
 }
 /* 상세 프로필 창 (portal — .arx 밖) */
