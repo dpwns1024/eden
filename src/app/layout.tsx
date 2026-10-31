@@ -35,6 +35,8 @@ import { ServerBoot } from '@/components/shell/ServerBoot';
 import { LinkIntercept } from '@/components/shell/LinkIntercept';
 import { SplashScreen } from '@/components/shell/SplashScreen';
 import { siteMeta } from '@/lib/siteMeta';
+import { ARCH_FONTS } from '@/lib/archFonts';
+import { YJ_FONTS } from '@/components/world/yjhmFonts';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { title, subtitle, crawlDesc, favicon } = await siteMeta();
@@ -67,15 +69,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{
           __html: `(function(){var c=document.documentElement.classList;c.add('ui-arch');try{if(/^\\/(arch|eveden)\\/?$/.test(location.pathname))localStorage.setItem('ohome.world.v1','eveden');else if(localStorage.getItem('ohome.world.v1')==='yjhm')c.add('ui-yjhm');}catch(e){}})();`,
         }} />
+        {/* 환경설정 > 디자인에서 고른 역할 글꼴도 첫 그림 전에 — 변수와 그 글꼴 CSS를 저장해 둔 사본으로 (lib/fontStore.tsx).
+            예전엔 화면을 그린 뒤에 적용돼 기본 글꼴로 잠깐 그렸다가 바뀌었다 (v2.0 사용자 제보).
+            스크립트로 넣는 CSS는 blocking=render라야 글꼴이 오기 전 화면을 붙잡는다 */}
+        <script dangerouslySetInnerHTML={{
+          __html: `(function(){try{var m=JSON.parse(localStorage.getItem('ohome.fontCss.v1'));if(!m)return;var s=document.documentElement.style,v=m.vars||{};for(var k in v)s.setProperty(k,v[k]);(m.links||[]).forEach(function(x){if(document.getElementById(x[0]))return;var l=document.createElement('link');l.id=x[0];l.rel='stylesheet';l.href=x[1];l.setAttribute('blocking','render');document.head.appendChild(l);});}catch(e){}})();`,
+        }} />
+        {/* YJHM 세계면 그 글꼴도 첫 그림 전에 (components/world/YjhmHeader.tsx) */}
+        <script dangerouslySetInnerHTML={{
+          __html: `(function(){if(!document.documentElement.classList.contains('ui-yjhm'))return;var l=document.createElement('link');l.rel='stylesheet';l.href=${JSON.stringify(YJ_FONTS)};l.setAttribute('blocking','render');document.head.appendChild(l);})();`,
+        }} />
         {/* 본문 글꼴 Pretendard — 기기 글꼴(맑은 고딕 · 애플 산돌고딕 …)마다 굵기 · 폭이 달라 보이던 것을 홈에서 직접 내려 맞춘다
             (v2.0 사용자 요청). 쓰는 글자가 든 조각만 받는다(dynamic subset) */}
         <link rel="stylesheet" href="/fonts/pretendard/pretendard.css" />
         <link rel="stylesheet" href="/fonts/jetbrains/jetbrains.css" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* 글꼴은 display=block — 받기 전 잠깐(최대 3초) 글자를 비워 두고, 기기 글꼴(옛 글꼴)로 그렸다가 바뀌는 것을 막는다
+            (v2.0 사용자 제보 — 「예전 글꼴이 떴다가 지금 글꼴로 바뀐다」). ARCH 글꼴(Jost 등)도 화면 조각이 붙인 뒤가 아니라 여기서 먼저 */}
         <link
-          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+KR:wght@500;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Serif+KR:wght@500;700&display=block"
           rel="stylesheet"
         />
+        <link rel="stylesheet" href={ARCH_FONTS} />
       </head>
       <body>
         <ServerBoot>
