@@ -32,6 +32,7 @@ import { SpellCheck } from '@/components/shell/SpellCheck';
 import { PageFrame } from '@/lib/pageRefresh';
 import { MenuGuard } from '@/components/shell/MenuGuard';
 import { ServerBoot } from '@/components/shell/ServerBoot';
+import { LinkIntercept } from '@/components/shell/LinkIntercept';
 import { SplashScreen } from '@/components/shell/SplashScreen';
 import { siteMeta } from '@/lib/siteMeta';
 
@@ -117,6 +118,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         <ListSync />
                         <UploadBusy />
                         <SpellCheck />
+                        <LinkIntercept />
                       </SetupGate>
                     </BgmStoreProvider>
                   </MainStoreProvider>
