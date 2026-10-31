@@ -61,11 +61,12 @@ export default function PairFilePage() {
       <link rel="stylesheet" href={ARCH_FONTS} precedence="default" />
       <div className="pf-scan" aria-hidden="true" />
       <div className="pf-wrap">
-        {/* 제목 · 기밀 도장 — 게시판 제목(.page-head)과 같은 자리 · 크기 (v2.0 사용자 요청 — 경로 줄 · 파일 번호 줄은 뺐다,
-            파일 번호는 아래 MATCH ID에 그대로 있다) */}
+        {/* 제목 · 기밀 도장 — 게시판 제목(.page-head)과 같은 자리 · 크기 (v2.0 사용자 요청). 제목은 페어 이름 EVEDEN,
+            파일 번호 줄은 제목 밑에 작게 */}
         <header className="pf-head">
           <div className="pf-ttl">
-            <h1>{eden.name}<em>×</em>{eve.name}</h1>
+            <h1>EVEDEN</h1>
+            <small>PAIR DOSSIER <i>//</i> FILE NO. EV-ED-0987</small>
             <p><span className="pf-kind">GUIDE — SENTINEL PAIR <i>·</i> </span>SYNC RATE {SYNC}% <i>·</i> STATUS <b>ACTIVE</b></p>
           </div>
           <div className="pf-stamp"><b>CLASSIFIED</b><span>LEVEL 4 · EYES ONLY</span></div>
