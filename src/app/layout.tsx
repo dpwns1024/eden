@@ -81,8 +81,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         }} />
         {/* 본문 글꼴 Pretendard — 기기 글꼴(맑은 고딕 · 애플 산돌고딕 …)마다 굵기 · 폭이 달라 보이던 것을 홈에서 직접 내려 맞춘다
             (v2.0 사용자 요청). 쓰는 글자가 든 조각만 받는다(dynamic subset) */}
-        <link rel="stylesheet" href="/fonts/pretendard/pretendard.css" />
-        <link rel="stylesheet" href="/fonts/jetbrains/jetbrains.css" />
+        {/* ?v= — /fonts/는 1년 동안 다시 받지 않게(immutable) 내려 주므로(next.config.ts), 파일을 고치면 번호를 올려야
+            이미 방문한 브라우저도 새 파일을 받는다. v2 = font-display:block (예전 글꼴이 떴다가 바뀌던 것) */}
+        <link rel="stylesheet" href="/fonts/pretendard/pretendard.css?v=2" />
+        <link rel="stylesheet" href="/fonts/jetbrains/jetbrains.css?v=2" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         {/* 글꼴은 display=block — 받기 전 잠깐(최대 3초) 글자를 비워 두고, 기기 글꼴(옛 글꼴)로 그렸다가 바뀌는 것을 막는다
