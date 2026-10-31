@@ -16,6 +16,7 @@ import {
 import { subscribeTable } from '@/lib/db';
 import { createPortal } from 'react-dom';
 import { useMemberSlot } from '@/lib/htmlSlots';
+import { WorldSwitch } from '@/components/world/WorldSwitch';
 
 const BellIcon = () => (
   <svg viewBox="0 0 24 24">
@@ -220,7 +221,8 @@ export function TopBar() {
       </span>
 
       {/* 사용자 영역 — 메인 HTML에 로그인 자리(data-ohome="member")가 있으면 그 안으로 옮겨 그린다 */}
-      {slot ? createPortal(userArea, slot) : userArea}
+      {/* 세계 전환(EVEDEN · YJHM)은 로그인 영역 바로 왼쪽에 함께 */}
+      {slot ? createPortal(<><WorldSwitch />{userArea}</>, slot) : <><WorldSwitch />{userArea}</>}
     </header>
   );
 }

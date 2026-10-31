@@ -49,10 +49,39 @@ function setIndent(el: HTMLElement, px: number | null) {
 }
 const undo = (el: HTMLElement) => setIndent(el, null);
 
+/**
+ * 한글 자간 (v2.0 사용자 요청 — 「넓은 자간은 한글에선 띄어 보인다」). ARCH는 영문 라벨 · 버튼에 넓은 자간(.2~.5em)을 주는데,
+ * 같은 칸에 한글이 들어가면(로그인 · 비밀번호 입력 · 입장 …) 한 글자씩 떨어져 보였다. 자간 규칙은 칸마다 달라
+ * CSS로는 한글만 고를 수 없으니, 화면에서 「자기 글자에 한글이 있고 자간이 .1em보다 넓은」 칸을 찾아 표시해 두고
+ * CSS(globals.css의 [data-ko])가 한글에 맞는 좁은 자간으로 덮는다. 입력칸은 안내 글씨(placeholder)를 본다.
+ */
+const HANGUL = /[\u3131-\u318e\uac00-\ud7a3]/;
+const ownText = (el: Element) => {
+  let t = '';
+  for (const n of el.childNodes) if (n.nodeType === 3) t += n.nodeValue;
+  return t;
+};
+function markKo() {
+  if (!document.documentElement.classList.contains('ui-arch')) return;
+  document.querySelectorAll<HTMLElement>('body *:not(script):not(style):not(svg *)').forEach(el => {
+    if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+      const ko = HANGUL.test(el.placeholder || '');
+      if (ko !== (el.dataset.koPh === '1')) { if (ko) el.dataset.koPh = '1'; else delete el.dataset.koPh; }
+      return;
+    }
+    const ko = HANGUL.test(ownText(el));
+    if (!ko) { if (el.dataset.ko) delete el.dataset.ko; return; }
+    if (el.dataset.ko) return;
+    const cs = getComputedStyle(el);
+    if ((parseFloat(cs.letterSpacing) || 0) > parseFloat(cs.fontSize) * 0.1) el.dataset.ko = '1';
+  });
+}
+
 export function LetterSpacingFix() {
   useEffect(() => {
     const seen = new WeakMap<Element, string>();
     const scan = () => {
+      markKo();
       document.querySelectorAll<HTMLElement>(SEL).forEach(el => {
         const txt = el.innerText?.trim() ?? '';
         if (!txt || txt.length > 40 || txt.includes('\n')) return;

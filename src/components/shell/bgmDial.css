@@ -1,7 +1,7 @@
 /* BGM 플레이어 — ARCH 디자인 · 시안 B FREQUENCY DIAL (v2.0 사용자 확정) — components/shell/BgmPlayer.tsx
    기본 디자인(.bgm, globals.css)과 클래스가 겹치지 않게 .bgm-d 로 따로 그린다 */
 .bgm-d{--d-ac:#b8d8ff;--d-acr:184,216,255;--d-ln:rgba(190,208,228,.13);--d-ln2:rgba(190,208,228,.26);--d-mu:#8f9bab;--d-dim:#5f6b79;
-  position:fixed;right:20px;bottom:20px;z-index:70;width:372px;color:#e4e9ef;font:400 12px/1.4 'Jost','Noto Sans KR',sans-serif}
+  position:fixed;right:20px;bottom:20px;z-index:70;width:372px;color:#e4e9ef;font:400 12px/1.4 'Jost','Pretendard Variable',Pretendard,sans-serif}
 .bgm-d.is-left{right:auto;left:20px}
 .bgm-d button{all:unset;box-sizing:border-box;cursor:var(--cur-pointer,pointer);display:grid;place-items:center;color:var(--d-mu);transition:color .15s,background .15s,border-color .15s}
 .bgm-d svg{display:block;width:100%;height:100%;fill:currentColor}
@@ -18,11 +18,11 @@
 .bd-info{min-width:0;padding-top:1px}
 .bd-ch{white-space:nowrap;font:500 9px/1 'JetBrains Mono',monospace;letter-spacing:.22em;color:var(--d-dim)}
 .bd-ch em{font-style:normal;color:var(--d-ac)}
-.bgm-d .bd-tt{margin-top:8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:300 22px/1.15 'Jost','Noto Sans KR',sans-serif;letter-spacing:.2em;text-transform:uppercase;
+.bgm-d .bd-tt{margin-top:8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:300 22px/1.15 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.2em;text-transform:uppercase;
   background:linear-gradient(180deg,#fff,#c9d2dc 55%,#8f9bab);-webkit-background-clip:text;background-clip:text;color:transparent}
 .bgm-d .bd-tt.run{text-overflow:clip}
 .bgm-d .mq-in{display:inline-flex;gap:28px;animation:mqScroll 9s linear infinite}
-.bd-desc{margin-top:5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:300 10.5px/1.3 'Noto Sans KR',sans-serif;color:#6f7b89}
+.bd-desc{margin-top:5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:300 10.5px/1.3 'Pretendard Variable',Pretendard,sans-serif;color:#6f7b89}
 .bd-ctl{display:flex;align-items:center;gap:6px;align-self:center;margin-top:16px}
 .bgm-d .bd-ctl button{width:28px;height:28px;padding:7px;border-radius:50%;border:1px solid var(--d-ln2)}
 .bgm-d .bd-ctl button:hover{color:#fff;border-color:rgba(var(--d-acr),.5)}
@@ -58,9 +58,9 @@
 .bgm-d .bd-list .it:hover{background:rgba(var(--d-acr),.06)}
 .bd-list .it.on{color:var(--d-ac)}
 .bd-list .nm{min-width:0;max-width:100%}
-.bd-list .nm b{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:400 12px/1.3 'Jost','Noto Sans KR',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--d-mu)}
+.bd-list .nm b{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:400 12px/1.3 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--d-mu)}
 .bd-list .it.on .nm b,.bd-list .it:hover .nm b{color:#fff}
-.bd-list .nm small{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-top:2px;font:300 10px/1.3 'Noto Sans KR',sans-serif;color:var(--d-dim)}
+.bd-list .nm small{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-top:2px;font:300 10px/1.3 'Pretendard Variable',Pretendard,sans-serif;color:var(--d-dim)}
 .bd-list .it em{font-style:normal;padding:3px 6px;border:1px solid rgba(var(--d-acr),.5);color:var(--d-ac);font-size:8px;letter-spacing:.2em}
 
 /* 다이얼 — 접힘(PC) · 닫힘(모바일) */

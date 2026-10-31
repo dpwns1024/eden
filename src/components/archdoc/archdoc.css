@@ -9,7 +9,7 @@ body:has(.arx)::before{display:none !important}
 .arx{--bg:#05070a;--pn:rgba(13,18,25,.64);--ln:rgba(190,208,228,.10);--ln2:rgba(190,208,228,.22);--tx:#e4e9ef;--mu:#8592a0;--dim:#4a5461;
   --ac:#b8d8ff;--acr:184,216,255;--ok:#7fdcae;--red:#ff5a64;
   --sil:linear-gradient(180deg,#fff 0%,#d3dbe4 34%,#7f8a97 52%,#e6ebf1 68%,#98a3b0 100%);
-  position:relative;overflow:hidden;min-height:100vh;color:var(--tx);font:400 13px/1.6 'Jost','Noto Sans KR',sans-serif;font-variant-numeric:tabular-nums;
+  position:relative;overflow:hidden;min-height:100vh;color:var(--tx);font:400 13px/1.6 'Jost','Pretendard Variable',Pretendard,sans-serif;font-variant-numeric:tabular-nums;
   background:
     radial-gradient(1300px 760px at 50% -4%,rgba(130,160,200,.16),transparent 66%),
     radial-gradient(900px 600px at 50% 112%,rgba(90,120,160,.10),transparent 70%),
@@ -21,7 +21,7 @@ body:has(.arx)::before{display:none !important}
 .arx input[type=radio]{display:none}
 .arx .ar-wrap{position:relative;z-index:2;max-width:1280px;min-height:100vh;display:flex;flex-direction:column;margin:0 auto;padding:0 clamp(16px,3.6vw,48px) clamp(28px,4vw,52px)}
 .arx .ar-mono{font-family:'JetBrains Mono',monospace}
-.arx .ar-kr{font-family:'Noto Sans KR',sans-serif}
+.arx .ar-kr{font-family:'Pretendard Variable',Pretendard,sans-serif}
 .arx .ar-silver{background:var(--sil);-webkit-background-clip:text;background-clip:text;color:transparent}
 .arx .ar-wrap .ok{color:var(--ok)}
 .arx .ar-wrap .bad{color:var(--red)}
@@ -32,7 +32,7 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-sh{display:flex;align-items:flex-end;gap:16px;margin-bottom:22px}
 .arx .ar-sn{font:300 34px/.8 'Saira Semi Condensed',sans-serif;color:transparent;-webkit-text-stroke:1px rgba(220,230,240,.4)}
 .arx .ar-sh b{display:block;font:400 15px/1 'Jost',sans-serif;letter-spacing:.42em;color:#fff}
-.arx .ar-sh small{display:block;margin-top:8px;font:400 10.5px/1 'Noto Sans KR',sans-serif;letter-spacing:.2em;color:var(--mu)}
+.arx .ar-sh small{display:block;margin-top:8px;font:400 10.5px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.2em;color:var(--mu)}
 .arx .ar-sh i{flex:1;height:1px;margin-bottom:4px;background:linear-gradient(90deg,var(--ln2),transparent)}
 .arx .ar-sh em{margin-bottom:2px;font:normal 400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.2em;color:var(--dim);white-space:nowrap}
 .arx .ar-pn{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.028),transparent 46%),var(--pn);border:1px solid var(--ln);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 24px 50px -28px rgba(0,0,0,.9)}
@@ -50,14 +50,14 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-card{padding:26px 28px 24px}
 .arx .ar-c-k{display:flex;justify-content:space-between;font:400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--dim)}
 .arx .ar-card h3{margin-top:20px;font:300 34px/1 'Jost',sans-serif;letter-spacing:.3em}
-.arx .ar-card h3 small{display:block;margin-top:12px;font:400 11px/1 'Noto Sans KR',sans-serif;letter-spacing:.24em;color:var(--mu)}
-.arx .ar-card p{margin-top:18px;font:300 13px/1.95 'Noto Sans KR',sans-serif;color:#b3bec9;word-break:keep-all}
+.arx .ar-card h3 small{display:block;margin-top:12px;font:400 11px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.24em;color:var(--mu)}
+.arx .ar-card p{margin-top:18px;font:300 13px/1.95 'Pretendard Variable',Pretendard,sans-serif;color:#b3bec9;word-break:keep-all}
 .arx .ar-card p b{font-weight:500;color:#fff}
 .arx .ar-facts{display:grid;grid-template-columns:repeat(2,1fr);column-gap:18px;margin-top:22px;border-top:1px solid var(--ln)}
 .arx .ar-facts > div{padding:12px 0 2px}
 .arx .ar-facts small{display:block;font:400 8px/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--dim)}
 .arx .ar-facts b{display:block;margin-top:7px;font:400 11px/1.3 'Jost',sans-serif;letter-spacing:.18em;color:var(--tx)}
-.arx .ar-quote{display:flex;align-items:center;gap:14px;margin-top:20px;padding:14px 16px;border:1px solid var(--ln);border-left:1px solid var(--ac);background:linear-gradient(90deg,rgba(var(--acr),.07),transparent 70%);font:300 12.5px/1.6 'Noto Sans KR',sans-serif;color:#dfe5ec}
+.arx .ar-quote{display:flex;align-items:center;gap:14px;margin-top:20px;padding:14px 16px;border:1px solid var(--ln);border-left:1px solid var(--ac);background:linear-gradient(90deg,rgba(var(--acr),.07),transparent 70%);font:300 12.5px/1.6 'Pretendard Variable',Pretendard,sans-serif;color:#dfe5ec}
 .arx .ar-quote small{display:block;font:400 8px/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--mu);margin-bottom:6px}
 .arx .ar-aegis{display:grid;grid-template-columns:1fr 170px;gap:24px}
 .arx .ar-radar{position:relative;align-self:start;width:170px;height:170px;margin-top:6px;border-radius:50%;border:1px solid var(--ln2);background:radial-gradient(circle,transparent 32%,rgba(190,208,228,.07) 32.4%,transparent 33%,transparent 64%,rgba(190,208,228,.07) 64.4%,transparent 65%),radial-gradient(circle,rgba(var(--acr),.08),transparent 70%);overflow:hidden}
@@ -74,8 +74,8 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-cl{padding:24px 24px 22px;overflow:hidden}
 .arx .ar-cl svg{width:38px;height:38px;color:#dfe6ee}
 .arx .ar-cl b{display:block;margin-top:18px;font:400 17px/1 'Jost',sans-serif;letter-spacing:.38em;color:#fff}
-.arx .ar-cl small{display:block;margin-top:9px;font:400 10.5px/1 'Noto Sans KR',sans-serif;letter-spacing:.2em;color:var(--mu)}
-.arx .ar-cl p{margin-top:14px;font:300 12.5px/1.85 'Noto Sans KR',sans-serif;color:#a9b4c0;word-break:keep-all}
+.arx .ar-cl small{display:block;margin-top:9px;font:400 10.5px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.2em;color:var(--mu)}
+.arx .ar-cl p{margin-top:14px;font:300 12.5px/1.85 'Pretendard Variable',Pretendard,sans-serif;color:#a9b4c0;word-break:keep-all}
 .arx .ar-cl .bg{position:absolute;right:-8px;bottom:-22px;font:600 92px/1 'Saira Semi Condensed',sans-serif;color:transparent;-webkit-text-stroke:1px rgba(190,208,228,.07);pointer-events:none}
 .arx .ar-grade{display:flex;align-items:center;gap:14px;margin-top:14px;padding:13px 18px;font:400 9px/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--dim)}
 .arx .ar-grade i{flex:1;height:1px;background:var(--ln)}
@@ -86,7 +86,7 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-ptitle .crumb{font:400 9px/1 'JetBrains Mono',monospace;letter-spacing:.26em;color:var(--dim)}
 .arx .ar-ptitle .crumb b{font-weight:400;color:var(--ac)}
 .arx .ar-ptitle h1{margin:0;font:300 clamp(30px,5vw,58px)/1 'Jost',sans-serif;letter-spacing:.32em}
-.arx .ar-ptitle p{margin-top:16px;font:300 clamp(13px,1.4vw,15px)/1.8 'Noto Sans KR',sans-serif;color:#b3bec9;word-break:keep-all}
+.arx .ar-ptitle p{margin-top:16px;font:300 clamp(13px,1.4vw,15px)/1.8 'Pretendard Variable',Pretendard,sans-serif;color:#b3bec9;word-break:keep-all}
 .arx .ar-ptitle .doc{position:absolute;right:0;bottom:22px;font:400 8.5px/1.8 'JetBrains Mono',monospace;letter-spacing:.22em;color:var(--dim);text-align:right}
 .arx .ar-ptitle::after{content:'';position:absolute;left:0;bottom:-1px;width:120px;height:1px;background:var(--ac);box-shadow:0 0 12px var(--ac)}
 @media (max-width:820px){
@@ -112,8 +112,8 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-about.one{grid-template-columns:1fr}
 .arx .ar-cl .ar-ic{display:block;line-height:0}
 /* 에디터로 쓴 본문 — 원래 문단 모양(.ar-card p)에 목록·소제목·이미지만 보탠다 */
-.arx .ar-cbody :is(ul,ol){margin:14px 0 0 1.2em;font:300 13px/1.95 'Noto Sans KR',sans-serif;color:#b3bec9}
-.arx .ar-cbody :is(h2,h3){margin-top:22px;font:400 15px/1.4 'Jost','Noto Sans KR',sans-serif;letter-spacing:.2em;color:#fff}
+.arx .ar-cbody :is(ul,ol){margin:14px 0 0 1.2em;font:300 13px/1.95 'Pretendard Variable',Pretendard,sans-serif;color:#b3bec9}
+.arx .ar-cbody :is(h2,h3){margin-top:22px;font:400 15px/1.4 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.2em;color:#fff}
 .arx .ar-cbody img{display:block;max-width:100%;height:auto;margin-top:16px}
 .arx .ar-cbody blockquote{margin-top:16px;padding:12px 16px;border-left:1px solid var(--ac);background:linear-gradient(90deg,rgba(var(--acr),.07),transparent 70%);color:#dfe5ec}
 .arx .ar-cbody blockquote p{margin-top:0}
@@ -127,11 +127,11 @@ body:has(.arx)::before{display:none !important}
 /* 자료 준비 중 */
 .arx .ar-pending{padding:48px 20px;text-align:center}
 .arx .ar-pending span{display:block;font:400 10px/1 'JetBrains Mono',monospace;letter-spacing:.42em;margin-right:-.42em;color:var(--ac);animation:arBlink 2.4s steps(2) infinite}
-.arx .ar-pending small{display:block;margin-top:12px;font:400 11px/1 'Noto Sans KR',sans-serif;letter-spacing:.24em;margin-right:-.24em;color:var(--mu)}
+.arx .ar-pending small{display:block;margin-top:12px;font:400 11px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.24em;margin-right:-.24em;color:var(--mu)}
 /* 이미지 블록 */
 .arx .ar-figure{padding:12px}
 .arx .ar-figure img{display:block;width:100%;height:auto}
-.arx .ar-figure figcaption{margin-top:10px;font:400 9px/1.6 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em;color:var(--mu)}
+.arx .ar-figure figcaption{margin-top:10px;font:400 9px/1.6 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.2em;color:var(--mu)}
 .arx .ar-rawhtml{display:flow-root}
 
 /* 목차 탭 — 환경설정 카테고리와 같은 모양. 꺾쇠는 배경으로 그린다(가로로 넘겨도 칸 모서리에 고정) */
@@ -142,7 +142,7 @@ body:has(.arx)::before{display:none !important}
 .arx .ad-tabs::before,.arx .ad-tabs::after{display:none}
 .arx .ad-tabs::-webkit-scrollbar{display:none}
 .arx .ad-tabs button{flex:0 0 auto;white-space:nowrap;padding:9px 18px;border:0;border-bottom:1px solid transparent;background:none;cursor:pointer;
-  font:400 12px/1.3 'Jost','Noto Sans KR',sans-serif;letter-spacing:.14em;color:var(--mu);transition:color .2s,background .2s}
+  font:400 12px/1.3 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.14em;color:var(--mu);transition:color .2s,background .2s}
 .arx .ad-tabs button:hover{color:#fff;background:rgba(var(--acr),.06)}
 .arx .ad-tabs button.on{color:#fff;background:rgba(var(--acr),.1);border-bottom-color:var(--ac);box-shadow:inset 0 -12px 18px -14px rgba(var(--acr),.7)}
 .arx .ad-tabs .ad-tab-add{color:var(--ac);border:1px dashed var(--ln2)}
@@ -153,12 +153,12 @@ body:has(.arx)::before{display:none !important}
 .arx .ad-tabtools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
 .arx .ad-tabtools .k-input{max-width:220px}
 .arx .ad-mini{display:inline-flex;gap:2px}
-.arx .ad-mini button,.arx .ad-tools button{min-width:26px;height:24px;padding:0 6px;border:1px solid var(--ln2);background:rgba(8,11,15,.85);color:#c9d2dc;font:400 11px/1 'JetBrains Mono','Noto Sans KR',monospace;cursor:pointer}
+.arx .ad-mini button,.arx .ad-tools button{min-width:26px;height:24px;padding:0 6px;border:1px solid var(--ln2);background:rgba(8,11,15,.85);color:#c9d2dc;font:400 11px/1 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;cursor:pointer}
 .arx .ad-mini button:hover,.arx .ad-tools button:hover{color:#fff;border-color:rgba(var(--acr),.6)}
 .arx .ad-mini button:disabled{opacity:.35;cursor:default}
 .arx.ad-editing .ad-block{position:relative;outline:1px dashed rgba(var(--acr),.28);outline-offset:6px}
 .arx .ad-tools{position:absolute;right:-6px;top:-19px;z-index:6;display:flex;align-items:center;gap:2px;padding:2px;background:rgba(5,7,10,.96);border:1px solid var(--ln2)}
-.arx .ad-tools em{padding:0 6px;font:normal 400 9px/1 'Noto Sans KR',sans-serif;letter-spacing:.1em;color:var(--ac)}
+.arx .ad-tools em{padding:0 6px;font:normal 400 9px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.1em;color:var(--ac)}
 .arx.ad-editing .ad-block + .ad-block{margin-top:34px}
 .arx.ad-editing .ad-head + .ad-block{margin-top:22px}
 .arx .ad-addblock{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:34px;padding-top:16px;border-top:1px dashed var(--ln2)}
@@ -195,7 +195,7 @@ body:has(.arx)::before{display:none !important}
 }
 /* ARCH가 아닌 디자인에서도 편집 도구가 어두운 바탕에 맞게 */
 .arx .ad-ui .btn{height:30px;padding:0 12px;border:1px solid var(--ln2);border-radius:0;background:rgba(8,11,15,.72);color:#c9d2dc;
-  font:400 10px/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.2em;box-shadow:none}
+  font:400 10px/1 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.2em;box-shadow:none}
 .arx .ad-ui .btn:hover:not(:disabled){border-color:rgba(var(--acr),.7);color:#fff}
 .arx .ad-ui .btn-dark{background:rgba(var(--acr),.14);border-color:rgba(var(--acr),.45);color:#fff}
 .arx .ad-ui .btn:disabled{opacity:.4}
@@ -204,7 +204,7 @@ body:has(.arx)::before{display:none !important}
 /* 분류 카드 오른쪽 위 상세 버튼 (가이드 — 「가이딩」 규약) */
 .arx .ar-cl .ar-more-btn{position:absolute;right:16px;top:18px;z-index:2;display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 10px 0 12px;
   border:1px solid rgba(var(--acr),.38);background:linear-gradient(180deg,rgba(var(--acr),.1),rgba(var(--acr),.02));cursor:pointer;
-  font:400 10px/1 'Noto Sans KR',sans-serif;letter-spacing:.06em;color:#dfe9f5;transition:border-color .25s,box-shadow .25s,color .25s}
+  font:400 10px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.06em;color:#dfe9f5;transition:border-color .25s,box-shadow .25s,color .25s}
 .arx .ar-cl .ar-more-btn i{font:normal 400 12px/1 'JetBrains Mono',monospace;color:var(--ac);transition:transform .25s}
 .arx .ar-cl .ar-more-btn:hover{border-color:rgba(var(--acr),.75);color:#fff;box-shadow:0 0 18px -5px rgba(var(--acr),.6)}
 .arx .ar-cl .ar-more-btn:hover i{transform:translateX(2px)}
@@ -216,11 +216,11 @@ body:has(.arx)::before{display:none !important}
 .mng-box.ar-more-modal::before,.mng-box.ar-more-modal::after{content:'';position:absolute;width:9px;height:9px;border-color:rgba(184,216,255,.75);border-style:solid;pointer-events:none}
 .mng-box.ar-more-modal::before{left:-1px;top:-1px;border-width:1px 0 0 1px}
 .mng-box.ar-more-modal::after{right:-1px;bottom:-1px;border-width:0 1px 1px 0}
-.mng-box.ar-more-modal :is(h2,h3,.mng-title,.m-title){font:400 14px/1.5 'Noto Sans KR',sans-serif !important;letter-spacing:.06em;color:#fff !important}
+.mng-box.ar-more-modal :is(h2,h3,.mng-title,.m-title){font:400 14px/1.5 'Pretendard Variable',Pretendard,sans-serif !important;letter-spacing:.06em;color:#fff !important}
 .ar-more-list{margin:16px 0 0;display:grid;gap:0;border-top:1px solid rgba(190,208,228,.12)}
 .ar-more-list > div{padding:13px 0;border-bottom:1px solid rgba(190,208,228,.08)}
-.ar-more-list dt{font:400 9px/1 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.24em;color:#b8d8ff}
-.ar-more-list dd{margin:8px 0 0;font:300 13px/1.85 'Noto Sans KR',sans-serif;color:#c3ccd6;word-break:keep-all}
+.ar-more-list dt{font:400 9px/1 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.24em;color:#b8d8ff}
+.ar-more-list dd{margin:8px 0 0;font:300 13px/1.85 'Pretendard Variable',Pretendard,sans-serif;color:#c3ccd6;word-break:keep-all}
 .ar-more-foot{display:flex;justify-content:flex-end;margin-top:14px}
 .ar-more-close{height:30px;padding:0 16px;border:1px solid rgba(190,208,228,.22);background:rgba(8,11,15,.72);color:#c9d2dc;cursor:pointer;
   font:400 10px/1 'Jost',sans-serif;letter-spacing:.3em}
@@ -270,10 +270,10 @@ body:has(.arx)::before{display:none !important}
 .arx .am3-gl{display:block;width:100%;height:100%;cursor:grab;touch-action:none;-webkit-tap-highlight-color:transparent}
 .arx .am3-gl:active{cursor:grabbing}
 .arx .am3-msg{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;font:400 10px/1.8 'JetBrains Mono',monospace;letter-spacing:.24em;color:rgba(var(--hr),.8);animation:arBlink 1.6s ease-in-out infinite}
-.arx .am3.is-fail .am3-msg{animation:none;font-family:'Noto Sans KR',sans-serif;letter-spacing:.04em;color:var(--mu)}
+.arx .am3.is-fail .am3-msg{animation:none;font-family:'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.04em;color:var(--mu)}
 .arx .am3-labels{position:absolute;inset:0;z-index:2;pointer-events:none}
 .arx .am3-lb{position:absolute;left:0;top:0;height:0;display:flex;align-items:center;gap:7px;padding:0;border:0;background:none;color:#cfeaff;pointer-events:auto;cursor:pointer;
-  font:400 11px/1 'Noto Sans KR',sans-serif;white-space:nowrap;transition:opacity .25s;will-change:transform}
+  font:400 11px/1 'Pretendard Variable',Pretendard,sans-serif;white-space:nowrap;transition:opacity .25s;will-change:transform}
 .arx .am3-lb .pin{flex:0 0 7px;width:7px;height:7px;margin-left:-3.5px;transform:rotate(45deg);border:1px solid rgba(var(--hr),.9);background:#03101f;box-shadow:0 0 8px rgba(var(--hr),.9)}
 .arx .am3-lb > span{display:flex;align-items:center;gap:6px;padding:4px 8px 4px 6px;border:1px solid rgba(var(--hr),.35);border-left:2px solid rgba(var(--hr),.9);
   background:linear-gradient(90deg,rgba(6,30,58,.82),rgba(4,16,32,.55));backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);transition:border-color .2s,box-shadow .2s,background .2s}
@@ -330,7 +330,7 @@ body:has(.arx)::before{display:none !important}
 /* 목록 */
 .arx .am-legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-top:10px}
 .arx .am-legend button{display:flex;align-items:center;gap:9px;min-width:0;height:34px;padding:0 10px;border:1px solid var(--ln2);background:rgba(8,11,15,.5);cursor:pointer;
-  font:400 12px/1 'Noto Sans KR',sans-serif;color:var(--mu);text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .2s,border-color .2s,box-shadow .2s}
+  font:400 12px/1 'Pretendard Variable',Pretendard,sans-serif;color:var(--mu);text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .2s,border-color .2s,box-shadow .2s}
 .arx .am-legend em{font:normal 500 13px/1 'Saira Semi Condensed',sans-serif;color:var(--dim)}
 .arx .am-legend button.pl{border-style:dashed}
 .arx .am-legend button:hover{color:#fff;border-color:rgba(var(--acr),.45)}
@@ -344,7 +344,7 @@ body:has(.arx)::before{display:none !important}
 .arx .am-body p{margin-top:14px}
 .arx .am-body p:first-child{margin-top:18px}
 .arx .am-quote{white-space:pre-line;word-break:keep-all}
-.arx .am-quote cite{display:block;margin-top:8px;font:normal 400 10.5px/1.4 'Noto Sans KR',sans-serif;letter-spacing:.08em;color:var(--mu)}
+.arx .am-quote cite{display:block;margin-top:8px;font:normal 400 10.5px/1.4 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.08em;color:var(--mu)}
 .arx .am-card p.am-note{margin-top:16px;padding-top:12px;border-top:1px dashed var(--ln);font-size:12px;line-height:1.7;color:var(--mu)}
 .arx .am-card .bg{position:absolute;right:-6px;bottom:-24px;font:600 110px/1 'Saira Semi Condensed',sans-serif;color:transparent;-webkit-text-stroke:1px rgba(190,208,228,.07);pointer-events:none}
 .arx .am-gobox{display:grid;gap:8px;margin-top:20px}
@@ -352,7 +352,7 @@ body:has(.arx)::before{display:none !important}
 .arx .am-gobox button:hover{border-color:rgba(var(--acr),.6);box-shadow:0 0 16px -4px rgba(var(--acr),.6)}
 .arx .am-gobox small{font:400 8px/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--dim)}
 .arx .am-gobox b{font:400 18px/1 'Jost',sans-serif;letter-spacing:.3em;color:#fff}
-.arx .am-gobox span{font:400 12px/1.2 'Noto Sans KR',sans-serif;color:var(--mu)}
+.arx .am-gobox span{font:400 12px/1.2 'Pretendard Variable',Pretendard,sans-serif;color:var(--mu)}
 @media (max-width:900px){
   .arx .am-dock{grid-template-columns:1fr}
 }
@@ -370,7 +370,7 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-subh{display:flex;align-items:flex-end;gap:12px;margin:0 0 14px}   /* 선은 한글 부제 줄에 — 섹션 제목(.ar-sh)과 같은 정렬 */
 .arx .ar-subh .bar{flex:0 0 3px;align-self:center;height:22px;background:var(--ac);box-shadow:0 0 10px var(--ac)}
 .arx .ar-subh b{display:block;font:400 12px/1 'Jost',sans-serif;letter-spacing:.36em;color:#fff;white-space:nowrap}
-.arx .ar-subh small{display:block;margin-top:6px;font:400 10px/1 'Noto Sans KR',sans-serif;letter-spacing:.2em;color:var(--mu)}
+.arx .ar-subh small{display:block;margin-top:6px;font:400 10px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.2em;color:var(--mu)}
 .arx .ar-subh i{flex:1;height:1px;margin-bottom:4px;background:linear-gradient(90deg,var(--ln2),transparent)}
 .arx .ar-subh em{margin-bottom:1px;font:normal 400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.22em;color:var(--dim);white-space:nowrap}
 .arx .ar-cls2{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:stretch}   /* 각성자 상자는 예전 분류 카드와 같은 폭(3칸 중 1칸), 속성 상자는 나머지 2칸 */
@@ -395,11 +395,11 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-marks button.on em{font-weight:500;color:var(--ac)}
 .arx .ar-sw-body{position:relative;z-index:1;animation:arIn .3s ease both}
 .arx .ar-sw-body > b{display:block;font:400 17px/1.2 'Jost',sans-serif;letter-spacing:.38em;color:#fff}
-.arx .ar-sw-body > small{display:block;margin-top:9px;font:400 10.5px/1 'Noto Sans KR',sans-serif;letter-spacing:.2em;color:var(--mu)}
-.arx .ar-sw-body > p{margin-top:14px;font:300 12.5px/1.85 'Noto Sans KR',sans-serif;color:#a9b4c0;word-break:keep-all}
-.arx .ar-sw-body > p.pend{font-family:'JetBrains Mono','Noto Sans KR',monospace;font-size:10px;letter-spacing:.2em;color:var(--dim)}
+.arx .ar-sw-body > small{display:block;margin-top:9px;font:400 10.5px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.2em;color:var(--mu)}
+.arx .ar-sw-body > p{margin-top:14px;font:300 12.5px/1.85 'Pretendard Variable',Pretendard,sans-serif;color:#a9b4c0;word-break:keep-all}
+.arx .ar-sw-body > p.pend{font-family:'JetBrains Mono','Pretendard Variable',Pretendard,monospace;font-size:10px;letter-spacing:.2em;color:var(--dim)}
 .arx .ar-sw .ar-more-btn{position:absolute;right:0;top:-4px;z-index:2;display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 10px 0 12px;
-  border:1px solid rgba(var(--acr),.4);background:rgba(13,18,25,.7);cursor:pointer;font:500 11px/1 'Noto Sans KR',sans-serif;letter-spacing:.02em;color:#dfe6ee;transition:border-color .2s,box-shadow .2s,color .2s}
+  border:1px solid rgba(var(--acr),.4);background:rgba(13,18,25,.7);cursor:pointer;font:500 11px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.02em;color:#dfe6ee;transition:border-color .2s,box-shadow .2s,color .2s}
 .arx .ar-sw .ar-more-btn i{font:normal 400 12px/1 'JetBrains Mono',monospace;color:var(--ac);transition:transform .25s}
 .arx .ar-sw .ar-more-btn:hover{border-color:rgba(var(--acr),.75);color:#fff;box-shadow:0 0 18px -5px rgba(var(--acr),.6)}
 .arx .ar-sw .ar-more-btn:hover i{transform:translateX(2px)}
@@ -413,11 +413,11 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-el{margin-top:12px;padding:14px 16px;border:1px solid var(--ln);border-left:1px solid var(--ac);background:linear-gradient(90deg,rgba(var(--acr),.06),transparent 70%);animation:arIn .3s ease both}
 .arx .ar-el-h{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
 .arx .ar-el-h b{font:400 13px/1 'Jost',sans-serif;letter-spacing:.32em;color:#fff}
-.arx .ar-el-h small{font:400 10.5px/1 'Noto Sans KR',sans-serif;letter-spacing:.16em;color:var(--mu)}
+.arx .ar-el-h small{font:400 10.5px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.16em;color:var(--mu)}
 .arx .ar-el dl{display:grid;gap:10px;margin:0}
 .arx .ar-el dt{margin-bottom:5px;font:400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.22em;color:var(--mu)}
 .arx .ar-el .rd dt{color:#ff6f78}
-.arx .ar-el dd{margin:0;font:300 12px/1.75 'Noto Sans KR',sans-serif;color:#c3ccd6;word-break:keep-all}
+.arx .ar-el dd{margin:0;font:300 12px/1.75 'Pretendard Variable',Pretendard,sans-serif;color:#c3ccd6;word-break:keep-all}
 @media (max-width:820px){
   .arx .ar-cls2{grid-template-columns:1fr;gap:28px}
   .arx .ar-cls2-col.wide{grid-column:auto}
@@ -444,7 +444,7 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-els{display:grid;grid-template-columns:repeat(6,minmax(0,1fr))}
 .arx .ar-els button.pend{cursor:default;opacity:.4;border-style:dashed}
 .arx .ar-els button.pend:hover{color:var(--mu);border-color:var(--ln2)}
-.arx .ar-el.pend{font:400 9.5px/1.6 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em;color:var(--dim)}
+.arx .ar-el.pend{font:400 9.5px/1.6 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.2em;color:var(--dim)}
 @media (max-width:560px){ .arx .ar-els{grid-template-columns:repeat(3,minmax(0,1fr))} .arx .ar-elbox-k span:last-child{display:none} }
 @media (max-width:820px){ .arx .ar-sw-wrap > .ar-link{display:none} }
 .arx .ar-els button .mk{display:block;width:26px;height:26px;color:#c9d2dc;transition:color .2s,filter .2s}
@@ -481,7 +481,7 @@ body:has(.arx)::before{display:none !important}
    위아래로 번져 팀마다 굵기가 달라 보였다 (v2.0 사용자 제보). 테두리는 어느 브라우저든 기기 픽셀에 맞춰 그린다 */
 .arx .ar-ag-gh{position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding-bottom:12px;margin-bottom:18px}
 .arx .ar-ag-gh::after{content:'';position:absolute;left:0;right:0;bottom:0;height:0;border-top:2px solid var(--gc);-webkit-mask-image:linear-gradient(90deg,#000,rgba(0,0,0,.3) 55%,transparent);mask-image:linear-gradient(90deg,#000,rgba(0,0,0,.3) 55%,transparent);pointer-events:none}
-.arx .ar-ag-gh b{font:400 16px/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.32em;color:#fff}
+.arx .ar-ag-gh b{font:400 16px/1 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.32em;color:#fff}
 .arx .ar-ag-gh em{font:normal 400 9px/1 'JetBrains Mono',monospace;letter-spacing:.26em;color:var(--gc);text-shadow:0 0 10px color-mix(in srgb,var(--gc) 60%,transparent)}
 .arx .ar-ag-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
 .arx .ar-ag{box-sizing:border-box;position:relative;display:block;width:100%;aspect-ratio:3/4;margin:0;padding:0;outline:0;-webkit-tap-highlight-color:transparent;overflow:hidden;cursor:pointer;border:1px solid var(--ln2);background:#0a0d12;
@@ -496,13 +496,13 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-ag .ph::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 48%,rgba(5,7,10,.55) 70%,rgba(5,7,10,.95))}
 .arx .ar-ag-noimg{position:absolute;inset:0;display:grid;place-items:center;font:400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--dim)}
 .arx .ar-ag .tx{position:absolute;left:12px;right:12px;bottom:12px;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:6px}
-.arx .ar-ag .tx b{font:500 15px/1.2 'Noto Sans KR','Jost',sans-serif;letter-spacing:.04em;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.8)}
+.arx .ar-ag .tx b{font:500 15px/1.2 'Pretendard Variable',Pretendard,'Jost',sans-serif;letter-spacing:.04em;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.8)}
 .arx .ar-ag .tx .nm{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 6px}
-.arx .ar-ag .tx small{font:400 11px/1.2 'Noto Sans KR','Jost',sans-serif;letter-spacing:.04em;color:#aab5c1;text-shadow:0 1px 6px rgba(0,0,0,.8)}
+.arx .ar-ag .tx small{font:400 11px/1.2 'Pretendard Variable',Pretendard,'Jost',sans-serif;letter-spacing:.04em;color:#aab5c1;text-shadow:0 1px 6px rgba(0,0,0,.8)}
 .arx .ar-ag.still{cursor:default}
 .arx .ar-ag:not(.still):hover,.arx .ar-ag:focus-visible{border-color:color-mix(in srgb,var(--ec,#b8d8ff) 70%,transparent);box-shadow:0 0 22px -8px var(--ec,#b8d8ff)}
 .arx .ar-ag:not(.still):hover .ph img{transform:scale(1.04)}
-.ar-ag-el{display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 9px 0 6px;font:500 10.5px/1 'Noto Sans KR',sans-serif;color:#fff;
+.ar-ag-el{display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 9px 0 6px;font:500 10.5px/1 'Pretendard Variable',Pretendard,sans-serif;color:#fff;
   background:color-mix(in srgb,var(--ec) 78%,#05070a);border:1px solid color-mix(in srgb,var(--ec) 70%,#fff 30%);box-shadow:0 0 12px -3px var(--ec)}
 .ar-ag-el i{display:block;width:13px;height:13px}
 .ar-ag-el i svg{display:block;width:100%;height:100%}
@@ -530,9 +530,15 @@ body:has(.arx)::before{display:none !important}
 .ar-ag-pf-h .nm{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0}
 .ar-ag-pf-h .nm small{font:400 9px/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:#8592a0}
 .ar-ag-pf-h .nm small em{font-style:normal;margin-left:10px;color:var(--gc)}
-.ar-ag-pf-h .nm b{font:400 26px/1.15 'Noto Sans KR','Jost',sans-serif;letter-spacing:.06em;color:#fff}
+.ar-ag-pf-h .nm b{font:400 26px/1.15 'Pretendard Variable',Pretendard,'Jost',sans-serif;letter-spacing:.06em;color:#fff}
 .ar-ag-pf-h .nm .nmr{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 10px}
-.ar-ag-pf-h .nm .en{font:400 13px/1.2 'Noto Sans KR','Jost',sans-serif;letter-spacing:.04em;color:#aab5c1}
-.ar-ag-pf-b{font:300 13px/1.85 'Noto Sans KR',sans-serif;color:#c3ccd6;word-break:keep-all}
-.ar-ag-pf-b.pend{font:400 9.5px/1.6 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.22em;color:#5f6b79;padding:20px 0}
+.ar-ag-pf-h .nm .en{font:400 13px/1.2 'Pretendard Variable',Pretendard,'Jost',sans-serif;letter-spacing:.04em;color:#aab5c1}
+.ar-ag-pf-b{font:300 13px/1.85 'Pretendard Variable',Pretendard,sans-serif;color:#c3ccd6;word-break:keep-all}
+.ar-ag-pf-b.pend{font:400 9.5px/1.6 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.22em;color:#5f6b79;padding:20px 0}
 @media (max-width:560px){ .ar-ag-pf-h .ph{flex-basis:92px} .ar-ag-pf-h .nm b{font-size:21px} }
+
+/* ARCH 소개 페이지(/arch) — 내용 왼쪽 끝 · 폭을 게시판(.page: 최대 1180px · 좌우 28px, 폰 16px)과 같게 (v2.0 사용자 요청 —
+   게시판 제목은 머리 로고보다 30px 안쪽인데 ARCH 소개만 로고 끝에 붙어 메뉴를 오갈 때 옆으로 밀려 보였다) */
+.htmlpage-doc .arx .ar-wrap{max-width:1180px;padding-left:28px;padding-right:28px}
+@media (max-width:620px){.htmlpage-doc .arx .ar-wrap{padding-left:16px;padding-right:16px}}
+

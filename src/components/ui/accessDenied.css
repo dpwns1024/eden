@@ -8,7 +8,7 @@
 .ad-win{position:relative;width:min(400px,calc(100vw - 32px));padding:20px 22px 18px;color:#ffd9d9;
   background:linear-gradient(180deg,rgba(60,6,8,.94),rgba(22,4,6,.96));border:1px solid rgba(var(--adr),.55);
   box-shadow:0 0 0 1px rgba(0,0,0,.6),0 0 40px -6px rgba(var(--adr),.55),inset 0 0 30px -10px rgba(var(--adr),.5);
-  font:400 12px/1.5 'JetBrains Mono','Noto Sans KR',monospace;animation:adIn .5s cubic-bezier(.2,.8,.2,1) both}
+  font:400 12px/1.5 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;animation:adIn .5s cubic-bezier(.2,.8,.2,1) both}
 .ad-c{position:absolute;width:12px;height:12px;border:solid var(--ad);pointer-events:none}
 .ad-c.tl{left:-5px;top:-5px;border-width:2px 0 0 2px}.ad-c.tr{right:-5px;top:-5px;border-width:2px 2px 0 0}
 .ad-c.bl{left:-5px;bottom:-5px;border-width:0 0 2px 2px}.ad-c.br{right:-5px;bottom:-5px;border-width:0 2px 2px 0}
@@ -22,7 +22,7 @@
 .ad-gl::before,.ad-gl::after{content:attr(data-t);position:absolute;left:0;top:0;width:100%;overflow:hidden;pointer-events:none}
 .ad-gl::before{color:#ff7a7a;clip-path:inset(0 0 55% 0);transform:translateX(-2px);opacity:.75;animation:adSlice 2.4s steps(1,end) infinite}
 .ad-gl::after{color:#8b0000;clip-path:inset(60% 0 0 0);transform:translateX(2px);opacity:.8;animation:adSlice 1.9s steps(1,end) infinite reverse}
-.ad-ko{margin:0 0 12px;font:500 15px/1.4 'Noto Sans KR',sans-serif;color:#fff}
+.ad-ko{margin:0 0 12px;font:500 15px/1.4 'Pretendard Variable',Pretendard,sans-serif;color:#fff}
 .ad-dl{display:grid;gap:5px;margin:0 0 14px;padding:10px 12px;background:rgba(0,0,0,.28);border-left:2px solid var(--ad)}
 .ad-dl div{display:grid;grid-template-columns:92px 1fr;gap:8px}
 .ad-dl dt{color:rgba(255,190,190,.6);letter-spacing:.16em;font-size:10px}

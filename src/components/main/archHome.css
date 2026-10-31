@@ -15,7 +15,7 @@
 @keyframes ahmBurst{0%{opacity:0;transform:scale(.2)}60%{opacity:1;transform:scale(1.6)}100%{opacity:1;transform:scale(1)}}
 body:has(.ah-main){background:#05070a !important}
 body:has(.ah-main)::before{display:none !important}
-.arx:where(.ah-main){--bg:#05070a;--pn:rgba(13,18,25,.64);--ln:rgba(190,208,228,.10);--ln2:rgba(190,208,228,.22);--tx:#e4e9ef;--mu:#8592a0;--dim:#4a5461; --ac:#b8d8ff;--acr:184,216,255;--ok:#7fdcae;--red:#ff5a64; --sil:linear-gradient(180deg,#fff 0%,#d3dbe4 34%,#7f8a97 52%,#e6ebf1 68%,#98a3b0 100%); position:relative;overflow:hidden;min-height:100vh;color:var(--tx);font:400 13px/1.6 'Jost','Noto Sans KR',sans-serif;font-variant-numeric:tabular-nums; background: radial-gradient(1300px 760px at 50% -4%,rgba(130,160,200,.16),transparent 66%), radial-gradient(900px 600px at 50% 112%,rgba(90,120,160,.10),transparent 70%), repeating-linear-gradient(90deg,rgba(190,208,228,.032) 0 1px,transparent 1px 128px), repeating-linear-gradient(0deg,rgba(190,208,228,.022) 0 1px,transparent 1px 128px),var(--bg)}
+.arx:where(.ah-main){--bg:#05070a;--pn:rgba(13,18,25,.64);--ln:rgba(190,208,228,.10);--ln2:rgba(190,208,228,.22);--tx:#e4e9ef;--mu:#8592a0;--dim:#4a5461; --ac:#b8d8ff;--acr:184,216,255;--ok:#7fdcae;--red:#ff5a64; --sil:linear-gradient(180deg,#fff 0%,#d3dbe4 34%,#7f8a97 52%,#e6ebf1 68%,#98a3b0 100%); position:relative;overflow:hidden;min-height:100vh;color:var(--tx);font:400 13px/1.6 'Jost','Pretendard Variable',Pretendard,sans-serif;font-variant-numeric:tabular-nums; background: radial-gradient(1300px 760px at 50% -4%,rgba(130,160,200,.16),transparent 66%), radial-gradient(900px 600px at 50% 112%,rgba(90,120,160,.10),transparent 70%), repeating-linear-gradient(90deg,rgba(190,208,228,.032) 0 1px,transparent 1px 128px), repeating-linear-gradient(0deg,rgba(190,208,228,.022) 0 1px,transparent 1px 128px),var(--bg)}
 .arx:where(.ah-main)::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:3;background:repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0 1px,transparent 1px 3px);box-shadow:inset 0 0 220px 40px rgba(0,0,0,.78)}
 .arx:where(.ah-main) :where(*:not(.ah-about *)){box-sizing:border-box;margin:0;padding:0}   /* 소개 화면 안은 그 문서 스타일(archdoc.css)이 맡는다 */
 .arx:where(.ah-main) a{color:inherit;text-decoration:none}
@@ -33,7 +33,7 @@ body:has(.ah-main)::before{display:none !important}
 .arx:where(.ah-main) .ar-brand small{display:block;margin-top:7px;font:400 7.5px/1 'Jost',sans-serif;letter-spacing:.44em;color:var(--mu)}
 .arx:where(.ah-main) .ar-menu{grid-area:menu;position:relative;display:flex;justify-content:center;min-height:34px}
 .arx:where(.ah-main) .ar-menu .oh-menu{gap:2px;justify-content:center}
-.arx:where(.ah-main) .ar-menu .oh-item{position:relative;display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 16px;font:400 11px/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;color:var(--mu);transition:color .25s}
+.arx:where(.ah-main) .ar-menu .oh-item{position:relative;display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 16px;font:400 11px/1 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.3em;color:var(--mu);transition:color .25s}
 .arx:where(.ah-main) .ar-menu .oh-item::after{content:'';position:absolute;left:16px;right:calc(16px + .3em);bottom:4px;height:1px;background:linear-gradient(90deg,transparent,var(--ac),transparent);transform:scaleX(0);transition:transform .35s}
 .arx:where(.ah-main) .ar-menu .oh-item:hover,.arx:where(.ah-main) .ar-menu .oh-grp.open > .oh-item{color:#fff}
 .arx:where(.ah-main) .ar-menu .oh-item:hover::after,.arx:where(.ah-main) .ar-menu .oh-item.on::after,.arx:where(.ah-main) .ar-menu .oh-grp.on > .oh-item::after,.arx:where(.ah-main) .ar-menu .oh-grp.open > .oh-item::after{transform:none}
@@ -42,14 +42,14 @@ body:has(.ah-main)::before{display:none !important}
 .arx:where(.ah-main) .ar-menu .oh-sub{top:calc(100% + 8px);left:50%;min-width:max(100%,200px);padding:7px;transform:translateX(-50%);background:linear-gradient(180deg,rgba(var(--acr),.06),transparent 90px),rgba(8,11,15,.97);border:1px solid var(--ln2);box-shadow:0 30px 70px -20px #000;animation:ahmIn .22s ease both}
 .arx:where(.ah-main) .ar-menu .oh-sub::before{content:'';position:absolute;left:0;right:0;top:-10px;height:10px}
 .arx:where(.ah-main) .ar-menu .oh-sub::after{content:'';position:absolute;left:50%;top:-1px;width:28px;height:1px;margin-left:-14px;background:var(--ac);box-shadow:0 0 10px var(--ac)}
-.arx:where(.ah-main) .ar-menu .oh-link{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 14px;font:400 11px/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.24em;color:var(--mu);transition:all .2s}
+.arx:where(.ah-main) .ar-menu .oh-link{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 14px;font:400 11px/1 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.24em;color:var(--mu);transition:all .2s}
 .arx:where(.ah-main) .ar-menu .oh-link::after{content:'→';font-family:'JetBrains Mono',monospace;letter-spacing:0;opacity:0;transform:translateX(-4px);transition:all .2s}
 .arx:where(.ah-main) .ar-menu .oh-link:hover,.arx:where(.ah-main) .ar-menu .oh-link.on{color:#fff;background:rgba(var(--acr),.07)}
 .arx:where(.ah-main) .ar-menu .oh-link:hover::after{opacity:1;transform:none;color:var(--ac)}
 .arx:where(.ah-main) .ar-member{grid-area:member;display:flex;justify-content:flex-end;align-items:center;min-height:34px; --dd-bg:rgba(8,11,15,.97);--dd-fg:var(--tx);--dd-hv:rgba(var(--acr),.1);--line-dark:var(--ln2);--top-fg:var(--tx);--top-hv:#fff;--faint:var(--dim);--sh-dd:0 30px 70px -20px #000}
-.arx:where(.ah-main) .ar-member .login-link{display:inline-flex;align-items:center;height:34px;padding:0 20px;border:1px solid var(--ln2);border-radius:0;background:linear-gradient(180deg,rgba(255,255,255,.04),transparent);font:400 11px/1 'Noto Sans KR',sans-serif;letter-spacing:.3em;color:var(--tx);transition:all .25s}
+.arx:where(.ah-main) .ar-member .login-link{display:inline-flex;align-items:center;height:34px;padding:0 20px;border:1px solid var(--ln2);border-radius:0;background:linear-gradient(180deg,rgba(255,255,255,.04),transparent);font:400 11px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.3em;color:var(--tx);transition:all .25s}
 .arx:where(.ah-main) .ar-member .login-link:hover{border-color:rgba(var(--acr),.7);color:#fff;box-shadow:0 0 18px -4px rgba(var(--acr),.5)}
-.arx:where(.ah-main) .ar-member .user-chip{gap:10px;padding:3px 8px 3px 4px;border:1px solid transparent;border-radius:0;font:400 11px/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.22em;color:var(--tx)}
+.arx:where(.ah-main) .ar-member .user-chip{gap:10px;padding:3px 8px 3px 4px;border:1px solid transparent;border-radius:0;font:400 11px/1 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.22em;color:var(--tx)}
 .arx:where(.ah-main) .ar-member .user-chip:hover{background:rgba(var(--acr),.06);border-color:var(--ln2)}
 .arx:where(.ah-main) .ar-member .user-chip .avatar{width:28px;height:28px;border:1px solid rgba(var(--acr),.6);box-shadow:0 0 0 2px rgba(0,0,0,.7),0 0 14px rgba(var(--acr),.25)}
 .arx:where(.ah-main) .ar-member .badge-dot{width:28px;height:28px;border-radius:0;color:var(--mu)}
@@ -89,7 +89,7 @@ body:has(.ah-main)::before{display:none !important}
 .arx:where(.ah-main) .ar-div svg{width:34px;height:34px}
 /* 눈에 덜 띄게 한 번 더 작게 (v2.0 사용자 요청 — PC 24→18px · 폰 16→14px).
    마크 아래 간격 = 마크 위 간격 (v2.0 사용자 요청 — 보이는 글자 끝 기준 PC 27px · 폰 18.5px, 줄 간격 위 여백 포함해 계산) */
-.arx:where(.ah-main) .ar-h1{margin-top:clamp(8.5px,1.22vw,15.5px);font:300 clamp(14px,1.45vw,18px)/1.6 'Noto Sans KR',sans-serif;letter-spacing:.02em;color:#dfe5ec;animation:ahmIn 1.2s 2.6s ease both}
+.arx:where(.ah-main) .ar-h1{margin-top:clamp(8.5px,1.22vw,15.5px);font:300 clamp(14px,1.45vw,18px)/1.6 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.02em;color:#dfe5ec;animation:ahmIn 1.2s 2.6s ease both}
 .arx:where(.ah-main) .ar-h1 b{font-weight:500;color:#fff;text-shadow:0 0 22px rgba(var(--acr),.4)}
 .arx:where(.ah-main) .ar-en-sep{font-style:normal}
 @media (max-width:560px){
@@ -111,7 +111,7 @@ body:has(.ah-main)::before{display:none !important}
 .arx:where(.ah-main) .ar-foot .fb{display:flex;align-items:center;gap:12px}
 .arx:where(.ah-main) .ar-foot .fb .mk{width:26px;height:26px;opacity:.8}
 .arx:where(.ah-main) .ar-foot .fb .wm{width:auto;height:14px;opacity:.7;overflow:visible}
-.arx:where(.ah-main) .ar-foot .kr{font-family:'Noto Sans KR',sans-serif;letter-spacing:.04em}
+.arx:where(.ah-main) .ar-foot .kr{font-family:'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.04em}
 .arx:where(.ah-main) .ar-foot > :last-child{text-align:right}
 @media (max-width:1080px){
   .arx:where(.ah-main) .ar-h-side{display:none}
@@ -155,6 +155,14 @@ body:has(.ah-main)::before{display:none !important}
 .arx:where(.ah-main) .ah-about .arx{min-height:0;overflow:visible;background:none}
 .arx:where(.ah-main) .ah-about .arx::after{content:none}
 .arx:where(.ah-main) .ah-about .arx > .ar-wrap{max-width:none;min-height:0;padding:0}
+/* 메인에서 연 ARCH 소개도 게시판 내용 폭에 맞춰 안으로 — 게시판 내용 폭(min(1124px, 화면-56px))만큼 남기고 양쪽을 띄운다 */
+.arx:where(.ah-main) .ah-about .arx > .ar-wrap{padding:0 max(0px,calc((100% - min(1124px,100vw - 56px)) / 2))}
+/* BACK 버튼도 같은 왼쪽 끝으로 */
+.arx:where(.ah-main) .ah-about > .ah-back{margin-left:max(0px,calc((100% - min(1124px,100vw - 56px)) / 2))}
+@media (max-width:620px){
+  .arx:where(.ah-main) .ah-about .arx > .ar-wrap{padding:0 max(0px,calc((100% - (100vw - 32px)) / 2))}
+  .arx:where(.ah-main) .ah-about > .ah-back{margin-left:max(0px,calc((100% - (100vw - 32px)) / 2))}
+}
 .arx:where(.ah-main) .ah-about .ad-bar{right:0}   /* 관리자 EDIT — 문서 틀의 여백을 뺐으니 오른쪽 끝선에 맞춘다 */
 .arx:where(.ah-main) .ah-back{display:inline-flex;align-items:center;gap:10px;margin-top:clamp(18px,2.4vw,28px);padding:6px 0;border:0;background:none;font:400 10px/1 'JetBrains Mono',monospace;letter-spacing:.26em;color:var(--mu);cursor:var(--cur-pointer,pointer);transition:color .25s}
 .arx:where(.ah-main) .ah-back span{letter-spacing:0;transition:transform .25s}

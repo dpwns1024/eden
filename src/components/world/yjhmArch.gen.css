@@ -3,11 +3,11 @@
 html.ui-yjhm.ui-arch .page-arch, html.ui-yjhm .mng-box.arch-modal {--a-pn:rgba(247,246,242,0.64);--a-ln:rgba(96,124,160,0.1);--a-ln2:rgba(96,124,160,0.22);--a-tx:rgb(59,75,98);--a-mu:rgb(123,134,148);--a-dim:rgb(176,182,188);
   --a-ac:rgb(96,124,160);--a-acr:96,124,160;--a-sil:linear-gradient(180deg,rgb(44,62,87) 0%,rgb(69,84,106) 34%,rgb(129,139,152) 52%,rgb(57,74,97) 68%,rgb(110,121,137) 100%)
 }
-html.ui-yjhm.ui-arch .page-arch .page-head h1 {font:500 clamp(30px,4.4vw,52px)/1.05 'Archivo Narrow','Noto Sans KR',sans-serif
+html.ui-yjhm.ui-arch .page-arch .page-head h1 {font:500 clamp(30px,4.4vw,52px)/1.05 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif
 }
-html.ui-yjhm.ui-arch .page-arch .page-head p {font:500 13px/1.7 'Noto Sans KR',sans-serif;color:rgb(90,104,122)
+html.ui-yjhm.ui-arch .page-arch .page-head p {font:500 13px/1.7 'Pretendard Variable',Pretendard,sans-serif;color:rgb(90,104,122)
 }
-html.ui-yjhm.ui-arch .page-arch .btn-dark, html.ui-yjhm.ui-arch .page-arch .btn-ghost {background:rgba(247,246,242,0.72);color:rgb(75,90,111);font:400 10px/1 'Archivo Narrow','Noto Sans KR',sans-serif
+html.ui-yjhm.ui-arch .page-arch .btn-dark, html.ui-yjhm.ui-arch .page-arch .btn-ghost {background:rgba(247,246,242,0.72);color:rgb(75,90,111);font:400 10px/1 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif
 }
 html.ui-yjhm.ui-arch .page-arch .btn-dark:hover, html.ui-yjhm.ui-arch .page-arch .btn-ghost:hover {color:rgb(44,62,87);background:rgba(247,246,242,0.82)
 }
@@ -24,7 +24,7 @@ html.ui-yjhm.ui-arch .page-arch .char-card:hover, html.ui-yjhm.ui-arch .page-arc
 }
 html.ui-yjhm.ui-arch .page-arch .char-card .thumb::after, html.ui-yjhm.ui-arch .page-arch .rel-card .thumb::after {background:linear-gradient(180deg,transparent 62%,rgba(247,246,242,0.5))
 }
-html.ui-yjhm.ui-arch .page-arch .char-card .nm b {font:400 calc(13px*var(--fs,1))/1.2 'Archivo Narrow','Noto Sans KR',sans-serif;color:rgb(44,62,87)
+html.ui-yjhm.ui-arch .page-arch .char-card .nm b {font:400 calc(13px*var(--fs,1))/1.2 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif;color:rgb(44,62,87)
 }
 html.ui-yjhm.ui-arch .page-arch .char-card .nm i {box-shadow:0 0 0 1px rgba(44,62,87,0.054)
 }
@@ -46,58 +46,58 @@ html.ui-yjhm.ui-arch .page-char-detail .side-icons button:hover {color:rgb(44,62
 }
 html.ui-yjhm.ui-arch .page-char-detail .side-icons button.on {color:color-mix(in srgb,var(--cc) 35%,rgb(44,62,87));border-color:color-mix(in srgb,var(--cc) 75%,rgb(61,77,100))
 }
-html.ui-yjhm.ui-arch .page-arch .profile-info .pf-name:not([data-font]) {font-family:'Archivo Narrow','Noto Sans KR',sans-serif
+html.ui-yjhm.ui-arch .page-arch .profile-info .pf-name:not([data-font]) {font-family:'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif
 }
-html.ui-yjhm.ui-arch .page-arch .profile-info .sub {font:500 calc(12px*var(--fs,1))/1.6 'Noto Sans KR',sans-serif
+html.ui-yjhm.ui-arch .page-arch .profile-info .sub {font:500 calc(12px*var(--fs,1))/1.6 'Pretendard Variable',Pretendard,sans-serif
 }
-html.ui-yjhm.ui-arch .page-arch .profile-info h3 {font:500 calc(20px*var(--fs,1))/1.2 'Archivo Narrow','Noto Sans KR',sans-serif
+html.ui-yjhm.ui-arch .page-arch .profile-info h3 {font:500 calc(20px*var(--fs,1))/1.2 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif
 }
-html.ui-yjhm.ui-arch .page-arch .spec dt {font:400 calc(8.5px*var(--fs,1))/1.9 'Archivo Narrow','Noto Sans KR',monospace;color:rgb(142,151,162)
+html.ui-yjhm.ui-arch .page-arch .spec dt {font:400 calc(8.5px*var(--fs,1))/1.9 'Archivo Narrow','Pretendard Variable',Pretendard,monospace;color:rgb(142,151,162)
 }
-html.ui-yjhm.ui-arch .page-arch .spec dd {font:400 calc(12px*var(--fs,1))/1.5 'Archivo Narrow','Noto Sans KR',sans-serif
+html.ui-yjhm.ui-arch .page-arch .spec dd {font:400 calc(12px*var(--fs,1))/1.5 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif
 }
 html.ui-yjhm.ui-arch .page-arch .prose {color:rgb(90,104,122)
 }
 html.ui-yjhm.ui-arch .page-arch .prose b, html.ui-yjhm.ui-arch .page-arch .prose strong {color:rgb(44,62,87)
 }
-html.ui-yjhm.ui-arch .page-arch .pill {color:rgb(75,90,111);font:400 calc(9px*var(--fs,1))/1.4 'Archivo Narrow','Noto Sans KR',monospace
+html.ui-yjhm.ui-arch .page-arch .pill {color:rgb(75,90,111);font:400 calc(9px*var(--fs,1))/1.4 'Archivo Narrow','Pretendard Variable',Pretendard,monospace
 }
-html.ui-yjhm.ui-arch .page-arch .rel-card .nm b {font:400 calc(13px*var(--fs,1))/1.3 'Archivo Narrow','Noto Sans KR',sans-serif;color:rgb(44,62,87)
+html.ui-yjhm.ui-arch .page-arch .rel-card .nm b {font:400 calc(13px*var(--fs,1))/1.3 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif;color:rgb(44,62,87)
 }
-html.ui-yjhm.ui-arch .page-arch .rel-card .nm span {font:400 calc(9.5px*var(--fs,1))/1.6 'Archivo Narrow','Noto Sans KR',monospace
+html.ui-yjhm.ui-arch .page-arch .rel-card .nm span {font:400 calc(9.5px*var(--fs,1))/1.6 'Archivo Narrow','Pretendard Variable',Pretendard,monospace
 }
 html.ui-yjhm.ui-arch .page-arch .rel-card .nm .who i {box-shadow:0 0 0 1px rgba(44,62,87,0.054)
 }
-html.ui-yjhm.ui-arch .page-arch .rel-hero h1 {font-family:'Archivo Narrow','Noto Sans KR',sans-serif
+html.ui-yjhm.ui-arch .page-arch .rel-hero h1 {font-family:'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif
 }
-html.ui-yjhm.ui-arch .page-arch .rel-hero .catch {font:500 calc(11px*var(--fs,1))/1.6 'Noto Sans KR',sans-serif;color:rgb(90,104,122)
+html.ui-yjhm.ui-arch .page-arch .rel-hero .catch {font:500 calc(11px*var(--fs,1))/1.6 'Pretendard Variable',Pretendard,sans-serif;color:rgb(90,104,122)
 }
 html.ui-yjhm.ui-arch .page-arch .arch-hero .ah-crumb {font:400 calc(9px*var(--fs,1))/1 'Archivo Narrow',monospace
 }
 html.ui-yjhm.ui-arch .page-arch .arch-hero .ah-div em {font:400 calc(9px*var(--fs,1))/1 'Archivo Narrow',monospace
 }
-html.ui-yjhm.ui-arch .page-arch .arch-hero .ah-line small {font:500 calc(9.5px*var(--fs,1))/1 'Archivo Narrow','Noto Sans KR',sans-serif
+html.ui-yjhm.ui-arch .page-arch .arch-hero .ah-line small {font:500 calc(9.5px*var(--fs,1))/1 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif
 }
-html.ui-yjhm.ui-arch .page-arch .arch-hero .ah-line span {font:500 calc(14.5px*var(--fs,1))/1.6 'Noto Sans KR',sans-serif;color:rgb(67,83,105)
+html.ui-yjhm.ui-arch .page-arch .arch-hero .ah-line span {font:500 calc(14.5px*var(--fs,1))/1.6 'Pretendard Variable',Pretendard,sans-serif;color:rgb(67,83,105)
 }
-html.ui-yjhm.ui-arch .page-arch .widget h4 .kr {font:500 calc(9.5px*var(--fs,1))/1 'Noto Sans KR',sans-serif
+html.ui-yjhm.ui-arch .page-arch .widget h4 .kr {font:500 calc(9.5px*var(--fs,1))/1 'Pretendard Variable',Pretendard,sans-serif
 }
 html.ui-yjhm.ui-arch .page-arch .rel-body.rel-banner .rb-shade {
   background:linear-gradient(90deg,rgba(247,246,242,0.88) 0%,rgba(247,246,242,0.5) 40%,transparent 68%),linear-gradient(0deg,rgba(247,246,242,0.8),transparent 46%)
 }
-html.ui-yjhm.ui-arch .page-arch .rel-body.rel-banner .rb-text h1 {font:500 clamp(40px,5.2vw,74px)/1.05 'Archivo Narrow','Noto Sans KR',sans-serif;color:rgb(44,62,87)
+html.ui-yjhm.ui-arch .page-arch .rel-body.rel-banner .rb-text h1 {font:500 clamp(40px,5.2vw,74px)/1.05 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif;color:rgb(44,62,87)
 }
 html.ui-yjhm.ui-arch .page-arch .rel-body.rel-banner .rb-seal em {font:400 9px/1 'Archivo Narrow',monospace
 }
-html.ui-yjhm.ui-arch .page-arch .rel-body.rel-banner .rb-catch {font:500 12px/1.6 'Noto Sans KR',sans-serif;color:rgb(90,104,122)
+html.ui-yjhm.ui-arch .page-arch .rel-body.rel-banner .rb-catch {font:500 12px/1.6 'Pretendard Variable',Pretendard,sans-serif;color:rgb(90,104,122)
 }
-html.ui-yjhm.ui-arch .page-arch .rel-banner .rb-admin button {font:400 9px/1 'Archivo Narrow','Noto Sans KR',monospace;color:rgb(90,104,122);background:rgba(247,246,242,0.55);border:1px solid rgba(96,124,160,0.22)
+html.ui-yjhm.ui-arch .page-arch .rel-banner .rb-admin button {font:400 9px/1 'Archivo Narrow','Pretendard Variable',Pretendard,monospace;color:rgb(90,104,122);background:rgba(247,246,242,0.55);border:1px solid rgba(96,124,160,0.22)
 }
 html.ui-yjhm.ui-arch .page-arch .rel-banner .rb-admin button:hover, html.ui-yjhm.ui-arch .page-arch .rel-banner .rb-next:hover {color:rgb(44,62,87);border-color:rgba(96,124,160,0.55)
 }
-html.ui-yjhm.ui-arch .page-arch .rel-banner .rb-next {font:400 10px/1 'Archivo Narrow','Noto Sans KR',sans-serif;color:rgb(59,75,98);background:rgba(247,246,242,0.55);border:1px solid rgba(96,124,160,0.3)
+html.ui-yjhm.ui-arch .page-arch .rel-banner .rb-next {font:400 10px/1 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif;color:rgb(59,75,98);background:rgba(247,246,242,0.55);border:1px solid rgba(96,124,160,0.3)
 }
-html.ui-yjhm.ui-arch .page-arch .rel-banner .rb-aus button {font:400 9px/1.4 'Archivo Narrow','Noto Sans KR',monospace;color:rgba(65,81,103,0.55)
+html.ui-yjhm.ui-arch .page-arch .rel-banner .rb-aus button {font:400 9px/1.4 'Archivo Narrow','Pretendard Variable',Pretendard,monospace;color:rgba(65,81,103,0.55)
 }
 html.ui-yjhm.ui-arch .page-arch .rel-banner .rb-aus button:hover {color:rgb(44,62,87)
 }
@@ -105,7 +105,7 @@ html.ui-yjhm.ui-arch .page-arch .rel-banner .rb-aus button.on {color:rgb(44,62,8
 }
 html.ui-yjhm.ui-arch .page-arch .tl-log .tl-dt span {font:400 8.5px/1 'Archivo Narrow',monospace;color:rgb(142,151,162)
 }
-html.ui-yjhm.ui-arch .page-arch .tl-log .tl-dt b {font:500 calc(30px*var(--fs,1))/1.15 'Archivo Narrow','Noto Sans KR',sans-serif;color:rgb(44,62,87)
+html.ui-yjhm.ui-arch .page-arch .tl-log .tl-dt b {font:500 calc(30px*var(--fs,1))/1.15 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif;color:rgb(44,62,87)
 }
 html.ui-yjhm.ui-arch .page-arch .tl-log .desc {color:rgb(75,90,111)
 }
@@ -117,19 +117,19 @@ html.ui-yjhm.ui-arch .page-arch .mp-b .mp-pt {background:rgb(247,246,242)
 }
 html.ui-yjhm.ui-arch .page-arch .mp-b .mp-pt::after {background:linear-gradient(90deg,transparent 62%,rgba(247,246,242,0.45)),linear-gradient(0deg,rgba(247,246,242,0.35),transparent 30%)
 }
-html.ui-yjhm.ui-arch .page-arch .mp-quote span {font:500 calc(12px*var(--fs,1))/1.75 'Noto Sans KR',sans-serif;color:rgb(75,90,111)
+html.ui-yjhm.ui-arch .page-arch .mp-quote span {font:500 calc(12px*var(--fs,1))/1.75 'Pretendard Variable',Pretendard,sans-serif;color:rgb(75,90,111)
 }
-html.ui-yjhm.ui-arch .page-arch .mini-prof .hd b {font-family:'Archivo Narrow','Noto Sans KR',sans-serif;color:rgb(44,62,87)
+html.ui-yjhm.ui-arch .page-arch .mini-prof .hd b {font-family:'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif;color:rgb(44,62,87)
 }
-html.ui-yjhm.ui-arch .page-arch .mini-prof .specs b {font:400 calc(8.5px*var(--fs,1))/2 'Archivo Narrow','Noto Sans KR',monospace;color:rgb(142,151,162)
+html.ui-yjhm.ui-arch .page-arch .mini-prof .specs b {font:400 calc(8.5px*var(--fs,1))/2 'Archivo Narrow','Pretendard Variable',Pretendard,monospace;color:rgb(142,151,162)
 }
 html.ui-yjhm.ui-arch .page-arch .rel-desc {color:rgb(90,104,122)
 }
 html.ui-yjhm.ui-arch .page-arch .rel-center, html.ui-yjhm.ui-arch .page-arch .multi-illust {box-shadow:0 24px 50px -28px rgba(247,246,242,0.27)
 }
-html.ui-yjhm.ui-arch .page-arch .mrow .nm b, html.ui-yjhm.ui-arch .page-arch .multi-row b {font-family:'Archivo Narrow','Noto Sans KR',sans-serif;color:rgb(44,62,87)
+html.ui-yjhm.ui-arch .page-arch .mrow .nm b, html.ui-yjhm.ui-arch .page-arch .multi-row b {font-family:'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif;color:rgb(44,62,87)
 }
-html.ui-yjhm.ui-arch .page-arch .rel-tabs > button {font:500 calc(14px*var(--fs,1))/1.2 'Archivo Narrow','Noto Sans KR',sans-serif
+html.ui-yjhm.ui-arch .page-arch .rel-tabs > button {font:500 calc(14px*var(--fs,1))/1.2 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif
 }
 html.ui-yjhm.ui-arch .page-arch .tl-sort-row {background:rgba(247,246,242,0.5) !important
 }
@@ -143,7 +143,7 @@ html.ui-yjhm.ui-arch .page-arch .tl-item .era {font-family:'Archivo Narrow',mono
 }
 html.ui-yjhm.ui-arch .page-arch .tl-item .desc {color:rgb(75,90,111)
 }
-html.ui-yjhm.ui-arch .page-arch .tl-say .who, html.ui-yjhm.ui-arch .page-arch .qa-ans .who {font-family:'Archivo Narrow','Noto Sans KR',sans-serif
+html.ui-yjhm.ui-arch .page-arch .tl-say .who, html.ui-yjhm.ui-arch .page-arch .qa-ans .who {font-family:'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif
 }
 html.ui-yjhm.ui-arch .page-arch .qa-no {font-family:'Archivo Narrow',monospace
 }
@@ -163,25 +163,25 @@ html.ui-yjhm.ui-arch .page-arch .qa-item.on {color:rgb(44,62,87)
 }
 html.ui-yjhm.ui-arch .page-arch .qa-item.on b {color:rgb(44,62,87)
 }
-html.ui-yjhm.ui-arch .page-arch .qa-item small, html.ui-yjhm.ui-arch .page-arch .qa-item.on small {font-family:'Archivo Narrow','Noto Sans KR',monospace
+html.ui-yjhm.ui-arch .page-arch .qa-item small, html.ui-yjhm.ui-arch .page-arch .qa-item.on small {font-family:'Archivo Narrow','Pretendard Variable',Pretendard,monospace
 }
-html.ui-yjhm.ui-arch .page-arch .qa-input .char-pick small {font-family:'Archivo Narrow','Noto Sans KR',sans-serif
+html.ui-yjhm.ui-arch .page-arch .qa-input .char-pick small {font-family:'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif
 }
 html.ui-yjhm.ui-arch .page-arch .qa-ans .bub[data-note]::before {box-shadow:0 0 0 2px rgba(247,246,242,0.3),0 0 8px rgba(var(--cc),.8)
 }
-html.ui-yjhm.ui-arch .page-arch .qa-ans .bub[data-note]:hover::after {background:rgba(247,246,242,0.97);color:rgb(59,75,98);border:1px solid rgba(96,124,160,0.22);font:500 calc(12.5px*var(--fs,1))/1.7 'Noto Sans KR',sans-serif;box-shadow:0 18px 40px -16px rgba(247,246,242,0.3)
+html.ui-yjhm.ui-arch .page-arch .qa-ans .bub[data-note]:hover::after {background:rgba(247,246,242,0.97);color:rgb(59,75,98);border:1px solid rgba(96,124,160,0.22);font:500 calc(12.5px*var(--fs,1))/1.7 'Pretendard Variable',Pretendard,sans-serif;box-shadow:0 18px 40px -16px rgba(247,246,242,0.3)
 }
-html.ui-yjhm.ui-arch .page-arch .qa-locked {font-family:'Archivo Narrow','Noto Sans KR',monospace
+html.ui-yjhm.ui-arch .page-arch .qa-locked {font-family:'Archivo Narrow','Pretendard Variable',Pretendard,monospace
 }
 html.ui-yjhm.ui-arch .page-arch .qa-input .k-textarea, html.ui-yjhm.ui-arch .page-arch .k-textarea {background:rgba(247,246,242,0.6)
 }
-html.ui-yjhm.ui-arch .page-arch .widget h4 {font:400 calc(9.5px*var(--fs,1))/1.4 'Archivo Narrow','Noto Sans KR',monospace
+html.ui-yjhm.ui-arch .page-arch .widget h4 {font:400 calc(9.5px*var(--fs,1))/1.4 'Archivo Narrow','Pretendard Variable',Pretendard,monospace
 }
-html.ui-yjhm.ui-arch .page-arch .form-actions .btn-onbk {background:rgba(247,246,242,0.72);color:rgb(75,90,111);font:400 10.5px/1 'Archivo Narrow','Noto Sans KR',sans-serif
+html.ui-yjhm.ui-arch .page-arch .form-actions .btn-onbk {background:rgba(247,246,242,0.72);color:rgb(75,90,111);font:400 10.5px/1 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif
 }
 html.ui-yjhm.ui-arch .page-arch .form-actions .btn-onbk:hover {color:rgb(44,62,87)
 }
-html.ui-yjhm.ui-arch .page-arch .form-actions .btn-accent {color:rgb(44,62,87);font:400 10.5px/1 'Archivo Narrow','Noto Sans KR',sans-serif
+html.ui-yjhm.ui-arch .page-arch .form-actions .btn-accent {color:rgb(44,62,87);font:400 10.5px/1 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif
 }
 html.ui-yjhm.ui-arch .page-arch .k-label {color:rgb(75,90,111)
 }
@@ -221,10 +221,10 @@ html.ui-yjhm.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote, h
   --qx:var(--qc,rgb(103,116,132));--qt:color-mix(in srgb,var(--qx) 55%,rgb(44,62,87));color:rgb(50,68,92)
 }
 html.ui-yjhm.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote > p:first-child::before, html.ui-yjhm .mng-box.arch-modal .re-content blockquote > p:first-child::before {
-  font:500 9px/15px 'Archivo Narrow','Noto Sans KR',monospace;color:rgb(247,246,242)
+  font:500 9px/15px 'Archivo Narrow','Pretendard Variable',Pretendard,monospace;color:rgb(247,246,242)
 }
 html.ui-yjhm.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote:not(:has(> p:first-child))::before, html.ui-yjhm .mng-box.arch-modal .re-content blockquote:not(:has(> p:first-child))::before {
-  font:500 9px/15px 'Archivo Narrow','Noto Sans KR',monospace;color:rgb(247,246,242)
+  font:500 9px/15px 'Archivo Narrow','Pretendard Variable',Pretendard,monospace;color:rgb(247,246,242)
 }
 html.ui-yjhm.ui-arch .page-arch .ce-tab {background:rgba(247,246,242,0.35)
 }
@@ -260,9 +260,9 @@ html.ui-yjhm.ui-arch body:has(.page-arch) .grant-pop button:hover {background:rg
 }
 html.ui-yjhm.ui-arch .page-arch .k-input {background:rgba(247,246,242,0.6)
 }
-html.ui-yjhm.ui-arch .page-arch .board-lock b {font:400 calc(13px*var(--fs,1))/1.4 'Archivo Narrow','Noto Sans KR',sans-serif;color:rgb(44,62,87)
+html.ui-yjhm.ui-arch .page-arch .board-lock b {font:400 calc(13px*var(--fs,1))/1.4 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif;color:rgb(44,62,87)
 }
-html.ui-yjhm.ui-arch .page-arch .board-lock small {font:500 calc(11.5px*var(--fs,1))/1.7 'Noto Sans KR',sans-serif
+html.ui-yjhm.ui-arch .page-arch .board-lock small {font:500 calc(11.5px*var(--fs,1))/1.7 'Pretendard Variable',Pretendard,sans-serif
 }
 html.ui-yjhm.ui-arch .page-arch .board-lock .btn-dark {color:rgb(44,62,87)
 }
@@ -272,7 +272,7 @@ html.ui-yjhm .mng-box.arch-modal {border:1px solid rgba(96,124,160,0.18);backgro
 }
 html.ui-yjhm .mng-box.arch-modal::before, html.ui-yjhm .mng-box.arch-modal::after {border-color:rgba(96,124,160,0.75)
 }
-html.ui-yjhm .mng-box.arch-modal h3 {font:500 18px/1.3 'Archivo Narrow','Noto Sans KR',sans-serif;color:rgb(44,62,87)
+html.ui-yjhm .mng-box.arch-modal h3 {font:500 18px/1.3 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif;color:rgb(44,62,87)
 }
 html.ui-yjhm .mng-box.arch-modal .d {color:rgb(123,134,148)
 }
@@ -320,7 +320,7 @@ html.ui-yjhm .mng-box.arch-modal .mini-seg {border:1px solid rgba(96,124,160,0.1
 }
 html.ui-yjhm .mng-box.arch-modal .mini-seg button.on {background:rgba(96,124,160,0.16);color:rgb(44,62,87);box-shadow:inset 0 0 0 1px rgba(96,124,160,0.15)
 }
-html.ui-yjhm .mng-box.arch-modal .pill {background:rgba(247,246,242,0.6);color:rgb(75,90,111);border-color:rgba(96,124,160,0.22);font-family:'Archivo Narrow','Noto Sans KR',monospace
+html.ui-yjhm .mng-box.arch-modal .pill {background:rgba(247,246,242,0.6);color:rgb(75,90,111);border-color:rgba(96,124,160,0.22);font-family:'Archivo Narrow','Pretendard Variable',Pretendard,monospace
 }
 html.ui-yjhm .mng-box.arch-modal .pill.dark {background:rgba(96,124,160,0.14);color:rgb(44,62,87);border-color:rgba(96,124,160,0.45)
 }
@@ -344,7 +344,7 @@ html.ui-yjhm .mng-box.arch-modal .crop-foot [style*="215, 218, 224"] {background
 }
 html.ui-yjhm.ui-arch body:has(.page-arch) .modal-ov {background:rgba(247,246,242,0.72)
 }
-html.ui-yjhm.ui-arch .page-arch .tagside h4 {font-family:'Archivo Narrow','Noto Sans KR',monospace;color:rgb(142,151,162)
+html.ui-yjhm.ui-arch .page-arch .tagside h4 {font-family:'Archivo Narrow','Pretendard Variable',Pretendard,monospace;color:rgb(142,151,162)
 }
 html.ui-yjhm.ui-arch .page-arch .tagside .tag {color:rgb(75,90,111)
 }
@@ -367,7 +367,7 @@ html.ui-yjhm.ui-arch .page-arch .arch-tabbar {--cn:linear-gradient(rgba(61,78,10
     linear-gradient(180deg,rgba(44,62,87,0.028),transparent 46%),rgba(247,246,242,0.64)
 }
 html.ui-yjhm.ui-arch .page-arch .arch-tabbar .tag {
-  font:400 calc(12px*var(--fs,1))/1.3 'Archivo Narrow','Noto Sans KR',sans-serif
+  font:400 calc(12px*var(--fs,1))/1.3 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif
 }
 html.ui-yjhm.ui-arch .page-arch .arch-tabbar .tag:hover {color:rgb(44,62,87)
 }
@@ -405,13 +405,13 @@ html.ui-yjhm.ui-arch .page-arch .ticket .stub .sc-title {color:rgb(44,62,87)
 }
 html.ui-yjhm.ui-arch .page-arch .ticket .stub .row {color:rgb(75,90,111)
 }
-html.ui-yjhm.ui-arch .page-arch .ticket .stub .row b {font:400 calc(9px*var(--fs,1))/1 'Archivo Narrow','Noto Sans KR',monospace;color:rgb(142,151,162)
+html.ui-yjhm.ui-arch .page-arch .ticket .stub .row b {font:400 calc(9px*var(--fs,1))/1 'Archivo Narrow','Pretendard Variable',Pretendard,monospace;color:rgb(142,151,162)
 }
 html.ui-yjhm.ui-arch .page-arch .ticket .stub .adm {color:rgb(142,151,162);font-family:'Archivo Narrow',monospace
 }
 html.ui-yjhm.ui-arch .page-arch .log-plain {color:rgb(75,90,111)
 }
-html.ui-yjhm.ui-arch .page-arch .fr-term {font-family:'Archivo Narrow','Noto Sans KR',monospace
+html.ui-yjhm.ui-arch .page-arch .fr-term {font-family:'Archivo Narrow','Pretendard Variable',Pretendard,monospace
 }
 html.ui-yjhm.ui-arch .page-arch .fr-top {color:rgb(142,151,162)
 }
@@ -429,9 +429,9 @@ html.ui-yjhm.ui-arch .page-arch .fr-st.lock {color:rgb(184,64,56)
 }
 html.ui-yjhm.ui-arch .page-arch .fr-cur {color:rgb(142,151,162)
 }
-html.ui-yjhm.ui-arch .page-arch .fr-title {font:400 calc(30px*var(--fs,1))/1.3 'Archivo Narrow','Noto Sans KR',sans-serif
+html.ui-yjhm.ui-arch .page-arch .fr-title {font:400 calc(30px*var(--fs,1))/1.3 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif
 }
-html.ui-yjhm.ui-arch .page-arch .fr-catch {font:500 calc(11.5px*var(--fs,1))/1.6 'Noto Sans KR',sans-serif
+html.ui-yjhm.ui-arch .page-arch .fr-catch {font:500 calc(11.5px*var(--fs,1))/1.6 'Pretendard Variable',Pretendard,sans-serif
 }
 html.ui-yjhm.ui-arch .page-arch .rel-bn {background:rgb(247,246,242)
 }
@@ -441,9 +441,9 @@ html.ui-yjhm.ui-arch .page-arch .rel-bn .bn-art::after {background:linear-gradie
 }
 html.ui-yjhm.ui-arch .page-arch .rel-bn .bn-k {font:400 9px/1 'Archivo Narrow',monospace
 }
-html.ui-yjhm.ui-arch .page-arch .rel-bn b {font:500 calc(28px*var(--fs,1))/1.2 'Archivo Narrow','Noto Sans KR',sans-serif;color:rgb(44,62,87)
+html.ui-yjhm.ui-arch .page-arch .rel-bn b {font:500 calc(28px*var(--fs,1))/1.2 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif;color:rgb(44,62,87)
 }
-html.ui-yjhm.ui-arch .page-arch .rel-bn small {font:500 calc(11px*var(--fs,1))/1.5 'Noto Sans KR',sans-serif;color:rgb(90,104,122)
+html.ui-yjhm.ui-arch .page-arch .rel-bn small {font:500 calc(11px*var(--fs,1))/1.5 'Pretendard Variable',Pretendard,sans-serif;color:rgb(90,104,122)
 }
 html.ui-yjhm.ui-arch .page-arch .rel-bn .bn-m {color:rgb(75,90,111)
 }
@@ -453,7 +453,7 @@ html.ui-yjhm.ui-arch .page-arch .rel-bn .bn-m i {box-shadow:0 0 0 1px rgba(44,62
 }
 html.ui-yjhm.ui-arch .page-arch .rel-bn .bn-m .au {font:400 9px/1 'Archivo Narrow',monospace;color:rgb(142,151,162)
 }
-html.ui-yjhm.ui-arch .page-arch .rel-bn .bn-lock {font:400 9px/1.4 'Archivo Narrow','Noto Sans KR',monospace;color:rgb(184,64,56)
+html.ui-yjhm.ui-arch .page-arch .rel-bn .bn-lock {font:400 9px/1.4 'Archivo Narrow','Pretendard Variable',Pretendard,monospace;color:rgb(184,64,56)
 }
 html.ui-yjhm.ui-arch .page-arch .rel-bn .bn-no {font:500 56px/1 'Archivo Narrow',sans-serif;color:rgba(44,62,87,0.12)
 }
@@ -467,11 +467,11 @@ html.ui-yjhm.ui-arch .page-arch .rp-room .new {color:rgb(247,246,242);font-famil
 }
 html.ui-yjhm.ui-arch .page-arch .rp-head b {color:rgb(44,62,87)
 }
-html.ui-yjhm.ui-arch .page-arch .msg .who {font-family:'Archivo Narrow','Noto Sans KR',sans-serif
+html.ui-yjhm.ui-arch .page-arch .msg .who {font-family:'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif
 }
 html.ui-yjhm.ui-arch .page-arch .msg-desc {color:rgb(108,120,136)
 }
-html.ui-yjhm.ui-arch .page-arch .char-pick small {color:rgb(75,90,111);font-family:'Archivo Narrow','Noto Sans KR',sans-serif
+html.ui-yjhm.ui-arch .page-arch .char-pick small {color:rgb(75,90,111);font-family:'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif
 }
 html.ui-yjhm.ui-arch .page-arch .rp-pick-pop {background:rgba(247,246,242,0.97)
 }
@@ -503,7 +503,7 @@ html.ui-yjhm.ui-arch .page-arch .dy-card .dy-body .post-body {color:rgb(97,110,1
 }
 html.ui-yjhm.ui-arch .page-arch .dy-card .dy-body .post-body strong, html.ui-yjhm.ui-arch .page-arch .dy-card .dy-body .post-body b {color:rgb(44,62,87)
 }
-html.ui-yjhm.ui-arch .page-arch .dy-cf {font-family:'Archivo Narrow','Noto Sans KR',monospace
+html.ui-yjhm.ui-arch .page-arch .dy-cf {font-family:'Archivo Narrow','Pretendard Variable',Pretendard,monospace
 }
 html.ui-yjhm.ui-arch .page-arch .dy-arch h4 {font-family:'Archivo Narrow',monospace
 }
@@ -513,13 +513,13 @@ html.ui-yjhm.ui-arch .page-arch .dy-arch button.on, html.ui-yjhm.ui-arch .page-a
 }
 html.ui-yjhm.ui-arch .page-arch .dy-row .tt {color:rgb(44,62,87)
 }
-html.ui-yjhm.ui-arch .page-arch .dy-row .dt {font-family:'Archivo Narrow','Noto Sans KR',monospace
+html.ui-yjhm.ui-arch .page-arch .dy-row .dt {font-family:'Archivo Narrow','Pretendard Variable',Pretendard,monospace
 }
 html.ui-yjhm.ui-arch .page-arch .dy-row .dy-body .post-body {color:rgb(75,90,111)
 }
 html.ui-yjhm.ui-arch .page-arch .dy-row .dy-body .post-body strong, html.ui-yjhm.ui-arch .page-arch .dy-row .dy-body .post-body b {color:rgb(44,62,87)
 }
-html.ui-yjhm.ui-arch .page-arch .dy-cal .hd b {font-family:'Archivo Narrow','Noto Sans KR',sans-serif;color:rgb(44,62,87)
+html.ui-yjhm.ui-arch .page-arch .dy-cal .hd b {font-family:'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif;color:rgb(44,62,87)
 }
 html.ui-yjhm.ui-arch .page-arch .dy-cal .hd button:hover {color:rgb(44,62,87)
 }
@@ -536,7 +536,7 @@ html.ui-yjhm.ui-arch .page-rel-edit .ph {background:linear-gradient(135deg,rgba(
 html.ui-yjhm.ui-arch .page-rel-edit .ph span {font-family:'Archivo Narrow',monospace
 }
 html.ui-yjhm.ui-arch .tip-pop, html.ui-yjhm.ui-arch .tip-pop.dd {background:rgba(247,246,242,0.96);color:rgb(59,75,98);border:1px solid rgba(96,124,160,0.24);
-  font-family:'Archivo Narrow','Noto Sans KR',sans-serif;
+  font-family:'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif;
   box-shadow:0 12px 30px -12px rgba(247,246,242,0.3),0 0 16px -6px rgba(96,124,160,0.105)
 }
 html.ui-yjhm .mng-box.arch-modal .re-qpop, html.ui-yjhm.ui-arch .page-arch .re-qpop {background:rgb(247,246,242);border-color:rgba(96,124,160,0.22)
@@ -553,19 +553,19 @@ html.ui-yjhm.ui-arch body:has(.page-arch) .ctx-menu button:hover {background:rgb
 }
 html.ui-yjhm.ui-arch body:has(.page-arch) .ctx-menu button.danger:hover {background:rgba(184,64,56,0.14);color:rgb(184,64,56)
 }
-html.ui-yjhm.ui-arch body:has(.page-arch) .ctx-menu .ctx-ttl {font:400 9px/1.4 'Archivo Narrow','Noto Sans KR',monospace;color:rgb(96,124,160)
+html.ui-yjhm.ui-arch body:has(.page-arch) .ctx-menu .ctx-ttl {font:400 9px/1.4 'Archivo Narrow','Pretendard Variable',Pretendard,monospace;color:rgb(96,124,160)
 }
 html.ui-yjhm.ui-arch body:has(.page-arch) .ctx-menu .sep {background:rgba(96,124,160,0.14)
 }
-html.ui-yjhm.ui-arch .to-top {background:rgba(247,246,242,0.78);border-color:rgba(103,116,132,0.38);color:rgb(73,88,109);box-shadow:0 0 14px rgba(138,148,159,0.054)
+html.ui-yjhm.ui-arch .to-top {background:rgba(247,246,242,0.78);border-color:rgba(96,124,160,0.38);color:rgb(73,88,109);box-shadow:0 0 14px rgba(96,124,160,0.054)
 }
 @media (hover:hover) {
-html.ui-yjhm.ui-arch .to-top.on:hover {border-color:rgb(108,120,136);color:rgb(44,62,87);box-shadow:0 0 18px rgba(138,148,159,0.12)
+html.ui-yjhm.ui-arch .to-top.on:hover {border-color:rgb(96,124,160);color:rgb(44,62,87);box-shadow:0 0 18px rgba(96,124,160,0.12)
 }
 }
 html.ui-yjhm.ui-arch .page-arch .seg {background:rgba(247,246,242,0.72)
 }
-html.ui-yjhm.ui-arch .page-arch .seg button {font:400 calc(10px*var(--fs,1))/1 'Archivo Narrow','Noto Sans KR',sans-serif
+html.ui-yjhm.ui-arch .page-arch .seg button {font:400 calc(10px*var(--fs,1))/1 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif
 }
 html.ui-yjhm.ui-arch .page-arch .seg button.on {color:rgb(44,62,87)
 }
@@ -576,15 +576,15 @@ html.ui-yjhm.ui-arch .page-gallery .g-item::before, html.ui-yjhm.ui-arch .page-g
 html.ui-yjhm.ui-arch .page-gallery .g-item .thumb::after {background:linear-gradient(transparent,rgba(247,246,242,0.55))
 }
 html.ui-yjhm.ui-arch .page-arch :is(.g-item .typ,.list-item .typ,.g-badge) {background:rgba(247,246,242,0.78) !important;color:rgb(57,74,97) !important;
-  font:400 calc(9px*var(--fs,1))/1 'Archivo Narrow','Noto Sans KR',monospace !important
+  font:400 calc(9px*var(--fs,1))/1 'Archivo Narrow','Pretendard Variable',Pretendard,monospace !important
 }
-html.ui-yjhm.ui-arch .page-gallery .g-item .info b {font:500 calc(18px*var(--fs,1))/1.2 'Archivo Narrow','Noto Sans KR',sans-serif;color:rgb(44,62,87)
+html.ui-yjhm.ui-arch .page-gallery .g-item .info b {font:500 calc(18px*var(--fs,1))/1.2 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif;color:rgb(44,62,87)
 }
-html.ui-yjhm.ui-arch .page-gallery .g-item .info small {font:400 calc(9.5px*var(--fs,1))/1.5 'Archivo Narrow','Noto Sans KR',monospace
+html.ui-yjhm.ui-arch .page-gallery .g-item .info small {font:400 calc(9.5px*var(--fs,1))/1.5 'Archivo Narrow','Pretendard Variable',Pretendard,monospace
 }
 html.ui-yjhm.ui-arch .page-gallery .g-item .cover {background:rgba(247,246,242,0.72)
 }
-html.ui-yjhm.ui-arch .page-gallery-detail .g-title {font:500 calc(22px*var(--fs,1))/1.3 'Archivo Narrow','Noto Sans KR',sans-serif !important;color:rgb(44,62,87)
+html.ui-yjhm.ui-arch .page-gallery-detail .g-title {font:500 calc(22px*var(--fs,1))/1.3 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif !important;color:rgb(44,62,87)
 }
 html.ui-yjhm.ui-arch .page-gallery-detail .single-viewer .sv-frame {background:rgb(247,246,242)
 }
@@ -592,32 +592,32 @@ html.ui-yjhm.ui-arch .page-gallery-detail .single-viewer .nav {background:rgba(2
 }
 html.ui-yjhm.ui-arch .page-gallery-detail .post-body {color:rgb(90,104,122)
 }
-html.ui-yjhm.ui-arch .page-gallery .g-item .g-head .tag-in {font:400 calc(10px*var(--fs,1))/1.4 'Archivo Narrow','Noto Sans KR',monospace
+html.ui-yjhm.ui-arch .page-gallery .g-item .g-head .tag-in {font:400 calc(10px*var(--fs,1))/1.4 'Archivo Narrow','Pretendard Variable',Pretendard,monospace
 }
-html.ui-yjhm.ui-arch .page-gallery-detail .g-tag {font:400 calc(11.5px*var(--fs,1))/1.4 'Archivo Narrow','Noto Sans KR',monospace
+html.ui-yjhm.ui-arch .page-gallery-detail .g-tag {font:400 calc(11.5px*var(--fs,1))/1.4 'Archivo Narrow','Pretendard Variable',Pretendard,monospace
 }
 html.ui-yjhm.ui-arch .page-arch .b-badge, html.ui-yjhm.ui-arch .page-arch .brow .cat > span {background:rgba(247,246,242,0.78) !important;color:rgb(57,74,97) !important;
-  font:400 calc(8.5px*var(--fs,1))/1 'Archivo Narrow','Noto Sans KR',monospace !important
+  font:400 calc(8.5px*var(--fs,1))/1 'Archivo Narrow','Pretendard Variable',Pretendard,monospace !important
 }
-html.ui-yjhm.ui-arch .page-board .brow .tcell > b {font:500 calc(14px*var(--fs,1))/1.4 'Noto Sans KR',sans-serif;color:rgb(44,62,87)
+html.ui-yjhm.ui-arch .page-board .brow .tcell > b {font:500 calc(14px*var(--fs,1))/1.4 'Pretendard Variable',Pretendard,sans-serif;color:rgb(44,62,87)
 }
 html.ui-yjhm.ui-arch .page-board .brow b .cmt {font-family:'Archivo Narrow',monospace
 }
-html.ui-yjhm.ui-arch .page-board .brow .tags i {font-family:'Archivo Narrow','Noto Sans KR',monospace
+html.ui-yjhm.ui-arch .page-board .brow .tags i {font-family:'Archivo Narrow','Pretendard Variable',Pretendard,monospace
 }
-html.ui-yjhm.ui-arch .page-board .brow :is(.who,.dt) {font:400 calc(10px*var(--fs,1))/1 'Archivo Narrow','Noto Sans KR',monospace
+html.ui-yjhm.ui-arch .page-board .brow :is(.who,.dt) {font:400 calc(10px*var(--fs,1))/1 'Archivo Narrow','Pretendard Variable',Pretendard,monospace
 }
 html.ui-yjhm.ui-arch .page-board .bticket {background:rgba(247,246,242,0.9)
 }
 html.ui-yjhm.ui-arch .page-board .bticket .bt-ph {background:linear-gradient(135deg,rgba(96,124,160,0.06),rgba(247,246,242,0.7));color:rgb(142,151,162);font-family:'Archivo Narrow',sans-serif
 }
-html.ui-yjhm.ui-arch .page-board .bticket .bt-title {font:500 calc(17px*var(--fs,1))/1.3 'Archivo Narrow','Noto Sans KR',sans-serif;color:rgb(44,62,87)
+html.ui-yjhm.ui-arch .page-board .bticket .bt-title {font:500 calc(17px*var(--fs,1))/1.3 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif;color:rgb(44,62,87)
 }
-html.ui-yjhm.ui-arch .page-board .bticket .bt-meta {font:400 calc(10px*var(--fs,1))/1 'Archivo Narrow','Noto Sans KR',monospace
+html.ui-yjhm.ui-arch .page-board .bticket .bt-meta {font:400 calc(10px*var(--fs,1))/1 'Archivo Narrow','Pretendard Variable',Pretendard,monospace
 }
-html.ui-yjhm.ui-arch .page-board-detail .b-title {font:500 calc(24px*var(--fs,1))/1.35 'Archivo Narrow','Noto Sans KR',sans-serif !important;color:rgb(44,62,87)
+html.ui-yjhm.ui-arch .page-board-detail .b-title {font:500 calc(24px*var(--fs,1))/1.35 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif !important;color:rgb(44,62,87)
 }
-html.ui-yjhm.ui-arch .page-board-detail .b-meta {font:400 calc(10px*var(--fs,1))/1.6 'Archivo Narrow','Noto Sans KR',monospace !important
+html.ui-yjhm.ui-arch .page-board-detail .b-meta {font:400 calc(10px*var(--fs,1))/1.6 'Archivo Narrow','Pretendard Variable',Pretendard,monospace !important
 }
 html.ui-yjhm.ui-arch .page-board-detail .post-body {color:rgb(79,94,114)
 }
@@ -635,7 +635,7 @@ html.ui-yjhm.ui-arch .page-board-detail .veil .cover {background:rgba(247,246,24
 }
 html.ui-yjhm.ui-arch .page-memo2 .mn-count {font:400 calc(10px*var(--fs,1))/1 'Archivo Narrow',monospace
 }
-html.ui-yjhm.ui-arch .page-memo2 .mn-cat {font:400 calc(9px*var(--fs,1))/1 'Archivo Narrow','Noto Sans KR',monospace
+html.ui-yjhm.ui-arch .page-memo2 .mn-cat {font:400 calc(9px*var(--fs,1))/1 'Archivo Narrow','Pretendard Variable',Pretendard,monospace
 }
 html.ui-yjhm.ui-arch .excerpt-card {background:
   repeating-linear-gradient(0deg,rgba(44,62,87,0.022) 0 1px,transparent 1px 3px),
@@ -648,13 +648,13 @@ html.ui-yjhm.ui-arch .excerpt-card {background:
 html.ui-yjhm.ui-arch .page-arch.page-settings {--ink:rgb(59,75,98);--line:rgba(96,124,160,0.12);--faint:rgb(123,134,148);--sub:rgb(90,104,122)
 }
 html.ui-yjhm.ui-arch .page-settings .set-nav button {color:rgb(123,134,148);
-  font:400 calc(12px*var(--fs,1))/1.3 'Archivo Narrow','Noto Sans KR',sans-serif
+  font:400 calc(12px*var(--fs,1))/1.3 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif
 }
 html.ui-yjhm.ui-arch .page-settings .set-nav button:hover {color:rgb(44,62,87)
 }
 html.ui-yjhm.ui-arch .page-settings .set-nav button.on {color:rgb(44,62,87)
 }
-html.ui-yjhm.ui-arch .page-settings .set-sec h3 {font:400 calc(12px*var(--fs,1))/1.4 'Archivo Narrow','Noto Sans KR',sans-serif;color:rgb(44,62,87)
+html.ui-yjhm.ui-arch .page-settings .set-sec h3 {font:400 calc(12px*var(--fs,1))/1.4 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif;color:rgb(44,62,87)
 }
 html.ui-yjhm.ui-arch .page-settings .set-row .l b {color:rgb(59,75,98)
 }
@@ -671,7 +671,7 @@ html.ui-yjhm.ui-arch .page-memo2 mark {color:rgb(44,62,87)
 }
 html.ui-yjhm.ui-arch .page-memo2 .mn-row + .mn-row {border-top-color:rgba(96,124,160,0.07)
 }
-html.ui-yjhm.ui-arch .page-memo2 .mn-cat {font:400 calc(9px*var(--fs,1))/1 'Archivo Narrow','Noto Sans KR',monospace
+html.ui-yjhm.ui-arch .page-memo2 .mn-cat {font:400 calc(9px*var(--fs,1))/1 'Archivo Narrow','Pretendard Variable',Pretendard,monospace
 }
 html.ui-yjhm.ui-arch .page-memo2 .mn-dt {font-family:'Archivo Narrow',monospace
 }
@@ -695,7 +695,7 @@ html.ui-yjhm .mng-box.arch-modal {--cn:linear-gradient(rgba(96,124,160,0.75),rgb
 }
 html.ui-yjhm .mng-box.arch-modal .seg {background:rgba(247,246,242,0.72)
 }
-html.ui-yjhm .mng-box.arch-modal .seg button {font:400 calc(10.5px*var(--fs,1))/1 'Archivo Narrow','Noto Sans KR',sans-serif
+html.ui-yjhm .mng-box.arch-modal .seg button {font:400 calc(10.5px*var(--fs,1))/1 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif
 }
 html.ui-yjhm .mng-box.arch-modal .seg button:hover {color:rgb(44,62,87)
 }
@@ -741,17 +741,17 @@ html.ui-yjhm .mng-box.arch-modal .re-ctx-in, html.ui-yjhm.ui-arch .page-arch .re
 }
 html.ui-yjhm.ui-arch :is(details[data-fold] > summary,[data-fold] > [data-fold-title]) {color:rgb(50,68,92)
 }
-html.ui-yjhm .bgm-d {--d-ac:rgb(96,124,160);--d-acr:96,124,160;--d-ln:rgba(96,124,160,0.13);--d-ln2:rgba(96,124,160,0.26);--d-mu:rgb(115,126,141);--d-dim:rgb(156,163,172);color:rgb(59,75,98);font:400 12px/1.4 'Archivo Narrow','Noto Sans KR',sans-serif
+html.ui-yjhm .bgm-d {--d-ac:rgb(96,124,160);--d-acr:96,124,160;--d-ln:rgba(96,124,160,0.13);--d-ln2:rgba(96,124,160,0.26);--d-mu:rgb(115,126,141);--d-dim:rgb(156,163,172);color:rgb(59,75,98);font:400 12px/1.4 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif
 }
 html.ui-yjhm .bd-card {
   background:linear-gradient(160deg,rgba(44,62,87,0.05),transparent 50%),rgba(247,246,242,0.9);box-shadow:0 22px 44px -22px rgba(247,246,242,0.3)
 }
 html.ui-yjhm .bd-ch {font:500 9px/1 'Archivo Narrow',monospace
 }
-html.ui-yjhm .bgm-d .bd-tt {font:500 22px/1.15 'Archivo Narrow','Noto Sans KR',sans-serif;
+html.ui-yjhm .bgm-d .bd-tt {font:500 22px/1.15 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif;
   background:linear-gradient(180deg,rgb(44,62,87),rgb(75,90,111) 55%,rgb(115,126,141))
 }
-html.ui-yjhm .bd-desc {font:500 10.5px/1.3 'Noto Sans KR',sans-serif;color:rgb(142,151,162)
+html.ui-yjhm .bd-desc {font:500 10.5px/1.3 'Pretendard Variable',Pretendard,sans-serif;color:rgb(142,151,162)
 }
 html.ui-yjhm .bgm-d .bd-ctl button:hover {color:rgb(44,62,87)
 }
@@ -775,11 +775,11 @@ html.ui-yjhm .bd-list header {font:500 9px/1 'Archivo Narrow',monospace
 }
 html.ui-yjhm .bgm-d .bd-list .it {font:500 10px/1 'Archivo Narrow',monospace
 }
-html.ui-yjhm .bd-list .nm b {font:400 12px/1.3 'Archivo Narrow','Noto Sans KR',sans-serif
+html.ui-yjhm .bd-list .nm b {font:400 12px/1.3 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif
 }
 html.ui-yjhm .bd-list .it.on .nm b, html.ui-yjhm .bd-list .it:hover .nm b {color:rgb(44,62,87)
 }
-html.ui-yjhm .bd-list .nm small {font:500 10px/1.3 'Noto Sans KR',sans-serif
+html.ui-yjhm .bd-list .nm small {font:500 10px/1.3 'Pretendard Variable',Pretendard,sans-serif
 }
 html.ui-yjhm .bgm-d .bd-dial {
   background:radial-gradient(circle at 40% 35%,rgb(214,216,217),rgb(247,246,242) 70%);

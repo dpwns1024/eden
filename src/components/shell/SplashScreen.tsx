@@ -696,7 +696,7 @@ function SplashInner() {
   if (!show || !bgUrl) return null;
   return (
     <>
-      {/* 스코프 글씨(JetBrains Mono) · 이름(Jost) · 한글(Noto Sans KR) — 사이트 ARCH 화면과 같은 글꼴 */}
+      {/* 스코프 글씨(JetBrains Mono) · 이름(Jost) — 사이트 ARCH 화면과 같은 글꼴 (한글은 Pretendard) */}
       <link rel="stylesheet" href={ARCH_FONTS} precedence="default" />
       <SplashView
         bgUrl={bgUrl}

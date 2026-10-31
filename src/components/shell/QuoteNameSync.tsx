@@ -85,7 +85,7 @@ export function QuoteNameSync() {
       if (!ctx) return;
       const probe = document.createElement('span');
       probe.style.cssText = 'position:absolute;left:-9999px;top:0;display:block;height:15px;padding:0;margin:0;border:0;'
-        + "font:500 9px/15px 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em;white-space:nowrap;visibility:hidden";
+        + "font:500 9px/15px 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.2em;white-space:nowrap;visibility:hidden";
       probe.textContent = 'EDEN';
       const mark = document.createElement('i');
       mark.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline';
@@ -93,7 +93,7 @@ export function QuoteNameSync() {
       document.body.appendChild(probe);
       const base = mark.getBoundingClientRect().top - probe.getBoundingClientRect().top;   // 상자 위에서 기준선까지
       probe.remove();
-      ctx.font = "500 90px 'JetBrains Mono','Noto Sans KR',monospace";
+      ctx.font = "500 90px 'JetBrains Mono','Pretendard Variable',Pretendard,monospace";
       const m = ctx.measureText('EDEN');
       const capMid = (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 20;   // 9px 글씨에서 기준선 위 대문자 가운데
       const pad = Math.round(7.5 - (base - capMid));

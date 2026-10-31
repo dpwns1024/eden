@@ -222,19 +222,19 @@ html.ui-arch .page-arch,.mng-box.arch-modal{--a-pn:rgba(13,18,25,.64);--a-ln:rgb
 /* 제목 줄 — 은빛 큰 제목 + 아래 가는 선(앞 120px만 빛나는 포인트) */
 html.ui-arch .page-arch .page-head{padding-bottom:18px;margin-bottom:26px;border-bottom:1px solid var(--a-ln)}
 html.ui-arch .page-arch .page-head::after{content:'';position:absolute;left:0;bottom:-1px;width:120px;height:1px;background:var(--a-ac);box-shadow:0 0 12px var(--a-ac)}
-html.ui-arch .page-arch .page-head h1{font:300 clamp(30px,4.4vw,52px)/1.05 'Jost','Noto Sans KR',sans-serif;letter-spacing:.32em;background:var(--a-sil);-webkit-background-clip:text;background-clip:text;color:transparent}
+html.ui-arch .page-arch .page-head h1{font:300 clamp(30px,4.4vw,52px)/1.05 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.32em;background:var(--a-sil);-webkit-background-clip:text;background-clip:text;color:transparent}
 /* J·Q처럼 아래로 내려오는 글자 — 줄높이가 좁아 그라데이션(글자 칠)이 상자 밖에서 잘렸다 (v2.0 사용자 발견: JOURNAL의 J).
    칠할 자리만 아래로 늘리고 같은 만큼 당겨 자리(레이아웃)는 그대로 */
 html.ui-arch .page-arch .page-head h1{padding-bottom:.16em;margin-bottom:-.16em}
-html.ui-arch .page-arch .page-head p{margin-top:12px;font:300 13px/1.7 'Noto Sans KR',sans-serif;letter-spacing:.04em;color:#b3bec9}
+html.ui-arch .page-arch .page-head p{margin-top:12px;font:300 13px/1.7 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.04em;color:#b3bec9}
 html.ui-arch .page-arch .head-actions{bottom:18px}
 /* 버튼 — HTML 페이지 EDIT 버튼과 같은 결 */
-html.ui-arch .page-arch .btn-dark,html.ui-arch .page-arch .btn-ghost{height:34px;padding:0 16px;border:1px solid var(--a-ln2);border-radius:0;background:rgba(8,11,15,.72);color:#c9d2dc;font:400 10px/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;box-shadow:none;transition:.25s}
+html.ui-arch .page-arch .btn-dark,html.ui-arch .page-arch .btn-ghost{height:34px;padding:0 16px;border:1px solid var(--a-ln2);border-radius:0;background:rgba(8,11,15,.72);color:#c9d2dc;font:400 10px/1 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.3em;box-shadow:none;transition:.25s}
 html.ui-arch .page-arch .btn-dark:hover,html.ui-arch .page-arch .btn-ghost:hover{border-color:rgba(var(--a-acr),.7);color:#fff;background:rgba(8,11,15,.82);box-shadow:0 0 18px -4px rgba(var(--a-acr),.5)}
 html.ui-arch .page-arch .searchbar{height:34px;border:1px solid var(--a-ln2);border-radius:0;background:rgba(8,11,15,.72);box-shadow:none}
 html.ui-arch .page-arch .searchbar button{width:32px;height:32px;border-radius:0;color:var(--a-mu)}
 html.ui-arch .page-arch .searchbar button:hover{background:rgba(var(--a-acr),.08);color:#fff}
-html.ui-arch .page-arch .searchbar input{color:var(--a-tx);font-family:'Noto Sans KR',sans-serif}
+html.ui-arch .page-arch .searchbar input{color:var(--a-tx);font-family:'Pretendard Variable',Pretendard,sans-serif}
 html.ui-arch .page-arch .searchbar input::placeholder{color:var(--a-dim)}
 /* 공통 박스 — 어두운 반투명 + 가는 테두리 + 꺾쇠(왼쪽 위·오른쪽 아래) */
 html.ui-arch .page-arch .panel,html.ui-arch .page-arch .char-card,html.ui-arch .page-arch .rel-card{position:relative;border-radius:0;border:1px solid var(--a-ln);color:var(--a-tx);
@@ -253,7 +253,7 @@ html.ui-arch .page-arch .char-card .thumb::after,html.ui-arch .page-arch .rel-ca
 html.ui-arch .page-arch .char-card .thumb img,html.ui-arch .page-arch .rel-card .thumb img{transition:transform .5s cubic-bezier(.2,.7,.2,1)}
 html.ui-arch .page-arch .char-card:hover .thumb img,html.ui-arch .page-arch .rel-card:hover .thumb img{transform:scale(1.04)}
 html.ui-arch .page-arch .char-card .nm{padding:13px 16px}
-html.ui-arch .page-arch .char-card .nm b{font:400 calc(13px*var(--fs,1))/1.2 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;color:#fff}
+html.ui-arch .page-arch .char-card .nm b{font:400 calc(13px*var(--fs,1))/1.2 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.3em;color:#fff}
 html.ui-arch .page-arch .char-card .nm i{width:7px;height:7px;border-radius:0;transform:rotate(45deg);margin-right:3px;box-shadow:0 0 0 1px rgba(255,255,255,.18)}
 /* 상세 — 왼쪽 아이콘 탭 · 가운데 아트 · 오른쪽 정보 */
 html.ui-arch .page-arch .side-icons button{border-radius:0;border:1px solid var(--a-ln2);background:rgba(8,11,15,.62);color:var(--a-mu);font-size:calc(17px*var(--fs,1));padding:0;line-height:1} /* 기호 세로 가운데는 CenterGlyph가 실제 잉크를 재서 맞춘다 */
@@ -268,13 +268,13 @@ html.ui-arch .page-char-detail .profile-info .pf-name{background:linear-gradient
 html.ui-arch .page-char-detail .side-icons button{color:color-mix(in srgb,var(--cc) 45%,#8592a0)}
 html.ui-arch .page-char-detail .side-icons button:hover{color:#fff;border-color:color-mix(in srgb,var(--cc) 60%,transparent)}
 html.ui-arch .page-char-detail .side-icons button.on{color:color-mix(in srgb,var(--cc) 35%,#fff);background:color-mix(in srgb,var(--cc) 12%,transparent);border-color:color-mix(in srgb,var(--cc) 75%,#dfe6ee);box-shadow:0 0 18px -4px color-mix(in srgb,var(--cc) 70%,transparent)}
-html.ui-arch .page-arch .profile-info .pf-name:not([data-font]){font-family:'Jost','Noto Sans KR',sans-serif;font-weight:300}
+html.ui-arch .page-arch .profile-info .pf-name:not([data-font]){font-family:'Jost','Pretendard Variable',Pretendard,sans-serif;font-weight:300}
 html.ui-arch .page-arch .profile-info .pf-name{background:var(--a-sil);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:.24em !important}
-html.ui-arch .page-arch .profile-info .sub{font:300 calc(12px*var(--fs,1))/1.6 'Noto Sans KR',sans-serif;letter-spacing:.03em;color:var(--a-mu)} /* 한 줄 소개·대사 — 넓은 자간은 한글에선 띄어 보여 좁게 (v2.0 사용자 요청) */
-html.ui-arch .page-arch .profile-info h3{font:300 calc(20px*var(--fs,1))/1.2 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;background:var(--a-sil);-webkit-background-clip:text;background-clip:text;color:transparent}
+html.ui-arch .page-arch .profile-info .sub{font:300 calc(12px*var(--fs,1))/1.6 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.03em;color:var(--a-mu)} /* 한 줄 소개·대사 — 넓은 자간은 한글에선 띄어 보여 좁게 (v2.0 사용자 요청) */
+html.ui-arch .page-arch .profile-info h3{font:300 calc(20px*var(--fs,1))/1.2 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.3em;background:var(--a-sil);-webkit-background-clip:text;background-clip:text;color:transparent}
 html.ui-arch .page-arch .spec{padding-top:14px;border-top:1px solid var(--a-ln);row-gap:9px;grid-template-columns:96px 1fr}
-html.ui-arch .page-arch .spec dt{font:400 calc(8.5px*var(--fs,1))/1.9 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.22em;color:#6f7b89;text-transform:uppercase}
-html.ui-arch .page-arch .spec dd{font:400 calc(12px*var(--fs,1))/1.5 'Jost','Noto Sans KR',sans-serif;letter-spacing:.12em;color:var(--a-tx)}
+html.ui-arch .page-arch .spec dt{font:400 calc(8.5px*var(--fs,1))/1.9 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.22em;color:#6f7b89;text-transform:uppercase}
+html.ui-arch .page-arch .spec dd{font:400 calc(12px*var(--fs,1))/1.5 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.12em;color:var(--a-tx)}
 html.ui-arch .page-arch .prose{color:#b3bec9;font-weight:300;line-height:1.6;word-break:normal;overflow-wrap:anywhere;padding-top:16px;border-top:1px solid var(--a-ln)} /* 한 글자 단위 줄바꿈 — 단어째 넘겨 오른쪽이 비던 것 (v2.0 사용자 요청) */
 html.ui-arch .page-arch .re-content.prose{padding-top:14px;border-top:0;line-height:1.6} /* 에디터 본문(TipTap이 .prose를 붙임)에는 본문 구분선·위 여백을 넣지 않는다 — 안내 문구·커서 위치가 어긋났다 */
 /* 본문 글씨 통일 (v2.0 사용자 요청) — 리포트 · 게시판 · 저널 · 갤러리 · 프로필 · 글쓰기 칸 모두 15px · 행간 1.6 (발췌 이미지도 같은 값),
@@ -297,18 +297,18 @@ html.ui-arch .page-arch .prose hr{border-top-color:var(--a-ln2)}
 /* 인용구(대사) — 옅은 색 바탕 + 모서리 꺾쇠 + 밝은 글자 (v2.0 사용자 선택 D). 색은 인용구마다(--qc), 없으면 강조색 */
 html.ui-arch .page-arch .au-item{border-radius:0}
 /* 공통 작은 부품 — 뱃지(pill)·세그먼트·안내 */
-html.ui-arch .page-arch .pill{border-radius:0;background:transparent;border:1px solid var(--a-ln2);color:#c9d2dc;font:400 calc(9px*var(--fs,1))/1.4 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em}
+html.ui-arch .page-arch .pill{border-radius:0;background:transparent;border:1px solid var(--a-ln2);color:#c9d2dc;font:400 calc(9px*var(--fs,1))/1.4 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.2em}
 html.ui-arch .page-arch .mini-seg,html.ui-arch .page-arch .seg{border-radius:0}
 html.ui-arch .page-arch .mini-seg button,html.ui-arch .page-arch .seg button{border-radius:0}
 html.ui-arch .page-arch .hint{color:var(--a-mu)}
 /* 자관(PAIRING) — 목록 카드 */
-html.ui-arch .page-arch .rel-card .nm b{font:400 calc(13px*var(--fs,1))/1.3 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;color:#fff}
-html.ui-arch .page-arch .rel-card .nm span{font:400 calc(9.5px*var(--fs,1))/1.6 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.14em;color:var(--a-mu)}
+html.ui-arch .page-arch .rel-card .nm b{font:400 calc(13px*var(--fs,1))/1.3 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.3em;color:#fff}
+html.ui-arch .page-arch .rel-card .nm span{font:400 calc(9.5px*var(--fs,1))/1.6 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.14em;color:var(--a-mu)}
 html.ui-arch .page-arch .rel-card .nm .who i{width:7px;height:7px;border-radius:0;transform:rotate(45deg);box-shadow:0 0 0 1px rgba(255,255,255,.18)}
 /* 자관 상세 — 히어로(자관명·캐치프레이즈·한마디) */
-html.ui-arch .page-arch .rel-hero h1{font-family:'Jost','Noto Sans KR',sans-serif;font-weight:300;letter-spacing:.32em;text-indent:.32em}
-html.ui-arch .page-arch .rel-hero .catch{font:300 calc(11px*var(--fs,1))/1.6 'Noto Sans KR',sans-serif;letter-spacing:.5em;text-indent:.5em;color:#b3bec9}
-html.ui-arch .page-arch .rel-hero .quote{font-family:'Noto Sans KR',sans-serif;font-weight:300;letter-spacing:.06em}
+html.ui-arch .page-arch .rel-hero h1{font-family:'Jost','Pretendard Variable',Pretendard,sans-serif;font-weight:300;letter-spacing:.32em;text-indent:.32em}
+html.ui-arch .page-arch .rel-hero .catch{font:300 calc(11px*var(--fs,1))/1.6 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.5em;text-indent:.5em;color:#b3bec9}
+html.ui-arch .page-arch .rel-hero .quote{font-family:'Pretendard Variable',Pretendard,sans-serif;font-weight:300;letter-spacing:.06em}
 html.ui-arch .page-arch .rel-hero .cp-top .pill{border-color:rgba(var(--a-acr),.5);color:var(--a-ac);padding:4px 12px;box-shadow:0 0 14px -4px rgba(var(--a-acr),.5)}
 /* 히어로 — 가운데 인장형 (사용자 선택 B · SEAL): 머리줄 · 자관명 · CP 인장이 있는 선 · 캐치프레이즈 · 대화형 한마디 */
 html.ui-arch .page-arch .rel-hero.arch-hero{padding:30px 0 4px}
@@ -323,11 +323,11 @@ html.ui-arch .page-arch .arch-hero .catch{margin-top:12px}
 html.ui-arch .page-arch .arch-hero .ah-dl{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:28px;text-align:left}
 html.ui-arch .page-arch .arch-hero .ah-line{display:flex;gap:12px;align-items:baseline;min-width:0}
 html.ui-arch .page-arch .arch-hero .ah-line.r{flex-direction:row-reverse;justify-content:flex-start;text-align:right} /* 오른쪽 대사는 이름표가 맨 오른쪽 (사용자 요청) */
-html.ui-arch .page-arch .arch-hero .ah-line small{flex:none;font:500 calc(9.5px*var(--fs,1))/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.26em;color:var(--c)}
-html.ui-arch .page-arch .arch-hero .ah-line span{font:300 calc(14.5px*var(--fs,1))/1.6 'Noto Sans KR',sans-serif;color:#d6dde5;word-break:keep-all}
+html.ui-arch .page-arch .arch-hero .ah-line small{flex:none;font:500 calc(9.5px*var(--fs,1))/1 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.26em;color:var(--c)}
+html.ui-arch .page-arch .arch-hero .ah-line span{font:300 calc(14.5px*var(--fs,1))/1.6 'Pretendard Variable',Pretendard,sans-serif;color:#d6dde5;word-break:keep-all}
 html.ui-arch .page-arch .arch-hero .ah-line span::before{content:'\201C';margin-right:3px;color:var(--c)}
 html.ui-arch .page-arch .arch-hero .ah-line span::after{content:'\201D';margin-left:2px;color:var(--c)}
-html.ui-arch .page-arch .widget h4 .kr{margin-left:8px;font:300 calc(9.5px*var(--fs,1))/1 'Noto Sans KR',sans-serif;letter-spacing:.1em;color:var(--a-dim)}
+html.ui-arch .page-arch .widget h4 .kr{margin-left:8px;font:300 calc(9.5px*var(--fs,1))/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.1em;color:var(--a-dim)}
 @media (max-width:620px){
   /* 캐릭터 등록·수정 — 테마 컬러는 모바일에서 한 줄에 하나 (두 개면 칸이 넘쳐 겹쳤다) */
   .ce-colors{grid-template-columns:1fr !important}
@@ -350,13 +350,13 @@ html.ui-arch .page-arch .rel-body.rel-banner .rel-center .fb-r{right:12%}
 html.ui-arch .page-arch .rel-body.rel-banner .rb-shade{position:absolute;inset:0;z-index:4;pointer-events:none;
   background:linear-gradient(90deg,rgba(5,7,10,.88) 0%,rgba(5,7,10,.5) 40%,transparent 68%),linear-gradient(0deg,rgba(5,7,10,.8),transparent 46%)}
 html.ui-arch .page-arch .rel-body.rel-banner .rb-text{position:absolute;left:44px;bottom:38px;z-index:5;max-width:72%;pointer-events:none}
-html.ui-arch .page-arch .rel-body.rel-banner .rb-text h1{font:300 clamp(40px,5.2vw,74px)/1.05 'Jost','Noto Sans KR',sans-serif;letter-spacing:.16em;color:#fff;word-break:keep-all}
+html.ui-arch .page-arch .rel-body.rel-banner .rb-text h1{font:300 clamp(40px,5.2vw,74px)/1.05 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.16em;color:#fff;word-break:keep-all}
 /* 강철 그라데이션 — 캐릭터 프로필 이름과 같은 결 (v2.0 사용자 요청) */
 html.ui-arch .page-arch .rel-body.rel-banner .rb-text h1.rb-steel{background:var(--a-sil);-webkit-background-clip:text;background-clip:text;color:transparent}
 html.ui-arch .page-arch .rel-body.rel-banner .rb-seal{display:flex;align-items:center;gap:12px;margin-top:18px;max-width:240px}
 html.ui-arch .page-arch .rel-body.rel-banner .rb-seal em{font-style:normal;font:400 9px/1 'JetBrains Mono',monospace;letter-spacing:.3em;padding:5px 9px 5px 12px;border:1px solid rgba(var(--a-acr),.5);color:var(--a-ac);box-shadow:0 0 14px -4px rgba(var(--a-acr),.55)}
 html.ui-arch .page-arch .rel-body.rel-banner .rb-seal i{flex:1;height:1px;background:linear-gradient(90deg,rgba(var(--a-acr),.6),transparent)}
-html.ui-arch .page-arch .rel-body.rel-banner .rb-catch{margin-top:12px;font:300 12px/1.6 'Noto Sans KR',sans-serif;letter-spacing:.45em;color:#b3bec9}
+html.ui-arch .page-arch .rel-body.rel-banner .rb-catch{margin-top:12px;font:300 12px/1.6 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.45em;color:#b3bec9}
 html.ui-arch .page-arch .rel-body.rel-banner .mini-prof .specs{display:grid;grid-template-columns:1fr 1fr;column-gap:24px}
 /* 배너형에선 아래 타임라인·임무/현장 상자도 배너·카드와 같은 폭으로 (원래는 본문보다 좁게 가운데) */
 html.ui-arch .page-arch .rel-banner ~ .timeline,html.ui-arch .page-arch .rel-banner ~ .g2{max-width:none}
@@ -368,13 +368,13 @@ html.ui-arch .page-arch .rel-body.rel-banner{margin-top:0}
 /* 상세 폭을 PAIRING 목록(다른 게시판과 같은 1180px)과 같게 (v2.0 사용자 요청 — 상세만 1280px이라 더 넓었다) */
 html.ui-arch .page-arch.page-rel-detail{max-width:1180px}
 html.ui-arch .page-arch .rel-banner .rb-admin{position:absolute;top:16px;left:16px;z-index:7;display:flex;gap:6px}
-html.ui-arch .page-arch .rel-banner .rb-admin button{height:26px;padding:0 10px 0 12px;font:400 9px/1 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.24em;color:#b3bec9;background:rgba(5,7,10,.55);border:1px solid rgba(190,208,228,.22);backdrop-filter:blur(6px);transition:.15s;white-space:nowrap}
+html.ui-arch .page-arch .rel-banner .rb-admin button{height:26px;padding:0 10px 0 12px;font:400 9px/1 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.24em;color:#b3bec9;background:rgba(5,7,10,.55);border:1px solid rgba(190,208,228,.22);backdrop-filter:blur(6px);transition:.15s;white-space:nowrap}
 html.ui-arch .page-arch .rel-banner .rb-admin button:hover,html.ui-arch .page-arch .rel-banner .rb-next:hover{color:#fff;border-color:rgba(190,208,228,.55)}
 /* 다음 페어 — 배너 오른쪽 위 (v2.0 사용자 요청) */
-html.ui-arch .page-arch .rel-banner .rb-next{position:absolute;top:16px;right:16px;z-index:7;height:30px;padding:0 14px 0 17px;font:400 10px/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;color:#e4e9ef;background:rgba(5,7,10,.55);border:1px solid rgba(190,208,228,.3);backdrop-filter:blur(6px);transition:.15s}
+html.ui-arch .page-arch .rel-banner .rb-next{position:absolute;top:16px;right:16px;z-index:7;height:30px;padding:0 14px 0 17px;font:400 10px/1 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.3em;color:#e4e9ef;background:rgba(5,7,10,.55);border:1px solid rgba(190,208,228,.3);backdrop-filter:blur(6px);transition:.15s}
 /* AU 전환 — 캐치프레이즈 아래 작은 글자 탭 */
 html.ui-arch .page-arch .rel-banner .rb-aus{display:flex;flex-wrap:wrap;gap:4px 18px;margin-top:16px;pointer-events:auto}
-html.ui-arch .page-arch .rel-banner .rb-aus button{padding:4px 0;font:400 9px/1.4 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.24em;color:rgba(214,224,234,.55);border-bottom:1px solid transparent;transition:.15s}
+html.ui-arch .page-arch .rel-banner .rb-aus button{padding:4px 0;font:400 9px/1.4 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.24em;color:rgba(214,224,234,.55);border-bottom:1px solid transparent;transition:.15s}
 html.ui-arch .page-arch .rel-banner .rb-aus button:hover{color:#fff}
 html.ui-arch .page-arch .rel-banner .rb-aus button.on{color:#fff;border-bottom-color:var(--a-ac);box-shadow:0 6px 10px -8px rgba(var(--a-acr),.9)}
 /* 모바일 배너 글씨 — 그림을 덜 가리게 작게, 줄 간격도 좁게 (v2.0 사용자 요청) */
@@ -400,7 +400,7 @@ html.ui-arch .page-arch .tl-item.tl-log:first-child .tl-ln{padding-top:0}
 html.ui-arch .page-arch .tl-item.tl-log::before{display:none}
 html.ui-arch .page-arch .tl-log .tl-dt{padding:22px 20px 22px 0;min-width:0}
 html.ui-arch .page-arch .tl-log .tl-dt span{display:block;margin-bottom:12px;font:400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.26em;color:#6f7b89}
-html.ui-arch .page-arch .tl-log .tl-dt b{display:block;font:300 calc(30px*var(--fs,1))/1.15 'Jost','Noto Sans KR',sans-serif;letter-spacing:.1em;color:#fff;word-break:keep-all;overflow-wrap:anywhere}
+html.ui-arch .page-arch .tl-log .tl-dt b{display:block;font:300 calc(30px*var(--fs,1))/1.15 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.1em;color:#fff;word-break:keep-all;overflow-wrap:anywhere}
 html.ui-arch .page-arch .tl-log .tl-ln{padding:18px 0 18px 28px;border-left:1px solid var(--a-ln);display:grid;align-content:center;min-width:0}
 html.ui-arch .page-arch .tl-log .desc{margin:4px 0 8px;font-size:calc(13.5px*var(--fs,1));line-height:1.85;color:#c9d2dc;font-weight:300;white-space:pre-line}
 html.ui-arch .page-arch .tl-log .tl-row{display:grid;grid-template-columns:96px minmax(0,1fr);align-items:baseline;padding:9px 0;border-bottom:1px dashed rgba(190,208,228,.08)}
@@ -445,7 +445,7 @@ html.ui-arch .page-arch .mp-quote{position:relative;margin:14px 16px 0;padding:8
 html.ui-arch .page-arch .mp-quote::before,html.ui-arch .page-arch .mp-quote::after{content:'';position:absolute;width:9px;height:9px;border:solid var(--c);pointer-events:none}
 html.ui-arch .page-arch .mp-quote::before{left:0;top:0;border-width:1px 0 0 1px}
 html.ui-arch .page-arch .mp-quote::after{right:0;bottom:0;border-width:0 1px 1px 0}
-html.ui-arch .page-arch .mp-quote span{display:block;font:300 calc(12px*var(--fs,1))/1.75 'Noto Sans KR',sans-serif;letter-spacing:.02em;color:#c9d2dc;word-break:keep-all}
+html.ui-arch .page-arch .mp-quote span{display:block;font:300 calc(12px*var(--fs,1))/1.75 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.02em;color:#c9d2dc;word-break:keep-all}
 @media (max-width:960px){
   html.ui-arch .page-arch .rel-body.rel-banner{grid-template-columns:1fr;grid-template-areas:"art" "l" "r"}
   html.ui-arch .page-arch .rel-body.rel-banner > .rel-center{height:clamp(280px,70vw,420px)}
@@ -459,10 +459,10 @@ html.ui-arch .page-arch .mp-quote span{display:block;font:300 calc(12px*var(--fs
 /* 멤버 카드 */
 html.ui-arch .page-arch .mini-prof .hd{border-bottom:1px solid var(--a-ln)}
 html.ui-arch .page-arch .mini-prof .hd .face{border-radius:0;box-shadow:0 0 0 1px var(--a-ln2)}
-html.ui-arch .page-arch .mini-prof .hd b{font-family:'Jost','Noto Sans KR',sans-serif;font-weight:400;letter-spacing:.3em;color:#fff}
-html.ui-arch .page-arch .mini-prof .hd small{font-family:'Noto Sans KR',sans-serif;font-weight:300;letter-spacing:.04em;color:var(--a-mu)}
+html.ui-arch .page-arch .mini-prof .hd b{font-family:'Jost','Pretendard Variable',Pretendard,sans-serif;font-weight:400;letter-spacing:.3em;color:#fff}
+html.ui-arch .page-arch .mini-prof .hd small{font-family:'Pretendard Variable',Pretendard,sans-serif;font-weight:300;letter-spacing:.04em;color:var(--a-mu)}
 html.ui-arch .page-arch .mini-prof .specs{color:var(--a-tx)}
-html.ui-arch .page-arch .mini-prof .specs b{font:400 calc(8.5px*var(--fs,1))/2 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em;color:#6f7b89;text-transform:uppercase;min-width:84px}
+html.ui-arch .page-arch .mini-prof .specs b{font:400 calc(8.5px*var(--fs,1))/2 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.2em;color:#6f7b89;text-transform:uppercase;min-width:84px}
 html.ui-arch .page-arch .mini-prof .foot{border-top:1px solid var(--a-ln);color:var(--a-mu)}
 html.ui-arch .page-arch .rel-desc{color:#b3bec9;border-top:1px solid var(--a-ln);font-weight:300}
 /* 가운데 일러 · AU 썸네일 */
@@ -475,13 +475,13 @@ html.ui-arch .page-arch .au-item small{display:none} /* 썸네일 위 이름(원
 html.ui-arch .page-arch .mrow,html.ui-arch .page-arch .multi-row{border-bottom:1px solid var(--a-ln)}
 html.ui-arch .page-arch .mrow:hover,html.ui-arch .page-arch .multi-row:hover{background:rgba(var(--a-acr),.05)}
 html.ui-arch .page-arch .mrow .face,html.ui-arch .page-arch .multi-row .face{border-radius:0}
-html.ui-arch .page-arch .mrow .nm b,html.ui-arch .page-arch .multi-row b{font-family:'Jost','Noto Sans KR',sans-serif;font-weight:400;letter-spacing:.2em;color:#fff}
+html.ui-arch .page-arch .mrow .nm b,html.ui-arch .page-arch .multi-row b{font-family:'Jost','Pretendard Variable',Pretendard,sans-serif;font-weight:400;letter-spacing:.2em;color:#fff}
 html.ui-arch .page-arch .mrow .nm small,html.ui-arch .page-arch .mrow .nm .ext,html.ui-arch .page-arch .multi-row .meta{color:var(--a-mu)}
 /* 타임라인/문답 탭 */
 html.ui-arch .page-arch .rel-tabs{border-bottom:1px solid var(--a-ln)}
 /* 패널 위 여백은 줄인다 (v2.0 사용자 요청 — 「메뉴 이름 위로 여백이 너무 많아」). 탭 버튼 자체의 위아래 16px는 그대로 — 오른쪽 추가 버튼과 세로 가운데 */
 html.ui-arch .page-arch .timeline{padding-top:6px}
-html.ui-arch .page-arch .rel-tabs > button{font:300 calc(14px*var(--fs,1))/1.2 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;color:var(--a-mu);padding:16px 14px}
+html.ui-arch .page-arch .rel-tabs > button{font:300 calc(14px*var(--fs,1))/1.2 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.3em;color:var(--a-mu);padding:16px 14px}
 /* 탭 줄 오른쪽 버튼 — 아래 경계선에 붙지 않게 조금 낮게(32px) 하고 탭 글자와 세로 가운데 (v2.0 사용자 요청) */
 html.ui-arch .page-arch .rel-tabs .btn{height:32px !important}
 html.ui-arch .page-arch .tl-sort-row{background:rgba(5,8,12,.5) !important;border-color:var(--a-ln2) !important;border-radius:0 !important}
@@ -497,11 +497,11 @@ html.ui-arch .page-arch .tl-item::before{left:-5px;width:9px;height:9px;border-r
 html.ui-arch .page-arch .tl-item .era{font-family:'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--a-ac)}
 html.ui-arch .page-arch .tl-item .desc{color:#c9d2dc;font-weight:300}
 /* 말풍선 — 캐릭터 색 테두리의 어두운 칸 */
-html.ui-arch .page-arch .tl-say .who,html.ui-arch .page-arch .qa-ans .who{font-family:'Jost','Noto Sans KR',sans-serif;font-weight:500;letter-spacing:.24em} /* 캐릭터 대표색 그대로 — 밝기 보정을 걸면 지정한 색과 달라 보인다 (v2.0 사용자 요청) */
+html.ui-arch .page-arch .tl-say .who,html.ui-arch .page-arch .qa-ans .who{font-family:'Jost','Pretendard Variable',Pretendard,sans-serif;font-weight:500;letter-spacing:.24em} /* 캐릭터 대표색 그대로 — 밝기 보정을 걸면 지정한 색과 달라 보인다 (v2.0 사용자 요청) */
 html.ui-arch .page-arch .tl-say .bub,html.ui-arch .page-arch .qa-ans .bub{border-radius:0;background:linear-gradient(180deg,rgba(var(--cc),.16),rgba(var(--cc),.06));border:1px solid rgba(var(--cc),.55);color:var(--a-tx);font-weight:300}
 /* 문답 */
 html.ui-arch .page-arch .qa-no{font-family:'JetBrains Mono',monospace;color:var(--a-ac)}
-html.ui-arch .page-arch .qa-q{font-family:'Noto Sans KR',sans-serif;font-weight:400;color:#fff;letter-spacing:.01em}
+html.ui-arch .page-arch .qa-q{font-family:'Pretendard Variable',Pretendard,sans-serif;font-weight:400;color:#fff;letter-spacing:.01em}
 html.ui-arch .page-arch .qa-date{font-family:'JetBrains Mono',monospace;letter-spacing:.14em;color:var(--a-dim)}
 html.ui-arch .page-arch .qa-note{color:var(--a-mu);border-left:1px solid var(--a-ln2)}
 html.ui-arch .page-arch .qa-list{border-left:1px solid var(--a-ln)}
@@ -524,30 +524,30 @@ html.ui-arch .page-arch .qa-item:hover{background:rgba(var(--a-acr),.05)}
 html.ui-arch .page-arch .qa-item.on{background:rgba(var(--a-acr),.08);border-left-color:var(--a-ac);color:#fff}
 html.ui-arch .page-arch .qa-item b{font-weight:400;color:var(--a-tx)}
 html.ui-arch .page-arch .qa-item.on b{color:#fff}
-html.ui-arch .page-arch .qa-item small,html.ui-arch .page-arch .qa-item.on small{font-family:'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.1em;color:var(--a-mu);opacity:1}
+html.ui-arch .page-arch .qa-item small,html.ui-arch .page-arch .qa-item.on small{font-family:'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.1em;color:var(--a-mu);opacity:1}
 html.ui-arch .page-arch .qa-input{border-top:1px solid var(--a-ln)}
 html.ui-arch .page-arch .qa-input .char-pick .f{border-radius:0;box-shadow:0 0 0 1px var(--a-ln2)}
-html.ui-arch .page-arch .qa-input .char-pick small{color:var(--a-tx);font-family:'Jost','Noto Sans KR',sans-serif;letter-spacing:.16em}
+html.ui-arch .page-arch .qa-input .char-pick small{color:var(--a-tx);font-family:'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.16em}
 /* 답변 부연설명(속마음) 말풍선 — ARCH (v2.0 사용자 요청). 점은 캐릭터색 마름모, 말풍선은 각진 패널 + 캐릭터색 왼쪽 줄 */
 html.ui-arch .page-arch .qa-ans .bub[data-note]::before{border-radius:0;width:7px;height:7px;top:-4px;right:-4px;transform:rotate(45deg);box-shadow:0 0 0 2px #05070a,0 0 8px rgba(var(--cc),.8)}
-html.ui-arch .page-arch .qa-ans .bub[data-note]:hover::after{background:rgba(8,11,15,.97);color:#e4e9ef;border:1px solid rgba(190,208,228,.22);border-left:2px solid rgb(var(--cc));border-radius:0;padding:9px 14px;font:300 calc(12.5px*var(--fs,1))/1.7 'Noto Sans KR',sans-serif;letter-spacing:.01em;max-width:280px;box-shadow:0 18px 40px -16px #000}
-html.ui-arch .page-arch .qa-locked{color:var(--a-mu);font-family:'JetBrains Mono','Noto Sans KR',monospace}
+html.ui-arch .page-arch .qa-ans .bub[data-note]:hover::after{background:rgba(8,11,15,.97);color:#e4e9ef;border:1px solid rgba(190,208,228,.22);border-left:2px solid rgb(var(--cc));border-radius:0;padding:9px 14px;font:300 calc(12.5px*var(--fs,1))/1.7 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.01em;max-width:280px;box-shadow:0 18px 40px -16px #000}
+html.ui-arch .page-arch .qa-locked{color:var(--a-mu);font-family:'JetBrains Mono','Pretendard Variable',Pretendard,monospace}
 html.ui-arch .page-arch .qa-input .k-textarea,html.ui-arch .page-arch .k-textarea{border:1px solid var(--a-ln2);border-radius:0;background:rgba(5,8,12,.6);color:var(--a-tx)}
 /* 아래 작은 상자(역극·로그 등 위젯) */
-html.ui-arch .page-arch .widget h4{font:400 calc(9.5px*var(--fs,1))/1.4 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.26em;color:var(--a-mu)}
+html.ui-arch .page-arch .widget h4{font:400 calc(9.5px*var(--fs,1))/1.4 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.26em;color:var(--a-mu)}
 html.ui-arch .page-arch .widget h4 .more{color:var(--a-ac)}
 html.ui-arch .page-arch .dday-row{border-bottom:1px solid var(--a-ln);color:var(--a-tx)}
 /* 오른쪽 상태(완결 · 공개)·날짜 — 기본은 굵은 세리프라 ARCH에선 튀었다 (v2.0 사용자 제보) → 가는 고딕, 옅은 색 */
-html.ui-arch .page-arch .dday-row b{font-family:'Noto Sans KR',sans-serif;font-weight:300;letter-spacing:.08em;color:var(--a-mu) !important;font-size:calc(11px*var(--fs,1)) !important}
+html.ui-arch .page-arch .dday-row b{font-family:'Pretendard Variable',Pretendard,sans-serif;font-weight:300;letter-spacing:.08em;color:var(--a-mu) !important;font-size:calc(11px*var(--fs,1)) !important}
 /* ── 캐릭터 등록·수정 화면 (기능은 그대로 — 색·테두리·글꼴만, 글자는 읽기 쉽게 고딕 위주) ── */
 html.ui-arch .page-arch .write-grid .btn{height:auto;min-height:30px;padding:7px 14px}
 /* 폼 안 버튼·뱃지는 한글이 많아 자간을 좁혀 읽기 쉽게 */
 html.ui-arch .page-arch .write-grid .btn{letter-spacing:.14em} /* 저장/취소는 아래 .form-actions 규칙이 다시 넓힘 */
-html.ui-arch .page-arch .write-grid .pill{font-family:'Noto Sans KR',sans-serif;letter-spacing:.06em}
+html.ui-arch .page-arch .write-grid .pill{font-family:'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.06em}
 html.ui-arch .page-arch .form-actions .btn{height:42px;min-height:0;padding:0 14px}
-html.ui-arch .page-arch .form-actions .btn-onbk{border:1px solid var(--a-ln2);border-radius:0;background:rgba(8,11,15,.72);color:#c9d2dc;font:400 10.5px/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em}
+html.ui-arch .page-arch .form-actions .btn-onbk{border:1px solid var(--a-ln2);border-radius:0;background:rgba(8,11,15,.72);color:#c9d2dc;font:400 10.5px/1 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.3em}
 html.ui-arch .page-arch .form-actions .btn-onbk:hover{border-color:rgba(var(--a-acr),.6);color:#fff}
-html.ui-arch .page-arch .form-actions .btn-accent{border:1px solid rgba(var(--a-acr),.55);border-radius:0;background:linear-gradient(180deg,rgba(var(--a-acr),.22),rgba(var(--a-acr),.06));color:#fff;font:400 10.5px/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.4em}
+html.ui-arch .page-arch .form-actions .btn-accent{border:1px solid rgba(var(--a-acr),.55);border-radius:0;background:linear-gradient(180deg,rgba(var(--a-acr),.22),rgba(var(--a-acr),.06));color:#fff;font:400 10.5px/1 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.4em}
 html.ui-arch .page-arch .form-actions .btn-accent:hover{border-color:rgba(var(--a-acr),.85);box-shadow:0 0 22px -6px rgba(var(--a-acr),.6)}
 html.ui-arch .page-arch .k-label{color:#c9d2dc;font-weight:500;letter-spacing:.04em}
 html.ui-arch .page-arch .cp-lb,html.ui-arch .page-arch .drag-h{color:var(--a-mu)}
@@ -608,7 +608,7 @@ html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote > p:first-
   vertical-align:calc(var(--qem) * var(--qhc,.34) - 7.5px);overflow:hidden;   /* --qhc: 실제 글꼴에서 잰 한글 가운데 높이 (QuoteNameSync) */
   pointer-events:none;text-align:center;text-indent:0;
   white-space:nowrap;text-overflow:ellipsis;text-transform:uppercase;   /* 딱지 글자 = 인용구 색의 캐릭터 이름 (components/shell/QuoteNameSync.tsx) */
-  font:500 9px/15px 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em;color:#05070a;background:var(--qt);box-shadow:0 0 10px -2px var(--qx)}
+  font:500 9px/15px 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.2em;color:#05070a;background:var(--qt);box-shadow:0 0 10px -2px var(--qx)}
 /* 딱지 높이도 px 단위로 — 기준선이 px에 맞춰지므로 딱지까지 정수 거리면 인용구 위치와 상관없이 늘 같은 모양 (round() 되는 브라우저) */
 @supports (width:round(1.5px,1px)){
   html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote > p:first-child::before,.mng-box.arch-modal .re-content blockquote > p:first-child::before{vertical-align:round(calc(var(--qem) * var(--qhc,.34) - 7.5px),1px)}
@@ -618,7 +618,7 @@ html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote:not(:has(>
   content:var(--qname);position:absolute;left:0;top:calc(var(--qpt,4px) + (var(--qlh) - 15px) / 2);width:47px;height:15px;padding:var(--qlp,1px) 0 0 .2em;
   pointer-events:none;box-sizing:border-box;text-align:center;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;
-  font:500 9px/15px 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em;color:#05070a;background:var(--qt);box-shadow:0 0 10px -2px var(--qx)}
+  font:500 9px/15px 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.2em;color:#05070a;background:var(--qt);box-shadow:0 0 10px -2px var(--qx)}
 /* 색 선 — 딱지 뒤에 깔아(z-index:-1, 인용구가 isolation으로 따로 쌓임) 딱지가 글꼴 따라 조금 내려가도 선이 딱지 위로 비치지 않게 */
 html.ui-arch .page-arch :is(.prose,.post-body,.re-content) blockquote::after,.mng-box.arch-modal .re-content blockquote::after{
   content:'';position:absolute;left:23px;top:calc(var(--qpt,4px) + var(--qlh) / 2 + 10px);bottom:6px;width:1px;pointer-events:none;z-index:-1;   /* 딱지 가운데(47px의 절반) · 딱지 아래 약 2.5px부터 */
@@ -647,14 +647,18 @@ html.ui-arch body:has(.page-arch) .sym-pop .sym-grid button:hover{background:rgb
 html.ui-arch body:has(.page-arch) .grant-pop{background:rgba(8,11,15,.97) !important;border-color:rgba(190,208,228,.22) !important;border-radius:0 !important}
 html.ui-arch body:has(.page-arch) .grant-pop button{color:#e4e9ef !important;border-radius:0 !important}
 html.ui-arch body:has(.page-arch) .grant-pop button:hover{background:rgba(184,216,255,.08)}
+/* 한글 자간 — 영문용 넓은 자간이 한글 칸에 붙으면 글자가 띄어 보인다. 한글이 든 칸(components/shell/LetterSpacingFix.tsx가 표시)은 좁게 */
+/* 같은 속성을 겹쳐 써 우선순위를 올린다 — 로그인 창처럼 자간을 !important로 박아 둔 칸도 덮도록 */
+html.ui-arch:not(.ui-yjhm) [data-ko][data-ko][data-ko]{letter-spacing:.04em !important}
+html.ui-arch:not(.ui-yjhm) [data-ko-ph][data-ko-ph][data-ko-ph]::placeholder{letter-spacing:.04em !important}
 /* 입력칸 · 메뉴 비밀번호 화면 */
 html.ui-arch .page-arch .k-input{border:1px solid var(--a-ln2);border-radius:0;background:rgba(5,8,12,.6);color:var(--a-tx);box-shadow:none}
 html.ui-arch .page-arch .k-input::placeholder{color:var(--a-dim)}
 html.ui-arch .page-arch .k-input:focus{border-color:rgba(var(--a-acr),.6);box-shadow:0 0 0 3px rgba(var(--a-acr),.08)}
 html.ui-arch .page-arch .board-lock{padding:30px 26px 26px;gap:12px}
 html.ui-arch .page-arch .board-lock-ic{color:var(--a-ac);filter:drop-shadow(0 0 6px rgba(var(--a-acr),.5))}
-html.ui-arch .page-arch .board-lock b{font:400 calc(13px*var(--fs,1))/1.4 'Jost','Noto Sans KR',sans-serif;letter-spacing:.32em;color:#fff}
-html.ui-arch .page-arch .board-lock small{font:300 calc(11.5px*var(--fs,1))/1.7 'Noto Sans KR',sans-serif;letter-spacing:.02em;color:var(--a-mu);word-break:keep-all}
+html.ui-arch .page-arch .board-lock b{font:400 calc(13px*var(--fs,1))/1.4 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.32em;color:#fff}
+html.ui-arch .page-arch .board-lock small{font:300 calc(11.5px*var(--fs,1))/1.7 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.02em;color:var(--a-mu);word-break:keep-all}
 html.ui-arch .page-arch .board-lock .k-input{height:42px;text-align:center;letter-spacing:.3em}
 html.ui-arch .page-arch .board-lock .k-input::placeholder{letter-spacing:.2em}
 html.ui-arch .page-arch .board-lock .btn-dark{height:40px;background:linear-gradient(180deg,rgba(var(--a-acr),.16),rgba(var(--a-acr),.04));border-color:rgba(var(--a-acr),.45);color:#fff;letter-spacing:.5em}
@@ -668,13 +672,13 @@ html.ui-arch .page-arch .board-lock-err{color:#ff8a92}
 .login-page.login-arch .login-card h1{margin:0 -.62em 0 0 !important;font:300 28px/1 'Jost',sans-serif !important;letter-spacing:.62em !important;background:linear-gradient(180deg,#fff 0%,#d3dbe4 34%,#7f8a97 52%,#e6ebf1 68%,#98a3b0 100%);-webkit-background-clip:text;background-clip:text;color:transparent !important}
 .login-page.login-arch .login-card h1::before{content:'ARCH · SECURE ACCESS TERMINAL';display:block;margin:0 0 16px;font:400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.3em;-webkit-text-fill-color:#5d6876;color:#5d6876}
 .login-page.login-arch .login-card > div:first-of-type{margin:14px 0 22px !important;padding-bottom:18px;border-bottom:1px solid rgba(190,208,228,.1)}
-.login-page.login-arch .login-card > div:first-of-type *{font:300 12px/1.7 'Noto Sans KR',sans-serif !important;color:#8592a0 !important;letter-spacing:.02em;word-break:keep-all}
-.login-page.login-arch .k-input{height:44px;padding:0 14px;border:1px solid rgba(190,208,228,.18) !important;border-radius:0 !important;background:rgba(5,7,10,.75) !important;color:#e4e9ef !important;font:400 12.5px 'Noto Sans KR',sans-serif;letter-spacing:.04em;box-shadow:none !important}
+.login-page.login-arch .login-card > div:first-of-type *{font:300 12px/1.7 'Pretendard Variable',Pretendard,sans-serif !important;color:#8592a0 !important;letter-spacing:.02em;word-break:keep-all}
+.login-page.login-arch .k-input{height:44px;padding:0 14px;border:1px solid rgba(190,208,228,.18) !important;border-radius:0 !important;background:rgba(5,7,10,.75) !important;color:#e4e9ef !important;font:400 12.5px 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.04em;box-shadow:none !important}
 .login-page.login-arch .k-input::placeholder{color:#4a5461;letter-spacing:.14em}
 .login-page.login-arch .k-input:focus{border-color:rgba(184,216,255,.6) !important;box-shadow:0 0 0 1px rgba(184,216,255,.25),0 0 18px -6px rgba(184,216,255,.6) !important}
-.login-page.login-arch .login-card .btn-dark{height:46px;border:1px solid rgba(184,216,255,.45) !important;border-radius:0 !important;background:linear-gradient(180deg,rgba(184,216,255,.18),rgba(184,216,255,.04)) !important;color:#fff !important;font:400 11.5px 'Noto Sans KR',sans-serif !important;letter-spacing:.5em !important;box-shadow:none !important;transition:all .3s}
+.login-page.login-arch .login-card .btn-dark{height:46px;border:1px solid rgba(184,216,255,.45) !important;border-radius:0 !important;background:linear-gradient(180deg,rgba(184,216,255,.18),rgba(184,216,255,.04)) !important;color:#fff !important;font:400 11.5px 'Pretendard Variable',Pretendard,sans-serif !important;letter-spacing:.5em !important;box-shadow:none !important;transition:all .3s}
 .login-page.login-arch .login-card .btn-dark:hover{border-color:rgba(184,216,255,.8) !important;box-shadow:0 0 26px -6px rgba(184,216,255,.6) !important}
-.login-page.login-arch .login-card .btn-ghost{border:1px solid rgba(190,208,228,.14) !important;border-radius:0 !important;background:transparent !important;color:#8592a0 !important;font:400 10.5px 'Noto Sans KR',sans-serif !important;letter-spacing:.24em !important}
+.login-page.login-arch .login-card .btn-ghost{border:1px solid rgba(190,208,228,.14) !important;border-radius:0 !important;background:transparent !important;color:#8592a0 !important;font:400 10.5px 'Pretendard Variable',Pretendard,sans-serif !important;letter-spacing:.24em !important}
 .login-page.login-arch .login-card .btn-ghost:hover{color:#fff !important;border-color:rgba(190,208,228,.4) !important}
 .login-page.login-arch .login-card p{color:#ff8a92 !important}
 @media (max-width:620px){.login-page.login-arch .login-card{padding:30px 22px 24px !important}}
@@ -683,7 +687,7 @@ html.ui-arch .page-arch .board-lock-err{color:#ff8a92}
 .mng-box.arch-modal::before{left:0;top:0;border-width:1px 0 0 1px}   /* 창 안쪽 모서리에 — 밖으로 내면 스크롤이 생긴다 */
 .mng-box.arch-modal::after{right:0;bottom:0;border-width:0 1px 1px 0}
 .mng-box.arch-modal{overflow-x:hidden}
-.mng-box.arch-modal h3{font:300 18px/1.3 'Jost','Noto Sans KR',sans-serif;letter-spacing:.24em;color:#fff}
+.mng-box.arch-modal h3{font:300 18px/1.3 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.24em;color:#fff}
 .mng-box.arch-modal .d{color:#8592a0}
 .mng-box.arch-modal .k-input{height:42px;padding:0 14px;border:1px solid rgba(190,208,228,.18) !important;border-radius:0 !important;background:rgba(5,7,10,.75) !important;color:#e4e9ef !important;box-shadow:none !important}
 .mng-box.arch-modal .k-input::placeholder{color:#4a5461;letter-spacing:.12em}
@@ -712,7 +716,7 @@ html.ui-arch .page-arch .board-lock-err{color:#ff8a92}
 .mng-box.arch-modal .mini-seg{border-radius:0;border:1px solid rgba(190,208,228,.18);background:rgba(5,7,10,.75)}
 .mng-box.arch-modal .mini-seg button{border-radius:0}
 .mng-box.arch-modal .mini-seg button.on{background:rgba(184,216,255,.16);color:#fff;box-shadow:inset 0 0 0 1px rgba(184,216,255,.5)}
-.mng-box.arch-modal .pill{border-radius:0;background:rgba(5,7,10,.6);color:#c9d2dc;border-color:rgba(190,208,228,.22);font-family:'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.16em}
+.mng-box.arch-modal .pill{border-radius:0;background:rgba(5,7,10,.6);color:#c9d2dc;border-color:rgba(190,208,228,.22);font-family:'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.16em}
 .mng-box.arch-modal .pill.dark{background:rgba(184,216,255,.14);color:#fff;border-color:rgba(184,216,255,.45)}
 .mng-box.arch-modal .fx{color:#8592a0}
 .mng-box.arch-modal .fx:hover{color:#fff}
@@ -729,7 +733,7 @@ html.ui-arch body:has(.page-arch) .modal-ov{background:rgba(3,5,8,.72)}
 /* ===== RECORDS 게시판 — FIELD REPORT(/trpg) · COMMS ARCHIVE(/rp) · JOURNAL(/diary) ARCH (v2.0 사용자 요청) =====
    레이아웃·기능은 그대로, 색·선·글꼴만. 글은 밝게(가독성), 칸은 각지게 */
 /* 공통 — 오른쪽 필터 상자 · 태그 줄 · 쪽 번호 */
-html.ui-arch .page-arch .tagside h4{font-family:'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em;color:#6f7b89}
+html.ui-arch .page-arch .tagside h4{font-family:'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.2em;color:#6f7b89}
 html.ui-arch .page-arch .tagside .tag{border-radius:0;color:#c9d2dc;border-left:1px solid transparent}
 html.ui-arch .page-arch .tagside .tag:hover{background:rgba(var(--a-acr),.05);color:#fff}
 html.ui-arch .page-arch .tagside .tag.on{background:rgba(var(--a-acr),.1);color:#fff;border-left-color:var(--a-ac)}
@@ -746,7 +750,7 @@ html.ui-arch .page-arch .arch-tabbar{--cn:linear-gradient(rgba(220,230,240,.55),
 html.ui-arch .page-arch .arch-tabbar::-webkit-scrollbar{display:none}
 html.ui-arch .page-arch .arch-tabbar .tag{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;padding:9px 16px;margin:0;
   border:0;border-bottom:1px solid transparent;border-radius:0;background:none;box-shadow:none;cursor:pointer;
-  font:400 calc(12px*var(--fs,1))/1.3 'Jost','Noto Sans KR',sans-serif;letter-spacing:.14em;color:var(--a-mu);transition:color .2s,background .2s}
+  font:400 calc(12px*var(--fs,1))/1.3 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.14em;color:var(--a-mu);transition:color .2s,background .2s}
 html.ui-arch .page-arch .arch-tabbar .tag:hover{color:#fff;background:rgba(var(--a-acr),.06);border-color:transparent}
 html.ui-arch .page-arch .arch-tabbar .tag.on{color:#fff;background:rgba(var(--a-acr),.1);border-bottom-color:var(--a-ac);box-shadow:inset 0 -12px 18px -14px rgba(var(--a-acr),.7)}
 html.ui-arch .page-arch .arch-tabbar .tag small{font:400 calc(10px*var(--fs,1)) 'JetBrains Mono',monospace;letter-spacing:.06em;color:var(--a-mu);opacity:1}
@@ -800,19 +804,19 @@ html.ui-arch .page-arch .ticket .stub .sc-title{color:#fff;font-weight:500}
 html.ui-arch .page-arch .ticket .stub .sc-catch{color:var(--a-mu)}
 html.ui-arch .page-arch .ticket .stub .sc-catch::after{height:1px;width:40px;background:var(--a-ac);box-shadow:0 0 10px rgba(var(--a-acr),.8)}
 html.ui-arch .page-arch .ticket .stub .row{color:#c9d2dc}
-html.ui-arch .page-arch .ticket .stub .row b{font:400 calc(9px*var(--fs,1))/1 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em;color:#6f7b89;min-width:60px;vertical-align:1px}
+html.ui-arch .page-arch .ticket .stub .row b{font:400 calc(9px*var(--fs,1))/1 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.2em;color:#6f7b89;min-width:60px;vertical-align:1px}
 html.ui-arch .page-arch .ticket .stub .adm{border-top:1px dashed var(--a-ln);color:#6f7b89;font-family:'JetBrains Mono',monospace}
 html.ui-arch .page-arch .log-plain{color:#c9d2dc}
 
 /* FIELD REPORT 단말기형 (v2.0 사용자 선택 D) — 고정폭 글씨 한 줄씩, 맨 아래 깜빡이는 커서 */
-html.ui-arch .page-arch .fr-term{padding:18px 24px 16px;font-family:'JetBrains Mono','Noto Sans KR',monospace}
+html.ui-arch .page-arch .fr-term{padding:18px 24px 16px;font-family:'JetBrains Mono','Pretendard Variable',Pretendard,monospace}
 html.ui-arch .page-arch .fr-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px dashed var(--a-ln2);font-size:9.5px;letter-spacing:.2em;color:#6f7b89}
 html.ui-arch .page-arch .fr-ln{display:grid;grid-template-columns:120px minmax(0,1fr) minmax(0,220px) 100px;gap:16px;align-items:baseline;padding:13px 6px;border-bottom:1px dashed rgba(190,208,228,.08);font-size:calc(11.5px*var(--fs,1));color:#8592a0;cursor:var(--cur-pointer,pointer);transition:background .15s}
 html.ui-arch .page-arch .fr-ln:hover{background:rgba(var(--a-acr),.05)}
 html.ui-arch .page-arch .fr-ln:hover .fr-tt{color:var(--a-ac)}
 html.ui-arch .page-arch .fr-id{color:var(--a-ac);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html.ui-arch .page-arch .fr-id::before{content:'> ';color:#4a5461}
-html.ui-arch .page-arch .fr-tt{font-family:'Noto Sans KR',sans-serif;font-size:calc(14.5px*var(--fs,1));color:#fff;min-width:0;word-break:keep-all;transition:color .15s}
+html.ui-arch .page-arch .fr-tt{font-family:'Pretendard Variable',Pretendard,sans-serif;font-size:calc(14.5px*var(--fs,1));color:#fff;min-width:0;word-break:keep-all;transition:color .15s}
 html.ui-arch .page-arch .fr-tt small{display:block;margin-top:3px;font-size:calc(11px*var(--fs,1));letter-spacing:.1em;color:#6f7b89}
 html.ui-arch .page-arch .fr-st{font-style:normal;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.16em;color:#8592a0;margin-left:8px}
 html.ui-arch .page-arch .fr-st.lock{color:#ff8a92}
@@ -829,8 +833,8 @@ html.ui-arch .page-arch .fr-cur i{display:inline-block;width:8px;height:14px;mar
 }
 
 /* FIELD REPORT 상세 제목 — 강철 그라데이션 (v2.0 사용자 요청) */
-html.ui-arch .page-arch .fr-title{display:inline-block;font:400 calc(30px*var(--fs,1))/1.3 'Jost','Noto Sans KR',sans-serif;letter-spacing:.08em;background:var(--a-sil);-webkit-background-clip:text;background-clip:text;color:transparent;word-break:keep-all}
-html.ui-arch .page-arch .fr-catch{margin-bottom:16px;font:300 calc(11.5px*var(--fs,1))/1.6 'Noto Sans KR',sans-serif;letter-spacing:.2em;color:var(--a-mu)}
+html.ui-arch .page-arch .fr-title{display:inline-block;font:400 calc(30px*var(--fs,1))/1.3 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.08em;background:var(--a-sil);-webkit-background-clip:text;background-clip:text;color:transparent;word-break:keep-all}
+html.ui-arch .page-arch .fr-catch{margin-bottom:16px;font:300 calc(11.5px*var(--fs,1))/1.6 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.2em;color:var(--a-mu)}
 @media (max-width:620px){html.ui-arch .page-arch .fr-title{font-size:calc(22px*var(--fs,1))}}
 /* 리포트 제목 옆 관리자 메모 버튼 (v2.0 사용자 요청) */
 .log-title-row{display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px}
@@ -851,15 +855,15 @@ html.ui-arch .page-arch .rel-bn:hover .bn-art{transform:scale(1.03)}
 html.ui-arch .page-arch .rel-bn .bn-art::after{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,rgba(5,7,10,.95) 0%,rgba(5,7,10,.72) 38%,transparent 76%)}
 html.ui-arch .page-arch .rel-bn .bn-tx{position:absolute;left:28px;top:0;bottom:0;z-index:2;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:22px;gap:6px;max-width:60%;min-width:0} /* 글씨는 아래쪽에 (v2.0 사용자 요청) */
 html.ui-arch .page-arch .rel-bn .bn-k{font:400 9px/1 'JetBrains Mono',monospace;letter-spacing:.26em;color:var(--a-ac)}
-html.ui-arch .page-arch .rel-bn b{font:300 calc(28px*var(--fs,1))/1.2 'Jost','Noto Sans KR',sans-serif;letter-spacing:.12em;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.ui-arch .page-arch .rel-bn b{font:300 calc(28px*var(--fs,1))/1.2 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.12em;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html.ui-arch .page-arch .rel-bn b .pill{margin-left:10px;vertical-align:5px;font-size:9px;letter-spacing:.14em}
-html.ui-arch .page-arch .rel-bn small{font:300 calc(11px*var(--fs,1))/1.5 'Noto Sans KR',sans-serif;letter-spacing:.2em;color:#b3bec9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-html.ui-arch .page-arch .rel-bn .bn-m{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin-top:8px;font:400 calc(11.5px*var(--fs,1))/1 'Noto Sans KR',sans-serif;color:#c9d2dc}
+html.ui-arch .page-arch .rel-bn small{font:300 calc(11px*var(--fs,1))/1.5 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.2em;color:#b3bec9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.ui-arch .page-arch .rel-bn .bn-m{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin-top:8px;font:400 calc(11.5px*var(--fs,1))/1 'Pretendard Variable',Pretendard,sans-serif;color:#c9d2dc}
 html.ui-arch .page-arch .rel-bn .bn-m em{font-style:normal;font:400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.26em;padding:4px 7px 4px 9px;border:1px solid rgba(var(--a-acr),.5);color:var(--a-ac)}
 html.ui-arch .page-arch .rel-bn .bn-m span{display:inline-flex;align-items:center;gap:6px;letter-spacing:.06em}
 html.ui-arch .page-arch .rel-bn .bn-m i{width:6px;height:6px;transform:rotate(45deg);box-shadow:0 0 0 1px rgba(255,255,255,.2)}
 html.ui-arch .page-arch .rel-bn .bn-m .au{font:400 9px/1 'JetBrains Mono',monospace;letter-spacing:.2em;color:#6f7b89}
-html.ui-arch .page-arch .rel-bn .bn-lock{font:400 9px/1.4 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.16em;color:#ff8a92}
+html.ui-arch .page-arch .rel-bn .bn-lock{font:400 9px/1.4 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.16em;color:#ff8a92}
 html.ui-arch .page-arch .rel-bn .bn-no{position:absolute;right:24px;bottom:12px;z-index:2;font:300 56px/1 'Jost',sans-serif;letter-spacing:.04em;color:rgba(255,255,255,.12);pointer-events:none}
 @media (max-width:620px){
   html.ui-arch .page-arch .rel-bns{gap:10px}
@@ -887,12 +891,12 @@ html.ui-arch .page-arch .rp-head{border-bottom-color:var(--a-ln)}
 html.ui-arch .page-arch .rp-head b{color:#fff;font-weight:500;letter-spacing:.04em}
 html.ui-arch .page-arch .rp-head small{color:var(--a-mu)}
 html.ui-arch .page-arch .msg .face{border-radius:0;box-shadow:0 0 0 1px var(--a-ln2)}
-html.ui-arch .page-arch .msg .who{font-family:'Jost','Noto Sans KR',sans-serif;font-weight:500;letter-spacing:.22em}
+html.ui-arch .page-arch .msg .who{font-family:'Jost','Pretendard Variable',Pretendard,sans-serif;font-weight:500;letter-spacing:.22em}
 html.ui-arch .page-arch .msg .bub{border-radius:0;background:linear-gradient(180deg,rgba(var(--cc),.18),rgba(var(--cc),.07));border:1px solid rgba(var(--cc),.55);color:var(--a-tx);font-weight:300}
 html.ui-arch .page-arch .msg-desc{color:#9aa6b3;font-weight:300}
 html.ui-arch .page-arch .rp-input{border-top-color:var(--a-ln)}
 html.ui-arch .page-arch .char-pick .f{border-radius:0;border:1px solid var(--a-ln2)}
-html.ui-arch .page-arch .char-pick small{color:#c9d2dc;font-family:'Jost','Noto Sans KR',sans-serif;letter-spacing:.12em}
+html.ui-arch .page-arch .char-pick small{color:#c9d2dc;font-family:'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.12em}
 html.ui-arch .page-arch .rp-pick-pop{background:rgba(8,11,15,.97);border:1px solid var(--a-ln2);border-radius:0}
 html.ui-arch .page-arch .rp-pick-pop button{border-radius:0;color:#e4e9ef}
 html.ui-arch .page-arch .rp-pick-pop button:hover{background:rgba(var(--a-acr),.08)}
@@ -911,12 +915,12 @@ html.ui-arch .page-arch .rp-input-guest{color:var(--a-mu)}
 html.ui-arch .page-arch .dy-day{color:#fff}
 html.ui-arch .page-arch .dy-dm{font-family:'JetBrains Mono',monospace;color:var(--a-mu)}
 html.ui-arch .page-arch .dy-cimg{border:1px solid var(--a-ln)}
-html.ui-arch .page-arch .dy-ct{font-family:'Noto Sans KR',sans-serif;font-weight:400;color:#fff}
+html.ui-arch .page-arch .dy-ct{font-family:'Pretendard Variable',Pretendard,sans-serif;font-weight:400;color:#fff}
 html.ui-arch .page-arch .dy-card:hover .dy-ct{color:var(--a-ac)}
 html.ui-arch .page-arch .dy-ex{font-weight:300;color:#aab4bf}
 html.ui-arch .page-arch .dy-card .dy-body .post-body{font-family:inherit;color:#aab4bf;font-weight:300} /* 접힌 미리보기와 같은 글씨체 · 색 (v2.0 사용자 요청) */
 html.ui-arch .page-arch .dy-card .dy-body .post-body strong,html.ui-arch .page-arch .dy-card .dy-body .post-body b{color:#fff;font-weight:500}
-html.ui-arch .page-arch .dy-cf{font-family:'JetBrains Mono','Noto Sans KR',monospace;border-top-color:var(--a-ln);color:var(--a-mu)}
+html.ui-arch .page-arch .dy-cf{font-family:'JetBrains Mono','Pretendard Variable',Pretendard,monospace;border-top-color:var(--a-ln);color:var(--a-mu)}
 html.ui-arch .page-arch .dy-card.open{border-color:color-mix(in srgb,var(--mc) 40%,var(--a-ln))} /* 바깥 테두리를 한 겹 더 두르면 모서리 꺾쇠와 1px 어긋난다 — 테두리 색만 바꾼다 */
 html.ui-arch .page-arch .dy-arch h4{font-family:'JetBrains Mono',monospace;color:var(--a-dim)}
 html.ui-arch .page-arch .dy-arch button{font-family:'JetBrains Mono',monospace;border-top-color:var(--a-ln);color:#c9d2dc}
@@ -926,14 +930,14 @@ html.ui-arch .page-arch .dy-row{border-bottom:1px solid var(--a-ln)}
 html.ui-arch .page-arch .dy-row:last-child{border-bottom:none}
 html.ui-arch .page-arch .dy-layout > *{min-width:0} /* 날짜를 고정폭 글꼴로 바꾸며 모바일에서 칸이 화면 밖으로 밀리던 것 */
 html.ui-arch .page-arch .dy-row .tt{color:#fff;font-weight:400}
-html.ui-arch .page-arch .dy-row .dt{font-family:'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.06em;color:var(--a-mu)}
+html.ui-arch .page-arch .dy-row .dt{font-family:'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.06em;color:var(--a-mu)}
 html.ui-arch .page-arch .dy-row .arr{border-color:var(--a-mu)}
 html.ui-arch .page-arch .dy-row .hd:hover .tt{color:var(--a-ac)}
 html.ui-arch .page-arch .dy-mood{border-radius:0 !important;box-shadow:inset 0 0 0 1px color-mix(in srgb,currentColor 50%,transparent)}
 html.ui-arch .page-arch .dy-row .dy-body .post-body{color:#c9d2dc;font-weight:300}
 html.ui-arch .page-arch .dy-row .dy-body .post-body strong,html.ui-arch .page-arch .dy-row .dy-body .post-body b{color:#fff;font-weight:500}
 html.ui-arch .page-arch .dy-thumb{border-radius:0;box-shadow:0 0 0 1px var(--a-ln2)}
-html.ui-arch .page-arch .dy-cal .hd b{font-family:'Jost','Noto Sans KR',sans-serif;font-weight:400;letter-spacing:.14em;color:#fff}
+html.ui-arch .page-arch .dy-cal .hd b{font-family:'Jost','Pretendard Variable',Pretendard,sans-serif;font-weight:400;letter-spacing:.14em;color:#fff}
 html.ui-arch .page-arch .dy-cal .hd button{border-radius:0;color:var(--a-mu)}
 html.ui-arch .page-arch .dy-cal .hd button:hover{background:rgba(var(--a-acr),.08);color:#fff}
 html.ui-arch .page-arch .dy-cal .wk span{font-family:'JetBrains Mono',monospace;color:#6f7b89}
@@ -954,8 +958,8 @@ html.ui-arch .page-rel-edit .ph span{font-family:'JetBrains Mono',monospace;lett
 .bgm.skin-arch.folded{padding:6px}   /* 접힌 상태는 디스크만 — 여백을 사방 같게 해 가운데로 */
 .bgm.skin-arch .disc{background:conic-gradient(#11161d,#8a96a3,#11161d,#566170,#11161d);box-shadow:0 0 0 1px rgba(184,216,255,.35),0 0 16px rgba(184,216,255,.18)}
 .bgm.skin-arch .disc::after{background:#05070a;border:1px solid #b8d8ff;box-shadow:0 0 6px rgba(184,216,255,.8)}
-.bgm.skin-arch .title{font:400 9.5px/1.4 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.08em;opacity:1;color:#5d6876}
-.bgm.skin-arch .title .tt{font:500 11px/1.4 'Jost','Noto Sans KR',sans-serif;letter-spacing:.16em;color:#fff}
+.bgm.skin-arch .title{font:400 9.5px/1.4 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.08em;opacity:1;color:#5d6876}
+.bgm.skin-arch .title .tt{font:500 11px/1.4 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.16em;color:#fff}
 .bgm.skin-arch .ctrl button,.bgm.skin-arch .fold-btn{border-radius:0}
 .bgm.skin-arch .ctrl button:hover{background:rgba(184,216,255,.1);color:#fff}
 .bgm.skin-arch .vol{height:2px;border-radius:0;background:rgba(190,208,228,.16)}
@@ -1196,7 +1200,7 @@ html.ui-arch .page-rel-edit .ph span{font-family:'JetBrains Mono',monospace;lett
 .tip-pop.dd{background:var(--dd-bg);color:var(--dd-fg)}
 /* 게시판 디자인 ARCH — 말풍선도 각진 어두운 칸 (v2.0 사용자 요청) */
 html.ui-arch .tip-pop,html.ui-arch .tip-pop.dd{background:rgba(8,11,15,.96);color:#e4e9ef;border:1px solid rgba(190,208,228,.24);border-radius:0;
-  font-family:'Jost','Noto Sans KR',sans-serif;font-weight:400;letter-spacing:.12em;padding:6px 11px;
+  font-family:'Jost','Pretendard Variable',Pretendard,sans-serif;font-weight:400;letter-spacing:.12em;padding:6px 11px;
   box-shadow:0 12px 30px -12px #000,0 0 16px -6px rgba(184,216,255,.35)}
 
 /* ================= TRPG 캐릭터 (v1.9 신규 — 1:1 인장 + 표정 전환) ================= */
@@ -1814,10 +1818,10 @@ body.edit-on .main-grid.gridlines .wgt{outline-offset:0}
 .ctx-menu .ord-hint{margin:6px 2px 4px;font-size:calc(10px*var(--fs,1));color:#8b919b;line-height:1.45;text-align:center}
 /* 게시판 디자인 ARCH 화면의 우클릭 메뉴 — 각진 어두운 칸 (v2.0 사용자 요청) */
 html.ui-arch body:has(.page-arch) .ctx-menu{background:rgba(8,11,15,.97);border:1px solid rgba(190,208,228,.22);border-radius:0;box-shadow:0 18px 44px -14px #000,0 0 18px -8px rgba(184,216,255,.35);padding:5px}
-html.ui-arch body:has(.page-arch) .ctx-menu button{border-radius:0;font-family:'Noto Sans KR',sans-serif;color:#c9d2dc}
+html.ui-arch body:has(.page-arch) .ctx-menu button{border-radius:0;font-family:'Pretendard Variable',Pretendard,sans-serif;color:#c9d2dc}
 html.ui-arch body:has(.page-arch) .ctx-menu button:hover{background:rgba(184,216,255,.08);color:#fff}
 html.ui-arch body:has(.page-arch) .ctx-menu button.danger:hover{background:rgba(255,90,100,.14);color:#ff8a92}
-html.ui-arch body:has(.page-arch) .ctx-menu .ctx-ttl{font:400 9px/1.4 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.24em;color:#b8d8ff}
+html.ui-arch body:has(.page-arch) .ctx-menu .ctx-ttl{font:400 9px/1.4 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.24em;color:#b8d8ff}
 html.ui-arch body:has(.page-arch) .ctx-menu .sep{background:rgba(190,208,228,.14)}
 
 /* 공통 드래그 리스트 (v1.9 — 들어 올림 + 빈 자리 + FLIP) */
@@ -2836,7 +2840,7 @@ body.sp-reveal > *:not(.splash-overlay){animation:spReveal 1.1s cubic-bezier(.2,
 /* 프로필 패널 — ARCH 소개 페이지 카드(ar-card)와 같은 결: 어두운 반투명 칸 · 가는 테두리 · 9px 꺾쇠 ·
    모노 머리줄(왼쪽 항목 · 오른쪽 분류) · 은빛 Jost 이름 · 가는 선으로 나눈 항목 줄. 빨강(불속성 포인트)은 STATUS · LOCK만 */
 .sp-panel{position:absolute;pointer-events:none;box-sizing:border-box;padding:16px 20px 16px;color:#e4e9ef;
-  font-family:'Jost','Noto Sans KR',sans-serif;border:1px solid rgba(190,208,228,.16);
+  font-family:'Jost','Pretendard Variable',Pretendard,sans-serif;border:1px solid rgba(190,208,228,.16);
   background:linear-gradient(180deg,rgba(255,255,255,.035),transparent 46%),rgba(9,13,18,.86);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 24px 50px -28px #000;
   clip-path:inset(-8px 100% -8px -8px);
@@ -2852,12 +2856,12 @@ body.sp-reveal > *:not(.splash-overlay){animation:spReveal 1.1s cubic-bezier(.2,
 @keyframes spPanel{to{clip-path:inset(-8px -8px -8px -8px)}}
 .sp-panel .hd{display:flex;justify-content:space-between;gap:12px;font:400 8.5px/1 'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.24em;color:#8592a0;white-space:nowrap}
 .sp-panel .hd em{font-style:normal;color:#5d6876}
-.sp-panel .nm{margin-top:16px;font:300 34px/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.3em;white-space:nowrap;
+.sp-panel .nm{margin-top:16px;font:300 34px/1 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.3em;white-space:nowrap;
   background:linear-gradient(180deg,#fff 0%,#ffc4bf 30%,#ff3b30 52%,#ffb0a9 70%,#c42a20 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 0 10px rgba(255,59,48,.45));padding-bottom:.1em;margin-bottom:-.1em}   /* 이름 — 은빛 대신 붉은 강철(불속성) */
-.sp-panel .sb{margin-top:11px;font:400 10px/1.3 'Jost','Noto Sans KR',sans-serif;letter-spacing:.24em;color:#8592a0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-panel .sb{margin-top:11px;font:400 10px/1.3 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.24em;color:#8592a0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sp-panel .mr{margin-top:14px;padding-top:8px;border-top:1px solid rgba(190,208,228,.10)}
-.sp-panel .rw{display:grid;grid-template-columns:66px 1fr;align-items:baseline;height:21px;font:400 11.5px/21px 'Jost','Noto Sans KR',sans-serif;letter-spacing:.18em;white-space:nowrap;color:#e4e9ef}
+.sp-panel .rw{display:grid;grid-template-columns:66px 1fr;align-items:baseline;height:21px;font:400 11.5px/21px 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.18em;white-space:nowrap;color:#e4e9ef}
 .sp-panel .rw b{font:400 8px/21px 'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.24em;color:#6f7b89}
 .sp-panel .rw span{overflow:hidden;text-overflow:ellipsis}
 .sp-panel .rw .ar{display:inline-block;width:.8em;height:.8em;vertical-align:-.02em;fill:none;stroke:currentColor;stroke-width:1.2}   /* ↗는 Jost · JetBrains Mono 둘 다 없어 기기 글꼴로 대신 그려졌다 — 선으로 그린다 */
@@ -2918,8 +2922,8 @@ body.sp-reveal > *:not(.splash-overlay){animation:spReveal 1.1s cubic-bezier(.2,
 .to-top svg{width:16px;height:16px}
 @media (hover:hover){.to-top.on:hover{opacity:1;background:rgba(28,34,46,.9);border-color:rgba(255,255,255,.4)}}
 /* ARCH — 각진 단말기 버튼 (캐릭터 아이콘 탭과 같은 결) */
-html.ui-arch .to-top{border-radius:0;background:rgba(10,13,18,.78);border-color:rgba(150,170,195,.38);color:#c9d4e2;box-shadow:0 0 14px rgba(96,124,160,.18)}
-@media (hover:hover){html.ui-arch .to-top.on:hover{border-color:#8aa3c2;color:#fff;box-shadow:0 0 18px rgba(96,124,160,.4)}}
+html.ui-arch .to-top{border-radius:0;background:rgba(10,13,18,.78);border-color:rgba(184,216,255,.38);color:#c9d4e2;box-shadow:0 0 14px rgba(184,216,255,.18)}   /* 빛은 ARCH 하늘빛(#b8d8ff) */
+@media (hover:hover){html.ui-arch .to-top.on:hover{border-color:#b8d8ff;color:#fff;box-shadow:0 0 18px rgba(184,216,255,.4)}}
 @media (max-width:760px){
   /* 바닥 가까이 작게 (v2.0 사용자 요청 — 76px는 너무 높았다. 처음 안 보였던 건 배포 전이었음) */
   .to-top{right:10px;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:32px;height:32px}
@@ -2930,7 +2934,7 @@ html.ui-arch .to-top{border-radius:0;background:rgba(10,13,18,.78);border-color:
 
 /* ===== GALLERY — ARCH (v2.0 사용자 요청) — 각진 카드·모서리 꺾쇠·단말기 글씨. 모바일은 2열 ===== */
 html.ui-arch .page-arch .seg{background:rgba(8,11,15,.72);border:1px solid var(--a-ln2);padding:2px;gap:2px}
-html.ui-arch .page-arch .seg button{color:var(--a-mu);font:400 calc(10px*var(--fs,1))/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.24em;padding:8px 14px}
+html.ui-arch .page-arch .seg button{color:var(--a-mu);font:400 calc(10px*var(--fs,1))/1 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.24em;padding:8px 14px}
 html.ui-arch .page-arch .seg button.on{background:rgba(var(--a-acr),.16);color:#fff;box-shadow:inset 0 -1px 0 var(--a-ac)}
 html.ui-arch .page-gallery .g3{gap:18px}
 html.ui-arch .page-gallery .g-item{position:relative;padding:0;border:1px solid var(--a-ln);border-radius:0;background:#0a0d11;box-shadow:none;transition:border-color .25s,box-shadow .25s}
@@ -2944,15 +2948,15 @@ html.ui-arch .page-gallery .g-item:hover .thumb > div{transform:scale(1.03)}
 html.ui-arch .page-gallery .g-item .thumb::after{content:'';position:absolute;inset:auto 0 0;height:40%;z-index:1;background:linear-gradient(transparent,rgba(5,7,10,.55));pointer-events:none}
 /* 말머리 — 설정한 테두리 색은 살리고 바탕은 어둡게, 글자는 밝게(어두운 배경에서 읽히게) */
 html.ui-arch .page-arch :is(.g-item .typ,.list-item .typ,.g-badge){background:rgba(8,11,15,.78) !important;color:#e6ebf1 !important;border-radius:0 !important;
-  font:400 calc(9px*var(--fs,1))/1 'JetBrains Mono','Noto Sans KR',monospace !important;letter-spacing:.22em;padding:5px calc(10px - .22em) 5px 10px !important} /* 오른쪽은 마지막 글자 뒤 자간만큼 덜어 좌우 여백을 맞춘다 */
+  font:400 calc(9px*var(--fs,1))/1 'JetBrains Mono','Pretendard Variable',Pretendard,monospace !important;letter-spacing:.22em;padding:5px calc(10px - .22em) 5px 10px !important} /* 오른쪽은 마지막 글자 뒤 자간만큼 덜어 좌우 여백을 맞춘다 */
 html.ui-arch .page-gallery .g-item .info{padding:12px 16px 13px;border-top:1px solid var(--a-ln)}
 html.ui-arch .page-gallery .g-item .g-head{gap:12px}
-html.ui-arch .page-gallery .g-item .info b{font:300 calc(18px*var(--fs,1))/1.2 'Jost','Noto Sans KR',sans-serif;letter-spacing:.14em;color:#fff}
-html.ui-arch .page-gallery .g-item .info small{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin-top:7px;font:400 calc(9.5px*var(--fs,1))/1.5 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.14em;color:var(--a-mu)}
+html.ui-arch .page-gallery .g-item .info b{font:300 calc(18px*var(--fs,1))/1.2 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.14em;color:#fff}
+html.ui-arch .page-gallery .g-item .info small{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin-top:7px;font:400 calc(9.5px*var(--fs,1))/1.5 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.14em;color:var(--a-mu)}
 html.ui-arch .page-arch .tag-in{font-style:normal;color:var(--a-ac);white-space:nowrap;letter-spacing:.06em}
 html.ui-arch .page-gallery .g-item .cover{background:rgba(5,7,10,.72)}
 /* 상세 */
-html.ui-arch .page-gallery-detail .g-title{font:300 calc(22px*var(--fs,1))/1.3 'Jost','Noto Sans KR',sans-serif !important;letter-spacing:.12em;color:#fff;flex-wrap:wrap}
+html.ui-arch .page-gallery-detail .g-title{font:300 calc(22px*var(--fs,1))/1.3 'Jost','Pretendard Variable',Pretendard,sans-serif !important;letter-spacing:.12em;color:#fff;flex-wrap:wrap}
 html.ui-arch .page-gallery-detail [style*="border-radius"]{border-radius:0 !important}
 html.ui-arch .page-gallery-detail .single-viewer .sv-frame{border-radius:0;background:#06080b;box-shadow:0 0 0 1px var(--a-ln)}
 html.ui-arch .page-gallery-detail .single-viewer .nav{border-radius:0;background:rgba(8,11,15,.72);border:1px solid var(--a-ln2);color:#c9d2dc;opacity:.85}
@@ -2977,11 +2981,11 @@ html.ui-arch .page-gallery-detail .post-body{color:#b3bec9}
 /* 갤러리 — 태그를 말머리 옆으로 (그리드·상세), 리스트는 윗줄 말머리·태그 / 아랫줄 제목, 상세 이전·다음 글 */
 .page-gallery .g-item .g-head{flex-wrap:wrap;row-gap:4px}
 .page-gallery .g-item .g-head .tag-in{margin-left:0;white-space:nowrap}
-html.ui-arch .page-gallery .g-item .g-head .tag-in{font:400 calc(10px*var(--fs,1))/1.4 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.06em}
+html.ui-arch .page-gallery .g-item .g-head .tag-in{font:400 calc(10px*var(--fs,1))/1.4 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.06em}
 .page-gallery .list-item small.g-line{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;margin:0 0 6px}
 .page-gallery .list-item b{display:block}
 .page-gallery-detail .g-tag{margin-left:0;font-size:calc(12px*var(--fs,1));white-space:nowrap}
-html.ui-arch .page-gallery-detail .g-tag{font:400 calc(11.5px*var(--fs,1))/1.4 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.06em}
+html.ui-arch .page-gallery-detail .g-tag{font:400 calc(11.5px*var(--fs,1))/1.4 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.06em}
 .g-nav{display:flex;justify-content:space-between;align-items:center;gap:10px;max-width:960px;margin:14px auto 0}
 @media (max-width:620px){
   html.ui-arch .page-gallery .g-item .g-head .tag-in{font-size:calc(8.5px*var(--fs,1))}
@@ -2989,23 +2993,23 @@ html.ui-arch .page-gallery-detail .g-tag{font:400 calc(11.5px*var(--fs,1))/1.4 '
 
 /* ===== LOG(게시판) — ARCH (v2.0 사용자 요청) ===== */
 html.ui-arch .page-arch .b-badge,html.ui-arch .page-arch .brow .cat > span{background:rgba(8,11,15,.78) !important;color:#e6ebf1 !important;border-radius:0 !important;
-  font:400 calc(8.5px*var(--fs,1))/1 'JetBrains Mono','Noto Sans KR',monospace !important;letter-spacing:.2em;padding:5px 7px 5px 9px !important}
+  font:400 calc(8.5px*var(--fs,1))/1 'JetBrains Mono','Pretendard Variable',Pretendard,monospace !important;letter-spacing:.2em;padding:5px 7px 5px 9px !important}
 html.ui-arch .page-board .board-list{padding:0}
 html.ui-arch .page-board .brow{border-bottom:1px solid var(--a-ln);color:var(--a-tx);padding:14px 20px;transition:background .2s}
 html.ui-arch .page-board .brow:hover{background:rgba(var(--a-acr),.06)}
-html.ui-arch .page-board .brow .tcell > b{font:300 calc(14px*var(--fs,1))/1.4 'Noto Sans KR',sans-serif;color:#fff;letter-spacing:.02em}
+html.ui-arch .page-board .brow .tcell > b{font:300 calc(14px*var(--fs,1))/1.4 'Pretendard Variable',Pretendard,sans-serif;color:#fff;letter-spacing:.02em}
 html.ui-arch .page-board .brow b .cmt{color:var(--a-ac);font-family:'JetBrains Mono',monospace}
-html.ui-arch .page-board .brow .tags i{color:var(--a-ac);font-family:'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.04em}
-html.ui-arch .page-board .brow :is(.who,.dt){font:400 calc(10px*var(--fs,1))/1 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.12em;color:var(--a-mu)}
+html.ui-arch .page-board .brow .tags i{color:var(--a-ac);font-family:'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.04em}
+html.ui-arch .page-board .brow :is(.who,.dt){font:400 calc(10px*var(--fs,1))/1 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.12em;color:var(--a-mu)}
 html.ui-arch .page-board .bticket{border-radius:0;background:rgba(10,13,17,.9);border:1px solid var(--a-ln);box-shadow:none}
 html.ui-arch .page-board .bticket:hover{transform:none;border-color:rgba(var(--a-acr),.42)}
 html.ui-arch .page-board .bticket .bt-thumb{border-right:1px dashed var(--a-ln2)}
 html.ui-arch .page-board .bticket .bt-ph{background:linear-gradient(135deg,rgba(184,216,255,.06),rgba(5,7,10,.7));color:#6f7b89;font-family:'Jost',sans-serif}
-html.ui-arch .page-board .bticket .bt-title{font:300 calc(17px*var(--fs,1))/1.3 'Jost','Noto Sans KR',sans-serif;color:#fff;letter-spacing:.06em}
-html.ui-arch .page-board .bticket .bt-meta{font:400 calc(10px*var(--fs,1))/1 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.12em;color:var(--a-mu)}
+html.ui-arch .page-board .bticket .bt-title{font:300 calc(17px*var(--fs,1))/1.3 'Jost','Pretendard Variable',Pretendard,sans-serif;color:#fff;letter-spacing:.06em}
+html.ui-arch .page-board .bticket .bt-meta{font:400 calc(10px*var(--fs,1))/1 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.12em;color:var(--a-mu)}
 /* 글 보기 */
-html.ui-arch .page-board-detail .b-title{font:300 calc(24px*var(--fs,1))/1.35 'Jost','Noto Sans KR',sans-serif !important;letter-spacing:.06em;color:#fff}
-html.ui-arch .page-board-detail .b-meta{font:400 calc(10px*var(--fs,1))/1.6 'JetBrains Mono','Noto Sans KR',monospace !important;letter-spacing:.12em;color:var(--a-mu) !important;padding-bottom:16px;border-bottom:1px solid var(--a-ln)}
+html.ui-arch .page-board-detail .b-title{font:300 calc(24px*var(--fs,1))/1.35 'Jost','Pretendard Variable',Pretendard,sans-serif !important;letter-spacing:.06em;color:#fff}
+html.ui-arch .page-board-detail .b-meta{font:400 calc(10px*var(--fs,1))/1.6 'JetBrains Mono','Pretendard Variable',Pretendard,monospace !important;letter-spacing:.12em;color:var(--a-mu) !important;padding-bottom:16px;border-bottom:1px solid var(--a-ln)}
 html.ui-arch .page-board-detail .b-meta span{color:var(--a-ac) !important}
 html.ui-arch .page-board-detail .post-body{color:#c3ccd6;font-weight:300;line-height:1.6;word-break:normal;overflow-wrap:anywhere}
 html.ui-arch .page-board-detail .post-body :is(h1,h2,h3,strong,b){color:#fff}
@@ -3040,7 +3044,7 @@ html.ui-arch .page-arch .seg button{white-space:nowrap;flex-shrink:0}
 .page-memo2 .mn-cat{align-self:flex-start;font-size:calc(10px*var(--fs,1));padding:2px 8px;border:1px solid var(--line-dark);border-radius:8px;color:var(--sub)}
 /* ARCH */
 html.ui-arch .page-memo2 .mn-count{font:400 calc(10px*var(--fs,1))/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--a-mu)}
-html.ui-arch .page-memo2 .mn-cat{border-radius:0;border-color:rgba(var(--a-acr),.5);color:var(--a-ac);font:400 calc(9px*var(--fs,1))/1 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em;padding:5px 7px 5px 9px}
+html.ui-arch .page-memo2 .mn-cat{border-radius:0;border-color:rgba(var(--a-acr),.5);color:var(--a-ac);font:400 calc(9px*var(--fs,1))/1 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.2em;padding:5px 7px 5px 9px}
 @media (max-width:620px){
   .page-memo2 .toolrow .seg button{padding:7px 10px}
 }
@@ -3103,9 +3107,9 @@ html.ui-arch .excerpt-card .ex-body blockquote{padding:4px 4px 4px 62px}
 .excerpt-toggle.on{opacity:1;border-color:#8fb0d8;color:#fff;box-shadow:0 0 14px rgba(96,124,160,.45)}
 .excerpt-bar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:66;display:flex;align-items:center;gap:8px;
   max-width:calc(100% - 120px);padding:8px 10px 8px 14px;background:rgba(10,13,18,.94);border:1px solid rgba(150,170,195,.4);color:#c9d2dc;
-  font:400 12px/1.3 'Noto Sans KR',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+  font:400 12px/1.3 'Pretendard Variable',Pretendard,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.4)}
 .excerpt-bar span{flex:1;min-width:0}
-.excerpt-bar button{flex-shrink:0;padding:6px 10px;border:1px solid rgba(150,170,195,.35);color:#c9d2dc;font:400 11px/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.1em;white-space:nowrap}
+.excerpt-bar button{flex-shrink:0;padding:6px 10px;border:1px solid rgba(150,170,195,.35);color:#c9d2dc;font:400 11px/1 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.1em;white-space:nowrap}
 .excerpt-bar button.go{border-color:#8fb0d8;color:#fff;background:rgba(96,124,160,.25)}
 html.ex-mode :is(.page .prose:not(.re-content),.page .post-body) > *{cursor:var(--cur-pointer,pointer);transition:outline-color .15s}
 html.ex-mode :is(.page .prose:not(.re-content),.page .post-body) > *:hover{outline:1px dashed rgba(143,176,216,.45);outline-offset:4px}
@@ -3168,10 +3172,10 @@ html.ui-arch .excerpt-card{background:
 html.ui-arch .page-arch.page-settings{--ink:#e4e9ef;--line:rgba(190,208,228,.12);--faint:#8592a0;--sub:#b3bec9}
 html.ui-arch .page-settings .set-nav{padding:8px}
 html.ui-arch .page-settings .set-nav button{border-radius:0;border-left:1px solid transparent;color:#8592a0;
-  font:400 calc(12px*var(--fs,1))/1.3 'Jost','Noto Sans KR',sans-serif;letter-spacing:.08em}
+  font:400 calc(12px*var(--fs,1))/1.3 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.08em}
 html.ui-arch .page-settings .set-nav button:hover{background:rgba(var(--a-acr),.06);color:#fff}
 html.ui-arch .page-settings .set-nav button.on{background:rgba(var(--a-acr),.1);color:#fff;border-left-color:var(--a-ac);box-shadow:inset 12px 0 18px -14px rgba(var(--a-acr),.7)}
-html.ui-arch .page-settings .set-sec h3{font:400 calc(12px*var(--fs,1))/1.4 'Jost','Noto Sans KR',sans-serif;letter-spacing:.24em;color:#fff;
+html.ui-arch .page-settings .set-sec h3{font:400 calc(12px*var(--fs,1))/1.4 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.24em;color:#fff;
   padding-left:12px;position:relative}
 html.ui-arch .page-settings .set-sec h3::before{content:'';position:absolute;left:0;top:50%;width:5px;height:5px;margin-top:-3px;transform:rotate(45deg);background:var(--a-ac);box-shadow:0 0 8px var(--a-ac)}
 html.ui-arch .page-settings .set-sec .d{color:var(--a-mu);font-weight:300}
@@ -3252,14 +3256,14 @@ html.ui-arch .page-settings [style*="border-radius"]:not(i):not(.gem):not(.pill)
 .page-memo2 .mn-btn.p{color:var(--ink);border-color:var(--ink)}
 .page-memo2 .mn-text{white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere;font-size:calc(14px*var(--fs,1));line-height:1.9;color:var(--ink)}
 html.ui-arch .page-memo2 .mn-search{border-radius:0;border-color:var(--a-ln2);background:rgba(8,11,15,.72);color:var(--a-mu)}
-html.ui-arch .page-memo2 .mn-search input{color:var(--a-tx);font-family:'Noto Sans KR',sans-serif}
+html.ui-arch .page-memo2 .mn-search input{color:var(--a-tx);font-family:'Pretendard Variable',Pretendard,sans-serif}
 html.ui-arch .page-memo2 .mn-search input::placeholder{color:var(--a-dim)}
 html.ui-arch .page-memo2 .mn-search:focus-within{border-color:rgba(var(--a-acr),.55)}
 html.ui-arch .page-memo2 mark{background:rgba(var(--a-acr),.28);color:#fff;border-radius:0}
 html.ui-arch .page-memo2 .mn-row + .mn-row{border-top-color:rgba(190,208,228,.07)}
 html.ui-arch .page-memo2 .mn-row:hover{background:rgba(var(--a-acr),.05)}
 html.ui-arch .page-memo2 .mn-row.on{background:rgba(var(--a-acr),.09);border-left-color:var(--a-ac)}
-html.ui-arch .page-memo2 .mn-cat{border-radius:0;border-color:rgba(var(--a-acr),.5);color:var(--a-ac);font:400 calc(9px*var(--fs,1))/1 'JetBrains Mono','Noto Sans KR',monospace;letter-spacing:.2em;padding:5px 7px 5px 9px}
+html.ui-arch .page-memo2 .mn-cat{border-radius:0;border-color:rgba(var(--a-acr),.5);color:var(--a-ac);font:400 calc(9px*var(--fs,1))/1 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.2em;padding:5px 7px 5px 9px}
 html.ui-arch .page-memo2 .mn-dt{font-family:'JetBrains Mono',monospace;letter-spacing:.14em;color:var(--a-mu)}
 html.ui-arch .page-memo2 .mn-snip{color:#dfe5ec;font-weight:300}
 html.ui-arch .page-memo2 .mn-rhead{border-bottom-color:var(--a-ln)}
@@ -3281,7 +3285,7 @@ html.ui-arch .page-memo2 .mn-text{color:#c9d2dc;font-weight:300}
 /* 메모 쓰기 창 — 글이 길어도 창은 그대로, 칸 안에서만 스크롤(스크롤바는 숨김) */
 .mng-box.mn-modal .mn-input{display:block;width:100%;height:min(46vh,420px);resize:none;overflow-y:auto;scrollbar-width:none;padding:12px 14px;font-size:calc(13px*var(--fs,1));line-height:1.75}
 .mng-box.mn-modal .mn-input::-webkit-scrollbar{display:none}
-.mng-box.arch-modal.mn-modal .mn-input{border:1px solid rgba(190,208,228,.18);border-radius:0;background:rgba(5,7,10,.75);color:#e4e9ef;font-family:'Noto Sans KR',sans-serif;font-weight:300}
+.mng-box.arch-modal.mn-modal .mn-input{border:1px solid rgba(190,208,228,.18);border-radius:0;background:rgba(5,7,10,.75);color:#e4e9ef;font-family:'Pretendard Variable',Pretendard,sans-serif;font-weight:300}
 .mng-box.arch-modal.mn-modal .mn-input:focus{outline:none;border-color:rgba(184,216,255,.6)}
 /* ARCH 창 공통 — 창 자체가 스크롤돼도 꺾쇠가 모서리에 남게 배경으로 그리고, 스크롤바는 숨긴다 */
 .mng-box.arch-modal{scrollbar-width:none;--cn:linear-gradient(rgba(184,216,255,.75),rgba(184,216,255,.75));
@@ -3291,7 +3295,7 @@ html.ui-arch .page-memo2 .mn-text{color:#c9d2dc;font-weight:300}
 .mng-box.arch-modal:not(.ar-more-modal)::before,.mng-box.arch-modal:not(.ar-more-modal)::after{display:none}
 /* ARCH 창 안의 고르기 버튼(말머리 등) — 페이지의 ARCH 모양과 같게 */
 .mng-box.arch-modal .seg{background:rgba(8,11,15,.72);border:1px solid var(--a-ln2);border-radius:0;padding:2px;gap:2px}
-.mng-box.arch-modal .seg button{border-radius:0;color:var(--a-mu);font:400 calc(10.5px*var(--fs,1))/1 'Jost','Noto Sans KR',sans-serif;letter-spacing:.2em;padding:9px 16px}
+.mng-box.arch-modal .seg button{border-radius:0;color:var(--a-mu);font:400 calc(10.5px*var(--fs,1))/1 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.2em;padding:9px 16px}
 .mng-box.arch-modal .seg button:hover{color:#fff}
 .mng-box.arch-modal .seg button.on{background:rgba(var(--a-acr),.16);color:#fff;box-shadow:inset 0 -1px 0 var(--a-ac)}
 
@@ -3300,7 +3304,7 @@ html.ui-arch .page-memo2 .mn-text{color:#c9d2dc;font-weight:300}
 
 /* 알림(토스트) — ARCH 디자인 (v2.0 사용자 요청 — 「복사했습니다」 등이 흰 알약이었다) */
 html.ui-arch .toast{position:relative;border-radius:0;padding:11px 20px;background:linear-gradient(180deg,rgba(184,216,255,.08),transparent),rgba(8,11,15,.95);
-  border:1px solid rgba(184,216,255,.32);color:#e4e9ef;font:400 calc(12px*var(--fs,1))/1.4 'Noto Sans KR',sans-serif;letter-spacing:.04em;
+  border:1px solid rgba(184,216,255,.32);color:#e4e9ef;font:400 calc(12px*var(--fs,1))/1.4 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.04em;
   box-shadow:0 18px 40px -16px #000,0 0 22px -10px rgba(184,216,255,.6)}
 html.ui-arch .toast::before,html.ui-arch .toast::after{content:'';position:absolute;width:7px;height:7px;border-color:rgba(184,216,255,.85);border-style:solid;pointer-events:none}
 html.ui-arch .toast::before{left:-1px;top:-1px;border-width:1px 0 0 1px}
@@ -3332,7 +3336,7 @@ html.ui-arch .page-prompt .pr-count{font:400 calc(10px*var(--fs,1))/1 'JetBrains
 .mng-box.arch-modal .pr-upimg{border-color:rgba(190,208,228,.18)}
 .mng-box.arch-modal .pr-add{border-color:rgba(190,208,228,.28);color:#8592a0}
 .mng-box.arch-modal .pr-add:hover{border-color:rgba(184,216,255,.6);color:#fff}
-.mng-box.pr-modal .pr-input{display:block;width:100%;height:min(38vh,340px);resize:none;overflow-y:auto;scrollbar-width:none;padding:12px 14px;font:400 calc(12.5px*var(--fs,1))/1.7 'JetBrains Mono','Noto Sans KR',monospace}
+.mng-box.pr-modal .pr-input{display:block;width:100%;height:min(38vh,340px);resize:none;overflow-y:auto;scrollbar-width:none;padding:12px 14px;font:400 calc(12.5px*var(--fs,1))/1.7 'JetBrains Mono','Pretendard Variable',Pretendard,monospace}
 .mng-box.pr-modal .pr-input::-webkit-scrollbar{display:none}
 .mng-box.arch-modal.pr-modal .pr-input{border:1px solid rgba(190,208,228,.18);border-radius:0;background:rgba(5,7,10,.75);color:#e4e9ef}
 .mng-box.arch-modal.pr-modal .pr-input:focus{outline:none;border-color:rgba(184,216,255,.6)}
@@ -3374,7 +3378,7 @@ html.ui-arch .page-prompt .pr-noimg span{color:var(--a-dim)}
 .pr-viewbody .pr-strip button.on,.pr-viewbody .pr-strip button:hover{opacity:1;border-color:var(--ink)}
 .pr-viewbody .pr-strip img{width:100%;height:100%;object-fit:cover;display:block}
 .pr-viewbody .pr-text{max-height:min(62vh,560px);overflow-y:auto;scrollbar-width:none;padding:14px 16px;border:1px solid var(--line);background:rgba(0,0,0,.03);
-  font:400 calc(12.5px*var(--fs,1))/1.75 'JetBrains Mono','Noto Sans KR',monospace;color:var(--sub);white-space:pre-wrap;overflow-wrap:anywhere}
+  font:400 calc(12.5px*var(--fs,1))/1.75 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;color:var(--sub);white-space:pre-wrap;overflow-wrap:anywhere}
 .pr-viewbody .pr-text::-webkit-scrollbar{display:none}
 .pr-viewbody .pr-texts{display:flex;flex-direction:column;gap:10px;min-width:0}
 /* 참고 메모 — 프롬프트(복사되는 칸)와 구분되게 왼쪽 선 · 기본 글꼴 */
@@ -3382,7 +3386,7 @@ html.ui-arch .page-prompt .pr-noimg span{color:var(--a-dim)}
 .pr-viewbody .pr-note small{display:block;margin-bottom:4px;font:400 calc(9px*var(--fs,1))/1 'JetBrains Mono',monospace;letter-spacing:.2em;color:var(--faint)}
 .mng-box.arch-modal .pr-viewbody .pr-note{border-left-color:rgba(184,216,255,.45);background:rgba(184,216,255,.04);color:#aeb8c3}
 .mng-box.arch-modal .pr-viewbody .pr-note small{color:#6f7b89}
-.mng-box.pr-modal .pr-note-input{height:min(16vh,120px);font-family:'Noto Sans KR',sans-serif}
+.mng-box.pr-modal .pr-note-input{height:min(16vh,120px);font-family:'Pretendard Variable',Pretendard,sans-serif}
 .mng-box.arch-modal .pr-viewbody .pr-main{background:rgba(184,216,255,.04);box-shadow:0 0 0 1px rgba(190,208,228,.14)}
 .mng-box.arch-modal .pr-viewbody .pr-strip button.on,.mng-box.arch-modal .pr-viewbody .pr-strip button:hover{border-color:#b8d8ff}
 .mng-box.arch-modal .pr-viewbody .pr-text{border-color:rgba(190,208,228,.1);background:rgba(5,7,10,.5);color:#c3ccd6}

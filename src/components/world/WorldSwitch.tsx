@@ -1,5 +1,6 @@
 'use client';
-/** 세계 전환 버튼 (lib/worldStore.ts) — 모든 페이지 왼쪽 아래 (layout.tsx). 누른 쪽 세계로 사이트 전체(디자인 · 목록)가 바뀐다 */
+/** 세계 전환 버튼 (lib/worldStore.ts) — 머리의 로그인 버튼 왼쪽 (TopBar가 로그인 영역과 함께 그린다).
+ *  예전엔 화면 왼쪽 아래에 떠 있어 꼬리말을 가렸다 (v2.0 사용자 요청). 누른 쪽 세계로 사이트 전체(디자인 · 목록)가 바뀐다 */
 import React from 'react';
 import { WORLDS, setWorld, useWorld } from '@/lib/worldStore';
 
