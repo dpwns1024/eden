@@ -1,7 +1,8 @@
 /* 자동 생성 — node scripts/yjhm-arch.mjs (손으로 고치지 말 것).
  * ARCH 게시판 규칙(globals.css) · BGM 다이얼(bgmDial.css)의 색 · 그림자 · 글꼴만 YJHM판으로 뒤집은 것. 배치는 ARCH 그대로. */
 html.ui-yjhm.ui-arch .page-arch, html.ui-yjhm .mng-box.arch-modal {--a-pn:rgba(247,246,242,0.64);--a-ln:rgba(96,124,160,0.1);--a-ln2:rgba(96,124,160,0.22);--a-tx:rgb(59,75,98);--a-mu:rgb(123,134,148);--a-dim:rgb(176,182,188);
-  --a-ac:rgb(96,124,160);--a-acr:96,124,160;--a-sil:linear-gradient(180deg,rgb(44,62,87) 0%,rgb(69,84,106) 34%,rgb(129,139,152) 52%,rgb(57,74,97) 68%,rgb(110,121,137) 100%)
+  --a-ac:rgb(96,124,160);--a-acr:96,124,160;--a-sil:linear-gradient(180deg,rgb(44,62,87) 0%,rgb(69,84,106) 34%,rgb(129,139,152) 52%,rgb(57,74,97) 68%,rgb(110,121,137) 100%);
+  --a-bkc:linear-gradient(rgba(61,78,100,0.55),rgba(61,78,100,0.55))
 }
 html.ui-yjhm.ui-arch .page-arch .page-head h1 {font:500 clamp(30px,4.4vw,52px)/1.05 'Archivo Narrow','Pretendard Variable',Pretendard,sans-serif
 }
@@ -16,9 +17,7 @@ html.ui-yjhm.ui-arch .page-arch .searchbar {background:rgba(247,246,242,0.72)
 html.ui-yjhm.ui-arch .page-arch .searchbar button:hover {color:rgb(44,62,87)
 }
 html.ui-yjhm.ui-arch .page-arch .panel, html.ui-yjhm.ui-arch .page-arch .char-card, html.ui-yjhm.ui-arch .page-arch .rel-card {
-  background:linear-gradient(180deg,rgba(44,62,87,0.028),transparent 46%),var(--a-pn);box-shadow:inset 0 1px 0 rgba(44,62,87,0.015),0 24px 50px -28px rgba(247,246,242,0.27)
-}
-html.ui-yjhm.ui-arch .page-arch .panel::before, html.ui-yjhm.ui-arch .page-arch .panel::after, html.ui-yjhm.ui-arch .page-arch .char-card::before, html.ui-yjhm.ui-arch .page-arch .char-card::after, html.ui-yjhm.ui-arch .page-arch .rel-card::before, html.ui-yjhm.ui-arch .page-arch .rel-card::after, html.ui-yjhm.ui-arch .page-arch .rel-center::before, html.ui-yjhm.ui-arch .page-arch .rel-center::after, html.ui-yjhm.ui-arch .page-arch .profile-center::before, html.ui-yjhm.ui-arch .page-arch .profile-center::after {border-color:rgba(61,78,100,0.55)
+  background:var(--a-bks),linear-gradient(180deg,rgba(44,62,87,0.028),transparent 46%),var(--a-pn);box-shadow:inset 0 1px 0 rgba(44,62,87,0.015),0 24px 50px -28px rgba(247,246,242,0.27)
 }
 html.ui-yjhm.ui-arch .page-arch .char-card:hover, html.ui-yjhm.ui-arch .page-arch .rel-card:hover {box-shadow:inset 0 1px 0 rgba(44,62,87,0.015),0 0 26px -8px rgba(var(--a-acr),.45),0 24px 50px -28px rgba(247,246,242,0.27)
 }
@@ -435,8 +434,6 @@ html.ui-yjhm.ui-arch .page-arch .fr-catch {font:500 calc(11.5px*var(--fs,1))/1.6
 }
 html.ui-yjhm.ui-arch .page-arch .rel-bn {background:rgb(247,246,242)
 }
-html.ui-yjhm.ui-arch .page-arch .rel-bn::before, html.ui-yjhm.ui-arch .page-arch .rel-bn::after {border:solid rgba(61,78,100,0.55)
-}
 html.ui-yjhm.ui-arch .page-arch .rel-bn .bn-art::after {background:linear-gradient(90deg,rgba(247,246,242,0.95) 0%,rgba(247,246,242,0.72) 38%,transparent 76%)
 }
 html.ui-yjhm.ui-arch .page-arch .rel-bn .bn-k {font:400 9px/1 'Archivo Narrow',monospace
@@ -570,8 +567,6 @@ html.ui-yjhm.ui-arch .page-arch .seg button {font:400 calc(10px*var(--fs,1))/1 '
 html.ui-yjhm.ui-arch .page-arch .seg button.on {color:rgb(44,62,87)
 }
 html.ui-yjhm.ui-arch .page-gallery .g-item {background:rgb(247,246,242)
-}
-html.ui-yjhm.ui-arch .page-gallery .g-item::before, html.ui-yjhm.ui-arch .page-gallery .g-item::after {border:solid rgba(61,78,100,0.55)
 }
 html.ui-yjhm.ui-arch .page-gallery .g-item .thumb::after {background:linear-gradient(transparent,rgba(247,246,242,0.55))
 }
