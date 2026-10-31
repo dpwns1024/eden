@@ -25,7 +25,6 @@ import './archHome.css';
 const ABOUT_HREF = '/arch';
 /* 메인 ↔ /arch는 서로 다른 페이지라 화면이 새로 그려진다 — 오간 표시를 이번 탭 동안 남겨 둔다 */
 const BACK_KEY = 'ohome.ah.back';      // 소개에 다녀왔다 → 히어로 등장 연출 건너뛰기
-const PUSHED_KEY = 'ohome.ah.pushed';  // 메인에서 눌러 넘어왔다 → 소개의 BACK은 브라우저 뒤로가기와 똑같이
 const ssGet = (k: string) => { try { return sessionStorage.getItem(k) === '1'; } catch { return false; } };
 const ssSet = (k: string, on: boolean) => { try { if (on) sessionStorage.setItem(k, '1'); else sessionStorage.removeItem(k); } catch { /* */ } };
 /** 히어로가 사라지는 시간(ms) — archHome.css의 .ah-leave와 맞춘다 */
@@ -178,14 +177,7 @@ export function ArchHome({ about: aboutRoute = false }: { about?: boolean } = {}
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;   // 새 탭으로 열기는 그대로
     e.preventDefault();
     setLeaving(true);
-    window.setTimeout(() => { ssSet(PUSHED_KEY, true); router.push(ABOUT_HREF); }, LEAVE_MS);
-  };
-  // 화면 안의 BACK — 여기서 넘어왔으면 브라우저 뒤로가기와 똑같이, 주소로 바로 들어왔으면 메인으로
-  const closeAbout = () => {
-    const pushed = ssGet(PUSHED_KEY);
-    ssSet(PUSHED_KEY, false);
-    if (pushed) router.back();
-    else router.replace('/');
+    window.setTimeout(() => router.push(ABOUT_HREF), LEAVE_MS);
   };
 
   return (
@@ -214,7 +206,6 @@ export function ArchHome({ about: aboutRoute = false }: { about?: boolean } = {}
         {about ? (
           /* ARCH 소개 — ARCH 메뉴(기본 HTML 페이지)의 본문을 그대로 */
           <div className="ah-view ah-about" key="about">
-            <button type="button" className="ah-back" onClick={closeAbout}><span>←</span>BACK</button>
             <HtmlPageBody id={MAIN_SEC} name={aboutName} />
           </div>
         ) : (

@@ -164,6 +164,8 @@ function ProfilePanels({ aim, R, vp, profile }: { aim: Pt; R: number; vp: { w: n
       boxes.push({ key: 'c', ...C, x: colX, y: y0 + A.h + B.h + g * 2 });
     }
   }
+  // 정수 픽셀 자리에 — 0.5px 자리에 놓이면 테두리와 꺾쇠가 따로 반올림돼 위아래 꺾쇠가 1px씩 엇갈려 보였다 (연결선도 같은 값으로)
+  boxes.forEach(b => { b.x = Math.round(b.x); b.y = Math.round(b.y); });
   const order = { a: 0, b: 1, c: 2, m: 0 };
   const links = boxes.map(b => {
     const right = b.x + b.w / 2 > aim.x;

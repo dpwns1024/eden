@@ -541,4 +541,12 @@ body:has(.arx)::before{display:none !important}
    게시판 제목은 머리 로고보다 30px 안쪽인데 ARCH 소개만 로고 끝에 붙어 메뉴를 오갈 때 옆으로 밀려 보였다) */
 .htmlpage-doc .arx .ar-wrap{max-width:1180px;padding-left:28px;padding-right:28px}
 @media (max-width:620px){.htmlpage-doc .arx .ar-wrap{padding-left:16px;padding-right:16px}}
+/* 제목 줄도 게시판 제목(.page-head)과 같은 높이 · 크기 (v2.0 사용자 요청) — 위 여백 16px, 글자 clamp(30px,4.4vw,52px),
+   아래 선은 설명 한 줄이 있는 게시판과 같은 자리(설명 위 12px + 한 줄 22px + 아래 18px) */
+.htmlpage-doc .arx .ar-ptitle{padding:16px 0 18px}
+.htmlpage-doc .arx .ar-ptitle h1{font-size:clamp(30px,4.4vw,52px);line-height:1.05}
+.htmlpage-doc .arx .ar-ptitle p{margin-top:12px;font-size:13px;line-height:1.7}
+.htmlpage-doc .arx .ar-ptitle:not(:has(> p)){padding-bottom:52px}
+.htmlpage-doc .arx .ar-ptitle .doc{bottom:18px}
+@media (max-width:620px){.htmlpage-doc .arx .ar-ptitle h1{font-size:30px}}
 

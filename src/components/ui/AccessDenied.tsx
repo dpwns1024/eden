@@ -25,7 +25,6 @@ function Win({ name, kind, onClose, backHref }: Props) {
   const file = (menuLabelOf(ms, MENU[kind].href) ?? MENU[kind].def).toUpperCase();
   return (
     <div className="ad-win" role="alertdialog" aria-modal={onClose ? true : undefined} aria-labelledby="ad-t">
-      <i className="ad-c tl" /><i className="ad-c tr" /><i className="ad-c bl" /><i className="ad-c br" />
       <header className="ad-h">
         <b><span className="ad-ic" aria-hidden="true">!</span><span id="ad-t" className="ad-gl" data-t="ACCESS DENIED">ACCESS DENIED</span></b>
         <span>ERR 403</span>

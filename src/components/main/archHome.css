@@ -157,17 +157,10 @@ body:has(.ah-main)::before{display:none !important}
 .arx:where(.ah-main) .ah-about .arx > .ar-wrap{max-width:none;min-height:0;padding:0}
 /* 메인에서 연 ARCH 소개도 게시판 내용 폭에 맞춰 안으로 — 게시판 내용 폭(min(1124px, 화면-56px))만큼 남기고 양쪽을 띄운다 */
 .arx:where(.ah-main) .ah-about .arx > .ar-wrap{padding:0 max(0px,calc((100% - min(1124px,100vw - 56px)) / 2))}
-/* BACK 버튼도 같은 왼쪽 끝으로 */
-.arx:where(.ah-main) .ah-about > .ah-back{margin-left:max(0px,calc((100% - min(1124px,100vw - 56px)) / 2))}
 @media (max-width:620px){
   .arx:where(.ah-main) .ah-about .arx > .ar-wrap{padding:0 max(0px,calc((100% - (100vw - 32px)) / 2))}
-  .arx:where(.ah-main) .ah-about > .ah-back{margin-left:max(0px,calc((100% - (100vw - 32px)) / 2))}
 }
 .arx:where(.ah-main) .ah-about .ad-bar{right:0}   /* 관리자 EDIT — 문서 틀의 여백을 뺐으니 오른쪽 끝선에 맞춘다 */
-.arx:where(.ah-main) .ah-back{display:inline-flex;align-items:center;gap:10px;margin-top:clamp(18px,2.4vw,28px);padding:6px 0;border:0;background:none;font:400 10px/1 'JetBrains Mono',monospace;letter-spacing:.26em;color:var(--mu);cursor:var(--cur-pointer,pointer);transition:color .25s}
-.arx:where(.ah-main) .ah-back span{letter-spacing:0;transition:transform .25s}
-.arx:where(.ah-main) .ah-back:hover{color:#fff}
-.arx:where(.ah-main) .ah-back:hover span{transform:translateX(-4px)}
 @media (prefers-reduced-motion:reduce){
   .arx:where(.ah-main) .ah-view,.arx:where(.ah-main) .ah-leave{animation:none !important}
 }
