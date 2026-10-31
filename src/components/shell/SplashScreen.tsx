@@ -354,6 +354,15 @@ function runShatter(canvas: HTMLCanvasElement, img: HTMLImageElement, at: Pt,
     };
   });
 
+  // 불씨 (불속성) — 탄착점에서 튀어 천천히 떠오르며 깜빡이다 사그라든다
+  const embers = Array.from({ length: small ? 44 : 72 }, () => {
+    const a = rnd(0, Math.PI * 2), sp = rnd(90, 560) * u * Math.pow(Math.random(), 0.6);
+    return {
+      t0: rnd(0, 0.14), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - rnd(40, 220) * u,
+      life: rnd(1.1, 2.3), size: rnd(0.9, 2.6) * u, hue: rnd(14, 42), fl: rnd(9, 20), ph: rnd(0, 6.3),
+    };
+  });
+
   const F = 900 * u;
   const G = 1500 * u;
   const cx0 = Wd / 2, cy0 = Hd / 2;
@@ -378,8 +387,19 @@ function runShatter(canvas: HTMLCanvasElement, img: HTMLImageElement, at: Pt,
   const camPt = (x: number, y: number) => ({ x: I.x + (x - I.x) * cam.sc + cam.sx, y: I.y + (y - I.y) * cam.sc + cam.sy });
   const setCam = () => ctx.setTransform(cam.sc, 0, 0, cam.sc, I.x * (1 - cam.sc) + cam.sx, I.y * (1 - cam.sc) + cam.sy);
 
-  const drawCracks = (R: number, alpha = 1) => {
+  const drawCracks = (R: number, alpha = 1, heat = 0) => {
     ctx.lineCap = 'round';
+    // 탄착점 가까운 균열은 달아오른 불빛 — 안쪽은 진하게, 바깥으로 갈수록 옅게 (heat가 식으며 사그라든다)
+    if (heat > 0.01) {
+      for (const [lim, a, w, bl] of [[0.3, 0.45, 3.4, 16], [0.13, 0.9, 2.2, 10]] as const) {
+        ctx.beginPath();
+        for (const e of edges) if (e.d < Math.min(R, maxR * lim)) { ctx.moveTo(e.a.x, e.a.y); ctx.lineTo(e.b.x, e.b.y); }
+        ctx.strokeStyle = `rgba(255,${lim > 0.2 ? 84 : 150},${lim > 0.2 ? 36 : 80},${a * heat * alpha})`;
+        ctx.lineWidth = w * u; ctx.shadowColor = 'rgba(255,64,24,.9)'; ctx.shadowBlur = bl * u;
+        ctx.stroke();
+      }
+      ctx.shadowBlur = 0;
+    }
     ctx.beginPath();
     for (const e of edges) if (e.d < R) { ctx.moveTo(e.a.x, e.a.y); ctx.lineTo(e.b.x, e.b.y); }
     ctx.strokeStyle = `rgba(0,0,0,${0.55 * alpha})`; ctx.lineWidth = 2.4 * u; ctx.stroke();
@@ -463,17 +483,29 @@ function runShatter(canvas: HTMLCanvasElement, img: HTMLImageElement, at: Pt,
     ctx.strokeStyle = `rgba(255,255,255,${Math.min(1, edgeA + spec)})`;
     ctx.lineWidth = (1 + spec * 1.2) * u;
     ctx.stroke();
+    // 유리 단면의 색 번짐 — 테두리 양옆으로 아주 옅은 빨강 · 하늘빛을 어긋나게
+    const fr = 1.4 * u;
+    ctx.lineWidth = 0.8 * u;
+    for (const [dx, col] of [[fr, `rgba(255,90,60,${0.32 * edgeA})`], [-fr, `rgba(140,210,255,${0.28 * edgeA})`]] as const) {
+      ctx.beginPath();
+      ctx.moveTo(d[0].x + dx, d[0].y); ctx.lineTo(d[1].x + dx, d[1].y); ctx.lineTo(d[2].x + dx, d[2].y);
+      ctx.closePath();
+      ctx.strokeStyle = col; ctx.stroke();
+    }
     ctx.globalAlpha = 1;
   };
 
+  // 슬로모션 — 조각이 떨어져 나가는 첫 0.35초는 0.3배 속도로 떠 있다가 점점 원래 속도로 (0.85초에 1배)
+  const warp = (x: number) => x <= 0.85 ? 0.3 * x + 0.7 * Math.pow(Math.max(0, x - 0.35), 2) : 0.43 + (x - 0.85);
   const start = performance.now();
   let raf = 0;
   let revealed = false;
   const frame = () => {
-    const t = (performance.now() - start) / 1000;
+    const tr = (performance.now() - start) / 1000;
+    const t = tr < tE ? tr : tE + warp(tr - tE);
     if (t >= tE + T_FLY) { document.body.classList.remove('sp-reveal'); done(); return; }
-    // 유리가 터지는 순간 뒤의 사이트를 페이드 인
-    if (!revealed && t >= tE) { revealed = true; document.body.classList.add('sp-reveal'); }
+    // 금이 다 간 순간부터 뒤의 사이트를 흐릿하게 페이드 인 — 벌어지는 틈 사이로 사이트가 비친다
+    if (!revealed && t >= T_CRACK) { revealed = true; document.body.classList.add('sp-reveal'); }
 
     const shakeA = t < 0.45 ? 14 * u * Math.pow(1 - t / 0.45, 2)
       : t > tE && t < tE + 0.25 ? 7 * u * Math.pow(1 - (t - tE) / 0.25, 2) : 0;
@@ -484,13 +516,14 @@ function runShatter(canvas: HTMLCanvasElement, img: HTMLImageElement, at: Pt,
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, Wd, Hd);
-    const back = t < tE ? 1 : 0;
-    if (back > 0) { ctx.fillStyle = `rgba(0,0,0,${back})`; ctx.fillRect(0, 0, Wd, Hd); }
+    // 틈 뒤 — 새까만 대신 사이트 바탕색(남색 검정)이 점점 옅어지며 사이트가 비친다
+    const back = t < T_CRACK ? 1 : t < tE ? 1 - 0.6 * ease((t - T_CRACK) / T_HOLD) : 0;
+    if (back > 0) { ctx.fillStyle = `rgba(5,7,10,${back})`; ctx.fillRect(0, 0, Wd, Hd); }
 
     if (t < T_CRACK) {
       setCam();
       ctx.drawImage(src, 0, 0);
-      drawCracks(maxR * ease(t / T_CRACK));
+      drawCracks(maxR * ease(t / T_CRACK), 1, 1);
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       drawHole(Math.min(1, t / 0.03));
     } else if (t < tE) {
@@ -502,7 +535,7 @@ function runShatter(canvas: HTMLCanvasElement, img: HTMLImageElement, at: Pt,
           sh.hx * e, sh.hy * e, sh.hz * e, 0, boost * 0.18, 0.75 * boost, 1);
       }
       setCam();
-      drawCracks(maxR);
+      drawCracks(maxR, 1, 1 - 0.65 * th);
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       drawHole(1);
     } else {
@@ -542,14 +575,40 @@ function runShatter(canvas: HTMLCanvasElement, img: HTMLImageElement, at: Pt,
     }
     ctx.globalAlpha = 1;
 
-    if (t < 0.18) {
-      const p = camPt(I.x, I.y);
-      const gl = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 280 * u);
-      gl.addColorStop(0, `rgba(255,255,255,${0.9 * (1 - t / 0.18)})`);
-      gl.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.globalCompositeOperation = 'lighter';
+    for (const m of embers) {
+      const te = t - m.t0;
+      if (te < 0 || te > m.life) continue;
+      const k = (1 - Math.exp(-2.4 * te)) / 2.4;   // 공기 저항으로 금방 느려진다
+      const pt = camPt(I.x + m.vx * k, I.y + m.vy * k - 26 * u * te * te);
+      const lf = 1 - te / m.life;
+      const al = lf * (0.55 + 0.45 * Math.sin(m.ph + te * m.fl));
+      const r = m.size * (0.6 + 0.4 * lf);
+      ctx.fillStyle = `hsla(${m.hue},100%,55%,${0.22 * al})`;
+      ctx.beginPath(); ctx.arc(pt.x, pt.y, r * 3.2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = `hsla(${m.hue + 12},100%,${70 + 20 * lf}%,${al})`;
+      ctx.beginPath(); ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+
+    const p0 = camPt(I.x, I.y);
+    if (t < 0.5) {
+      const k = t / 0.5, rr = (30 + 1100 * ease(k)) * u, a = Math.pow(1 - k, 2);
+      ctx.beginPath(); ctx.arc(p0.x, p0.y, rr, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(255,228,214,${0.5 * a})`; ctx.lineWidth = (1 + 7 * (1 - k)) * u; ctx.stroke();
+      ctx.beginPath(); ctx.arc(p0.x, p0.y, rr * 0.93, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(255,70,40,${0.35 * a})`; ctx.lineWidth = (1 + 3 * (1 - k)) * u; ctx.stroke();
+    }
+    if (t < 0.24) {
+      const k = 1 - t / 0.24;
+      const gl = ctx.createRadialGradient(p0.x, p0.y, 0, p0.x, p0.y, 320 * u);
+      gl.addColorStop(0, `rgba(255,244,230,${0.95 * k})`);
+      gl.addColorStop(0.18, `rgba(255,150,90,${0.5 * k})`);
+      gl.addColorStop(0.5, `rgba(255,60,30,${0.16 * k})`);
+      gl.addColorStop(1, 'rgba(255,60,30,0)');
       ctx.fillStyle = gl; ctx.fillRect(0, 0, Wd, Hd);
     }
-    if (t < 0.07) { ctx.fillStyle = `rgba(255,255,255,${0.85 * (1 - t / 0.07)})`; ctx.fillRect(0, 0, Wd, Hd); }
+    if (t < 0.06) { ctx.fillStyle = `rgba(255,236,224,${0.32 * (1 - t / 0.06)})`; ctx.fillRect(0, 0, Wd, Hd); }
 
     raf = requestAnimationFrame(frame);
   };
