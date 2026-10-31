@@ -2772,7 +2772,7 @@ html.ui-arch .page-arch .log-rich > [style]:not([data-box]) :is(b,strong),.log-r
 .splash-overlay{position:fixed;inset:0;z-index:9999;overflow:hidden;
   background:radial-gradient(1300px 760px at 50% -4%,rgba(130,160,200,.12),transparent 66%),repeating-linear-gradient(90deg,rgba(190,208,228,.026) 0 1px,transparent 1px 128px),repeating-linear-gradient(0deg,rgba(190,208,228,.018) 0 1px,transparent 1px 128px),#05070a;touch-action:none;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
 .splash-overlay.is-shatter{background:transparent}
-body.sp-reveal > *:not(.splash-overlay){animation:spReveal 1.1s cubic-bezier(.2,.7,.2,1) .05s both}
+body.sp-reveal > *:not(.splash-overlay){animation:spReveal 1.6s cubic-bezier(.2,.7,.2,1) both}   /* 금이 다 간 순간부터 — 벌어지는 틈 사이로 흐릿하게 비치다가 또렷해진다 */
 @keyframes spReveal{from{opacity:0;filter:blur(8px)}to{opacity:1;filter:none}}
 .sp-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .sp-lens{position:absolute;border-radius:50%;overflow:hidden;background-repeat:no-repeat;pointer-events:none;
