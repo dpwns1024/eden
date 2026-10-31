@@ -27,6 +27,15 @@ import { ColorField } from '@/components/ui/ColorField';
 import { AEGIS_SPOTS, type ArchMapNode } from '@/lib/aegisMap';
 import './archdoc.css';
 
+/** 영문 제목에 한글이 섞이면(「VANGUARD 2팀」) 한글만 따로 감싼다 (v2.0 사용자 제보 — 「제목 글꼴이 왜 달라」).
+ *  ARCH 제목은 넓은 자간인데, 한글이 든 칸은 통째로 좁은 자간이 돼(LetterSpacingFix · [data-ko]) 영문까지 좁아져
+ *  다른 글꼴처럼 보였다. 한글 조각만 따로 두면 그 조각만 좁아지고 영문은 다른 제목(AGENT 등)과 같아진다 */
+const HANGUL_RUN = /([\u3131-\u318e\uac00-\ud7a3]+)/;
+function KoMix({ t }: { t?: string }) {
+  if (!t || !HANGUL_RUN.test(t) || !/[A-Za-z0-9]/.test(t)) return <>{t}</>;
+  return <>{t.split(HANGUL_RUN).map((x, i) => (i % 2 ? <span key={i} className="ko">{x}</span> : x))}</>;
+}
+
 const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v));
 const move = <T,>(arr: T[], i: number, d: number): T[] => {
   const j = i + d;
@@ -49,7 +58,7 @@ function Pending({ label }: { label: string }) {
 
 function CardView({ c }: { c: ArchCard }) {
   const head = (
-    <h3><span className="ar-silver">{c.title}</span>{c.sub && <small>{c.sub}</small>}</h3>
+    <h3><span className="ar-silver"><KoMix t={c.title} /></span>{c.sub && <small>{c.sub}</small>}</h3>
   );
   const body = c.body ? <div className="ar-cbody" dangerouslySetInnerHTML={{ __html: sanitizeHtml(c.body) }} /> : null;
   return (
@@ -137,7 +146,7 @@ function AgentModal({ a, g, onClose }: { a: ArchAgent | null; g: ArchAgentGroup 
           <div className="ar-ag-pf-h" style={{ '--gc': g.color } as React.CSSProperties}>
             <span className="ph"><AgentPhoto src={a.photo} alt={a.name} /></span>
             <div className="nm">
-              <small>{g.title}{g.cls && <em>{g.cls}</em>}</small>
+              <small><KoMix t={g.title} />{g.cls && <em>{g.cls}</em>}</small>
               <span className="nmr"><b>{a.name}</b>{a.en && <span className="en">{a.en}</span>}</span>
               <ElemBadge el={a.element} />
             </div>
@@ -157,7 +166,7 @@ function RosterView({ groups }: { groups: ArchAgentGroup[] }) {
     <div className="ar-roster">
       {groups.map(g => (
         <section key={g.id} className="ar-ag-grp" style={{ '--gc': g.color } as React.CSSProperties}>
-          <div className="ar-ag-gh"><b>{g.title}</b>{g.cls && <em>{g.cls}</em>}</div>
+          <div className="ar-ag-gh"><b><KoMix t={g.title} /></b>{g.cls && <em>{g.cls}</em>}</div>
           <div className="ar-ag-list">
             {g.agents.map(a => <AgentCard key={a.id} a={a} onOpen={() => setOpen({ g, a })} />)}
           </div>
@@ -224,7 +233,7 @@ function ClassSwitch({ items, on, setOn, linked }: { items: ArchClass[]; on: num
       <Marks items={items.map(it => ({ id: it.id, icon: it.icon, name: it.title }))} on={on} setOn={setOn} label="분류" />
       <div className="ar-sw-body" key={cur.id}>
         {more && <MoreButton more={more} />}
-        <b>{cur.title}</b>{cur.sub && <small>{cur.sub}</small>}
+        <b><KoMix t={cur.title} /></b>{cur.sub && <small>{cur.sub}</small>}
         {cur.body && <p>{cur.body}</p>}
       </div>
       {cur.letter && <span className="bg" aria-hidden="true">{cur.letter}</span>}
@@ -252,7 +261,7 @@ function ElemBox({ group, from }: { group: ArchElemGroup; from: string }) {
     <div className="ar-pn ar-sw ar-elbox">
       <div className="ar-elbox-k"><span><i />LINKED · {from}</span><span>{group.elements.length} / {slots} ELEMENTS</span></div>
       <div className="ar-sw-body" key={group.id}>
-        <b>{group.title}</b>{group.sub && <small>{group.sub}</small>}
+        <b><KoMix t={group.title} /></b>{group.sub && <small>{group.sub}</small>}
         {group.body ? <p>{group.body}</p> : <p className="pend">기록 준비 중</p>}
         <div className="ar-els" role="tablist" aria-label="원소">
           {Array.from({ length: slots }, (_, i) => {
@@ -341,7 +350,7 @@ function BlockView({ b }: { b: ArchBlock }) {
       return (
         <div className="ar-sh">
           {b.num && <span className="ar-sn">{b.num}</span>}
-          <div><b>{b.title}</b>{b.sub && <small>{b.sub}</small>}</div>
+          <div><b><KoMix t={b.title} /></b>{b.sub && <small>{b.sub}</small>}</div>
           <i />
           {b.doc && <em>{b.doc}</em>}
         </div>
@@ -377,7 +386,7 @@ function BlockView({ b }: { b: ArchBlock }) {
                 <div key={it.id} className={`ar-pn ar-cl${moreOf(it) ? ' has-more' : ''}`}>
                   {moreOf(it) && <MoreButton more={moreOf(it)!} />}
                   {it.icon !== 'none' && <span className="ar-ic" dangerouslySetInnerHTML={{ __html: iconSvg(it.icon) }} />}
-                  <b>{it.title}</b>{it.sub && <small>{it.sub}</small>}
+                  <b><KoMix t={it.title} /></b>{it.sub && <small>{it.sub}</small>}
                   {it.body && <p>{it.body}</p>}
                   {it.letter && <span className="bg">{it.letter}</span>}
                 </div>
@@ -927,7 +936,7 @@ export function ArchDocView({ doc, canEdit, onSave, onUseHtml, fromHtml }: {
         )}
 
         <section className="ar-ptitle">
-          <h1 className="ar-silver">{cur.title}</h1>
+          <h1 className="ar-silver"><KoMix t={cur.title} /></h1>
           {cur.doc && <div className="doc">{cur.doc.split('\n').map((l, i) => <React.Fragment key={i}>{i > 0 && <br />}{l}</React.Fragment>)}</div>}
         </section>
 
