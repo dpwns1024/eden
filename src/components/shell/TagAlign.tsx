@@ -30,8 +30,8 @@ let ctx: CanvasRenderingContext2D | null = null;
 function restore(el: HTMLElement) {
   const o = el.dataset[ORIG];
   if (o == null) return;
-  const v = JSON.parse(o) as Record<string, string>;
-  for (const k of Object.keys(v)) el.style.setProperty(k, v[k]);
+  const v = JSON.parse(o) as Record<string, [string, string]>;
+  for (const k of Object.keys(v)) el.style.setProperty(k, v[k][0], v[k][1]);
   delete el.dataset[ORIG];
 }
 
@@ -65,50 +65,68 @@ function fix(el: HTMLElement, guard = false) {
   const m = { actualBoundingBoxLeft: mk.actualBoundingBoxLeft / K, actualBoundingBoxRight: mk.actualBoundingBoxRight / K,
     actualBoundingBoxAscent: mk.actualBoundingBoxAscent / K, actualBoundingBoxDescent: mk.actualBoundingBoxDescent / K };
 
-  // 글자 시작 자리 — 글자 범위(Range)의 왼쪽 끝
   const node = [...el.childNodes].find(n => n.nodeType === 3 && n.nodeValue?.trim()) as Text | undefined;
   if (!node) { done(); return; }
-  const rg = document.createRange();
-  rg.setStart(node, node.nodeValue!.length - node.nodeValue!.trimStart().length);
-  rg.setEnd(node, node.nodeValue!.trimEnd().length);
-  const lr = rg.getClientRects()[0];
-  if (!lr) { done(); return; }
-  // 기준선 — 글자를 잠깐 인라인 상자로 감싸고 그 안 맨 앞에 크기 0인 표시를 기준선에 놓아 잰다
-  // (상자가 flex여도 감싼 안쪽은 보통 줄이라 표시가 정확히 기준선에 선다)
-  const wrap = document.createElement('span');
-  const probe = document.createElement('span');
-  probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline;padding:0;margin:0;border:0';
-  node.replaceWith(wrap); wrap.append(probe, node);
-  const baseY = probe.getBoundingClientRect().top;
-  wrap.replaceWith(node);
 
-  const r = el.getBoundingClientRect();
-  const s = el.offsetWidth ? r.width / el.offsetWidth : 1;   // 확대 · 축소(zoom) 보정
-  const base = baseY;
-  const inkL = lr.left - m.actualBoundingBoxLeft * s;
-  const inkR = lr.left + (m.actualBoundingBoxRight + (lsCanvas ? 0 : ls * (text.length - 1))) * s;
-  const inkT = base - m.actualBoundingBoxAscent * s;
-  const inkB = base + m.actualBoundingBoxDescent * s;
-  const boxCx = r.left + (el.clientLeft + el.clientWidth / 2) * s;
-  const boxCy = r.top + (el.clientTop + el.clientHeight / 2) * s;
-  const dx = (boxCx - (inkL + inkR) / 2) / s;
-  const dy = (boxCy - (inkT + inkB) / 2) / s;
-  if (Math.abs(dx) < 0.3 && Math.abs(dy) < 0.3) { done(); return; }
-  // 버튼은 글자가 원래 가운데 근처일 때만 — 왼쪽 정렬로 둔 넓은 버튼은 그대로
-  if (guard && (Math.abs(dx) > Math.max(4, ls + 2) || Math.abs(dy) > 3)) { done(); return; }
+  // 지금 모습에서 글자 잉크 중심이 상자 안쪽 중심에서 얼마나 빗겨 있는지
+  const measure = () => {
+    // 글자 시작 자리 — 글자 범위(Range)의 왼쪽 끝
+    const rg = document.createRange();
+    rg.setStart(node, node.nodeValue!.length - node.nodeValue!.trimStart().length);
+    rg.setEnd(node, node.nodeValue!.trimEnd().length);
+    const lr = rg.getClientRects()[0];
+    if (!lr) return null;
+    // 기준선 — 글자를 잠깐 인라인 상자로 감싸고 그 안 맨 앞에 크기 0인 표시를 기준선에 놓아 잰다
+    // (상자가 flex여도 감싼 안쪽은 보통 줄이라 표시가 정확히 기준선에 선다)
+    // 사이트 CSS가 걸리지 않는 이름 없는 태그로 — span이면 「딱지 안 span」 규칙이 걸려 기준선이 바뀌었다
+    const wrap = document.createElement('tag-align-w');
+    const probe = document.createElement('tag-align-p');
+    probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline;padding:0;margin:0;border:0';
+    node.replaceWith(wrap); wrap.append(probe, node);
+    const layoutBase = probe.getBoundingClientRect().top;
+    wrap.replaceWith(node);
+    // 브라우저는 글자 기준선을 CSS 1px 단위로 반올림해 그린다(배율과 상관없이 — 실측). 그려지는 자리로 잰다
+    const base = Math.round(layoutBase + window.scrollY) - window.scrollY;
+    const r = el.getBoundingClientRect();
+    const s = el.offsetWidth ? r.width / el.offsetWidth : 1;   // 확대 · 축소(zoom) 보정
+    const inkL = lr.left - m.actualBoundingBoxLeft * s;
+    const inkR = lr.left + (m.actualBoundingBoxRight + (lsCanvas ? 0 : ls * (text.length - 1))) * s;
+    const inkT = base - m.actualBoundingBoxAscent * s;
+    const inkB = base + m.actualBoundingBoxDescent * s;
+    const dy = (r.top + (el.clientTop + el.clientHeight / 2) * s - (inkT + inkB) / 2) / s;
+    // 위아래는 반올림 뒤 기준선이 가장 가운데에 오는 정수 자리로 — 그 자리에 기준선이 오도록 옮길 양
+    const target = Math.round(base + window.scrollY + dy * s) - window.scrollY;
+    return {
+      dx: (r.left + (el.clientLeft + el.clientWidth / 2) * s - (inkL + inkR) / 2) / s,
+      dy: (target - layoutBase) / s,
+    };
+  };
 
   const keys = ['padding-left', 'padding-right', 'padding-top', 'padding-bottom', 'display'];
-  el.dataset[ORIG] = JSON.stringify(Object.fromEntries(keys.map(k => [k, el.style.getPropertyValue(k)])));
-  if (cs.display === 'inline') el.style.setProperty('display', 'inline-block');   // 인라인은 위아래 여백이 글자를 옮기지 못한다
-  const pl = parseFloat(cs.paddingLeft), pr = parseFloat(cs.paddingRight), pt = parseFloat(cs.paddingTop), pb = parseFloat(cs.paddingBottom);
-  if (Math.abs(dx) >= 0.3) {
-    el.style.setProperty('padding-left', `${Math.max(0, pl + dx)}px`);
-    el.style.setProperty('padding-right', `${Math.max(0, pr - dx)}px`);
-  }
-  if (Math.abs(dy) >= 0.3) {
-    el.style.setProperty('padding-top', `${Math.max(0, pt + dy)}px`);
-    el.style.setProperty('padding-bottom', `${Math.max(0, pb - dy)}px`);
-  }
+  el.dataset[ORIG] = JSON.stringify(Object.fromEntries(keys.map(k => [k, [el.style.getPropertyValue(k), el.style.getPropertyPriority(k)]])));
+  // !important로 넣는다 — 여백을 CSS에서 !important로 박아 둔 딱지(갤러리 분류 딱지 등)는 그냥 넣으면 무시됐다 (v2.0 사용자 제보 — CHANGE · ORIGINAL)
+  const put = (k: string, v: string) => el.style.setProperty(k, v, 'important');
+  // 인라인은 위아래 여백이 글자를 옮기지 못해 inline-block으로 — 재기 「전에」 바꾼다(바꾸면 기준선이 달라져 먼저 잰 값이 빗나갔다)
+  if (cs.display === 'inline') put('display', 'inline-block');
+  // 한쪽에 더한 만큼 반대쪽에서 뺀다. 뺄 여백이 없으면(높이가 고정된 버튼 등) 더하기만 하고, 다음 재기에서 남은 만큼 더 옮긴다
+  const move = (a: string, b: string, d: number) => {
+    const c = getComputedStyle(el);
+    const va = parseFloat(c.getPropertyValue(a)), vb = parseFloat(c.getPropertyValue(b));
+    if (d > 0) { put(a, `${va + Math.min(d, vb) + (vb < d ? d - vb : 0)}px`); put(b, `${Math.max(0, vb - d)}px`); }
+    else { put(b, `${vb + Math.min(-d, va) + (va < -d ? -d - va : 0)}px`); put(a, `${Math.max(0, va + d)}px`); }
+  };
+  const shift = (d: { dx: number; dy: number }) => {
+    if (Math.abs(d.dx) >= 0.2) move('padding-left', 'padding-right', d.dx);
+    if (Math.abs(d.dy) >= 0.2) move('padding-top', 'padding-bottom', d.dy);
+  };
+
+  const d1 = measure();
+  // 버튼은 글자가 원래 가운데 근처일 때만 — 왼쪽 정렬로 둔 넓은 버튼은 그대로
+  if (!d1 || (Math.abs(d1.dx) < 0.3 && Math.abs(d1.dy) < 0.3 && cs.display !== 'inline')
+    || (guard && (Math.abs(d1.dx) > Math.max(4, ls + 2) || Math.abs(d1.dy) > 3))) { restore(el); done(); return; }
+  shift(d1);
+  // 두 번 더 재서 남은 차이까지 (높이가 고정된 상자는 한쪽만 늘리면 절반만 움직인다)
+  for (let i = 0; i < 2; i++) { const d = measure(); if (!d || (Math.abs(d.dx) < 0.2 && Math.abs(d.dy) < 0.2)) break; shift(d); }
   done();
 }
 
