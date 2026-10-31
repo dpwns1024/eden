@@ -46,7 +46,7 @@ export const BUILTIN_FONTS: FontDef[] = [
 /** 폰트가 실제로 로드되는 CSS URL — 내장 구글폰트는 gfont 쿼리에서 파생 */
 export function fontCssUrl(f: FontDef): string | undefined {
   if (f.cssUrl) return f.cssUrl;
-  if (f.gfont) return `https://fonts.googleapis.com/css2?family=${f.gfont}&display=swap`;
+  if (f.gfont) return `https://fonts.googleapis.com/css2?family=${f.gfont}&display=block`;
   return undefined;
 }
 
@@ -129,24 +129,30 @@ function ensureLink(id: string, href: string) {
   document.head.appendChild(l);
 }
 
+function readFontState(): FontState {
+  try {
+    const raw = getRawSetting(STORAGE_KEY);
+    if (raw) {
+      const p = JSON.parse(raw) as Partial<FontState>;
+      return { ...EMPTY, ...p, roles: normRoles(p.roles as Record<string, unknown> | undefined) };
+    }
+    const legacy = getRawSetting(LEGACY_KEY);
+    if (legacy) return { ...EMPTY, custom: JSON.parse(legacy) };
+  } catch { /* 무시 */ }
+  return EMPTY;
+}
+
+/** 첫 그림 전에 쓸 글꼴 사본 (layout.tsx 인라인 스크립트가 읽는다) — 역할 글꼴 CSS 변수 + 불러올 글꼴 CSS 주소.
+ *  기기 보관 전용(원본은 ohome.fonts.v2). 없으면 새로 고침 · 첫 접속 때 기본 글꼴로 그렸다가 바뀌었다 (v2.0 사용자 제보) */
+export const FONT_CSS_KEY = 'ohome.fontCss.v1';
+
 export function FontProvider({ children }: { children: React.ReactNode }) {
-  const [st, setSt] = useState<FontState>(EMPTY);
+  /* 저장본은 첫 렌더에서 바로 읽는다 — ServerBoot가 설정을 받은 뒤에야 그리므로(서버 렌더 없음) 안전하다.
+     예전엔 useEffect에서 읽어 한 번은 기본 글꼴로 칠했다가 고른 글꼴로 바뀌었다 (v2.0 사용자 제보) */
+  const [st, setSt] = useState<FontState>(readFontState);
   // 역할 폰트 드래프트 (v1.9) — 디자인 탭 SAVE 통합: 변경은 미리보기로만, SAVE로 확정
   const [draftRoles, setDraftRoles] = useState<Record<FontRole, RoleSetting> | null>(null);
   const roles = draftRoles ?? st.roles;
-
-  useEffect(() => {
-    try {
-      const raw = getRawSetting(STORAGE_KEY);
-      if (raw) {
-        const p = JSON.parse(raw) as Partial<FontState>;
-        setSt({ ...EMPTY, ...p, roles: normRoles(p.roles as Record<string, unknown> | undefined) });
-        return;
-      }
-      const legacy = getRawSetting(LEGACY_KEY);
-      if (legacy) setSt({ ...EMPTY, custom: JSON.parse(legacy) });
-    } catch { /* 무시 */ }
-  }, []);
 
   // 수정값 반영된 내장 + 커스텀 (전체 풀 — familyOf 용)
   const pool: FontDef[] = [
@@ -154,13 +160,19 @@ export function FontProvider({ children }: { children: React.ReactNode }) {
     ...st.custom,
   ];
   const fonts = pool.filter(f => !st.hidden.includes(f.id));
+  /** 불러올 글꼴 CSS — [link id, 주소]. 수정 안 된 내장 구글폰트는 한 번에, 나머지는 URL별로 */
+  const fontLinks = (): [string, string][] => {
+    const out: [string, string][] = [];
+    const plain = BUILTIN_FONTS.filter(f => f.gfont && !st.overrides[f.id]?.cssUrl);
+    const gf = plain.map(f => `family=${f.gfont}`).join('&');
+    if (gf) out.push(['ohome-gfonts', `https://fonts.googleapis.com/css2?${gf}&display=block`]);
+    pool.forEach(f => { if (f.cssUrl) out.push([`ohome-font-${f.id}`, f.cssUrl]); });
+    return out;
+  };
 
   // 웹폰트 로드 — 수정 안 된 내장 구글폰트는 한 번에, 나머지는 URL별로
   useEffect(() => {
-    const plain = BUILTIN_FONTS.filter(f => f.gfont && !st.overrides[f.id]?.cssUrl);
-    const gf = plain.map(f => `family=${f.gfont}`).join('&');
-    if (gf) ensureLink('ohome-gfonts', `https://fonts.googleapis.com/css2?${gf}&display=swap`);
-    pool.forEach(f => { if (f.cssUrl) ensureLink(`ohome-font-${f.id}`, f.cssUrl); });
+    fontLinks().forEach(([id, href]) => ensureLink(id, href));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [st]);
 
@@ -215,6 +227,22 @@ export function FontProvider({ children }: { children: React.ReactNode }) {
       if (cfg.weight) root.setProperty(`--fw-${r}`, String(cfg.weight));
       else root.removeProperty(`--fw-${r}`); // 역할별 기본 굵기로
     });
+    // 첫 그림용 사본 — 미리보기(드래프트)는 저장하지 않는다
+    if (!draftRoles) {
+      const vars: Record<string, string> = {};
+      for (let i = 0; i < root.length; i++) {
+        const k = root[i];
+        if (/^--(sans|serif|font-|fs-|fw-)/.test(k) && k !== '--sans-base' && k !== '--serif-base') vars[k] = root.getPropertyValue(k);
+      }
+      // 링크는 구글폰트 · 직접 등록한 CSS 주소 중 실제로 역할에 쓰이는 것만 — 안 쓰는 글꼴 CSS로 첫 화면을 붙잡지 않는다
+      const used = Object.values(vars).join(' ');
+      const links = fontLinks().filter(([id]) => {
+        if (id === 'ohome-gfonts') return BUILTIN_FONTS.some(f => f.gfont && !st.overrides[f.id]?.cssUrl && used.includes(f.family));
+        const f = pool.find(x => `ohome-font-${x.id}` === id);
+        return !!f && used.includes(f.family);
+      });
+      try { setSetting(FONT_CSS_KEY, { vars, links }); } catch { /* 무시 */ }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [st, draftRoles]);
 

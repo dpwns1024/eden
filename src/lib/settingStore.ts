@@ -20,6 +20,7 @@ export const ERR_EVT = 'ohome-setting-error';
 const LOCAL_ONLY = new Set<string>([
   'ohome.bgm.fold', 'ohome.mockuser.v1', 'ohome.server.v1', 'ohome.setup.v1',
   'ohome.themeCss.v1',   // 첫 페인트용 파생 캐시 (원본은 ohome.theme.v2)
+  'ohome.fontCss.v1',    // 첫 페인트용 글꼴 사본 (원본은 ohome.fonts.v2)
   'ohome.notif.v1',      // 알림 목록은 사람별
   /* 알림 on/off도 사람별 — 서버 사이트 설정이 아니다 (v2.0 포크 제보 — 「새로고침마다 꺼짐」).
      예전에 서버 설정 키로 잘못 분류돼 백업 복원 때 서버에 한 번 올라가면, 매 접속마다

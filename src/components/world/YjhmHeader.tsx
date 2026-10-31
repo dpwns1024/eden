@@ -8,9 +8,8 @@ import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { SlotMenu } from '@/components/main/HtmlSlots';
 import { setMemberSlot, clearMemberSlot } from '@/lib/htmlSlots';
+import { YJ_FONTS } from './yjhmFonts';
 
-/** YJHM 화면들이 쓰는 웹폰트 (Archivo Black · Archivo Narrow · Rubik Bubbles · Noto Sans KR) */
-const YJ_FONTS = 'https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo+Narrow:ital,wght@0,500;0,700;1,700&family=Rubik+Bubbles&family=Noto+Sans+KR:wght@400;500;700;900&display=swap';
 
 /** front — 메인 1면 제호에 찍을 날짜 · D-day · 속보 띠 글 (없으면 한 줄 제호) */
 export function YjhmHeader({ front }: { front?: { date: string; dday: string; ticker: string[] } }) {
