@@ -490,7 +490,8 @@ function runShatter(canvas: HTMLCanvasElement, img: HTMLImageElement, at: Pt,
   let raf = 0;
   let revealed = false;
   const frame = () => {
-    const t = (performance.now() - start) / 1000;
+    // 전체를 0.9배 속도로 — 원래 속도보다 살짝 느리게 (v2.0 사용자 요청: 0.3배 슬로모션은 과해 빼고 0.1배만)
+    const t = ((performance.now() - start) / 1000) * 0.9;
     if (t >= tE + T_FLY) { document.body.classList.remove('sp-reveal'); done(); return; }
     // 금이 다 간 순간부터 뒤의 사이트를 흐릿하게 페이드 인 — 벌어지는 틈 사이로 사이트가 비친다
     if (!revealed && t >= T_CRACK) { revealed = true; document.body.classList.add('sp-reveal'); }
