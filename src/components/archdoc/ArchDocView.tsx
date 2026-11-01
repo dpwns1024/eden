@@ -370,7 +370,8 @@ function RosterView({ groups }: { groups: ArchAgentGroup[] }) {
           </div>
           <div className="ar-rv-info">
             <small className="k"><KoMix t={g.title} /></small>
-            <b className="nm">{a.name}</b>
+            {/* 큰 이름 — 영문 이름이 있으면 영문으로 (v2.0 사용자 요청), 없으면 한글 이름 */}
+            <b className={`nm${a.enName?.trim() ? ' lat' : ''}`}>{a.enName?.trim() || a.name}</b>
             <dl className="ar-rv-fl">
               {/* CLASS — 이름 아래 작은 글씨(en)를 적은 요원은 그 글씨, 아니면 무리 등급 (v2.0 사용자 요청) */}
               {(a.en?.trim() || g.cls) && <div><dt>CLASS</dt><dd style={{ color: g.color }}>{a.en?.trim() || g.cls}</dd></div>}
