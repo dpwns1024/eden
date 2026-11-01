@@ -364,7 +364,8 @@ function RosterView({ groups }: { groups: ArchAgentGroup[] }) {
           ))}
         </div>
         <div className="ar-rv-view" key={a.id} style={{ '--ec': ec, '--gc': g.color } as React.CSSProperties}>
-          {a.en && <span className="ar-rv-ghost" aria-hidden="true">{a.en}</span>}
+          {/* 뒤 큰 글씨는 영문 이름만 (v2.0 사용자 요청) — 이름 아래 작은 글씨(en)엔 한글 · 코드가 섞여 있었다 */}
+          {a.enName?.trim() && <span className="ar-rv-ghost" aria-hidden="true">{a.enName.trim()}</span>}
           <div className="ar-rv-ring">
             <i className="r0" /><i className="r2" /><i className="r1" /><i className="r3" />
             <span className="face"><AgentPhoto src={a.photo} alt={a.name} /></span>
@@ -929,6 +930,7 @@ function RosterEditor({ b, set }: { b: Extract<ArchBlock, { type: 'roster' }>; s
                   <Field label="원소"><KSelect minWidth={160} value={a.element} onChange={v => sa({ ...a, element: v })} options={elOpts} /></Field>
                   <Field label="이름"><KInput value={a.name} onChange={e => sa({ ...a, name: e.target.value })} /></Field>
                   <Field label="이름 아래 작은 글씨 (선택 · 예: CODE S-0001)"><KInput value={a.en ?? ''} onChange={e => sa({ ...a, en: e.target.value })} /></Field>
+                  <Field label="영문 이름 (선택 · 열람 칸 뒤 큰 글씨 · 예: HAEIL)"><KInput value={a.enName ?? ''} onChange={e => sa({ ...a, enName: e.target.value })} /></Field>
                   <Field label="상세 프로필 (HTML — 사진을 누르면 뜨는 창)" wide>
                     <KTextarea rows={10} value={a.html} onChange={e => sa({ ...a, html: e.target.value })}
                       placeholder={'<p>나이 · 키 · 소속 같은 정보를 HTML로 자유롭게</p>'} style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12 }} />
