@@ -18,7 +18,7 @@ import { PageTitle, EditableDesc } from '@/components/ui/PageText';
 import { KInput, KSelect, KDate, KTextarea, KCheck } from '@/components/ui/Kit';
 import { useLockKeyOpen } from '@/components/ui/MenuLock';
 import { hasLogPw, logPwOnServer, setLogPassword, unlockLog } from '@/lib/logLock';
-import { logLockKey } from '@/lib/menuLock';
+import { logLockKey, useSitePwOn, SITE_PW_TOKEN } from '@/lib/menuLock';
 import { RichEditor } from '@/components/ui/RichEditor';
 import { HtmlBody } from '@/components/ui/HtmlBody';
 import { useBoardSkin } from '@/lib/boardSkin';
@@ -138,6 +138,7 @@ export default function TrpgDetailPage() {
   const unlocked = unlockedLocal || (!!l?.pwLock && logLockState === 'open');
   const [pwTry, setPwTry] = useState('');
   const [pwBusy, setPwBusy] = useState(false);
+  const sitePw = useSitePwOn();   // 공통 비밀번호를 쓰는가 (수정 창 — 비밀번호 칸 대신 걸기 칸)
   useEffect(() => {
     try { if (sessionStorage.getItem(`trpg-unlock:${id}`) === '1') setUnlockedLocal(true); } catch { /* 무시 */ }
   }, [id]);
@@ -581,11 +582,16 @@ html,body{margin:0!important;padding:0!important;height:auto!important;min-heigh
                 { value: 'member', label: '멤버공개' },
                 { value: 'private', label: '나만보기' },
               ]} />
-            <KInput placeholder={logPwOnServer() && hasLogPw(l) ? '비밀번호 설정됨 — 바꿀 때만 입력' : '열람 비밀번호 (선택)'}
-              value={e.password} disabled={e.pwClear}
-              onChange={ev => setE(s => ({ ...s, password: ev.target.value }))} style={{ flex: 1 }} />
+            {sitePw
+              /* 공통 비밀번호 — 비밀번호를 따로 치지 않고 걸기 · 풀기만 (lib/menuLock.ts) */
+              ? <KCheck label={<span style={{ fontSize: 12 }}>열람 비밀번호 걸기 (공통 비밀번호)</span>}
+                  checked={hasLogPw(l) ? !e.pwClear : !!e.password}
+                  onChange={v => setE(s => (hasLogPw(l) ? { ...s, pwClear: !v, password: '' } : { ...s, password: v ? SITE_PW_TOKEN : '' }))} />
+              : <KInput placeholder={logPwOnServer() && hasLogPw(l) ? '비밀번호 설정됨 — 바꿀 때만 입력' : '열람 비밀번호 (선택)'}
+                  value={e.password} disabled={e.pwClear}
+                  onChange={ev => setE(s => ({ ...s, password: ev.target.value }))} style={{ flex: 1 }} />}
           </div>
-          {logPwOnServer() && hasLogPw(l) && (
+          {!sitePw && logPwOnServer() && hasLogPw(l) && (
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <KCheck label={<span style={{ fontSize: 12 }}>열람 비밀번호 해제</span>} checked={e.pwClear}
                 onChange={v => setE(s => ({ ...s, pwClear: v, password: v ? '' : s.password }))} />

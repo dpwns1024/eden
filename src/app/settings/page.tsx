@@ -27,7 +27,7 @@ import {
   MenuGroupNode, MenuLeaf, defaultTree, newGroupId, menuLabelFor, extraBoardHref, boardEntries,
   IMG_PROTECT_AREAS, hrefAccess,
 } from '@/lib/menuStore';
-import { menuLockSupported, isLockableHref, governingLock, lockKeyOf, useLockedHrefs, MENU_LOCKS_KEY, INVITE_LOCK_KEY, memberProofOn } from '@/lib/menuLock';
+import { menuLockSupported, isLockableHref, governingLock, lockKeyOf, useLockedHrefs, MENU_LOCKS_KEY, INVITE_LOCK_KEY, memberProofOn, useSitePwOn, lockedKeys, SITE_PW_KEY } from '@/lib/menuLock';
 import { FEATURES } from '@/lib/menu';
 import { SectionsBlock } from '@/components/settings/SectionList';
 import { useSections, sectionMenuEntries, MAIN_SEC, inSection } from '@/lib/sectionStore';
@@ -806,6 +806,8 @@ function MenuLockSection({ tree, labelOf }: { tree: MenuGroupNode[]; labelOf: (h
   const [selHref, setSelHref] = useState('');
   const [pw, setPw] = useState('');
   const [busy, setBusy] = useState(false);
+  const sitePw = useSitePwOn();
+  const [sitePwIn, setSitePwIn] = useState('');
   const sel = entries.find(e => e.href === selHref) ?? entries[0];
   const locked = !!sel && locks.includes(sel.href);
   const access = sel ? hrefAccess(menuSet, sel.href) : 'all';
@@ -846,14 +848,17 @@ function MenuLockSection({ tree, labelOf }: { tree: MenuGroupNode[]; labelOf: (h
     const be = backend();
     if (!be || !sel) { toast('서버에 연결돼 있지 않습니다'); return; }
     setBusy(true);
-    const r = await be.setLockPassword(lockKeyOf(sel.href), password);
+    // 공통 비밀번호를 쓰는 중이면 그 비밀번호로 건다 — 따로 치지 않는다
+    const r = password !== null && sitePw
+      ? await be.lockWithSitePassword(lockKeyOf(sel.href))
+      : await be.setLockPassword(lockKeyOf(sel.href), password);
     if (!r.ok) { toast(r.error ?? '저장하지 못했습니다'); setBusy(false); return; }
-    setSetting(MENU_LOCKS_KEY, password
+    setSetting(MENU_LOCKS_KEY, password !== null
       ? [...locks.filter(h => h !== sel.href), sel.href]
       : locks.filter(h => h !== sel.href));
     try {
       const n = await reapply(sel.href);
-      toast(password ? `「${sel.label}」에 비밀번호를 걸었습니다 (글·댓글 ${n}건 잠금)` : `「${sel.label}」 비밀번호를 해제했습니다`);
+      toast(password !== null ? `「${sel.label}」에 비밀번호를 걸었습니다 (글·댓글 ${n}건 잠금)` : `「${sel.label}」 비밀번호를 해제했습니다`);
       setPw('');
     } catch (e) {
       toast(`비밀번호는 저장됐지만 기존 글 적용에 실패했습니다 — [글에 다시 적용]을 눌러 주세요 (${e instanceof Error ? e.message : ''})`);
@@ -861,10 +866,47 @@ function MenuLockSection({ tree, labelOf }: { tree: MenuGroupNode[]; labelOf: (h
     setBusy(false);
   };
 
+  /* 공통 비밀번호 (v2.0 사용자 요청) — 지금 걸린 잠금(메뉴 · FIELD REPORT 글 · 요원 프로필)을 모두 이 비밀번호로 바꾸고,
+     앞으로 거는 잠금도 이 비밀번호를 쓴다 (lib/menuLock.ts) */
+  const applySitePw = async () => {
+    const be = backend();
+    const v = sitePwIn.trim();
+    if (!be || v.length < 4 || busy) return;
+    const keys = [...lockedKeys()];
+    if (!window.confirm(sitePw
+      ? `공통 비밀번호를 바꿉니다 — 걸려 있는 잠금 ${keys.length}곳이 모두 새 비밀번호로 바뀌고, 이미 통과한 방문자도 다시 입력해야 합니다.`
+      : `공통 비밀번호를 정합니다 — 걸려 있는 잠금 ${keys.length}곳이 모두 이 비밀번호로 바뀌고, 앞으로 거는 잠금도 이 비밀번호를 씁니다. (가입코드는 따로입니다)`)) return;
+    setBusy(true);
+    const r = await be.setSitePassword(v, keys);
+    if (!r.ok) { toast(r.error ?? '저장하지 못했습니다'); setBusy(false); return; }
+    setSetting(SITE_PW_KEY, { on: true, at: Date.now() });
+    toast(`공통 비밀번호를 ${sitePw ? '바꿨습니다' : '정했습니다'} (잠금 ${keys.length}곳 적용)`);
+    setSitePwIn('');
+    setBusy(false);
+  };
+
   if (!menuLockSupported()) return <p className="hint">메뉴 비밀번호는 Firebase 연결에서만 쓸 수 있습니다.</p>;
-  if (!sel) return <p className="hint">비밀번호를 걸 수 있는 메뉴가 없습니다.</p>;
+  const siteRow = (
+    <div className="set-row" style={{ flexWrap: 'wrap' }}>
+      <div className="l">
+        공통 비밀번호
+        <small style={{ display: 'block', marginTop: 6 }}>
+          <b>{sitePw ? '사용 중' : '없음'}</b>{sitePw
+            ? '메뉴 · FIELD REPORT 글 · 요원 프로필 잠금이 모두 이 비밀번호 하나로 열립니다 · 방문자는 한 번 맞히면 전부 열립니다'
+            : '정하면 잠금마다 비밀번호를 따로 정하지 않고 이 비밀번호 하나로 통일합니다'}
+        </small>
+      </div>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+        <KInput type="password" value={sitePwIn} placeholder={sitePw ? '새 공통 비밀번호로 변경' : '공통 비밀번호'}
+          onChange={e => setSitePwIn(e.target.value)} style={{ width: 180 }} autoComplete="new-password" />
+        <button className="btn btn-dark" disabled={busy || sitePwIn.trim().length < 4} onClick={() => void applySitePw()}>{sitePw ? '변경' : '설정'}</button>
+      </div>
+    </div>
+  );
+  if (!sel) return <>{siteRow}<p className="hint">비밀번호를 걸 수 있는 메뉴가 없습니다.</p></>;
   return (
     <>
+      {siteRow}
       <div className="set-row" style={{ flexWrap: 'wrap' }}>
         <div className="l">
           <KSelect minWidth={220} value={sel.href} onChange={v => { setSelHref(v); setPw(''); }}
@@ -876,10 +918,14 @@ function MenuLockSection({ tree, labelOf }: { tree: MenuGroupNode[]; labelOf: (h
           </small>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <KInput type="password" value={pw} placeholder={locked ? '새 비밀번호로 변경' : '비밀번호'}
-            onChange={e => setPw(e.target.value)} style={{ width: 180 }} autoComplete="new-password" />
-          <button className="btn btn-dark" disabled={busy || pw.trim().length < 4}
-            onClick={() => void apply(pw.trim())}>{locked ? '변경' : '설정'}</button>
+          {sitePw
+            ? !locked && <button className="btn btn-dark" disabled={busy} onClick={() => void apply('')}>공통 비밀번호로 잠그기</button>
+            : <>
+                <KInput type="password" value={pw} placeholder={locked ? '새 비밀번호로 변경' : '비밀번호'}
+                  onChange={e => setPw(e.target.value)} style={{ width: 180 }} autoComplete="new-password" />
+                <button className="btn btn-dark" disabled={busy || pw.trim().length < 4}
+                  onClick={() => void apply(pw.trim())}>{locked ? '변경' : '설정'}</button>
+              </>}
           {locked && (
             <>
               <button className="btn btn-ghost" disabled={busy} onClick={() => void apply(null)}>해제</button>
@@ -891,7 +937,7 @@ function MenuLockSection({ tree, labelOf }: { tree: MenuGroupNode[]; labelOf: (h
           )}
         </div>
       </div>
-      <p className="hint">비밀번호는 4자 이상 · 서버에 암호화(해시)로만 저장돼 관리자도 다시 볼 수 없습니다 — 잊으면 새로 설정하세요. 바꾸면 기존에 통과한 방문자도 다시 입력해야 합니다. 맞혀 볼 수 있는 횟수에 제한이 없으니 짧거나 흔한 비밀번호는 피해 주세요. 스케줄러·소개처럼 내용이 사이트 설정에 담기는 메뉴와 외부 링크는 서버에서 가릴 수 없어 목록에 없습니다.</p>
+      <p className="hint">공통 비밀번호를 정하면 메뉴마다 비밀번호를 치지 않고 [공통 비밀번호로 잠그기]만 누르면 됩니다 · 비밀번호는 4자 이상 · 서버에 암호화(해시)로만 저장돼 관리자도 다시 볼 수 없습니다 — 잊으면 새로 설정하세요. 바꾸면 기존에 통과한 방문자도 다시 입력해야 합니다. 맞혀 볼 수 있는 횟수에 제한이 없으니 짧거나 흔한 비밀번호는 피해 주세요. 스케줄러·소개처럼 내용이 사이트 설정에 담기는 메뉴와 외부 링크는 서버에서 가릴 수 없어 목록에 없습니다.</p>
     </>
   );
 }

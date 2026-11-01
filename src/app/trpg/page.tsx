@@ -8,7 +8,8 @@ import { useSectionParam, filterSection, sectionSetter, secStamp } from '@/lib/s
 import { useLocalList, newId } from '@/lib/postStore';
 import { TrpgLog, TRPG_SEED, TrpgLogBody, TRPG_BODY_SEED, bodyVisibility, bodyPwLock, decodeLogText, logNo, saveLogBody } from '@/lib/galleryStore';
 import { Relation, REL_SEED } from '@/lib/charStore';
-import { SearchBar, KInput, KTextarea, KRadio, KSelect, KDate, Pager } from '@/components/ui/Kit';
+import { SearchBar, KInput, KTextarea, KRadio, KSelect, KDate, Pager, KCheck } from '@/components/ui/Kit';
+import { useSitePwOn, SITE_PW_TOKEN } from '@/lib/menuLock';
 import { Modal } from '@/components/ui/Modal';
 import { EditableDesc, PageTitle } from '@/components/ui/PageText';
 import { putBlob } from '@/lib/blobStore';
@@ -77,6 +78,7 @@ function TrpgPageInner() {
   const [nSlug, setNSlug] = useState('');      // 주소 이름 — 비우면 번호 (/report/003)
   const [nVis, setNVis] = useState<'public' | 'member' | 'private'>('public'); // 접근권한
   const [nPw, setNPw] = useState('');          // 열람 비밀번호 (선택)
+  const sitePw = useSitePwOn();
   const [nTitle, setNTitle] = useState('');
   const [nCatch, setNCatch] = useState('');
   const [nWriter, setNWriter] = useState('');
@@ -456,7 +458,11 @@ function TrpgPageInner() {
                 { value: 'member', label: '멤버공개' },
                 { value: 'private', label: '나만보기' },
               ]} />
-            <KInput placeholder="열람 비밀번호 (선택)" value={nPw} onChange={e => setNPw(e.target.value)} style={{ flex: 1 }} />
+            {/* 공통 비밀번호를 쓰는 중이면 비밀번호를 따로 치지 않고 「걸기」만 고른다 (lib/menuLock.ts) */}
+            {sitePw
+              ? <KCheck label={<span style={{ fontSize: 12 }}>열람 비밀번호 걸기 (공통 비밀번호)</span>} checked={!!nPw}
+                  onChange={v => setNPw(v ? SITE_PW_TOKEN : '')} />
+              : <KInput placeholder="열람 비밀번호 (선택)" value={nPw} onChange={e => setNPw(e.target.value)} style={{ flex: 1 }} />}
           </div>
 
           <label className="k-label" style={{ margin: '4px 0 0' }}>썸네일 (선택)</label>

@@ -78,9 +78,58 @@ export const SEC_MIG_KEY = 'ohome.secmig.v1';
 export const memberProofOn = (): boolean =>
   menuLockSupported() && !!getSetting<{ members?: number }>(SEC_MIG_KEY, {})?.members;
 
-/** 서버가 아는 잠금키 전체 — 메뉴 비밀번호 + 글 비밀번호 */
+/** 비밀번호가 걸린 요원 상세 프로필 id 목록 (v2.0 사용자 요청 — 사이트 설정. 비밀번호 자체는 여기 없다).
+ *  ⚠ 프로필 HTML은 사이트 설정(누구나 읽는 곳)에 들어 있어 서버가 내용을 가려 주지는 못한다 —
+ *  비밀번호 대조만 서버가 하고, 내용은 화면에서 가린다 */
+export const AGENT_LOCKS_KEY = 'ohome.agentlocks.v1';
+/** 요원 프로필의 잠금키 — 점(.)이 들어 메뉴 잠금키(lockKeyOf)와 겹치지 않는다 */
+export const agentLockKey = (id: string) => `agent.${id}`;
+export function lockedAgentIds(): string[] {
+  if (!menuLockSupported()) return [];
+  const v = getSetting<string[]>(AGENT_LOCKS_KEY, []);
+  return Array.isArray(v) ? v.filter(h => typeof h === 'string') : [];
+}
+/** 잠긴 요원 id — 설정이 바뀌면 다시 그린다 */
+export function useLockedAgentIds(): string[] {
+  const [v, setV] = useState<string[]>([]);
+  useEffect(() => {
+    const read = () => setV(lockedAgentIds());
+    read();
+    return onSettingChange(k => { if (k === AGENT_LOCKS_KEY) read(); });
+  }, []);
+  return v;
+}
+
+/** 서버가 아는 잠금키 전체 — 메뉴 비밀번호 + 글 비밀번호 + 요원 프로필 비밀번호 (가입코드는 뺀다) */
 export const lockedKeys = (): Set<string> =>
-  new Set([...lockedHrefs().map(lockKeyOf), ...lockedLogIds().map(logLockKey)]);
+  new Set([...lockedHrefs().map(lockKeyOf), ...lockedLogIds().map(logLockKey), ...lockedAgentIds().map(agentLockKey)]);
+
+/**
+ * 공통 비밀번호 (v2.0 사용자 요청 — 「사이트 비번 하나로 통일」).
+ *
+ * 켜면 모든 잠금(메뉴 · FIELD REPORT 글 · 요원 프로필)의 정답 해시가 **같은 값**이 된다:
+ * 잠금키 대신 COMMON_LOCK_KEY를 섞어 만든 해시. 그래서
+ *   · 보안 규칙은 그대로 — 여전히 board_secrets/{잠금키}의 해시와 비교할 뿐이다
+ *   · 방문자가 한 곳에서 맞히면 같은 해시로 다른 잠금의 통과 기록도 한꺼번에 만든다 (한 번 입력으로 전부 열림)
+ *   · 새로 잠글 때 관리자가 비밀번호를 다시 칠 필요가 없다 — 해시를 관리자만 읽는 문서
+ *     (members/__sitepw — members 규칙: 본인 · 관리자만 읽기, 관리자만 쓰기)에 둬서 그대로 옮겨 적는다
+ * 사이트 설정에는 「켜짐」 표시만 남는다 (비밀번호도 해시도 없음). 가입코드는 따로다.
+ */
+export const SITE_PW_KEY = 'ohome.sitepw.v1';
+export const COMMON_LOCK_KEY = '__common';
+/** 공통 비밀번호를 쓰는가 */
+export const sitePwOn = (): boolean => menuLockSupported() && !!getSetting<{ on?: boolean }>(SITE_PW_KEY, {})?.on;
+export function useSitePwOn(): boolean {
+  const [v, setV] = useState(false);
+  useEffect(() => {
+    const read = () => setV(sitePwOn());
+    read();
+    return onSettingChange(k => { if (k === SITE_PW_KEY) read(); });
+  }, []);
+  return v;
+}
+/** 화면에서 「공통 비밀번호로 잠그기」를 고른 자리에 넣는 표시값 — 실제 비밀번호가 아니다 */
+export const SITE_PW_TOKEN = '\u0000site';
 
 /**
  * 이 주소를 다스리는 잠긴 메뉴 주소 — 없으면 null.
@@ -99,7 +148,8 @@ export function governingLock(path: string, extra: string[] = []): string | null
   return best && locks.includes(best) ? best : null;
 }
 
-/** 비밀번호 → 서버에 보내는 키 (SHA-256). 잠금키를 섞어 메뉴마다 다른 값이 되게 한다 */
+/** 비밀번호 → 서버에 보내는 키 (SHA-256). 잠금키를 섞어 메뉴마다 다른 값이 되게 한다
+ *  (공통 비밀번호는 잠금키 자리에 COMMON_LOCK_KEY를 넣어 모든 잠금이 같은 값이 된다) */
 export async function lockHash(key: string, password: string): Promise<string> {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`ohome-board|${key}|${password}`));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');

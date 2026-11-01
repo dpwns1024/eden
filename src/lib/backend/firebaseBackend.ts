@@ -10,7 +10,7 @@ import {
   Backend, BackendCheck, BackendConfig, BackendUser, ListItem, diffList, metaOf,
 } from './types';
 import { visFloorOf, lockKeyOfItem } from '../visFloor';
-import { lockHash, lockedKeys, INVITE_LOCK_KEY } from '../menuLock';
+import { lockHash, lockedKeys, INVITE_LOCK_KEY, sitePwOn, COMMON_LOCK_KEY } from '../menuLock';
 
 type FirebaseCfg = Extract<BackendConfig, { kind: 'firebase' }>;
 
@@ -104,6 +104,14 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
     } catch { return []; }
   };
   const unlockedNow = () => (unlockedCache ??= loadUnlocked());
+  /** 공통 비밀번호 해시를 두는 문서 id (members 컬렉션 — 관리자만 읽고 쓴다) */
+  const SITE_PW_DOC = '__sitepw';
+  const lockSaveError = (e: unknown) => {
+    const code = (e as { code?: string })?.code ?? '';
+    return code.includes('permission-denied')
+      ? '저장이 거부됐습니다 — 새 보안 규칙을 Firebase 콘솔에 먼저 붙여넣고 게시해 주세요.'
+      : humanError(e);
+  };
 
   /**
    * 로그인 상태에 맞는 목록 질의 조건.
@@ -470,9 +478,17 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
         if (!auth.currentUser) await authMod.signInAnonymously(auth);
         const u = auth.currentUser;
         if (!u) return { ok: false, error: '잠시 후 다시 시도해 주세요.' };
-        const key = await lockHash(lockKey, password);
-        const r = await withLimit(setDoc(doc(db, 'board_unlocks', `${u.uid}_${lockKey}`), { uid: u.uid, boardId: lockKey, key, at: Date.now() }));
+        // 공통 비밀번호면 모든 잠금의 정답이 같은 해시다 (menuLock.ts — 공통 비밀번호)
+        const common = sitePwOn();
+        const key = await lockHash(common ? COMMON_LOCK_KEY : lockKey, password);
+        const put = (k: string) => setDoc(doc(db, 'board_unlocks', `${u.uid}_${k}`), { uid: u.uid, boardId: k, key, at: Date.now() });
+        const r = await withLimit(put(lockKey));
         if (r === TIMEOUT) return { ok: false, error: '서버 응답이 없습니다 — 잠시 후 다시 시도해 주세요.' };
+        // 맞혔으면 다른 잠금도 같은 해시로 한꺼번에 연다 — 한 번 입력으로 사이트 전체 (틀린 것은 규칙이 거부, 무시)
+        if (common) {
+          const rest = [...lockedKeys()].filter(k => k !== lockKey);
+          await withLimit(Promise.allSettled(rest.map(put)));
+        }
         unlockedCache = undefined;
         return { ok: true };
       } catch (e) {
@@ -494,11 +510,38 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
         if (r === TIMEOUT) return { ok: false, error: NO_REACH };
         return { ok: true };
       } catch (e) {
-        const code = (e as { code?: string })?.code ?? '';
-        if (code.includes('permission-denied')) {
-          return { ok: false, error: '저장이 거부됐습니다 — 새 보안 규칙을 Firebase 콘솔에 먼저 붙여넣고 게시해 주세요.' };
+        return { ok: false, error: lockSaveError(e) };
+      }
+    },
+
+    async setSitePassword(password, keys) {
+      try {
+        const hash = await lockHash(COMMON_LOCK_KEY, password);
+        // 해시는 관리자만 읽는 members/__sitepw에 — 새로 잠글 때 그대로 옮겨 적는다 (uid가 아니라 회원 증명으로 쓰이지 않는다)
+        const r = await withLimit(setDoc(doc(db, 'members', SITE_PW_DOC), { hash, at: Date.now() }));
+        if (r === TIMEOUT) return { ok: false, error: NO_REACH };
+        for (let i = 0; i < keys.length; i += 400) {
+          const batch = writeBatch(db);
+          keys.slice(i, i + 400).forEach(k => batch.set(doc(db, 'board_secrets', k), { hash, at: Date.now() }));
+          const w = await withLimit(batch.commit());
+          if (w === TIMEOUT) return { ok: false, error: NO_REACH };
         }
-        return { ok: false, error: humanError(e) };
+        return { ok: true };
+      } catch (e) {
+        return { ok: false, error: lockSaveError(e) };
+      }
+    },
+
+    async lockWithSitePassword(lockKey) {
+      try {
+        const snap = await getDoc(doc(db, 'members', SITE_PW_DOC));
+        const hash = (snap.data() as { hash?: string } | undefined)?.hash;
+        if (!hash) return { ok: false, error: '공통 비밀번호가 아직 없습니다 — 환경설정 → 메뉴 비밀번호에서 먼저 정해 주세요.' };
+        const r = await withLimit(setDoc(doc(db, 'board_secrets', lockKey), { hash, at: Date.now() }));
+        if (r === TIMEOUT) return { ok: false, error: NO_REACH };
+        return { ok: true };
+      } catch (e) {
+        return { ok: false, error: lockSaveError(e) };
       }
     },
 

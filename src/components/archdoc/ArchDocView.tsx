@@ -25,6 +25,10 @@ import { useToast } from '@/components/ui/Toast';
 import { AegisMap } from './AegisMap';
 import { ColorField } from '@/components/ui/ColorField';
 import { AEGIS_SPOTS, type ArchMapNode } from '@/lib/aegisMap';
+import { backend } from '@/lib/backend';
+import { setSetting } from '@/lib/settingStore';
+import { useLockKeyOpen } from '@/components/ui/MenuLock';
+import { AGENT_LOCKS_KEY, agentLockKey, lockedAgentIds, menuLockSupported, useLockedAgentIds, useSitePwOn } from '@/lib/menuLock';
 import './archdoc.css';
 
 /** 영문 제목에 한글이 섞이면(「VANGUARD 2팀」) 한글만 따로 감싼다 (v2.0 사용자 제보 — 「제목 글꼴이 왜 달라」).
@@ -291,8 +295,42 @@ function ProfileHtml({ html }: { html: string }) {
     </div>
   );
 }
+/** 잠긴 프로필의 비밀번호 칸 — 대조는 서버(Firestore 보안 규칙)가 한다 (lib/menuLock.ts).
+ *  공통 비밀번호를 쓰는 중이면 맞힌 순간 사이트의 다른 잠금도 함께 열린다 */
+function AgentLockForm({ lockKey, onOpen }: { lockKey: string; onOpen: () => void }) {
+  const [pw, setPw] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pw || busy) return;
+    const be = backend();
+    if (!be) { setErr('서버에 연결돼 있지 않습니다.'); return; }
+    setBusy(true); setErr('');
+    const r = await be.unlockLock(lockKey, pw);
+    setBusy(false);
+    if (r.ok) { onOpen(); return; }
+    setErr(r.error ?? '열지 못했습니다.');
+  };
+  return (
+    <form className="ar-ag-lock" onSubmit={submit}>
+      <b>RESTRICTED · 비밀번호 입력</b>
+      <small>정식 요원은 로그인하면 비밀번호 없이 볼 수 있습니다</small>
+      <div className="row">
+        <KInput type="password" value={pw} autoFocus placeholder="비밀번호" onChange={e => { setPw(e.target.value); setErr(''); }} />
+        <button type="submit" className="ar-more-close" disabled={busy || !pw}>{busy ? '확인 중…' : 'ACCESS'}</button>
+      </div>
+      {err && <p className="err">{err}</p>}
+    </form>
+  );
+}
 /** 상세 프로필 창 — 위에 사진 · 이름 · 무리 · 원소, 아래에 관리자가 HTML로 쓴 내용 */
 function AgentModal({ a, g, onClose }: { a: ArchAgent | null; g: ArchAgentGroup | null; onClose: () => void }) {
+  // 비밀번호가 걸린 프로필 (v2.0 사용자 요청) — 회원 · 관리자는 그냥, 방문자는 비밀번호를 맞혀야 본문이 보인다
+  const locks = useLockedAgentIds();
+  const lock = useLockKeyOpen(a && locks.includes(a.id) ? agentLockKey(a.id) : null);
+  const [passed, setPassed] = useState(false);
+  useEffect(() => { setPassed(false); }, [a?.id]);
   return (
     <Modal open={!!a} onClose={onClose} className="ar-more-modal ar-ag-modal">
       {a && g && (
@@ -317,9 +355,13 @@ function AgentModal({ a, g, onClose }: { a: ArchAgent | null; g: ArchAgentGroup 
             </div>
           </div>
           <div className="ar-ag-pf-sep" aria-hidden="true">PROFILE<i />CLASSIFIED</div>
-          {a.html.trim()
-            ? <ProfileHtml html={a.html} />
-            : <div className="ar-ag-pf-b pend">PROFILE · 기록 준비 중</div>}
+          {lock === 'loading' && !passed
+            ? <div className="ar-ag-pf-b pend">ACCESS · 확인 중</div>
+            : lock === 'locked' && !passed
+              ? <AgentLockForm lockKey={agentLockKey(a.id)} onOpen={() => setPassed(true)} />
+              : a.html.trim()
+                ? <ProfileHtml html={a.html} />
+                : <div className="ar-ag-pf-b pend">PROFILE · 기록 준비 중</div>}
           </div>
           <div className="ar-more-foot"><button type="button" className="ar-more-close" onClick={onClose}>CLOSE</button></div>
         </div>
@@ -911,6 +953,33 @@ function AgentPhotoField({ a, set }: { a: ArchAgent; set: (v: ArchAgent) => void
     </div>
   );
 }
+/** 요원 프로필 비밀번호 — 공통 비밀번호로 걸고 푼다. 바로 서버에 반영된다(문서 저장과 따로) */
+function AgentLockField({ id }: { id: string }) {
+  const toast = useToast();
+  const locks = useLockedAgentIds();
+  const sitePw = useSitePwOn();
+  const [busy, setBusy] = useState(false);
+  const on = locks.includes(id);
+  if (!menuLockSupported()) return null;
+  const toggle = async (v: boolean) => {
+    const be = backend();
+    if (!be || busy) return;
+    if (v && !sitePw) { toast('환경설정 → 메뉴 관리 → 메뉴 비밀번호에서 공통 비밀번호를 먼저 정해 주세요'); return; }
+    setBusy(true);
+    const r = v ? await be.lockWithSitePassword(agentLockKey(id)) : await be.setLockPassword(agentLockKey(id), null);
+    setBusy(false);
+    if (!r.ok) { toast(r.error ?? '저장하지 못했습니다'); return; }
+    const cur = lockedAgentIds();
+    setSetting(AGENT_LOCKS_KEY, v ? [...new Set([...cur, id])] : cur.filter(x => x !== id));
+    toast(v ? '상세 프로필에 비밀번호를 걸었습니다' : '상세 프로필 비밀번호를 풀었습니다');
+  };
+  return (
+    <Field label="상세 프로필 비밀번호 (공통 비밀번호 · 바로 반영)" wide>
+      <KCheck label={<span style={{ fontSize: 12 }}>방문자는 비밀번호를 맞혀야 상세 프로필을 볼 수 있음{sitePw ? '' : ' — 공통 비밀번호를 먼저 정해야 합니다'}</span>}
+        checked={on} onChange={v => void toggle(v)} />
+    </Field>
+  );
+}
 function RosterEditor({ b, set }: { b: Extract<ArchBlock, { type: 'roster' }>; set: (b: ArchBlock) => void }) {
   const elOpts = [{ value: '', label: '딱지 없음' }, { value: 'none', label: '무속성 (회색 · 가이드 마크)' }, ...ELEM_ICON_KEYS.map(k => ({ value: k, label: ICONS[k].label }))];
   return (
@@ -932,6 +1001,7 @@ function RosterEditor({ b, set }: { b: Extract<ArchBlock, { type: 'roster' }>; s
                   <Field label="이름"><KInput value={a.name} onChange={e => sa({ ...a, name: e.target.value })} /></Field>
                   <Field label="CLASS 칸 글씨 (선택 · 비우면 무리 등급 · 예: S급)"><KInput value={a.en ?? ''} onChange={e => sa({ ...a, en: e.target.value })} /></Field>
                   <Field label="영문 이름 (선택 · 열람 칸 뒤 큰 글씨 · 예: HAEIL)"><KInput value={a.enName ?? ''} onChange={e => sa({ ...a, enName: e.target.value })} /></Field>
+                  <AgentLockField id={a.id} />
                   <Field label="상세 프로필 (HTML — 사진을 누르면 뜨는 창)" wide>
                     <KTextarea rows={10} value={a.html} onChange={e => sa({ ...a, html: e.target.value })}
                       placeholder={'<p>나이 · 키 · 소속 같은 정보를 HTML로 자유롭게</p>'} style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12 }} />
