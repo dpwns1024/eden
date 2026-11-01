@@ -377,6 +377,9 @@ function AgentModal({ a, g, onClose }: { a: ArchAgent | null; g: ArchAgentGroup 
 function RosterView({ groups }: { groups: ArchAgentGroup[] }) {
   const [sel, setSel] = useState<[number, number]>([0, 0]);
   const [open, setOpen] = useState(false);
+  // 비밀번호가 걸린 프로필은 방문자에게 내용(HTML)이 아예 안 내려온다(서버가 가림 — lib/settingVault.ts).
+  // 내용이 비어 보여도 잠긴 요원이면 버튼을 띄워, 눌러서 비밀번호를 넣게 한다 (v2.0 사용자 제보)
+  const locks = useLockedAgentIds();
   const list = groups.filter(g => g.agents.length);
   const gi = Math.min(sel[0], list.length - 1);
   const g = list[gi];
@@ -422,7 +425,7 @@ function RosterView({ groups }: { groups: ArchAgentGroup[] }) {
               {(a.en?.trim() || g.cls) && <div><dt>CLASS</dt><dd style={{ color: g.color }}>{a.en?.trim() || g.cls}</dd></div>}
               {ELEM_KO[a.element] && <div><dt>ELEMENT</dt><dd className="el">{ELEM_EN[a.element]} · {a.element === 'none' ? '무속성' : ELEM_KO[a.element]}</dd></div>}
             </dl>
-            {a.html.trim()
+            {a.html.trim() || locks.includes(a.id)
               ? <button type="button" className="ar-rv-open" onClick={() => setOpen(true)}>상세 프로필 열기 <span>→</span></button>
               : <span className="ar-rv-open ghost" aria-hidden="true">상세 프로필 열기 <span>→</span></span>}
           </div>
