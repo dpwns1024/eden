@@ -520,7 +520,10 @@ body:has(.arx)::before{display:none !important}
 /* 상세 프로필 창 (portal — .arx 밖) */
 .mng-box.ar-more-modal.ar-ag-modal{width:min(640px,94vw);max-height:88vh;overflow:hidden}
 .ar-ag-pf{display:flex;flex-direction:column;max-height:calc(88vh - 44px)}
-.ar-ag-pf-sc{flex:1 1 auto;min-height:0;overflow:auto;scrollbar-width:thin;scrollbar-color:rgba(190,208,228,.25) transparent}
+.ar-ag-pf-sc{flex:1 1 auto;min-height:0;overflow:auto}
+/* 스크롤바는 숨긴다 — 휠 · 터치로는 그대로 스크롤된다 (v2.0 사용자 요청) */
+.ar-ag-pf-sc,.ar-ag-pf-b{scrollbar-width:none;-ms-overflow-style:none}
+.ar-ag-pf-sc::-webkit-scrollbar,.ar-ag-pf-b::-webkit-scrollbar{display:none}
 .ar-ag-pf .ar-more-foot{flex:none}
 .ar-ag-pf-h{display:flex;gap:18px;align-items:flex-end;padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid rgba(190,208,228,.14)}
 .ar-ag-pf-h .ph{position:relative;display:block;flex:0 0 120px;aspect-ratio:3/4;overflow:hidden;border:1px solid color-mix(in srgb,var(--gc) 60%,transparent);background:#0a0d12;box-shadow:0 0 22px -10px var(--gc)}
