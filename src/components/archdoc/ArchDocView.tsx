@@ -101,18 +101,8 @@ function ImageView({ src, caption }: { src: string; caption: string }) {
 const ELEM_KO: Record<string, string> = { 'el-water': '물', 'el-fire': '불', 'el-grass': '풀', 'el-thunder': '번개', 'el-wind': '바람', 'el-ice': '얼음', none: '무' };
 /** 열람기 ELEMENT 칸 — 분류 탭 원소 이름과 같게 */
 const ELEM_EN: Record<string, string> = { 'el-water': 'AQUA', 'el-fire': 'PYRE', 'el-grass': 'VERDE', 'el-thunder': 'FULMEN', 'el-wind': 'AERO', 'el-ice': 'GLACIES', none: 'NONE' };
-/** 요원 딱지 색 · 마크 — 원소 + 무속성(회색 · 일반 가이드 마크, v2.0 사용자 요청) */
+/** 요원 원소 색 — 원소 + 무속성(회색, v2.0 사용자 요청) */
 const AG_COLOR: Record<string, string> = { ...ELEM_COLOR, none: '#A6A6A6' };
-const AG_ICON: Record<string, string> = { none: 'guide' };
-/** 원소 딱지 — 원소 색 바탕 + 원소 마크 */
-function ElemBadge({ el }: { el: string }) {
-  if (!ELEM_KO[el]) return null;
-  return (
-    <span className="ar-ag-el" style={{ '--ec': AG_COLOR[el] } as React.CSSProperties}>
-      <i dangerouslySetInnerHTML={{ __html: ICONS[AG_ICON[el] ?? el]?.svg ?? '' }} />{el === 'none' ? '무속성' : `${ELEM_KO[el]} 속성`}
-    </span>
-  );
-}
 function AgentPhoto({ src, alt }: { src: string; alt: string }) {
   const url = useBlobUrl(src);
   // eslint-disable-next-line @next/next/no-img-element
@@ -308,15 +298,25 @@ function AgentModal({ a, g, onClose }: { a: ArchAgent | null; g: ArchAgentGroup 
       {a && g && (
         <div className="ar-ag-pf">
           {/* 스크롤은 이 안쪽 칸에서 — 창 상자가 스크롤되면 테두리 · 꺾쇠(::before · ::after)가 내용과 함께 밀려 올라갔다 (v2.0 사용자 제보) */}
+          <div className="ar-ag-pf-bar" style={{ '--ec': AG_COLOR[a.element] ?? g.color } as React.CSSProperties}><span className="dot" /><b>PERSONNEL FILE</b><i className="ln" /><span><KoMix t={g.title} /> · ACCESS LOGGED</span></div>
           <div className="ar-ag-pf-sc">
-          <div className="ar-ag-pf-h" style={{ '--gc': g.color } as React.CSSProperties}>
-            <span className="ph"><AgentPhoto src={a.photo} alt={a.name} /></span>
+          {/* 머리 — 시안 A 인사 파일 (v2.0 사용자 요청): 사진 꺾쇠 · 뒤 큰 영문 이름 · 스캔 줄 · CLASS / ELEMENT 칸 */}
+          <div className="ar-ag-pf-h" style={{ '--gc': g.color, '--ec': AG_COLOR[a.element] ?? g.color } as React.CSSProperties}>
+            {a.enName?.trim() && <span className="gh" aria-hidden="true">{a.enName.trim()}</span>}
+            <i className="scan" aria-hidden="true" />
+            <span className="ph"><AgentPhoto src={a.photo} alt={a.name} /><i className="cn" aria-hidden="true" /></span>
             <div className="nm">
-              <small><KoMix t={g.title} />{g.cls && <em>{g.cls}</em>}</small>
-              <span className="nmr"><b>{a.name}</b>{a.en && <span className="en">{a.en}</span>}</span>
-              <ElemBadge el={a.element} />
+              <small><KoMix t={g.title} /></small>
+              <b className={a.enName?.trim() ? 'lat' : undefined}>{a.enName?.trim() || a.name}</b>
+              {a.enName?.trim() && <span className="ko">{a.name}</span>}
+              <dl className="fl">
+                {(a.en?.trim() || g.cls) && <div><dt>CLASS</dt><dd style={{ color: g.color }}>{a.en?.trim() || g.cls}</dd></div>}
+                {ELEM_KO[a.element] && <div><dt>ELEMENT</dt><dd className="el">{ELEM_EN[a.element]} · {a.element === 'none' ? '무속성' : ELEM_KO[a.element]}</dd></div>}
+                {a.en?.trim() && g.cls && <div><dt>UNIT</dt><dd>{g.cls}</dd></div>}
+              </dl>
             </div>
           </div>
+          <div className="ar-ag-pf-sep" aria-hidden="true">PROFILE<i />CLASSIFIED</div>
           {a.html.trim()
             ? <ProfileHtml html={a.html} />
             : <div className="ar-ag-pf-b pend">PROFILE · 기록 준비 중</div>}
