@@ -10,6 +10,7 @@ import { renderBody } from '@/lib/sanitize';
 import { KInput, KTextarea, KSelect, KCheck } from '@/components/ui/Kit';
 import { CropEditor, CropImg, CropValue } from '@/components/ui/CropEditor';
 import { RichEditor } from '@/components/ui/RichEditor';
+import { liftInlineImages } from '@/lib/blobStore';
 import { useToast } from '@/components/ui/Toast';
 import { PageTitle, EditableDesc } from '@/components/ui/PageText';
 import { usePairings, pairIdOf, pairOptions, NO_PAIR } from '@/lib/pairLink';
@@ -29,6 +30,7 @@ function WriteInner() {
   const [title, setTitle] = useState('');
   const [writeMode, setWriteMode] = useState<'editor' | 'md' | 'html'>('editor'); // 에디터가 기본
   const [body, setBody] = useState('');
+  const [saving, setSaving] = useState(false);   // 본문 속 사진을 올리는 중
   // 페어링 (v2.0 사용자 요청 — 게시판마다 만들던 말머리 대신 PAIRING 게시판의 페어를 고른다).
   // 고르기 전에는 고치는 글의 페어링(예전 글은 말머리 글자가 페어링 이름과 같으면 그 페어링)
   const rels = usePairings();
@@ -93,14 +95,31 @@ function WriteInner() {
     );
   }
 
-  const post = () => {
+  const post = async () => {
     if (!title.trim() || !body.trim()) { toast('제목과 내용을 입력해 주세요'); return; }
+    if (saving) return;
+    // 복사해 온 HTML에 글자로 박힌 사진은 파일로 올리고 주소로 바꾼다 — 그대로 두면 글 하나가
+    // 문서 한도(1MB)를 넘어 저장이 거부된다 (사용자 제보: 로그 HTML 2.5MB 중 사진 한 장이 2.4MB)
+    let body2 = body;
+    try {
+      setSaving(true);
+      body2 = await liftInlineImages(body);
+    } catch (e) {
+      toast(`본문 속 사진을 올리지 못했습니다 — ${e instanceof Error ? e.message : ''}`);
+      setSaving(false);
+      return;
+    }
+    setSaving(false);
+    if (new TextEncoder().encode(body2).length > 900_000) {
+      toast('본문이 너무 큽니다(약 900KB 초과) — 글을 나누거나 줄여 주세요');
+      return;
+    }
     if (editing) {
       // 수정 — 작성자 본인만 (관리자도 타인 글은 삭제만, v1.9). 작성자/날짜/댓글/소속 게시판은 유지
       if (editing.authorId !== user.id) { toast('수정은 작성자 본인만 할 수 있습니다'); return; }
       setPosts(posts.map(p => (p.id === editing.id ? {
         ...p,
-        title: title.trim(), body,
+        title: title.trim(), body: body2,
         mode: writeMode === 'md' ? 'md' : 'html',
         authored: writeMode === 'editor' ? 'editor' : undefined,
         category: '', relId: relOut, catId: catOut,
@@ -114,7 +133,7 @@ function WriteInner() {
       return;
     }
     const p: Post = {
-      id: newId(), title: title.trim(), body,
+      id: newId(), title: title.trim(), body: body2,
       mode: writeMode === 'md' ? 'md' : 'html', category: '', relId: relOut, catId: catOut,
       author: user.nickname, authorId: user.id, date: new Date().toISOString(),
       secret, notice: isAdmin && notice,
@@ -233,7 +252,7 @@ function WriteInner() {
           <div className="form-actions">
             <button className="btn btn-onbk"
               onClick={() => router.push(editing ? `/board/${editing.id}` : boardHref(board.id))}>CANCEL</button>
-            <button className="btn btn-accent" onClick={post}>{editing ? 'SAVE' : 'POST'}</button>
+            <button className="btn btn-accent" onClick={post} disabled={saving}>{saving ? '사진 올리는 중…' : editing ? 'SAVE' : 'POST'}</button>
           </div>
         </div>
       </div>
