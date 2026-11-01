@@ -99,6 +99,8 @@ function ImageView({ src, caption }: { src: string; caption: string }) {
 
 /* ───────────── 요원 명부 (AGENTS 탭 · v2.0 사용자 요청) ───────────── */
 const ELEM_KO: Record<string, string> = { 'el-water': '물', 'el-fire': '불', 'el-grass': '풀', 'el-thunder': '번개', 'el-wind': '바람', 'el-ice': '얼음', none: '무' };
+/** 열람기 ELEMENT 칸 — 분류 탭 원소 이름과 같게 */
+const ELEM_EN: Record<string, string> = { 'el-water': 'AQUA', 'el-fire': 'PYRE', 'el-grass': 'VERDE', 'el-thunder': 'FULMEN', 'el-wind': 'AERO', 'el-ice': 'GLACIES', none: 'NONE' };
 /** 요원 딱지 색 · 마크 — 원소 + 무속성(회색 · 일반 가이드 마크, v2.0 사용자 요청) */
 const AG_COLOR: Record<string, string> = { ...ELEM_COLOR, none: '#A6A6A6' };
 const AG_ICON: Record<string, string> = { none: 'guide' };
@@ -115,27 +117,6 @@ function AgentPhoto({ src, alt }: { src: string; alt: string }) {
   const url = useBlobUrl(src);
   // eslint-disable-next-line @next/next/no-img-element
   return url ? <img src={url} alt={alt} /> : <span className="ar-ag-noimg">NO IMAGE</span>;
-}
-/** 증명사진 카드 — 누르면 상세 프로필 창 */
-function AgentCard({ a, onOpen }: { a: ArchAgent; onOpen: () => void }) {
-  const has = !!a.html.trim();
-  const style = AG_COLOR[a.element] ? { '--ec': AG_COLOR[a.element] } as React.CSSProperties : undefined;
-  const body = (<>
-      <span className="ph"><AgentPhoto src={a.photo} alt={a.name} /></span>
-      <span className="tx">
-        {/* 이름 옆에 등급 · 영문 (v2.0 사용자 요청) */}
-        <span className="nm"><b>{a.name}</b>{a.en && <small>{a.en}</small>}</span>
-        <ElemBadge el={a.element} />
-      </span>
-  </>);
-  return (
-    // <button>은 아이폰 사파리가 회색 기본 바탕 · 세로 가운데 정렬을 덧입혀 사진 위가 비었다 (v2.0 사용자 제보) — 일반 상자 + 버튼 역할로
-    // 상세 프로필(HTML)을 안 쓴 요원은 눌러도 아무것도 안 뜬다 (v2.0 사용자 요청)
-    has ? <div role="button" tabIndex={0} className="ar-ag" onClick={onOpen} aria-label={`${a.name} 상세 프로필`}
-      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(); } }}
-      style={style}>{body}</div>
-      : <div className="ar-ag still" style={style}>{body}</div>
-  );
 }
 /** 상세 프로필 HTML — 관리자가 넣은 HTML을 창 안의 iframe에 따로 그린다 (v2.0 사용자 제보).
  *  예전엔 창에 바로 심어서 ① 넓은 HTML은 오른쪽이 잘렸고 ② HTML 안의 미디어 쿼리가 창이 아니라 화면 폭을 봐서
@@ -346,19 +327,61 @@ function AgentModal({ a, g, onClose }: { a: ArchAgent | null; g: ArchAgentGroup 
     </Modal>
   );
 }
+/** 요원 명부 — 열람기 (v2.0 사용자 요청 · 시안 C). 왼쪽은 무리별 썸네일, 누르면 오른쪽에 원형 링 초상 · 이름 · 등급 · 속성.
+ *  상세 프로필(HTML)이 있는 요원만 「상세 프로필 열기」 버튼 → 예전 상세 프로필 창 */
+const pad3 = (n: number) => String(n).padStart(3, '0');
 function RosterView({ groups }: { groups: ArchAgentGroup[] }) {
-  const [open, setOpen] = useState<{ g: ArchAgentGroup; a: ArchAgent } | null>(null);
+  const [sel, setSel] = useState<[number, number]>([0, 0]);
+  const [open, setOpen] = useState(false);
+  const list = groups.filter(g => g.agents.length);
+  const gi = Math.min(sel[0], list.length - 1);
+  const g = list[gi];
+  const ai = g ? Math.min(sel[1], g.agents.length - 1) : 0;
+  const a = g?.agents[ai];
+  if (!g || !a) return null;
+  const ec = AG_COLOR[a.element] ?? '#b8d8ff';
+  const no = `${String(gi + 1).padStart(2, '0')}-${pad3(ai + 1)}`;
   return (
-    <div className="ar-roster">
-      {groups.map(g => (
-        <section key={g.id} className="ar-ag-grp" style={{ '--gc': g.color } as React.CSSProperties}>
-          <div className="ar-ag-gh"><b><KoMix t={g.title} /></b>{g.cls && <em>{g.cls}</em>}</div>
-          <div className="ar-ag-list">
-            {g.agents.map(a => <AgentCard key={a.id} a={a} onOpen={() => setOpen({ g, a })} />)}
+    <div className="ar-agents">
+      <div className="ar-pn ar-rv">
+        <div className="ar-rv-idx">
+          {list.map((gr, i) => (
+            <section key={gr.id} className="ar-rv-g" style={{ '--gc': gr.color } as React.CSSProperties}>
+              <div className="ar-rv-gh"><b><KoMix t={gr.title} /></b><i />{gr.cls && <em>{gr.cls}</em>}</div>
+              <div className="ar-rv-th" role="tablist" aria-label={gr.title}>
+                {gr.agents.map((x, j) => {
+                  const on = i === gi && j === ai;
+                  return (
+                    <button key={x.id} type="button" role="tab" aria-selected={on} className={`ar-rv-t${on ? ' on' : ''}`}
+                      style={{ '--ec': AG_COLOR[x.element] ?? '#b8d8ff' } as React.CSSProperties} onClick={() => setSel([i, j])}>
+                      <span className="ph"><AgentPhoto src={x.photo} alt={x.name} /></span>
+                      <span className="nm">{x.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
+        </div>
+        <div className="ar-rv-view" key={a.id} style={{ '--ec': ec, '--gc': g.color } as React.CSSProperties}>
+          {a.en && <span className="ar-rv-ghost" aria-hidden="true">{a.en}</span>}
+          <div className="ar-rv-ring">
+            <i className="r0" /><i className="r2" /><i className="r1" /><i className="r3" />
+            <span className="face"><AgentPhoto src={a.photo} alt={a.name} /></span>
           </div>
-        </section>
-      ))}
-      <AgentModal a={open?.a ?? null} g={open?.g ?? null} onClose={() => setOpen(null)} />
+          <div className="ar-rv-info">
+            <small className="k"><KoMix t={g.title} /> · {no}</small>
+            <b className="nm">{a.name}</b>
+            {a.en && <span className="en">{a.en}</span>}
+            <dl className="ar-rv-fl">
+              {g.cls && <div><dt>CLASS</dt><dd style={{ color: g.color }}>{g.cls}</dd></div>}
+              {ELEM_KO[a.element] && <div><dt>ELEMENT</dt><dd className="el">{ELEM_EN[a.element]} · {a.element === 'none' ? '무속성' : ELEM_KO[a.element]}</dd></div>}
+            </dl>
+            {a.html.trim() && <button type="button" className="ar-rv-open" onClick={() => setOpen(true)}>상세 프로필 열기 <span>→</span></button>}
+          </div>
+        </div>
+      </div>
+      <AgentModal a={open ? a : null} g={open ? g : null} onClose={() => setOpen(false)} />
     </div>
   );
 }

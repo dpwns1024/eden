@@ -122,13 +122,9 @@ export function AegisMap({ nodes, caption }: { nodes: ArchMapNode[]; caption?: s
         </div>
       </div>
 
-      <div className="am-dock">
-        {view === 'site' ? (
-          <div className="am-legend am-go">
-            <button type="button" onClick={() => go('hq')}><em>A</em>{SITE.hq.ko}</button>
-            <button type="button" onClick={() => go('res')}><em>R</em>{SITE.res.ko}</button>
-          </div>
-        ) : (
+      {/* 섬 전체 화면에서는 지도 아래 안내(구역 버튼 · THE AEGIS 설명 카드)를 뺐다 (v2.0 사용자 요청) — 지도 위 라벨로 들어간다 */}
+      {view !== 'site' && (
+        <div className="am-dock">
           <div className="am-legend" role="tablist" aria-label="시설 목록">
             {list.map(n => (
               <button key={n.id} type="button" role="tab" aria-selected={n.spot === on} className={`${n.spot === on ? 'on' : ''}${n.code ? '' : ' pl'}`} onClick={() => pick(n.spot)}>
@@ -136,36 +132,23 @@ export function AegisMap({ nodes, caption }: { nodes: ArchMapNode[]; caption?: s
               </button>
             ))}
           </div>
-        )}
-
-        {view === 'site' ? (
-          <article className="ar-pn ar-card am-card" key="site">
-            <div className="ar-c-k"><span>SITE · OVERVIEW</span><span>OPEN SEA</span></div>
-            <h3><span className="ar-silver">THE AEGIS</span><small>아크 본부 · 바다 위 이동 요새</small></h3>
-            <div className="am-body"><p>본부나 숙소를 누르면 그 구역으로 들어가 시설이 보입니다. 끌어서 돌리고, 휠이나 두 손가락으로 확대 · 축소할 수 있어요.</p></div>
-            <div className="am-gobox">
-              {(['hq', 'res'] as const).map(k => (
-                <button key={k} type="button" onClick={() => go(k)}><small>{SITE[k].code}</small><b>{SITE[k].en}</b><span>{SITE[k].ko} ›</span></button>
-              ))}
-            </div>
-            <span className="bg" aria-hidden="true">00</span>
-          </article>
-        ) : cur && (
-          <article className="ar-pn ar-card am-card" key={cur.id} style={curColor ? { borderTop: `2px solid ${curColor}` } : undefined}>
-            <div className="ar-c-k"><span>{cur.code ? `SECTOR · ${cur.code}` : 'LOCATION'}</span><span>{cur.zone}</span></div>
-            <h3>
-              <span className="ar-silver">{cur.en}</span>
-              <small>{curColor && <i className="am-swatch" style={{ background: curColor }} />}{[cur.name, cur.alias].filter(Boolean).join(' · ')}</small>
-            </h3>
-            {cur.body && <div className="am-body"><Paras text={cur.body} /></div>}
-            {cur.quote && cur.quote.text && (
-              <div className="ar-quote am-quote"><div><small>FIELD NOTE</small>{cur.quote.text}{cur.quote.cite && <cite>— {cur.quote.cite}</cite>}</div></div>
-            )}
-            {cur.note && <p className="am-note">※ {cur.note}</p>}
-            <span className="bg" aria-hidden="true">{cur.code || (view === 'hq' ? 'A' : 'R')}</span>
-          </article>
-        )}
-      </div>
+          {cur && (
+            <article className="ar-pn ar-card am-card" key={cur.id} style={curColor ? { borderTop: `2px solid ${curColor}` } : undefined}>
+              <div className="ar-c-k"><span>{cur.code ? `SECTOR · ${cur.code}` : 'LOCATION'}</span><span>{cur.zone}</span></div>
+              <h3>
+                <span className="ar-silver">{cur.en}</span>
+                <small>{curColor && <i className="am-swatch" style={{ background: curColor }} />}{[cur.name, cur.alias].filter(Boolean).join(' · ')}</small>
+              </h3>
+              {cur.body && <div className="am-body"><Paras text={cur.body} /></div>}
+              {cur.quote && cur.quote.text && (
+                <div className="ar-quote am-quote"><div><small>FIELD NOTE</small>{cur.quote.text}{cur.quote.cite && <cite>— {cur.quote.cite}</cite>}</div></div>
+              )}
+              {cur.note && <p className="am-note">※ {cur.note}</p>}
+              <span className="bg" aria-hidden="true">{cur.code || (view === 'hq' ? 'A' : 'R')}</span>
+            </article>
+          )}
+        </div>
+      )}
     </div>
   );
 }
