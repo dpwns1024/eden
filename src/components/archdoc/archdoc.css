@@ -497,6 +497,8 @@ body:has(.arx)::before{display:none !important}
 /* 열람 칸 */
 .arx .ar-rv-view{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:center;min-height:340px;padding:24px 26px;overflow:hidden;
   background:radial-gradient(circle at 30% 45%,color-mix(in srgb,var(--ec) 14%,transparent),transparent 60%);animation:arIn .4s ease both}
+/* 상세 프로필 버튼이 있는 요원 — 버튼이 뒤 큰 영문 이름에 붙어 보여 아래 여백을 넉넉히 (v2.0 사용자 요청) */
+.arx .ar-rv-view.pf{min-height:390px;padding-top:34px;padding-bottom:64px}
 .arx .ar-rv-ghost{position:absolute;right:-6px;bottom:-24px;font:600 100px/1 'Saira Semi Condensed',sans-serif;color:transparent;-webkit-text-stroke:1px color-mix(in srgb,var(--ec) 18%,transparent);pointer-events:none;white-space:nowrap}
 .arx .ar-rv-ring{position:relative;width:100%;max-width:220px;aspect-ratio:1;margin:0 auto}
 .arx .ar-rv-ring i{position:absolute;border-radius:50%}
@@ -510,8 +512,6 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-rv-info .k{display:block;font:400 8.5px/1.4 'JetBrains Mono',monospace;letter-spacing:.3em;color:var(--mu)}
 .arx .ar-rv-info .nm{display:block;margin-top:12px;font:500 42px/1.1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.08em;word-break:keep-all;
   background:linear-gradient(180deg,#fff 20%,color-mix(in srgb,var(--ec) 70%,#fff) 140%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px color-mix(in srgb,var(--ec) 35%,transparent))}
-.arx .ar-rv-info .en{display:flex;align-items:center;gap:10px;margin-top:12px;font:400 10px/1 'Jost',sans-serif;letter-spacing:.4em;color:var(--tx)}
-.arx .ar-rv-info .en::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,color-mix(in srgb,var(--ec) 60%,transparent),transparent)}
 .arx .ar-rv-fl{display:grid;grid-template-columns:1fr 1fr;margin:20px 0 0;border-top:1px solid var(--ln)}
 .arx .ar-rv-fl div{padding:10px 0;border-bottom:1px solid var(--ln)}
 .arx .ar-rv-fl dt{font:400 7.5px/1 'JetBrains Mono',monospace;letter-spacing:.3em;color:var(--dim)}
@@ -536,6 +536,7 @@ body:has(.arx)::before{display:none !important}
 }
 @media (max-width:560px){
   .arx .ar-rv-view{grid-template-columns:1fr;gap:20px;min-height:0;padding:26px 18px 22px}
+  .arx .ar-rv-view.pf{min-height:0;padding-bottom:56px}
   .arx .ar-rv-ring{max-width:200px}
   .arx .ar-rv-info .nm{font-size:32px}
   .arx .ar-rv-ghost{font-size:84px}

@@ -329,7 +329,6 @@ function AgentModal({ a, g, onClose }: { a: ArchAgent | null; g: ArchAgentGroup 
 }
 /** 요원 명부 — 열람기 (v2.0 사용자 요청 · 시안 C). 왼쪽은 무리별 썸네일, 누르면 오른쪽에 원형 링 초상 · 이름 · 등급 · 속성.
  *  상세 프로필(HTML)이 있는 요원만 「상세 프로필 열기」 버튼 → 예전 상세 프로필 창 */
-const pad3 = (n: number) => String(n).padStart(3, '0');
 function RosterView({ groups }: { groups: ArchAgentGroup[] }) {
   const [sel, setSel] = useState<[number, number]>([0, 0]);
   const [open, setOpen] = useState(false);
@@ -340,7 +339,6 @@ function RosterView({ groups }: { groups: ArchAgentGroup[] }) {
   const a = g?.agents[ai];
   if (!g || !a) return null;
   const ec = AG_COLOR[a.element] ?? '#b8d8ff';
-  const no = `${String(gi + 1).padStart(2, '0')}-${pad3(ai + 1)}`;
   return (
     <div className="ar-agents">
       <div className="ar-pn ar-rv">
@@ -363,7 +361,7 @@ function RosterView({ groups }: { groups: ArchAgentGroup[] }) {
             </section>
           ))}
         </div>
-        <div className="ar-rv-view" key={a.id} style={{ '--ec': ec, '--gc': g.color } as React.CSSProperties}>
+        <div className={`ar-rv-view${a.html.trim() ? ' pf' : ''}`} key={a.id} style={{ '--ec': ec, '--gc': g.color } as React.CSSProperties}>
           {/* 뒤 큰 글씨는 영문 이름만 (v2.0 사용자 요청) — 이름 아래 작은 글씨(en)엔 한글 · 코드가 섞여 있었다 */}
           {a.enName?.trim() && <span className="ar-rv-ghost" aria-hidden="true">{a.enName.trim()}</span>}
           <div className="ar-rv-ring">
@@ -371,11 +369,11 @@ function RosterView({ groups }: { groups: ArchAgentGroup[] }) {
             <span className="face"><AgentPhoto src={a.photo} alt={a.name} /></span>
           </div>
           <div className="ar-rv-info">
-            <small className="k"><KoMix t={g.title} /> · {no}</small>
+            <small className="k"><KoMix t={g.title} /></small>
             <b className="nm">{a.name}</b>
-            {a.en && <span className="en">{a.en}</span>}
             <dl className="ar-rv-fl">
-              {g.cls && <div><dt>CLASS</dt><dd style={{ color: g.color }}>{g.cls}</dd></div>}
+              {/* CLASS — 이름 아래 작은 글씨(en)를 적은 요원은 그 글씨, 아니면 무리 등급 (v2.0 사용자 요청) */}
+              {(a.en?.trim() || g.cls) && <div><dt>CLASS</dt><dd style={{ color: g.color }}>{a.en?.trim() || g.cls}</dd></div>}
               {ELEM_KO[a.element] && <div><dt>ELEMENT</dt><dd className="el">{ELEM_EN[a.element]} · {a.element === 'none' ? '무속성' : ELEM_KO[a.element]}</dd></div>}
             </dl>
             {a.html.trim() && <button type="button" className="ar-rv-open" onClick={() => setOpen(true)}>상세 프로필 열기 <span>→</span></button>}
@@ -929,7 +927,7 @@ function RosterEditor({ b, set }: { b: Extract<ArchBlock, { type: 'roster' }>; s
                   <AgentPhotoField a={a} set={sa} />
                   <Field label="원소"><KSelect minWidth={160} value={a.element} onChange={v => sa({ ...a, element: v })} options={elOpts} /></Field>
                   <Field label="이름"><KInput value={a.name} onChange={e => sa({ ...a, name: e.target.value })} /></Field>
-                  <Field label="이름 아래 작은 글씨 (선택 · 예: CODE S-0001)"><KInput value={a.en ?? ''} onChange={e => sa({ ...a, en: e.target.value })} /></Field>
+                  <Field label="CLASS 칸 글씨 (선택 · 비우면 무리 등급 · 예: S급)"><KInput value={a.en ?? ''} onChange={e => sa({ ...a, en: e.target.value })} /></Field>
                   <Field label="영문 이름 (선택 · 열람 칸 뒤 큰 글씨 · 예: HAEIL)"><KInput value={a.enName ?? ''} onChange={e => sa({ ...a, enName: e.target.value })} /></Field>
                   <Field label="상세 프로필 (HTML — 사진을 누르면 뜨는 창)" wide>
                     <KTextarea rows={10} value={a.html} onChange={e => sa({ ...a, html: e.target.value })}
