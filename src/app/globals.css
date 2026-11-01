@@ -1537,6 +1537,8 @@ html.ui-arch .tip-pop,html.ui-arch .tip-pop.dd{background:rgba(8,11,15,.96);colo
   border-top-color:var(--accent,#8ea2c6);
   animation:boot-spin .8s linear infinite;
 }
+/* 페이지 CSS가 붙을 때까지 본문 숨김 (ServerBoot) — 배경은 html · body가 이미 칠해 둔다 */
+html[data-css-wait] body > *{visibility:hidden !important}
 @keyframes boot-spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.boot-wait i{animation-duration:2.4s}}
 /* ARCH판 — 각진 사각 회전 표시 + 모노 글씨 (html.ui-arch는 첫 페인트 전 layout 스크립트가 붙인다) */
@@ -2813,6 +2815,10 @@ html.ui-arch .page-arch .log-rich > [style]:not([data-box]) :is(b,strong),.log-r
 .splash-overlay{position:fixed;inset:0;z-index:9999;overflow:hidden;
   background:radial-gradient(1300px 760px at 50% -4%,rgba(130,160,200,.12),transparent 66%),repeating-linear-gradient(90deg,rgba(190,208,228,.026) 0 1px,transparent 1px 128px),repeating-linear-gradient(0deg,rgba(190,208,228,.018) 0 1px,transparent 1px 128px),#05070a;touch-action:none;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
 .splash-overlay.is-shatter{background:transparent}
+/* 커서 — 조준 중엔 어떤 상태(누르는 순간 *:active 등 사이트 커서 규칙 · !important)에도 숨기고, 깨질 때는 사이트 기본 커서로.
+   예전엔 클릭하는 순간 「누름」 커서가, 깨지는 동안엔 시스템 화살표가 잠깐 떴다 (v2.0 사용자 제보) */
+html body .splash-overlay:not(.is-shatter),html body .splash-overlay:not(.is-shatter) *{cursor:none !important}
+html body .splash-overlay.is-shatter,html body .splash-overlay.is-shatter *{cursor:var(--cur-default,auto) !important}
 body.sp-reveal > *:not(.splash-overlay){animation:spReveal 1.6s cubic-bezier(.2,.7,.2,1) both}   /* 금이 다 간 순간부터 — 벌어지는 틈 사이로 흐릿하게 비치다가 또렷해진다 */
 @keyframes spReveal{from{opacity:0;filter:blur(8px)}to{opacity:1;filter:none}}
 .sp-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}

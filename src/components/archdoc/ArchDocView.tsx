@@ -160,6 +160,10 @@ function unsqueezeAbs(d: Document) {
     const st = el.style;
     if (el.dataset.agL == null) {
       if (!st.left || !st.right || st.width || st.left === 'auto') return;
+      // 딱지처럼 짧은 글씨 상자만 — 사진 · 배경 그림이 든 상자나 긴 문단까지 풀면 폭이 바뀌어 사진이 다르게 잘렸다
+      const txt = (el.textContent ?? '').trim();
+      if (!txt || txt.length > 40 || el.querySelector('img,video,svg,canvas,picture,iframe')) return;
+      if (d.defaultView?.getComputedStyle(el).backgroundImage !== 'none') return;
       el.dataset.agL = st.left;
     }
     st.left = el.dataset.agL;
@@ -167,15 +171,30 @@ function unsqueezeAbs(d: Document) {
     if (pos !== 'absolute' && pos !== 'fixed') return;
     const w0 = el.getBoundingClientRect().width;
     st.left = 'auto';
-    if (el.getBoundingClientRect().width < w0 - 0.5) st.left = el.dataset.agL;
+    // 풀었더니 좁아졌거나(일부러 늘여 둔 요소) 감싼 상자보다 넓어지면 되돌린다
+    const w1 = el.getBoundingClientRect().width;
+    const pw = (el.offsetParent as HTMLElement | null)?.clientWidth ?? Infinity;
+    if (w1 < w0 - 0.5 || w1 > pw) st.left = el.dataset.agL;
   });
+}
+/** 화면 높이 단위(vh · dvh · svh · lvh) 고정 — iframe 안의 vh는 「iframe 높이」 기준인데, iframe 높이는 내용 높이에 맞춰 늘리므로
+ *  vh로 높이를 준 칸(사진 띠 등)이 맞출 때마다 커지고 → 다시 맞추고를 되풀이했다. 언제 멈추는지가 브라우저 · 타이밍마다 달라
+ *  크롬 · 웨일과 엣지에서 사진이 서로 다르게 잘려 보였다 (v2.0 사용자 제보). 스타일(<style> · style="") 안의 vh를
+ *  열 때의 실제 화면 높이(px)로 바꿔, 원래 페이지에서처럼 화면 기준으로 한 번만 정해지게 한다 */
+const VH_RE = /(-?(?:\d+\.?\d*|\.\d+))[dsl]?vh\b/gi;
+function fixVh(html: string, vhPx: number) {
+  const conv = (css: string) => css.replace(VH_RE, (_, n: string) => `${+(parseFloat(n) * vhPx).toFixed(2)}px`);
+  return html
+    .replace(/(<style\b[^>]*>)([\s\S]*?)(<\/style>)/gi, (_, a: string, css: string, b: string) => a + conv(css) + b)
+    .replace(/(\sstyle\s*=\s*)("[^"]*"|'[^']*')/gi, (_, a: string, v: string) => a + conv(v));
 }
 function ProfileHtml({ html }: { html: string }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const srcDoc = useMemo(() => {
     const origin = typeof location === 'undefined' ? '' : location.origin;
+    const vhPx = typeof window === 'undefined' ? 8 : Math.max(window.innerHeight, 320) / 100;
     return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${
-      AG_FRAME_BASE.replace(/href="\//g, `href="${origin}/`)}</head><body>${stripScripts(html)}</body></html>`;
+      AG_FRAME_BASE.replace(/href="\//g, `href="${origin}/`)}</head><body>${fixVh(stripScripts(html), vhPx)}</body></html>`;
   }, [html]);
   useEffect(() => {
     const f = frame.current;

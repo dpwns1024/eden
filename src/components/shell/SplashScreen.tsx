@@ -693,7 +693,7 @@ export function SplashView({ bgUrl, targetX, targetY, targetSize, label, profile
     <div
       ref={boxRef}
       className={`splash-overlay ${impact ? 'is-shatter' : ''}`}
-      style={{ cursor: impact ? 'default' : 'none' }}
+      style={{ cursor: impact ? 'var(--cur-default, auto)' : 'none' }}
       onPointerMove={track}
       onPointerDown={track}
       onPointerUp={e => {
