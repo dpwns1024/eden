@@ -6,7 +6,7 @@
  * 맨 위 큰 제목 아래 목차 탭(환경설정 카테고리와 같은 모양), 탭마다 블록(섹션 제목 · 정보 카드 · 분류 카드 · 글 · 이미지 · HTML).
  * 관리자는 오른쪽 위 EDIT → 블록마다 ✎ 고치기 · ↑↓ 순서 · ✕ 지우기, 탭 이름·순서·추가, 아래 ＋ 블록 추가. SAVE로 저장.
  */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArchDoc, ArchBlock, ArchCard, ArchClass, ArchFact, ArchMore, ArchRank, ArchRanks, ICONS, iconSvg, iconKeyOf, blankBlock, blankCard, blankClass,
@@ -137,6 +137,56 @@ function AgentCard({ a, onOpen }: { a: ArchAgent; onOpen: () => void }) {
       : <div className="ar-ag still" style={style}>{body}</div>
   );
 }
+/** 상세 프로필 HTML — 관리자가 넣은 HTML이 창보다 넓으면 오른쪽이 잘렸다 (v2.0 사용자 제보).
+ *  ① 넘치는 만큼 창을 넓히고(화면 94% · 1100px까지) ② 그래도 넘치면 본문을 통째로 줄여 창 폭에 맞춘다 (CSS zoom).
+ *  폭은 렌더 뒤 실제로 그려진 크기로 잰다 — HTML 안의 고정 폭 · 격자를 미리 알 수 없으므로 */
+const AG_MODAL_MAX = 1100;
+function ProfileHtml({ html }: { html: string }) {
+  const outer = useRef<HTMLDivElement>(null);
+  const inner = useRef<HTMLDivElement>(null);
+  const safe = useMemo(() => stripScripts(html), [html]);
+  useLayoutEffect(() => {
+    const o = outer.current, el = inner.current;
+    const box = o?.closest<HTMLElement>('.mng-box');
+    if (!o || !el || !box) return;
+    const fit = () => {
+      el.style.zoom = '';
+      box.style.width = '';
+      let avail = o.clientWidth;
+      let need = el.scrollWidth;
+      if (need <= avail + 1) return;
+      // ① 창 넓히기
+      const maxW = Math.min(AG_MODAL_MAX, window.innerWidth * 0.94);
+      const cur = box.getBoundingClientRect().width;
+      if (cur < maxW) {
+        box.style.width = `${Math.min(maxW, cur + (need - avail))}px`;
+        avail = o.clientWidth;
+        need = el.scrollWidth;
+        if (need <= avail + 1) return;
+      }
+      // ② 그래도 넘치면 줄이기
+      el.style.zoom = String(avail / need);
+    };
+    fit();
+    let raf = 0;
+    const later = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(fit); };
+    window.addEventListener('resize', later);
+    // 이미지가 늦게 들어와 폭이 바뀌는 경우
+    el.addEventListener('load', later, true);
+    document.fonts?.ready.then(later).catch(() => {});
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', later);
+      el.removeEventListener('load', later, true);
+      box.style.width = '';
+    };
+  }, [safe]);
+  return (
+    <div ref={outer} className="ar-ag-pf-b">
+      <div ref={inner} className="ar-ag-pf-fit" dangerouslySetInnerHTML={{ __html: safe }} />
+    </div>
+  );
+}
 /** 상세 프로필 창 — 위에 사진 · 이름 · 무리 · 원소, 아래에 관리자가 HTML로 쓴 내용 */
 function AgentModal({ a, g, onClose }: { a: ArchAgent | null; g: ArchAgentGroup | null; onClose: () => void }) {
   return (
@@ -152,7 +202,7 @@ function AgentModal({ a, g, onClose }: { a: ArchAgent | null; g: ArchAgentGroup 
             </div>
           </div>
           {a.html.trim()
-            ? <div className="ar-ag-pf-b" dangerouslySetInnerHTML={{ __html: stripScripts(a.html) }} />
+            ? <ProfileHtml html={a.html} />
             : <div className="ar-ag-pf-b pend">PROFILE · 기록 준비 중</div>}
           <div className="ar-more-foot"><button type="button" className="ar-more-close" onClick={onClose}>CLOSE</button></div>
         </div>
