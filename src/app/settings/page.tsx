@@ -2708,7 +2708,7 @@ function MenuPane() {
       </div>
 
       <h3 style={{ marginTop: 26 }}>미배치 기능</h3>
-      <div className="d">트리에 넣지 않은 기능 — 메뉴에 노출되지 않지만 데이터는 보존됩니다. 넣을 위치를 고르면 바로 배치</div>
+      <div className="d">트리에 넣지 않은 기능 — 메뉴에 노출되지 않고 <b>관리자만 들어갈 수 있습니다</b>(주소로 와도 막히고, 글도 서버에서 나만보기로 가립니다). 데이터는 보존됩니다. 넣을 위치를 고르면 바로 배치 · HTML 페이지의 기본 페이지 내용은 메인의 ABOUT ARCH(/arch)에서 계속 보입니다</div>
       {unplaced.map(f => (
         <div key={f.href} className="set-row">
           <div className="l" style={{ display: 'flex', gap: 10, alignItems: 'baseline' }}>

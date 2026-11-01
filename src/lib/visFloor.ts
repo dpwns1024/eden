@@ -58,7 +58,9 @@ function commentHref(item: ListItem): string | null {
 export function areaHrefOf(coll: string, item: ListItem): string | null {
   if (coll === 'comments') return commentHref(item);
   // 보호 설정 조각 — 조각마다 걸린 메뉴 주소를 적어 둔다 (lib/settingVault.ts)
-  if (coll === 'vault') return typeof item.href === 'string' ? item.href : null;
+  // 기본 HTML 페이지(/page)의 내용은 메인의 ABOUT ARCH(/arch)가 그대로 보여 준다 — /page 메뉴를 빼거나 막아도
+  // 그 내용은 /arch 기준을 따른다 (2026-11 — 미배치 메뉴를 관리자 전용으로 바꾸면서 ARCH 소개가 가려지지 않게)
+  if (coll === 'vault') return item.href === '/page' ? '/arch' : (typeof item.href === 'string' ? item.href : null);
   // 메모 게시판(/memo2)의 메모는 스티커 메모와 같은 목록에 있지만 공개범위·잠금은 그 메뉴를 따른다
   if (coll === 'memos' && item.kind === 'note') return '/memo2';
   // 프롬프트(/prompt)도 같은 목록 — 공개범위·잠금은 그 메뉴를 따른다

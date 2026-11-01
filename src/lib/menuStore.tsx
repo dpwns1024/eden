@@ -256,6 +256,10 @@ function hrefEntry(s: MenuSettings, path: string): { vis: MenuVis; open: boolean
       take(it.href, { vis: narrower ? gv : iv, open: narrower ? !!g.open : !!it.open });
     }
   }
+  // 미배치 기능(트리 어디에도 없는 기능 주소)은 관리자만 (2026-11 사용자 요청 — 「배치하지 않은 메뉴는 관리자 외 출입금지」).
+  // 메뉴에서만 빠지고 주소로는 들어갈 수 있던 것을 막는다. 저장할 때 글도 나만보기가 된다(visFloor).
+  // 기능이 아닌 주소(메인 · /arch · 환경설정 · 로그인 등)는 그대로다
+  if (bestLen < 0 && FEATURES.some(f => covers(f.href))) return { vis: 'admin', open: false };
   return best;
 }
 
