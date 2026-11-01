@@ -145,10 +145,14 @@ function AgentCard({ a, onOpen }: { a: ArchAgent; onOpen: () => void }) {
  *  사이트 글꼴 규칙(창 본문 300 · 13px, ARCH 창의 각진 모서리 등)도 안 들어가서 붙여 넣은 원본 모양 그대로 보인다 (#273의 목적).
  *  높이는 내용 높이에 맞춰 늘려서, 스크롤은 바깥 창(.ar-ag-pf-sc) 하나로만 한다 */
 const AG_MODAL_MAX = 1100;
+/* 스크롤바 숨김(안쪽 모든 상자) — 붙여 넣은 HTML에 스크롤되는 상자(body overflow-y:scroll · overflow:auto 등)가 있으면
+   크롬 · 웨일은 스크롤바가 폭을 17px쯤 차지해 그만큼 오른쪽이 밀려 잘렸다. 엣지는 스크롤바가 내용 위에 떠서 멀쩡했다 (v2.0 사용자 제보).
+   scrollbar-width:none이면 스크롤바가 자리를 차지하지 않는다 (휠 · 터치 스크롤은 그대로) */
 /* text-size-adjust — iOS 사파리가 줄여 보여 주는(zoom) 프로필 안의 글씨를 작다고 보고 일부 문단만 크게 키워 레이아웃이 깨졌다 (v2.0 사용자 제보) */
 const AG_FRAME_BASE = `<base target="_blank">
 <link rel="stylesheet" href="/fonts/pretendard/pretendard.css?v=2"><link rel="stylesheet" href="/fonts/jetbrains/jetbrains.css?v=2">
 <style>html{overflow:hidden;scrollbar-width:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}html::-webkit-scrollbar{display:none}
+*,*::before,*::after{scrollbar-width:none!important}*::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
 body{margin:0;background:transparent;color:#c3ccd6;font-family:'Pretendard Variable',Pretendard,sans-serif;overflow-wrap:break-word}
 img,video{max-width:100%;height:auto}
 html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}img{-webkit-user-drag:none}</style>`;
