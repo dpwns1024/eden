@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { newId } from './postStore';
 import type { Visibility } from './charStore';
-import { getRawSetting, setSetting } from './settingStore';
+import { getRawSetting, setSetting, onSettingChange } from './settingStore';
 import { MAIN_SEC, inSection, secStamp } from './sectionStore';
 
 export interface SchedCategory { id: string; label: string; color: string }
@@ -70,11 +70,17 @@ export function useSched(secId?: string) {
   const sec = secId ?? MAIN_SEC;
   const [loaded, setLoaded] = useState(false);
   useEffect(() => {
-    try {
-      const stored = getRawSetting(KEY);
-      if (stored) setSt({ ...DEFAULTS, ...JSON.parse(stored) });
-    } catch { /* 기본값 */ }
+    const read = () => {
+      try {
+        const stored = getRawSetting(KEY);
+        if (stored) setSt({ ...DEFAULTS, ...JSON.parse(stored) });
+      } catch { /* 기본값 */ }
+    };
+    read();
     setLoaded(true);
+    // 보호 설정 — 로그인 뒤 다시 받으면 회원공개 · 나만보기 일정이 붙는다 (lib/settingVault.ts).
+    // 내가 저장할 때도(setState 갱신 함수 안) 알림이 오므로 한 틱 미뤄 읽는다
+    return onSettingChange(k => { if (k === KEY) window.setTimeout(read, 0); });
   }, []);
   const apply = useCallback((fn: (s: SchedState) => SchedState) => {
     setSt(s => {

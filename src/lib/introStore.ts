@@ -7,7 +7,7 @@
  * 다른 설정과 똑같이 서버에 동기화된다.
  */
 import { useCallback, useEffect, useState } from 'react';
-import { getRawSetting, setSetting } from './settingStore';
+import { getRawSetting, setSetting, onSettingChange } from './settingStore';
 
 const KEY = 'ohome.intro.v1';
 
@@ -25,11 +25,16 @@ export function useIntro(): [IntroDoc, (next: IntroDoc) => void, boolean] {
   const [doc, setDoc] = useState<IntroDoc>(EMPTY);
   const [loaded, setLoaded] = useState(false);
   useEffect(() => {
-    try {
-      const raw = getRawSetting(KEY);
-      if (raw) setDoc({ ...EMPTY, ...JSON.parse(raw) });
-    } catch { /* 기본값 */ }
+    const read = () => {
+      try {
+        const raw = getRawSetting(KEY);
+        setDoc(raw ? { ...EMPTY, ...JSON.parse(raw) } : EMPTY);
+      } catch { /* 기본값 */ }
+    };
+    read();
     setLoaded(true);
+    // 보호 설정 — 로그인 · 비밀번호 통과 뒤 다시 받으면 내용이 달라진다 (lib/settingVault.ts)
+    return onSettingChange(k => { if (k === KEY) read(); });
   }, []);
   const save = useCallback((next: IntroDoc) => {
     setDoc(next);

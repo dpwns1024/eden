@@ -26,7 +26,8 @@ import { AegisMap } from './AegisMap';
 import { ColorField } from '@/components/ui/ColorField';
 import { AEGIS_SPOTS, type ArchMapNode } from '@/lib/aegisMap';
 import { backend } from '@/lib/backend';
-import { setSetting } from '@/lib/settingStore';
+import { getSetting, setSetting, refreshSettings } from '@/lib/settingStore';
+import { ARCH_DOC_KEY } from '@/lib/archDocStore';
 import { useLockKeyOpen } from '@/components/ui/MenuLock';
 import { AGENT_LOCKS_KEY, agentLockKey, lockedAgentIds, menuLockSupported, useLockedAgentIds, useSitePwOn } from '@/lib/menuLock';
 import './archdoc.css';
@@ -308,6 +309,8 @@ function AgentLockForm({ lockKey, onOpen }: { lockKey: string; onOpen: () => voi
     if (!be) { setErr('서버에 연결돼 있지 않습니다.'); return; }
     setBusy(true); setErr('');
     const r = await be.unlockLock(lockKey, pw);
+    // 통과했으면 서버가 이제 이 프로필 조각을 내준다 — 다시 받아 채운다 (lib/settingVault.ts)
+    if (r.ok) await refreshSettings();
     setBusy(false);
     if (r.ok) { onOpen(); return; }
     setErr(r.error ?? '열지 못했습니다.');
@@ -971,6 +974,9 @@ function AgentLockField({ id }: { id: string }) {
     if (!r.ok) { toast(r.error ?? '저장하지 못했습니다'); return; }
     const cur = lockedAgentIds();
     setSetting(AGENT_LOCKS_KEY, v ? [...new Set([...cur, id])] : cur.filter(x => x !== id));
+    // 문서를 다시 저장해 이 요원의 프로필을 따로(잠근 조각으로) 빼거나 도로 합친다 (lib/settingVault.ts)
+    const docs = getSetting<unknown>(ARCH_DOC_KEY, null);
+    if (docs) setSetting(ARCH_DOC_KEY, docs);
     toast(v ? '상세 프로필에 비밀번호를 걸었습니다' : '상세 프로필 비밀번호를 풀었습니다');
   };
   return (

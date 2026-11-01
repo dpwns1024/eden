@@ -25,19 +25,23 @@ export const MENU_LOCKS_KEY = 'ohome.menulocks.v1';
 export const menuLockSupported = () => serverConfig()?.kind === 'firebase';
 
 /** 비밀번호를 걸 수 있는 메뉴 — 글이 서버 목록(컬렉션)에 저장되는 곳만.
- *  스케줄러·소개처럼 사이트 설정에 담기는 메뉴는 누구나 읽는 설정이라 서버에서 가릴 수 없다 */
+ *  (소개 · HTML 페이지 · 스케줄러는 예전엔 누구나 읽는 설정에 담겨 뺐지만, 이제 보호 설정(vault)으로 옮겨 넣었다 — lib/settingVault.ts) */
 const LOCKABLE = new Set([
   '/board', '/guest', '/memo', '/prompt', '/rp', '/rels', '/tchars', '/comm-apply',
-  ...(['gallery', 'roadview', 'trpg', 'dotori', 'playlog', 'comm', 'diary', 'threads', 'chars'] as const)
+  // 소개 · HTML 페이지 · 스케줄러 — 내용을 보호 설정(vault)으로 옮겨 서버가 가릴 수 있게 됐다 (lib/settingVault.ts)
+  '/intro',
+  ...(['gallery', 'roadview', 'trpg', 'dotori', 'playlog', 'comm', 'diary', 'threads', 'chars', 'page', 'sched'] as const)
     .map(k => SECTION_META[k].href),
 ]);
 export const isLockableHref = (href: string) => LOCKABLE.has(href.split('?')[0]);
 
+type Get = <T>(key: string, fallback: T) => T;
+const strList = (v: unknown): string[] => (Array.isArray(v) ? v.filter((h): h is string => typeof h === 'string') : []);
+
 /** 지금 잠긴 메뉴 주소들 */
-export function lockedHrefs(): string[] {
+export function lockedHrefs(get: Get = getSetting): string[] {
   if (!menuLockSupported()) return [];
-  const v = getSetting<string[]>(MENU_LOCKS_KEY, []);
-  return Array.isArray(v) ? v.filter(h => typeof h === 'string') : [];
+  return strList(get<unknown>(MENU_LOCKS_KEY, []));
 }
 
 /** 잠긴 메뉴 주소 — 설정이 바뀌면 다시 그린다 (메뉴 관리 화면용) */
@@ -61,10 +65,9 @@ export const lockKeyOf = (href: string) =>
 export const LOG_LOCKS_KEY = 'ohome.loglocks.v1';
 /** 글 비밀번호의 잠금키 — 메뉴 잠금키(lockKeyOf)는 영문·숫자·하이픈·밑줄뿐이라 점(.)이 든 이 키와 겹칠 수 없다 */
 export const logLockKey = (id: string) => `trpglog.${id}`;
-export function lockedLogIds(): string[] {
+export function lockedLogIds(get: Get = getSetting): string[] {
   if (!menuLockSupported()) return [];
-  const v = getSetting<string[]>(LOG_LOCKS_KEY, []);
-  return Array.isArray(v) ? v.filter(h => typeof h === 'string') : [];
+  return strList(get<unknown>(LOG_LOCKS_KEY, []));
 }
 
 /** 가입코드의 잠금키 — board_secrets/__invite (밑줄은 lockKeyOf가 _005f로 바꾸므로 메뉴 키와 겹치지 않는다) */
@@ -84,10 +87,9 @@ export const memberProofOn = (): boolean =>
 export const AGENT_LOCKS_KEY = 'ohome.agentlocks.v1';
 /** 요원 프로필의 잠금키 — 점(.)이 들어 메뉴 잠금키(lockKeyOf)와 겹치지 않는다 */
 export const agentLockKey = (id: string) => `agent.${id}`;
-export function lockedAgentIds(): string[] {
+export function lockedAgentIds(get: Get = getSetting): string[] {
   if (!menuLockSupported()) return [];
-  const v = getSetting<string[]>(AGENT_LOCKS_KEY, []);
-  return Array.isArray(v) ? v.filter(h => typeof h === 'string') : [];
+  return strList(get<unknown>(AGENT_LOCKS_KEY, []));
 }
 /** 잠긴 요원 id — 설정이 바뀌면 다시 그린다 */
 export function useLockedAgentIds(): string[] {
@@ -101,8 +103,8 @@ export function useLockedAgentIds(): string[] {
 }
 
 /** 서버가 아는 잠금키 전체 — 메뉴 비밀번호 + 글 비밀번호 + 요원 프로필 비밀번호 (가입코드는 뺀다) */
-export const lockedKeys = (): Set<string> =>
-  new Set([...lockedHrefs().map(lockKeyOf), ...lockedLogIds().map(logLockKey), ...lockedAgentIds().map(agentLockKey)]);
+export const lockedKeys = (get: Get = getSetting): Set<string> =>
+  new Set([...lockedHrefs(get).map(lockKeyOf), ...lockedLogIds(get).map(logLockKey), ...lockedAgentIds(get).map(agentLockKey)]);
 
 /**
  * 공통 비밀번호 (v2.0 사용자 요청 — 「사이트 비번 하나로 통일」).

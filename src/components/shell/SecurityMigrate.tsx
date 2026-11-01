@@ -6,6 +6,8 @@
 //      + 본문이 아직 목록 문서 안에 들어 있던 아주 옛 글은 본문 문서로 분리
 //   3. 이미 가입한 회원 → 정식 회원 증명(members) 발급 — 새 보안 규칙을 붙여넣은 뒤에만 된다
 //   4. 가입코드 → 서버에 해시로만 (공개 설정에 평문으로 있던 값을 지운다) — 3이 된 뒤에
+//   5. 보호 설정(vault — ARCH 문서 · HTML 페이지 · 인트로 · 스케줄러)을 쓸 수 있는 규칙인지 확인 — 옮겨 담기는
+//      설정을 받을 때 백엔드가 한다 (lib/settingVault.ts). 규칙이 옛것이면 관리자에게 알린다
 //
 // 끝난 단계는 사이트 설정(ohome.secmig.v1)에 적어 다시 돌지 않는다. 실패한 단계는 다음 접속 때 다시 시도.
 import { useEffect, useRef } from 'react';
@@ -14,10 +16,11 @@ import { backend, isServerMode, type ListItem } from '@/lib/backend';
 import { getSetting, setSetting } from '@/lib/settingStore';
 import { menuLockSupported, INVITE_LOCK_KEY, SEC_MIG_KEY } from '@/lib/menuLock';
 import { setLogPassword } from '@/lib/logLock';
+import { VAULT_COLL } from '@/lib/settingVault';
 import { bodyVisibility, bodyPwLock, type TrpgLog, type TrpgLogBody } from '@/lib/galleryStore';
 import { useToast } from '@/components/ui/Toast';
 
-type Mig = { secret?: number; logs?: number; invite?: number; members?: number };
+type Mig = { secret?: number; logs?: number; invite?: number; members?: number; vault?: number };
 
 /** 옛 글에서 본문 문서로 옮길 칸 */
 const LEGACY_BODY = ['body', 'bodyId', 'bodyHtml', 'originalFileId', 'originalName'] as const;
@@ -117,6 +120,15 @@ export function SecurityMigrate() {
           const r = await be.setLockPassword(INVITE_LOCK_KEY, inviteCode());
           if (r.ok) { setInviteCode(''); mark('invite'); }
         } catch { /* 다음 접속 때 */ }
+      }
+      // 5. 보호 설정 규칙 확인 — 관리자는 vault를 통째로 읽을 수 있어야 한다
+      if (!done.vault && be.kind === 'firebase') {
+        try {
+          await be.fetchList(VAULT_COLL);
+          mark('vault');
+        } catch {
+          toast('ARCH 문서 · HTML 페이지 · 인트로 · 스케줄러를 서버에서 가리려면 새 Firestore 규칙이 필요합니다 — 환경설정 → 회원/보안 → 보안 규칙을 복사해 Firebase 콘솔에 붙여넣고 게시해 주세요');
+        }
       }
 
     })();
