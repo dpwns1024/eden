@@ -4,7 +4,7 @@
 // .ani(윈도우 애니메이션 커서)는 프레임을 뽑아 CSS cursor를 교체하며 재생 (lib/aniCursor).
 // .cur는 파일에 내장된 핫스팟을 그대로 사용 (CSS 좌표 생략).
 import { useEffect } from 'react';
-import { useCursorSettings, CursorState } from '@/lib/cursorStore';
+import { useCursorSettings, CursorState, isDirectCursorUrl } from '@/lib/cursorStore';
 import { getBlob } from '@/lib/blobStore';
 import { parseAni, isCur } from '@/lib/aniCursor';
 
@@ -63,21 +63,25 @@ export function CursorLayer() {
       for (const key of Object.keys(st.states) as CursorState[]) {
         const entry = st.states[key];
         if (!entry) continue;
-        const blob = await getBlob(entry.imgId);
-        if (!blob || cancelled) continue;
-        const buf = await blob.arrayBuffer();
+        // 저장소 주소의 일반 이미지는 주소를 그대로 쓴다 — 내려받기는 CORS에 막힌다 (cursorStore.isDirectCursorUrl)
+        const direct = isDirectCursorUrl(entry.imgId);
+        const blob = direct ? null : await getBlob(entry.imgId).catch(() => null);
         if (cancelled) return;
-        const ani = parseAni(buf);
+        // 못 받았어도 서버 주소면 그대로 시도 (.cur는 내장 핫스팟으로 동작 · .ani만 정지 화면이 된다)
+        if (!blob && !/^https?:/.test(entry.imgId)) continue;
+        const buf = blob ? await blob.arrayBuffer() : null;
+        if (cancelled) return;
+        const ani = buf ? parseAni(buf) : null;
         if (ani) {
           // 스텝 순서대로 프레임 URL 배열 — 타이머가 이 순서로 커서를 교체
           const frameUrls = ani.frames.map(f => { const u = URL.createObjectURL(f); urls.push(u); return u; });
           anims.push({ key, urls: ani.steps.map(i => frameUrls[i]), delays: ani.delays });
         } else {
-          const url = URL.createObjectURL(blob);
-          urls.push(url);
+          let url = entry.imgId;
+          if (blob) { url = URL.createObjectURL(blob); urls.push(url); }
           const rule = RULES[key];
           // .cur는 내장 핫스팟 사용 — CSS 좌표를 붙이면 무시되는 브라우저가 있어 생략
-          const hs = isCur(buf) ? '' : ` ${entry.hx} ${entry.hy}`;
+          const hs = buf && isCur(buf) ? '' : ` ${entry.hx} ${entry.hy}`;
           staticParts.push(`${rule.sel}{cursor:url("${url}")${hs}, ${rule.fallback} !important}`);
           const vn = VAR_NAME[key];
           if (vn) staticParts.push(`:root{${vn}:url("${url}")${hs}, ${rule.fallback}}`);

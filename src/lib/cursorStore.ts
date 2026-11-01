@@ -28,6 +28,17 @@ export const CURSOR_STATE_LABEL: Record<CursorState, { label: string; desc: stri
   rsNs: { label: '크기조절 ↕', desc: '세로 크기 조절 (선택)' },
 };
 
+/** 서버 저장소 주소의 일반 이미지(png·gif·webp·jpg)인가 — 이런 커서는 파일을 내려받지 않고 주소를 그대로 쓴다.
+ *  저장소(Firebase Storage)가 이미지 표시는 허용하지만 스크립트로 내용을 읽는 것(CORS)은 막아,
+ *  내려받아 쓰던 방식에선 등록해도 커서가 안 뜨고 설정 미리보기도 비어 있었다 (v2.0 사용자 발견).
+ *  .cur·.ani는 파일 안의 핫스팟·프레임을 읽어야 해서 계속 내려받는다. */
+export function isDirectCursorUrl(ref: string): boolean {
+  if (!/^https?:/.test(ref)) return false;
+  let path = ref.split(/[?#]/)[0];
+  try { path = decodeURIComponent(path); } catch { /* 그대로 */ }
+  return /\.(png|gif|webp|jpe?g)$/i.test(path);
+}
+
 export const DEFAULT_CURSOR_SETTINGS: CursorSettings = { enabled: true, states: {} };
 
 const KEY = 'ohome.cursor.v1';
