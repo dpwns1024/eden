@@ -14,7 +14,7 @@
  */
 import { backend } from './backend';
 import { getSetting, setSetting } from './settingStore';
-import { LOG_LOCKS_KEY, logLockKey, menuLockSupported } from './menuLock';
+import { LOG_LOCKS_KEY, logLockKey, menuLockSupported, sitePwOn } from './menuLock';
 
 /** 이 글에 열람 비밀번호가 걸려 있는가 (새 방식 pwLock · 옛 방식 password 모두) */
 export const hasLogPw = (l: { password?: string; pwLock?: boolean }) => !!l.password || !!l.pwLock;
@@ -22,11 +22,14 @@ export const hasLogPw = (l: { password?: string; pwLock?: boolean }) => !!l.pass
 /** 글 비밀번호를 서버가 대조하는가 (Firebase) */
 export const logPwOnServer = () => menuLockSupported();
 
-/** 관리자: 글 비밀번호 설정(null·빈 값이면 해제). 성공해야 글을 저장한다 */
+/** 관리자: 글 비밀번호 설정(null·빈 값이면 해제). 성공해야 글을 저장한다.
+ *  공통 비밀번호를 쓰는 중이면 입력값과 상관없이 공통 비밀번호로 건다 (menuLock.ts) */
 export async function setLogPassword(id: string, password: string | null): Promise<{ ok: boolean; error?: string }> {
   const be = backend();
   if (!be) return { ok: false, error: '서버에 연결돼 있지 않습니다.' };
-  const r = await be.setLockPassword(logLockKey(id), password || null);
+  const r = password && sitePwOn()
+    ? await be.lockWithSitePassword(logLockKey(id))
+    : await be.setLockPassword(logLockKey(id), password || null);
   if (!r.ok) return r;
   const cur = getSetting<string[]>(LOG_LOCKS_KEY, []);
   const ids = Array.isArray(cur) ? cur.filter(x => typeof x === 'string') : [];

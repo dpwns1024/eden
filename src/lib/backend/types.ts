@@ -91,6 +91,10 @@ export interface Backend {
   unlockLock(lockKey: string, password: string): Promise<{ ok: boolean; error?: string }>;
   /** 관리자: 비밀번호 설정(null이면 해제) */
   setLockPassword(lockKey: string, password: string | null): Promise<{ ok: boolean; error?: string }>;
+  /** 관리자: 공통 비밀번호 정하기 — 해시를 관리자만 읽는 곳에 두고, keys의 정답을 모두 그 해시로 바꾼다 */
+  setSitePassword(password: string, keys: string[]): Promise<{ ok: boolean; error?: string }>;
+  /** 관리자: 이 잠금을 공통 비밀번호로 건다 (비밀번호를 다시 묻지 않는다) */
+  lockWithSitePassword(lockKey: string): Promise<{ ok: boolean; error?: string }>;
 
   /** 회원 프로필(닉네임·아바타) 삭제 — 홈의 회원 목록에서 사라진다.
    *  **로그인 계정 자체는 지울 수 없다.** Firebase Authentication / Supabase Auth의 계정 삭제는
