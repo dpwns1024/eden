@@ -8,12 +8,14 @@
 //   4. 가입코드 → 서버에 해시로만 (공개 설정에 평문으로 있던 값을 지운다) — 3이 된 뒤에
 //   5. 보호 설정(vault — ARCH 문서 · HTML 페이지 · 인트로 · 스케줄러)을 쓸 수 있는 규칙인지 확인 — 옮겨 담기는
 //      설정을 받을 때 백엔드가 한다 (lib/settingVault.ts). 규칙이 옛것이면 관리자에게 알린다
+//   6. 더는 쓰지 않는 옛 설정 지우기 — 사이트 설정은 누구나 읽으므로, 코드에서 빠진 뒤에도 서버에 남아
+//      F12로 보이던 값을 비운다 (2026-11 보안 점검: 옛 「사이트 입장 비밀번호」 ohome.homepass.v1이 평문으로 남아 있었다)
 //
 // 끝난 단계는 사이트 설정(ohome.secmig.v1)에 적어 다시 돌지 않는다. 실패한 단계는 다음 접속 때 다시 시도.
 import { useEffect, useRef } from 'react';
 import { useAuth, inviteCode, setInviteCode } from '@/lib/auth';
 import { backend, isServerMode, type ListItem } from '@/lib/backend';
-import { getSetting, setSetting } from '@/lib/settingStore';
+import { getSetting, setSetting, removeSetting } from '@/lib/settingStore';
 import { menuLockSupported, INVITE_LOCK_KEY, SEC_MIG_KEY } from '@/lib/menuLock';
 import { setLogPassword } from '@/lib/logLock';
 import { VAULT_COLL } from '@/lib/settingVault';
@@ -21,6 +23,11 @@ import { bodyVisibility, bodyPwLock, type TrpgLog, type TrpgLogBody } from '@/li
 import { useToast } from '@/components/ui/Toast';
 
 type Mig = { secret?: number; logs?: number; invite?: number; members?: number; vault?: number };
+
+/** 더는 쓰지 않는데 서버에 남아 있을 수 있는 공개 설정 — 값이 있으면 매 관리자 접속 때 비운다 */
+const OBSOLETE_SETTING_KEYS = [
+  'ohome.homepass.v1',   // 옛 사이트 입장 비밀번호 — 평문이었다 (#19에서 기능은 지웠지만 값이 남았다)
+] as const;
 
 /** 옛 글에서 본문 문서로 옮길 칸 */
 const LEGACY_BODY = ['body', 'bodyId', 'bodyHtml', 'originalFileId', 'originalName'] as const;
@@ -50,6 +57,12 @@ export function SecurityMigrate() {
           }
           mark('secret');
         } catch { /* 다음 접속 때 */ }
+      }
+
+      // 6. 옛 설정 지우기 (위 OBSOLETE_SETTING_KEYS) — 백엔드 종류와 무관
+      for (const k of OBSOLETE_SETTING_KEYS) {
+        if (getSetting<unknown>(k, null) == null) continue;
+        try { await be.saveSetting(k, null); removeSetting(k); } catch { /* 다음 접속 때 */ }
       }
 
       if (!menuLockSupported()) return;   // 아래는 Firebase(서버 대조)에서만

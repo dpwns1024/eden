@@ -71,18 +71,54 @@ service cloud.firestore {
       ];
     }
 
+    // 새 행의 작성자 칸 (2026-11 보안 점검) — 남의 이름(authorId)으로 글을 만들 수 없다.
+    //   · 손님(로그인 없음)은 비움, 로그인했으면 나 자신. 화면 데이터 안의 authorId도 같은 값(또는 비움)이어야 한다
+    //     (예전엔 Firebase API로 직접 쓰면 관리자 uid를 적어 관리자가 쓴 것처럼 꾸밀 수 있었다)
+    //   · 알림은 행 주인이 받는 사람이라 아무 이름이나 적을 수 있다 — 대신 나만보기로만 만든다
+    //   · 관리자는 이 검사를 받지 않는다 (백업 복원 · 옮겨 담기는 원래 작성자를 적는다)
+    function newAuthorOk(coll) {
+      let d = request.resource.data;
+      let a = d.get('authorId', null);
+      let inner = d.get('data', {}).get('authorId', null);
+      return coll == 'notifications'
+        ? d.get('visibility', '') == 'private' && inner == a
+        : (a == null || (signedIn() && a == request.auth.uid)) && inner in [null, '', a];
+    }
+
+    function strMax(m, k, n) {
+      return !(k in m) || (m[k] is string && m[k].size() <= n);
+    }
+
+    // 회원이 아닌 방문자가 남기는 행(방명록 · 댓글 · 알림) — 정해진 칸만, 크기를 묶는다 (2026-11 보안 점검)
+    // 화면이 쓰는 모양 그대로: { data, authorId, visibility, editorIds, sort, updatedAt, lockBoard }
+    function guestRowOk() {
+      let d = request.resource.data;
+      let x = d.get('data', {});
+      return d.keys().hasOnly(['data', 'authorId', 'visibility', 'editorIds', 'sort', 'updatedAt', 'lockBoard'])
+        && d.get('editorIds', []) is list && d.get('editorIds', []).size() == 0
+        && d.get('visibility', 'public') in ['public', 'member', 'locked', 'private']
+        && x is map && x.keys().size() <= 24
+        && strMax(x, 'author', 60) && strMax(x, 'title', 300)
+        && strMax(x, 'body', 10000) && strMax(x, 'text', 10000);
+    }
+
     // ── 소유자(관리자) 지정 — 아직 없을 때 딱 한 번 ──────────────
     match /meta/owner {
       allow read: if true;
-      allow create: if isUser() && !exists(/databases/$(database)/documents/meta/owner);
+      allow create: if isUser() && !exists(/databases/$(database)/documents/meta/owner)
+        && request.resource.data.uid == request.auth.uid;
       allow update, delete: if isAdmin();
     }
 
     // ── 회원 프로필 ─────────────────────────────────────────────
     match /profiles/{uid} {
       allow read: if true;
-      // 자기 프로필은 계정만 있으면 — 설치 화면의 첫 계정은 관리자로 등록되기 전에 프로필부터 만든다
-      allow create, update: if isUser() && (request.auth.uid == uid || isAdmin());
+      // 자기 프로필은 정식 회원만 — 아무나 만든 계정이 회원 목록에 끼어들거나 관리자 닉네임 · 사진을 흉내 내지 못하게.
+      // 설치 화면의 첫 계정은 관리자로 등록되기 전에 프로필부터 만들므로, 관리자가 아직 없을 때만 예외
+      allow create, update: if isUser() && (
+        (request.auth.uid == uid
+          && (isMember() || !exists(/databases/$(database)/documents/meta/owner)))
+        || isAdmin());
       allow delete: if isAdmin();
     }
 
@@ -137,8 +173,12 @@ service cloud.firestore {
       // notifications: 손님 댓글·방명록이 관리자에게 알림을 남길 수 있어야 한다 (v2.0) —
       // 행 주인(authorId)은 받는 사람이라 읽기·수정·삭제는 받는 사람·관리자만 (아래 공통 규칙)
       // vault: 보호 설정 조각(ARCH 문서 · HTML 페이지 · 인트로 · 스케줄러) — 사이트 내용이라 관리자만 쓴다
-      allow create: if isContent(coll)
-        && (coll == 'vault' ? isAdmin() : (isMember() || coll in ['guestbook', 'comments', 'notifications']));
+      // 작성자 칸은 나 자신(손님은 비움)만 · 손님 행은 칸과 크기를 제한한다 (위 newAuthorOk · guestRowOk)
+      allow create: if isContent(coll) && (
+        isAdmin()
+        || (coll != 'vault' && newAuthorOk(coll)
+            && (isMember() || (coll in ['guestbook', 'comments', 'notifications'] && guestRowOk())))
+      );
 
       // 수정·삭제: 작성자 본인 · 편집 권한을 받은 회원 · 관리자
       // 댓글은 글과 따로 저장되므로(v2.0) 댓글을 달 때 글을 수정할 필요가 없다 —
@@ -147,13 +187,26 @@ service cloud.firestore {
       // 지우는 것은 관리자만 — 방명록의 게스트 글과 같은 규칙이다.
       // editorIds: 캐릭터에 「편집까지」 권한을 준 회원 (v2.0). grants는 객체 배열이라
       // 규칙에서 훑을 수 없어, 저장할 때 회원 id만 뽑아 둔 평평한 배열을 본다.
-      allow update, delete: if isContent(coll)
+      allow delete: if isContent(coll)
         && isMember()
         && (coll != 'vault' || isAdmin())
         && (resource.data.authorId == request.auth.uid
             || isAdmin()
             || (resource.data.keys().hasAny(['editorIds'])
                 && request.auth.uid in resource.data.editorIds));
+      // 수정은 같은 사람들 — 다만 관리자가 아니면 작성자(authorId)를 바꿀 수 없고,
+      // 편집 권한만 받은 회원은 편집 권한 목록(editorIds)도 바꿀 수 없다 (2026-11 보안 점검 —
+      // 예전엔 편집 권한을 받은 회원이 저장하면서 글을 자기 것으로 가져가거나 남에게 권한을 줄 수 있었다)
+      allow update: if isContent(coll)
+        && isMember()
+        && (coll != 'vault' || isAdmin())
+        && (isAdmin()
+            || ((resource.data.authorId == request.auth.uid
+                 || (resource.data.keys().hasAny(['editorIds'])
+                     && request.auth.uid in resource.data.editorIds))
+                && request.resource.data.get('authorId', null) == resource.data.get('authorId', null)
+                && (resource.data.authorId == request.auth.uid
+                    || request.resource.data.get('editorIds', []) == resource.data.get('editorIds', []))));
     }
   }
 }
