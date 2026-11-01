@@ -601,6 +601,10 @@ body:has(.arx)::before{display:none !important}
   .ar-ag-pf-bar{margin:-16px -12px 10px;padding:0 12px;font-size:7.5px;letter-spacing:.18em}
   .ar-ag-pf-h{grid-template-columns:96px minmax(0,1fr);gap:14px}
   .ar-ag-pf-h .nm b{font-size:24px}.ar-ag-pf-h .nm b.lat{font-size:26px;letter-spacing:.14em}
+  /* 모바일 — 한글 이름을 영문 이름 옆으로 올려 글 칸 높이를 줄인다 (사진 위 빈자리가 컸다 · v2.0 사용자 요청) */
+  .ar-ag-pf-h .nm b.lat{display:inline-block;vertical-align:baseline}
+  .ar-ag-pf-h .nm b.lat + .ko{display:inline-block;margin:0 0 0 10px;vertical-align:baseline}
+  .ar-ag-pf-h .fl{margin-top:12px}
   .ar-ag-pf-h .gh{font-size:72px}
   .ar-ag-pf-h .fl{grid-template-columns:1fr 1fr}
   .ar-ag-pf-h .fl div:nth-child(3){grid-column:1 / -1;padding-left:0;background:none}
