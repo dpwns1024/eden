@@ -621,20 +621,20 @@ body:has(.arx)::before{display:none !important}
 .ar-ag-pf-b.pend{font:400 9.5px/1.6 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.22em;color:#5f6b79;padding:20px 0}
 /* 잠긴 프로필 — 비밀번호 칸 (v2.0 사용자 요청). 메뉴 비밀번호 화면(.board-lock)과 같은 무드로, 큰 상자만 뺐다:
    빛나는 자물쇠 · 흰 제목 · 흐린 안내 · 가운데 맞춘 칸 · 아래 넓은 입장 버튼 */
-.ar-ag-lock{display:grid;gap:12px;justify-items:stretch;width:min(340px,100%);margin:0 auto;padding:30px 0 26px;text-align:center}
-.ar-ag-lock .ic{justify-self:center;display:block;width:30px;height:30px;margin-bottom:2px;color:#b8d8ff;filter:drop-shadow(0 0 6px rgba(184,216,255,.5))}
-.ar-ag-lock b{font:600 15px/1.4 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.02em;color:#fff}
-.ar-ag-lock small{margin-bottom:6px;font:400 13px/1.6 'Pretendard Variable',Pretendard,sans-serif;color:#8a9bb0;word-break:keep-all}
-.ar-ag-lock input{width:100%;height:50px;margin:0;padding:0 14px;border:1px solid rgba(190,208,228,.18);outline:0;border-radius:0;background:rgba(5,7,10,.55);
-  color:#e4e9ef;text-align:center;font:400 15px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.3em;transition:border-color .2s}
+.ar-ag-lock{display:grid;gap:9px;justify-items:stretch;width:min(300px,100%);margin:0 auto;padding:22px 0 18px;text-align:center}
+.ar-ag-lock .ic{justify-self:center;display:block;width:22px;height:22px;margin-bottom:1px;color:#b8d8ff;filter:drop-shadow(0 0 5px rgba(184,216,255,.5))}
+.ar-ag-lock b{font:600 13px/1.4 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.02em;color:#fff}
+.ar-ag-lock small{margin-bottom:4px;font:400 11.5px/1.6 'Pretendard Variable',Pretendard,sans-serif;color:#8a9bb0;word-break:keep-all}
+.ar-ag-lock input{width:100%;height:38px;margin:0;padding:0 14px;border:1px solid rgba(190,208,228,.18);outline:0;border-radius:0;background:rgba(5,7,10,.55);
+  color:#e4e9ef;text-align:center;font:400 13px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.3em;transition:border-color .2s}
 .ar-ag-lock input::placeholder{letter-spacing:.06em;color:#4f5b69}
 .ar-ag-lock input:focus{border-color:rgba(184,216,255,.55)}
 .ar-ag-lock input.bad{border-color:rgba(255,138,146,.6)}
-.ar-ag-lock button{width:100%;height:50px;margin:0;border:1px solid rgba(190,208,228,.16);border-radius:0;background:rgba(190,208,228,.06);
-  color:#e4e9ef;cursor:var(--cur-pointer,pointer);font:600 13px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.1em;transition:background .2s,border-color .2s}
+.ar-ag-lock button{width:100%;height:36px;margin:0;border:1px solid rgba(190,208,228,.16);border-radius:0;background:rgba(190,208,228,.06);
+  color:#e4e9ef;cursor:var(--cur-pointer,pointer);font:600 12px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.1em;transition:background .2s,border-color .2s}
 .ar-ag-lock button:hover:not(:disabled){background:rgba(184,216,255,.12);border-color:rgba(184,216,255,.4)}
 .ar-ag-lock button:disabled{color:#5f6b79;cursor:default}
-.ar-ag-lock .err{margin:-4px 0 0;font:400 12px/1.4 'Pretendard Variable',Pretendard,sans-serif;color:#ff8a92}
+.ar-ag-lock .err{margin:-3px 0 0;font:400 11px/1.4 'Pretendard Variable',Pretendard,sans-serif;color:#ff8a92}
 
 /* ARCH 소개 페이지(/arch) — 내용 왼쪽 끝 · 폭을 게시판(.page: 최대 1180px · 좌우 28px, 폰 16px)과 같게 (v2.0 사용자 요청 —
    게시판 제목은 머리 로고보다 30px 안쪽인데 ARCH 소개만 로고 끝에 붙어 메뉴를 오갈 때 옆으로 밀려 보였다) */
