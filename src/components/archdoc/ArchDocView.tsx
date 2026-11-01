@@ -298,7 +298,7 @@ function ProfileHtml({ html }: { html: string }) {
 }
 /** 잠긴 프로필의 비밀번호 칸 — 대조는 서버(Firestore 보안 규칙)가 한다 (lib/menuLock.ts).
  *  공통 비밀번호를 쓰는 중이면 맞힌 순간 사이트의 다른 잠금도 함께 열린다 */
-function AgentLockForm({ lockKey, color, onOpen }: { lockKey: string; color: string; onOpen: () => void }) {
+function AgentLockForm({ lockKey, onOpen }: { lockKey: string; onOpen: () => void }) {
   const [pw, setPw] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
@@ -316,21 +316,19 @@ function AgentLockForm({ lockKey, color, onOpen }: { lockKey: string; color: str
     setErr(r.error ?? '열지 못했습니다.');
   };
   return (
-    // 칸 · 버튼을 한 틀로 붙여 높이 · 글꼴을 맞춘다 (v2.0 사용자 요청 — 칸과 버튼 높이가 달라 어긋나 보였다)
-    <form className="ar-ag-lock" onSubmit={submit} style={{ '--ec': color } as React.CSSProperties}>
+    // 메뉴 비밀번호 화면(MenuLockScreen)과 같은 무드 — 큰 상자 없이 아이콘 · 제목 · 안내 · 칸 · 입장 버튼 (v2.0 사용자 요청)
+    <form className="ar-ag-lock" onSubmit={submit}>
       <svg className="ic" viewBox="0 0 24 24" aria-hidden="true">
-        <rect x="5" y="10.5" width="14" height="9.5" fill="none" stroke="currentColor" strokeWidth="1.2" />
-        <path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3" fill="none" stroke="currentColor" strokeWidth="1.2" />
-        <path d="M12 14v2.5" stroke="currentColor" strokeWidth="1.2" />
+        <rect x="4.5" y="10.5" width="15" height="10" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" strokeWidth="1.5" />
+        <circle cx="12" cy="15.5" r="1.4" fill="currentColor" />
       </svg>
-      <b>RESTRICTED FILE</b>
-      <small>비밀번호를 입력하면 열람할 수 있습니다 · 정식 요원은 로그인하면 바로 열람</small>
-      <div className={`row${err ? ' bad' : ''}`}>
-        <input type="password" value={pw} autoFocus placeholder="PASSWORD" aria-label="비밀번호"
-          onChange={e => { setPw(e.target.value); setErr(''); }} />
-        <button type="submit" disabled={busy || !pw}>{busy ? '…' : 'ACCESS'}</button>
-      </div>
-      <p className="err" aria-live="polite">{err}</p>
+      <b>비밀번호 입력</b>
+      <small>정식 요원은 로그인하면 비밀번호 없이 볼 수 있습니다</small>
+      <input type="password" value={pw} autoFocus placeholder="비밀번호" aria-label="비밀번호"
+        className={err ? 'bad' : undefined} onChange={e => { setPw(e.target.value); setErr(''); }} />
+      {err && <p className="err">{err}</p>}
+      <button type="submit" disabled={busy || !pw}>{busy ? '확인 중…' : '입장'}</button>
     </form>
   );
 }
@@ -368,7 +366,7 @@ function AgentModal({ a, g, onClose }: { a: ArchAgent | null; g: ArchAgentGroup 
           {lock === 'loading' && !passed
             ? <div className="ar-ag-pf-b pend">ACCESS · 확인 중</div>
             : lock === 'locked' && !passed
-              ? <AgentLockForm lockKey={agentLockKey(a.id)} color={AG_COLOR[a.element] ?? g.color} onOpen={() => setPassed(true)} />
+              ? <AgentLockForm lockKey={agentLockKey(a.id)} onOpen={() => setPassed(true)} />
               : a.html.trim()
                 ? <ProfileHtml html={a.html} />
                 : <div className="ar-ag-pf-b pend">PROFILE · 기록 준비 중</div>}

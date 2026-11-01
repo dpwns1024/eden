@@ -619,24 +619,22 @@ body:has(.arx)::before{display:none !important}
   .ar-ag-pf{max-height:calc(88vh - 30px)}
 }
 .ar-ag-pf-b.pend{font:400 9.5px/1.6 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.22em;color:#5f6b79;padding:20px 0}
-/* 잠긴 프로필 — 비밀번호 칸 (v2.0 사용자 요청). 칸과 버튼을 한 틀(38px)로 붙이고, 글꼴은 창의 다른 글씨와 맞춘다:
-   영문 표지 = JetBrains Mono · 버튼 = Jost(CLOSE와 같음) · 안내 = Pretendard */
-.ar-ag-lock{display:flex;flex-direction:column;align-items:center;gap:0;padding:30px 12px 22px;text-align:center}
-.ar-ag-lock .ic{display:block;width:22px;height:22px;color:color-mix(in srgb,var(--ec) 60%,#fff);opacity:.85}
-.ar-ag-lock b{margin-top:12px;font:400 10px/1 'JetBrains Mono',monospace;letter-spacing:.32em;color:color-mix(in srgb,var(--ec) 55%,#fff)}
-.ar-ag-lock small{margin-top:10px;font:300 12px/1.5 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.02em;color:#8592a0;word-break:keep-all}
-.ar-ag-lock .row{display:flex;align-items:stretch;width:min(320px,100%);height:38px;margin-top:20px;
-  border:1px solid rgba(190,208,228,.22);background:rgba(8,11,15,.72);transition:border-color .2s}
-.ar-ag-lock .row:focus-within{border-color:color-mix(in srgb,var(--ec) 60%,transparent)}
-.ar-ag-lock .row.bad{border-color:rgba(255,138,138,.6)}
-.ar-ag-lock input{flex:1;min-width:0;height:100%;margin:0;padding:0 14px;border:0;outline:0;background:transparent;color:#e4e9ef;
-  font:400 13px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.12em}
-.ar-ag-lock input::placeholder{font:400 10px/1 'JetBrains Mono',monospace;letter-spacing:.3em;color:#4a5461}
-.ar-ag-lock button{flex:none;height:100%;margin:0;padding:0 18px;border:0;border-left:1px solid rgba(190,208,228,.22);
-  background:color-mix(in srgb,var(--ec) 10%,transparent);color:#c9d2dc;cursor:var(--cur-pointer,pointer);font:400 10px/1 'Jost',sans-serif;letter-spacing:.3em;transition:color .2s,background .2s}
-.ar-ag-lock button:hover:not(:disabled){color:#fff;background:color-mix(in srgb,var(--ec) 22%,transparent)}
+/* 잠긴 프로필 — 비밀번호 칸 (v2.0 사용자 요청). 메뉴 비밀번호 화면(.board-lock)과 같은 무드로, 큰 상자만 뺐다:
+   빛나는 자물쇠 · 흰 제목 · 흐린 안내 · 가운데 맞춘 칸 · 아래 넓은 입장 버튼 */
+.ar-ag-lock{display:grid;gap:12px;justify-items:stretch;width:min(340px,100%);margin:0 auto;padding:30px 0 26px;text-align:center}
+.ar-ag-lock .ic{justify-self:center;display:block;width:30px;height:30px;margin-bottom:2px;color:#b8d8ff;filter:drop-shadow(0 0 6px rgba(184,216,255,.5))}
+.ar-ag-lock b{font:600 15px/1.4 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.02em;color:#fff}
+.ar-ag-lock small{margin-bottom:6px;font:400 13px/1.6 'Pretendard Variable',Pretendard,sans-serif;color:#8a9bb0;word-break:keep-all}
+.ar-ag-lock input{width:100%;height:50px;margin:0;padding:0 14px;border:1px solid rgba(190,208,228,.18);outline:0;border-radius:0;background:rgba(5,7,10,.55);
+  color:#e4e9ef;text-align:center;font:400 15px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.3em;transition:border-color .2s}
+.ar-ag-lock input::placeholder{letter-spacing:.06em;color:#4f5b69}
+.ar-ag-lock input:focus{border-color:rgba(184,216,255,.55)}
+.ar-ag-lock input.bad{border-color:rgba(255,138,146,.6)}
+.ar-ag-lock button{width:100%;height:50px;margin:0;border:1px solid rgba(190,208,228,.16);border-radius:0;background:rgba(190,208,228,.06);
+  color:#e4e9ef;cursor:var(--cur-pointer,pointer);font:600 13px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.1em;transition:background .2s,border-color .2s}
+.ar-ag-lock button:hover:not(:disabled){background:rgba(184,216,255,.12);border-color:rgba(184,216,255,.4)}
 .ar-ag-lock button:disabled{color:#5f6b79;cursor:default}
-.ar-ag-lock .err{min-height:16px;margin:10px 0 0;font:400 11.5px/1.4 'Pretendard Variable',Pretendard,sans-serif;color:#ff8a8a}
+.ar-ag-lock .err{margin:-4px 0 0;font:400 12px/1.4 'Pretendard Variable',Pretendard,sans-serif;color:#ff8a92}
 
 /* ARCH 소개 페이지(/arch) — 내용 왼쪽 끝 · 폭을 게시판(.page: 최대 1180px · 좌우 28px, 폰 16px)과 같게 (v2.0 사용자 요청 —
    게시판 제목은 머리 로고보다 30px 안쪽인데 ARCH 소개만 로고 끝에 붙어 메뉴를 오갈 때 옆으로 밀려 보였다) */
