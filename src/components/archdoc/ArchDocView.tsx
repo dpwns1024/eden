@@ -223,16 +223,21 @@ function ProfileHtml({ html }: { html: string }) {
       const d = f.contentDocument, root = d?.documentElement;
       if (!d || !root || !d.body) return;
       box.style.width = '';
-      let avail = holder.clientWidth;
+      // 칸 폭은 소수점까지 그대로 잰다 — clientWidth는 정수로 반올림돼(799.6 → 800) iframe을 칸보다 0.x px 넓게 그렸고,
+      // 창 폭에 따라 크롬 · 웨일에서 오른쪽 끝(둥근 모서리 · 테두리)이 잘렸다 났다 했다 (v2.0 사용자 제보). iframe 폭은 그 아래 정수로
+      const exact = () => holder.getBoundingClientRect().width;
+      let availX = exact();
+      let avail = Math.floor(availX);
       f.style.width = `${avail}px`;
       let need = root.scrollWidth;
-      if (need > avail + 1) {
-        // ① 창 넓히기
+      if (need > avail) {
+        // ① 창 넓히기 — 모자란 만큼 + 1px 여유, 정수로 올려서
         const maxW = Math.min(AG_MODAL_MAX, window.innerWidth * (window.innerWidth <= 560 ? 0.96 : 0.94));   // 모바일 창 폭은 archdoc.css와 같게
         const cur = box.getBoundingClientRect().width;
         if (cur < maxW) {
-          box.style.width = `${Math.min(maxW, cur + (need - avail))}px`;
-          avail = holder.clientWidth;
+          box.style.width = `${Math.min(maxW, Math.ceil(cur + (need - availX)) + 1)}px`;
+          availX = exact();
+          avail = Math.floor(availX);
           f.style.width = `${avail}px`;
           need = root.scrollWidth;
         }
@@ -241,20 +246,19 @@ function ProfileHtml({ html }: { html: string }) {
       //    CSS zoom은 아이폰 사파리가 글씨에 최소 크기를 적용해 줄 간격만 줄고 글씨는 덜 줄어 겹쳤다 (v2.0 사용자 제보)
       let w = Math.max(avail, need);
       f.style.width = `${w}px`;
-      // iframe 안에서 실제로 보이는 폭이 내용보다 좁으면(스크롤바 · 화면 배율에 따른 픽셀 반올림 등) 그만큼 넓힌다 —
-      // PC에서 오른쪽 끝 둥근 모서리가 잘려 보였다 (v2.0 사용자 제보)
+      // iframe 안에서 실제로 보이는 폭이 내용보다 좁으면(스크롤바 · 화면 배율에 따른 픽셀 반올림 등) 그만큼 넓힌다
       const short = need - root.clientWidth;
       if (short > 0 && root.clientWidth > 0) { w += Math.ceil(short); f.style.width = `${w}px`; }
       unsqueezeAbs(d);   // 최종 폭에서 판정해야 원래 폭과 비교가 맞다
-      const s = w > avail + 0.5 ? avail / w : 1;
+      const s = w > availX ? availX / w : 1;
       // 높이는 실제로 그려진 크기로 — scrollHeight는 iframe 높이보다 작아지지 않아 내용이 줄어도 창이 안 줄어든다
       const h = Math.ceil(Math.max(root.getBoundingClientRect().height, d.body.getBoundingClientRect().height));
       f.style.height = `${h}px`;
       f.style.transform = s < 1 ? `scale(${s})` : '';
       holder.style.height = `${Math.ceil(h * s)}px`;
-      // 마지막 검사 — 실제로 그려진 iframe이 칸보다 넓으면(브라우저 · 확장 프로그램 · 반올림 등 무엇 때문이든) 그만큼 더 줄인다
-      const fr = f.getBoundingClientRect().width, hr = holder.getBoundingClientRect().width;
-      if (fr > hr + 0.5) {
+      // 마지막 검사 — 실제로 그려진 iframe이 칸보다 조금이라도 넓으면(브라우저 · 확장 프로그램 · 반올림 등 무엇 때문이든) 그만큼 더 줄인다
+      const fr = f.getBoundingClientRect().width, hr = exact();
+      if (fr > hr + 0.01) {
         const s2 = s * (hr / fr);
         f.style.transform = `scale(${s2})`;
         holder.style.height = `${Math.ceil(h * s2)}px`;
