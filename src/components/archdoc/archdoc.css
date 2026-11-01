@@ -531,6 +531,8 @@ body:has(.arx)::before{display:none !important}
 .ar-ag-pf-h .nm .nmr{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 10px}
 .ar-ag-pf-h .nm .en{font:400 13px/1.2 'Pretendard Variable',Pretendard,'Jost',sans-serif;letter-spacing:.04em;color:#aab5c1}
 .ar-ag-pf-b{font:300 13px/1.85 'Pretendard Variable',Pretendard,sans-serif;color:#c3ccd6;word-break:keep-all}
+.ar-ag-pf-b:not(.pend){overflow-x:auto}
+.ar-ag-pf-fit{min-width:0}
 .ar-ag-pf-b.pend{font:400 9.5px/1.6 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.22em;color:#5f6b79;padding:20px 0}
 @media (max-width:560px){ .ar-ag-pf-h .ph{flex-basis:92px} .ar-ag-pf-h .nm b{font-size:21px} }
 
