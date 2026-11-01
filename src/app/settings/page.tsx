@@ -34,7 +34,7 @@ import { useSections, sectionMenuEntries, MAIN_SEC, inSection } from '@/lib/sect
 import { useCustomLinks, linkEntries, toInternalPath } from '@/lib/linkStore';
 import { useSiteDraft } from '@/lib/siteStore';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCursorSettings, CursorState, CURSOR_STATE_LABEL } from '@/lib/cursorStore';
+import { useCursorSettings, CursorState, CURSOR_STATE_LABEL, isDirectCursorUrl } from '@/lib/cursorStore';
 import { RelQuestionSet, RELQ_SEED, RELQ_KEY, CP_LABEL } from '@/lib/relqStore';
 import { SymbolInput } from '@/components/ui/SymbolInput';
 import { allBlobs, putBlobAs, useBlobUrl, getBlob } from '@/lib/blobStore';
@@ -1656,6 +1656,8 @@ function CursorRow({ state }: { state: CursorState }) {
   useEffect(() => {
     if (!entry?.imgId) { setUrl(null); return; }
     let cancelled = false;
+    // 저장소 주소의 일반 이미지는 주소 그대로 — 내려받기는 CORS에 막혀 미리보기가 비던 것 (v2.0)
+    if (isDirectCursorUrl(entry.imgId)) { setUrl(entry.imgId); return; }
     let obj: string | null = null;
     getBlob(entry.imgId).then(async b => {
       if (!b || cancelled) return;
