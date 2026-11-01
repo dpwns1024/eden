@@ -61,6 +61,7 @@ import { visFloorOf, areaHrefOf } from '@/lib/visFloor';
 import { validateConfig, configFileText, saveLocalConfig, parseFirebaseSnippet, serverConfig } from '@/lib/serverConfig';
 import { migrateTo, findOrphanFiles, cleanStoredImages } from '@/lib/transfer';
 import { syncStoredVis } from '@/lib/visSync';
+import { VAULT_COLL } from '@/lib/settingVault';
 import { FIRESTORE_RULES, STORAGE_RULES } from '@/lib/firebaseRules';
 
 const CATEGORIES = [
@@ -825,7 +826,15 @@ function MenuLockSection({ tree, labelOf }: { tree: MenuGroupNode[]; labelOf: (h
     const list = async (coll: string) => (cache[coll] ??= await be.fetchList(coll));
     const parentOf = { post: 'posts', road: 'roadview', thread: 'threads' } as const;
     let n = 0;
-    for (const coll of CONTENT_COLLECTIONS) {
+    // 보호 설정 조각(vault)도 — 소개 · HTML 페이지 · 스케줄러 메뉴를 잠글 때 (lib/settingVault.ts). 새 보안 규칙 전이면 건너뛴다
+    for (const coll of [...CONTENT_COLLECTIONS, ...(be.kind === 'firebase' ? [VAULT_COLL] : [])]) {
+      if (coll === VAULT_COLL) {
+        try {
+          const rows = (await list(coll)).filter(r => owns(coll, r));
+          if (rows.length) n += await be.refreshVis(coll, rows, user?.id ?? null);
+        } catch { /* 새 보안 규칙 전 */ }
+        continue;
+      }
       let rows = await list(coll);
       if (coll === 'comments') {
         rows = await Promise.all(rows.map(async c => {
@@ -937,7 +946,7 @@ function MenuLockSection({ tree, labelOf }: { tree: MenuGroupNode[]; labelOf: (h
           )}
         </div>
       </div>
-      <p className="hint">공통 비밀번호를 정하면 메뉴마다 비밀번호를 치지 않고 [공통 비밀번호로 잠그기]만 누르면 됩니다 · 비밀번호는 4자 이상 · 서버에 암호화(해시)로만 저장돼 관리자도 다시 볼 수 없습니다 — 잊으면 새로 설정하세요. 바꾸면 기존에 통과한 방문자도 다시 입력해야 합니다. 맞혀 볼 수 있는 횟수에 제한이 없으니 짧거나 흔한 비밀번호는 피해 주세요. 스케줄러·소개처럼 내용이 사이트 설정에 담기는 메뉴와 외부 링크는 서버에서 가릴 수 없어 목록에 없습니다.</p>
+      <p className="hint">공통 비밀번호를 정하면 메뉴마다 비밀번호를 치지 않고 [공통 비밀번호로 잠그기]만 누르면 됩니다 · 비밀번호는 4자 이상 · 서버에 암호화(해시)로만 저장돼 관리자도 다시 볼 수 없습니다 — 잊으면 새로 설정하세요. 바꾸면 기존에 통과한 방문자도 다시 입력해야 합니다. 맞혀 볼 수 있는 횟수에 제한이 없으니 짧거나 흔한 비밀번호는 피해 주세요. 외부 링크는 서버에서 가릴 수 없어 목록에 없습니다. 소개 · HTML 페이지 · 스케줄러는 새 보안 규칙을 붙여넣은 뒤부터 서버가 가립니다.</p>
     </>
   );
 }

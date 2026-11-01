@@ -49,28 +49,63 @@ export const SETTING_KEYS = [
   'ohome.boardui.v1', 'ohome.classified.v1', 'ohome.quotenames.v1', 'ohome.yjhmfront.v1',
 ];
 
+/**
+ * 보호 설정 키 (v2.0 사용자 요청) — 글 같은 내용이 든 설정. Firebase에서는 조각으로 나눠 콘텐츠 컬렉션(vault)에
+ * 저장해 서버가 메뉴 공개범위 · 비밀번호대로 가린다 (lib/settingVault.ts). 그래서 **보는 사람마다 값이 다르다** —
+ * 로그인 · 비밀번호 통과 뒤에 다시 받아야 한다 (refreshSettings). 순서는 settingVault가 그대로 쓴다.
+ */
+export const PROTECTED_SETTING_KEYS = ['ohome.archdoc.v1', 'ohome.htmlpages.v1', 'ohome.intro.v1', 'ohome.sched.v1'] as const;
+
+/** 받은 설정을 캐시에 넣는다 (null = 지워진 값) */
+function absorb(k: string, v: unknown) {
+  // 기기 보관 전용 키는 서버 값이 남아 있어도 받지 않는다 (v2.0 포크 제보) —
+  // 옛 백업 복원으로 서버에 올라간 알림 on/off가 매 접속마다 로컬 토글을 덮어썼다
+  if (LOCAL_ONLY.has(k)) return;
+  // null = 지워진 값(초기화가 그렇게 저장한다). 캐시에 담으면 화면이 기본값 대신
+  // null을 받아 깨지므로 아예 없는 것으로 둔다.
+  if (v == null) {
+    cache.delete(k);
+    try { localStorage.removeItem(k); } catch { /* 무시 */ }
+    return;
+  }
+  cache.set(k, v);
+  // 첫 페인트를 위해 로컬에도 사본을 둔다 (다음 방문 때 깜빡임 감소)
+  try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* 무시 */ }
+}
+
+/** 보호 설정을 다시 받는다 — 로그인 상태가 바뀌었을 때 · 비밀번호를 통과했을 때. 바뀐 키는 화면에 알린다 */
+export async function refreshSettings(keys: readonly string[] = PROTECTED_SETTING_KEYS): Promise<void> {
+  const be = backend();
+  if (!be) return;
+  try {
+    const all = await be.fetchAllSettings();
+    for (const k of keys) {
+      const before = JSON.stringify(cache.get(k) ?? null);
+      absorb(k, all[k]);
+      if (JSON.stringify(cache.get(k) ?? null) !== before) {
+        try { window.dispatchEvent(new CustomEvent(EVT, { detail: k })); } catch { /* 무시 */ }
+      }
+    }
+  } catch { /* 다음 기회에 */ }
+}
+
+let authHooked = false;
+
 /** 앱 시작 시 1회 — 서버에 저장된 설정을 전부 받아 캐시 */
 export async function primeSettings(): Promise<void> {
   primed = true;
   const be = backend();
   if (!be) return;
+  // 로그인 상태가 잡히거나 바뀌면 보호 설정을 다시 받는다 — 처음 받을 땐 아직 로그인 전일 수 있다
+  if (!authHooked && be.kind === 'firebase') {
+    authHooked = true;
+    let first = true;
+    be.onAuthChange(() => { if (first) { first = false; return; } void refreshSettings(); });
+    window.setTimeout(() => { first = false; }, 0);
+  }
   try {
     const all = await be.fetchAllSettings();
-    Object.entries(all).forEach(([k, v]) => {
-      // 기기 보관 전용 키는 서버 값이 남아 있어도 받지 않는다 (v2.0 포크 제보) —
-      // 옛 백업 복원으로 서버에 올라간 알림 on/off가 매 접속마다 로컬 토글을 덮어썼다
-      if (LOCAL_ONLY.has(k)) return;
-      // null = 지워진 값(초기화가 그렇게 저장한다). 캐시에 담으면 화면이 기본값 대신
-      // null을 받아 깨지므로 아예 없는 것으로 둔다.
-      if (v == null) {
-        cache.delete(k);
-        try { localStorage.removeItem(k); } catch { /* 무시 */ }
-        return;
-      }
-      cache.set(k, v);
-      // 첫 페인트를 위해 로컬에도 사본을 둔다 (다음 방문 때 깜빡임 감소)
-      try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* 무시 */ }
-    });
+    Object.entries(all).forEach(([k, v]) => absorb(k, v));
   } catch {
     /* 규칙·네트워크 문제면 로컬 값으로 동작 */
   }

@@ -57,6 +57,8 @@ function commentHref(item: ListItem): string | null {
 /** 이 항목이 걸린 메뉴 주소 — 어디에도 안 걸리는 컬렉션(알림 등)은 null */
 export function areaHrefOf(coll: string, item: ListItem): string | null {
   if (coll === 'comments') return commentHref(item);
+  // 보호 설정 조각 — 조각마다 걸린 메뉴 주소를 적어 둔다 (lib/settingVault.ts)
+  if (coll === 'vault') return typeof item.href === 'string' ? item.href : null;
   // 메모 게시판(/memo2)의 메모는 스티커 메모와 같은 목록에 있지만 공개범위·잠금은 그 메뉴를 따른다
   if (coll === 'memos' && item.kind === 'note') return '/memo2';
   // 프롬프트(/prompt)도 같은 목록 — 공개범위·잠금은 그 메뉴를 따른다
@@ -78,6 +80,8 @@ export function areaHrefOf(coll: string, item: ListItem): string | null {
 export function lockKeyOfItem(coll: string, item: ListItem): string | null {
   // 글 비밀번호가 걸린 FIELD REPORT 본문 — 메뉴 잠금보다 이 글의 비밀번호가 먼저다 (lib/logLock.ts)
   if (coll === 'trpg_log_bodies' && item.pwLock === true && menuLockSupported()) return logLockKey(item.id);
+  // 요원 상세 프로필 조각 — 메뉴 잠금보다 그 요원의 비밀번호가 먼저다 (lib/settingVault.ts)
+  if (coll === 'vault' && typeof item.lockKey === 'string' && menuLockSupported()) return item.lockKey;
   const href = areaHrefOf(coll, item);
   const lock = href ? governingLock(href) : null;
   return lock ? lockKeyOf(lock) : null;

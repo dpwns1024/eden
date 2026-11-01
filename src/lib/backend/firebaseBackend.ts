@@ -11,6 +11,7 @@ import {
 } from './types';
 import { visFloorOf, lockKeyOfItem } from '../visFloor';
 import { lockHash, lockedKeys, INVITE_LOCK_KEY, sitePwOn, COMMON_LOCK_KEY } from '../menuLock';
+import { VAULT_COLL, VAULT_KEYS, isVaultMark, vaultMerge, vaultSplit, type VaultItem } from '../settingVault';
 
 type FirebaseCfg = Extract<BackendConfig, { kind: 'firebase' }>;
 
@@ -86,10 +87,9 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
      비밀번호가 바뀌면 기록은 남아 있어도 규칙이 거부하므로, 잠긴 글 질의를 한 번 던져 확인한다 */
   let unlockedCache: Promise<string[]> | undefined;
   authMod.onAuthStateChanged(auth, () => { ownerCache = undefined; unlockedCache = undefined; });
-  const loadUnlocked = async (): Promise<string[]> => {
+  const loadUnlocked = async (locked: Set<string> = lockedKeys()): Promise<string[]> => {
     const u = auth.currentUser;
     if (!u || !u.isAnonymous) return [];
-    const locked = lockedKeys();
     if (!locked.size) return [];
     try {
       const snap = await getDocsFromServer(query(collection(db, 'board_unlocks'), where('uid', '==', u.uid)));
@@ -123,24 +123,164 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
    * 정렬(orderBy)은 일부러 붙이지 않는다. where + orderBy 조합은 복합 색인을 만들어야 해서
    * 설치한 사람이 콘솔에서 색인을 추가해야 하기 때문 — 대신 받은 뒤 sort로 정렬한다.
    */
-  const readSets = async (): Promise<Cons[][]> => {
+  /* locked — 잠긴 곳 목록을 직접 줄 때 (설정을 처음 받는 중이라 캐시가 아직 비어 있을 때 — 보호 설정 읽기) */
+  const readSets = async (locked?: Set<string>): Promise<Cons[][]> => {
     const u = auth.currentUser;
     if (!u) return [[where('visibility', '==', 'public')]];
     // 익명 = 메뉴 비밀번호를 통과한 방문자 — 전체공개 + 통과한 메뉴의 잠긴 글만 (메뉴마다 질의 하나)
     if (u.isAnonymous) {
-      const open = await unlockedNow();
+      const open = locked ? await loadUnlocked(locked) : await unlockedNow();
       return [[where('visibility', '==', 'public')],
         ...open.map(b => [where('visibility', '==', 'locked'), where('lockBoard', '==', b)])];
     }
     if (await isAdminNow()) return [[]];                    // 관리자는 전부
     // 회원: 전체공개+회원공개(+잠긴 메뉴), 그리고 내가 쓴 것(비공개 포함)은 따로 받아 합친다.
     // 'locked'는 잠긴 메뉴가 있을 때만 넣는다 — 새 규칙을 넣기 전의 서버에서도 질의가 거부되지 않게
-    const vis = lockedKeys().size ? ['public', 'member', 'locked'] : ['public', 'member'];
+    const vis = (locked ?? lockedKeys()).size ? ['public', 'member', 'locked'] : ['public', 'member'];
     return [[where('visibility', 'in', vis)], [where('authorId', '==', u.uid)]];
   };
 
   const listQuery = (coll: string, cs: Cons[]) =>
     (cs.length ? query(collection(db, coll), ...cs) : query(collection(db, coll)));
+
+  const listWith = async <T extends ListItem>(coll: string, sets: Cons[][]): Promise<T[]> => {
+    // 반드시 getDocsFromServer — 일반 getDocs는 로컬(오프라인) 캐시가 있으면 그걸로 조용히 성공해
+    // 버린다. 실시간 구독이 한 번의 쓰기에 두 번(로컬 반영·서버 확정) 반응해 재조회가 겹칠 때
+    // 낡은 캐시 결과가 방금 반영된 변경을 도로 덮어써 "새로고침해야 보임"이 되던 원인 중 하나
+    // (v2.0 사용자 발견 — 목록 숨김을 바꿔도 반영이 안 되는 것처럼 보임)
+    // 질의 하나가 거부돼도(통과 기록이 낡은 게시판 등) 나머지는 보여 준다 — 전부 실패할 때만 오류
+    const settled = await Promise.allSettled(sets.map(cs => getDocsFromServer(listQuery(coll, cs))));
+    const snaps = settled.flatMap(r => (r.status === 'fulfilled' ? [r.value] : []));
+    if (!snaps.length) throw (settled[0] as PromiseRejectedResult).reason;
+    // 두 질의(공개분 · 내 글)를 합치므로 문서 id로 중복을 없앤 뒤 sort로 정렬한다
+    const seen = new Map<string, { sort: number; item: T }>();
+    snaps.forEach(s => s.docs.forEach(d => {
+      if (seen.has(d.id)) return;
+      const raw = d.data() as { data?: Record<string, unknown>; sort?: number };
+      seen.set(d.id, { sort: raw.sort ?? 0, item: { ...(raw.data ?? {}), id: d.id } as T });
+    }));
+    return [...seen.values()].sort((a, b) => a.sort - b.sort).map(v => v.item);
+  };
+
+  const syncWith = async <T extends ListItem>(coll: string, prev: T[], next: T[], uid: string | null) => {
+    const { inserts, updates, moves, deletes } = diffList(prev, next);
+    const ops = [...inserts, ...updates];
+    // Firestore 배치는 500개 제한에 **요청 크기 10MiB 제한**도 있다 (v2.0 포크 제보 — 큰 로그
+    // 본문 저장 실패). 개수(400)만 보고 끊으면 700KB짜리 본문 문서 십수 개에 10MiB를 넘어
+    // 배치가 통째로 거부된다 — 대략 크기를 재서 8MB쯤에서 미리 끊는다.
+    const parts: { item: T; sort: number }[][] = [];
+    let cur: { item: T; sort: number }[] = [];
+    let bytes = 0;
+    for (const op of ops) {
+      const size = JSON.stringify(op.item).length + 200;
+      if (cur.length && (cur.length >= 400 || bytes + size > 8_000_000)) { parts.push(cur); cur = []; bytes = 0; }
+      cur.push(op); bytes += size;
+    }
+    if (cur.length) parts.push(cur);
+    for (const part of parts) {
+      const batch = writeBatch(db);
+      part.forEach(({ item, sort }) => {
+        const { authorId, visibility, editorIds } = metaOf(item, uid, visFloorOf(coll, item));
+        batch.set(doc(db, coll, item.id), {
+          data: item, authorId, visibility, editorIds, sort, updatedAt: Date.now(),
+          lockBoard: visibility === 'locked' ? lockKeyOfItem(coll, item) : null,
+        });
+      });
+      await batch.commit();
+    }
+    const chunk = <X,>(arr: X[], n: number) =>
+      Array.from({ length: Math.ceil(arr.length / n) }, (_, i) => arr.slice(i * n, i * n + n));
+    // 자리만 바뀐 항목 — sort만 고친다 (본문까지 다시 보내지 않게, 위 diffList 주석 참조)
+    for (const part of chunk(moves, 400)) {
+      const batch = writeBatch(db);
+      part.forEach(({ id, sort }) => batch.update(doc(db, coll, id), { sort, updatedAt: Date.now() }));
+      await batch.commit();
+    }
+    for (const part of chunk(deletes, 400)) {
+      const batch = writeBatch(db);
+      part.forEach(id => batch.delete(doc(db, coll, id)));
+      await batch.commit();
+    }
+  };
+
+  /* ── 보호 설정 (lib/settingVault.ts) ──────────────────────────────
+     ARCH 탭 문서 · HTML 페이지 · 인트로 · 스케줄러 일정은 설정(누구나 읽음) 대신 vault 조각으로 저장해
+     서버가 메뉴 공개범위 · 비밀번호대로 가린다. 설정 자리에는 표시(__vault)와 공개 틀만 남는다. */
+  let vaultRows: VaultItem[] | null = null;    // 관리자가 마지막으로 받은(또는 쓴) 조각 — 바뀐 것만 쓰려고
+  let vaultUsed = false;                       // 이 홈이 보호 설정을 쓰기 시작했는가 (설정에 표시가 하나라도 있음)
+  let vaultChain: Promise<unknown> = Promise.resolve();
+  /* 이 브라우저가 받아 본 조각 — 화면 값에 없는 조각을 「지웠다」고 볼 수 있는 건 받아 본 것뿐이다.
+     로그인 상태가 늦게 잡혀 공개분만 받은 채 저장하면, 못 받은 조각(회원 전용 페이지 등)이 지워질 뻔했다 */
+  const seenVault = new Set<string>();
+  const settingDoc = (key: string, value: unknown) => setDoc(doc(db, 'settings', key), { value, updatedAt: Date.now() });
+
+  const mergeVault = async (out: Record<string, unknown>) => {
+    const marked = [...VAULT_KEYS].filter(k => isVaultMark(out[k]));
+    if (marked.length) vaultUsed = true;
+    const admin = await isAdminNow().catch(() => false);
+    let rows: VaultItem[] = [];
+    let listed = false;
+    if (marked.length || admin) {
+      try {
+        // 설정을 처음 받는 중이라 화면 캐시는 아직 비어 있다 — 잠긴 곳 목록은 방금 받은 설정에서 읽는다
+        const get = <T,>(k: string, fb: T) => (out[k] ?? fb) as T;
+        rows = await listWith<VaultItem>(VAULT_COLL, await readSets(lockedKeys(get)));
+        if (admin) vaultRows = rows;
+        listed = true;
+      } catch { /* 새 보안 규칙을 넣기 전 — 조각 없이 */ }
+    }
+    rows.forEach(r => seenVault.add(r.id));
+    for (const k of marked) {
+      const m = out[k] as { base: unknown };
+      out[k] = vaultMerge(k, m.base, rows.filter(r => r.key === k));
+    }
+    // 관리자: 아직 설정에 통째로 있는 것을 옮겨 담는다 (새 보안 규칙을 넣은 뒤 첫 접속 · 옛 백업 복원 뒤)
+    // (vault를 못 읽으면 = 규칙이 옛것 — 옮겨 담기도 거부되므로 시도하지 않는다)
+    if (admin && listed) {
+      for (const k of VAULT_KEYS) {
+        if (!marked.includes(k) && out[k] != null) void queueVault(k, out[k], true).catch(() => { /* 다음 접속에 다시 */ });
+      }
+    }
+  };
+
+  const saveVault = async (key: string, value: unknown, migrating: boolean) => {
+    const uid = auth.currentUser?.uid ?? null;
+    if (!vaultRows) {
+      try { vaultRows = await listWith<VaultItem>(VAULT_COLL, [[]]); } catch { vaultRows = null; }
+    }
+    const prev = (vaultRows ?? []).filter(r => r.key === key);
+    if (value == null) {   // 초기화 — 조각도 지운다
+      if (prev.length) { await syncWith(VAULT_COLL, prev, [], uid); vaultRows = (vaultRows ?? []).filter(r => r.key !== key); }
+      await settingDoc(key, null);
+      return;
+    }
+    const split = vaultSplit(key, value);
+    const base = split.base;
+    // 받아 본 적 없는 조각은 그대로 둔다 (위 seenVault)
+    const ids = new Set(split.items.map(i => i.id));
+    const items = [...split.items, ...prev.filter(r => !ids.has(r.id) && !seenVault.has(r.id))];
+    try {
+      await syncWith(VAULT_COLL, prev, items, uid);
+    } catch (e) {
+      if (migrating) return;
+      // 새 보안 규칙(vault)을 아직 안 넣은 홈 — 예전처럼 설정에 통째로 저장한다.
+      // 이미 옮겨 둔 적이 있으면 공개 자리로 되돌리지 않고 실패를 알린다(화면에 「저장 실패」)
+      if (!vaultUsed) { await settingDoc(key, value); return; }
+      throw e;
+    }
+    // 복사해 둔다 — 화면이 같은 객체를 고쳐도 다음 저장의 비교 기준이 함께 바뀌지 않게
+    vaultRows = [...(vaultRows ?? []).filter(r => r.key !== key), ...(JSON.parse(JSON.stringify(items)) as VaultItem[])];
+    items.forEach(i => seenVault.add(i.id));
+    vaultUsed = true;
+    await settingDoc(key, { __vault: 1, base });
+  };
+  /** 같은 키를 겹쳐 쓰면 diff 기준이 꼬이므로 한 줄로 세워 차례로 쓴다 */
+  const queueVault = (key: string, value: unknown, migrating = false) => {
+    const run = () => saveVault(key, value, migrating);
+    const p = vaultChain.then(run, run);
+    vaultChain = p.catch(() => undefined);
+    return p;
+  };
 
   const toUser = async (u: { uid: string; email?: string | null; displayName?: string | null } | null): Promise<BackendUser | null> => {
     if (!u) return null;
@@ -323,64 +463,11 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
     },
 
     async fetchList<T extends ListItem>(coll: string): Promise<T[]> {
-      const sets = await readSets();
-      // 반드시 getDocsFromServer — 일반 getDocs는 로컬(오프라인) 캐시가 있으면 그걸로 조용히 성공해
-      // 버린다. 실시간 구독이 한 번의 쓰기에 두 번(로컬 반영·서버 확정) 반응해 재조회가 겹칠 때
-      // 낡은 캐시 결과가 방금 반영된 변경을 도로 덮어써 "새로고침해야 보임"이 되던 원인 중 하나
-      // (v2.0 사용자 발견 — 목록 숨김을 바꿔도 반영이 안 되는 것처럼 보임)
-      // 질의 하나가 거부돼도(통과 기록이 낡은 게시판 등) 나머지는 보여 준다 — 전부 실패할 때만 오류
-      const settled = await Promise.allSettled(sets.map(cs => getDocsFromServer(listQuery(coll, cs))));
-      const snaps = settled.flatMap(r => (r.status === 'fulfilled' ? [r.value] : []));
-      if (!snaps.length) throw (settled[0] as PromiseRejectedResult).reason;
-      // 두 질의(공개분 · 내 글)를 합치므로 문서 id로 중복을 없앤 뒤 sort로 정렬한다
-      const seen = new Map<string, { sort: number; item: T }>();
-      snaps.forEach(s => s.docs.forEach(d => {
-        if (seen.has(d.id)) return;
-        const raw = d.data() as { data?: Record<string, unknown>; sort?: number };
-        seen.set(d.id, { sort: raw.sort ?? 0, item: { ...(raw.data ?? {}), id: d.id } as T });
-      }));
-      return [...seen.values()].sort((a, b) => a.sort - b.sort).map(v => v.item);
+      return listWith<T>(coll, await readSets());
     },
 
     async syncList<T extends ListItem>(coll: string, prev: T[], next: T[], uid: string | null) {
-      const { inserts, updates, moves, deletes } = diffList(prev, next);
-      const ops = [...inserts, ...updates];
-      // Firestore 배치는 500개 제한에 **요청 크기 10MiB 제한**도 있다 (v2.0 포크 제보 — 큰 로그
-      // 본문 저장 실패). 개수(400)만 보고 끊으면 700KB짜리 본문 문서 십수 개에 10MiB를 넘어
-      // 배치가 통째로 거부된다 — 대략 크기를 재서 8MB쯤에서 미리 끊는다.
-      const parts: { item: T; sort: number }[][] = [];
-      let cur: { item: T; sort: number }[] = [];
-      let bytes = 0;
-      for (const op of ops) {
-        const size = JSON.stringify(op.item).length + 200;
-        if (cur.length && (cur.length >= 400 || bytes + size > 8_000_000)) { parts.push(cur); cur = []; bytes = 0; }
-        cur.push(op); bytes += size;
-      }
-      if (cur.length) parts.push(cur);
-      for (const part of parts) {
-        const batch = writeBatch(db);
-        part.forEach(({ item, sort }) => {
-          const { authorId, visibility, editorIds } = metaOf(item, uid, visFloorOf(coll, item));
-          batch.set(doc(db, coll, item.id), {
-            data: item, authorId, visibility, editorIds, sort, updatedAt: Date.now(),
-            lockBoard: visibility === 'locked' ? lockKeyOfItem(coll, item) : null,
-          });
-        });
-        await batch.commit();
-      }
-      const chunk = <X,>(arr: X[], n: number) =>
-        Array.from({ length: Math.ceil(arr.length / n) }, (_, i) => arr.slice(i * n, i * n + n));
-      // 자리만 바뀐 항목 — sort만 고친다 (본문까지 다시 보내지 않게, 위 diffList 주석 참조)
-      for (const part of chunk(moves, 400)) {
-        const batch = writeBatch(db);
-        part.forEach(({ id, sort }) => batch.update(doc(db, coll, id), { sort, updatedAt: Date.now() }));
-        await batch.commit();
-      }
-      for (const part of chunk(deletes, 400)) {
-        const batch = writeBatch(db);
-        part.forEach(id => batch.delete(doc(db, coll, id)));
-        await batch.commit();
-      }
+      return syncWith(coll, prev, next, uid);
     },
 
     /* 공개범위·편집 권한 목록만 다시 계산해 덮어쓰기 (v2.0) — data·sort는 손대지 않는다.
@@ -433,6 +520,8 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
     },
 
     async saveSetting(key, value) {
+      // 글 같은 내용이 든 설정은 조각으로 나눠 보호 설정(vault)에 (lib/settingVault.ts)
+      if (VAULT_KEYS.has(key)) { await queueVault(key, value); return; }
       await setDoc(doc(db, 'settings', key), { value, updatedAt: Date.now() });
     },
 
@@ -440,6 +529,7 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
       const snap = await getDocs(collection(db, 'settings'));
       const out: Record<string, unknown> = {};
       snap.docs.forEach(d => { out[d.id] = (d.data() as { value: unknown }).value; });
+      await mergeVault(out);
       return out;
     },
 

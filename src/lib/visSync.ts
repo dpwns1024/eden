@@ -12,13 +12,22 @@
  */
 import { CONTENT_COLLECTIONS, metaOf, type Backend } from './backend/types';
 import { visFloorOf, lockKeyOfItem } from './visFloor';
+import { VAULT_COLL } from './settingVault';
 
 /** 고친 행 수. 이 기능이 없는 저장소면 null */
 export async function syncStoredVis(be: Backend, uid: string | null): Promise<number | null> {
   if (!be.fetchVisMeta) return null;
   let n = 0;
-  for (const coll of CONTENT_COLLECTIONS) {
-    const [rows, meta] = await Promise.all([be.fetchList(coll), be.fetchVisMeta(coll)]);
+  // 보호 설정 조각(vault — Firebase만)도 메뉴 설정을 따른다 (lib/settingVault.ts). 새 보안 규칙 전이면 건너뛴다
+  const colls = be.kind === 'firebase' ? [...CONTENT_COLLECTIONS, VAULT_COLL] : CONTENT_COLLECTIONS;
+  for (const coll of colls) {
+    let rows, meta;
+    try {
+      [rows, meta] = await Promise.all([be.fetchList(coll), be.fetchVisMeta(coll)]);
+    } catch (e) {
+      if (coll === VAULT_COLL) continue;
+      throw e;
+    }
     const stale = rows.filter(r => {
       const m = meta[r.id];
       if (!m) return false;
