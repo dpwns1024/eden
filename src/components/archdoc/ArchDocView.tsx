@@ -361,7 +361,7 @@ function RosterView({ groups }: { groups: ArchAgentGroup[] }) {
             </section>
           ))}
         </div>
-        <div className={`ar-rv-view${a.html.trim() ? ' pf' : ''}`} key={a.id} style={{ '--ec': ec, '--gc': g.color } as React.CSSProperties}>
+        <div className="ar-rv-view" key={a.id} style={{ '--ec': ec, '--gc': g.color } as React.CSSProperties}>
           {/* 뒤 큰 글씨는 영문 이름만 (v2.0 사용자 요청) — 이름 아래 작은 글씨(en)엔 한글 · 코드가 섞여 있었다 */}
           {a.enName?.trim() && <span className="ar-rv-ghost" aria-hidden="true">{a.enName.trim()}</span>}
           <div className="ar-rv-ring">
@@ -377,7 +377,9 @@ function RosterView({ groups }: { groups: ArchAgentGroup[] }) {
               {(a.en?.trim() || g.cls) && <div><dt>CLASS</dt><dd style={{ color: g.color }}>{a.en?.trim() || g.cls}</dd></div>}
               {ELEM_KO[a.element] && <div><dt>ELEMENT</dt><dd className="el">{ELEM_EN[a.element]} · {a.element === 'none' ? '무속성' : ELEM_KO[a.element]}</dd></div>}
             </dl>
-            {a.html.trim() && <button type="button" className="ar-rv-open" onClick={() => setOpen(true)}>상세 프로필 열기 <span>→</span></button>}
+            {a.html.trim()
+              ? <button type="button" className="ar-rv-open" onClick={() => setOpen(true)}>상세 프로필 열기 <span>→</span></button>
+              : <span className="ar-rv-open ghost" aria-hidden="true">상세 프로필 열기 <span>→</span></span>}
           </div>
         </div>
       </div>
