@@ -115,6 +115,28 @@ async function putBlobRaw(blob: Blob, cleaned = false): Promise<string> {
 
 /** promoteToStorage의 결과 — 안 됐으면 **왜** 안 됐는지까지 알려 준다.
  *  조용히 실패하면 사용자는 「올렸는데 왜 안 보이지」에서 막힌다 (v2.0 사용자 지적). */
+/**
+ * 본문 HTML 안에 글자로 박힌 사진(`data:image/...;base64,...`)을 파일로 올리고 주소로 바꾼다.
+ *
+ * 다른 사이트에서 복사한 HTML에는 사진이 통째로 글자로 들어 있는 경우가 많다 — 사진 한 장만으로
+ * 수 MB가 되어 Firestore 문서 한도(1MB)를 넘고, 「글을 저장하지 못했습니다」로 끝났다.
+ * 서버 모드에서만 바꾼다 (로컬 모드는 브라우저 저장소라 한도 걱정이 없고, 로컬 id는 img 주소로 못 쓴다).
+ */
+export async function liftInlineImages(html: string): Promise<string> {
+  if (!html || !isServerMode() || !html.includes('data:image/')) return html;
+  const re = /data:image\/[a-z0-9.+-]+;base64,[A-Za-z0-9+/=\s]+/gi;
+  const found = [...new Set(html.match(re) ?? [])];
+  // 아이콘 같은 아주 작은 그림은 그대로 둔다 (파일을 잔뜩 만들 이유가 없다)
+  const big = found.filter(u => u.length > 20_000);
+  if (!big.length) return html;
+  const map = new Map<string, string>();
+  for (const u of big) {
+    const blob = await (await fetch(u.replace(/\s+/g, ''))).blob();
+    map.set(u, await putBlob(blob));
+  }
+  return html.replace(re, m => map.get(m) ?? m);
+}
+
 export type PromoteResult =
   | { kind: 'already' }                 // 이미 저장소 주소 — 할 일 없음
   | { kind: 'local-mode' }              // 서버 연결이 없다 — 올릴 곳 자체가 없음

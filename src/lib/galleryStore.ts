@@ -212,7 +212,9 @@ export async function decodeLogText(f: File): Promise<string> {
 export async function saveLogBody(text: string): Promise<{ body: string; bodyId?: string }> {
   if (!text) return { body: '' };
   const { isServerMode } = await import('./backend');
-  const { putBlob } = await import('./blobStore');
+  const { putBlob, liftInlineImages } = await import('./blobStore');
+  // 본문에 글자로 박힌 사진은 먼저 파일로 빼낸다 — 사진 때문에 본문이 수 MB가 되는 일이 많다
+  text = await liftInlineImages(text);
   const bytes = new TextEncoder().encode(text).length;
   if (isServerMode() && bytes < 700_000) return { body: text };
   return { body: '', bodyId: await putBlob(new Blob([text], { type: 'text/plain' })) };
