@@ -150,7 +150,8 @@ const AG_FRAME_BASE = `<base target="_blank">
 <link rel="stylesheet" href="/fonts/pretendard/pretendard.css?v=2"><link rel="stylesheet" href="/fonts/jetbrains/jetbrains.css?v=2">
 <style>html{overflow:hidden;scrollbar-width:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}html::-webkit-scrollbar{display:none}
 body{margin:0;background:transparent;color:#c3ccd6;font-family:'Pretendard Variable',Pretendard,sans-serif;overflow-wrap:break-word}
-img,video{max-width:100%;height:auto}</style>`;
+img,video{max-width:100%;height:auto}
+html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}img{-webkit-user-drag:none}</style>`;
 /** 끼인 딱지 풀기 — 화면을 굳혀 내보낸 HTML은 절대 위치 요소에 left · right를 둘 다 px로 박아 둬서, 원래는 글자 길이만큼이던
  *  딱지(S-CLASS ENTITY 등)가 그 폭에 갇힌다. 기기마다 글꼴 폭이 조금만 달라도 두 줄로 꺾였다 (v2.0 사용자 제보 — 모바일 딱지).
  *  left를 풀어 오른쪽 기준으로 글자 길이만큼 늘게 하되, 풀었더니 오히려 좁아지면(일부러 늘여 둔 요소) 되돌린다 */
@@ -220,13 +221,42 @@ function ProfileHtml({ html }: { html: string }) {
       f.style.height = `${h}px`;
       f.style.transform = s < 1 ? `scale(${s})` : '';
       holder.style.height = `${Math.ceil(h * s)}px`;
+      // 마지막 검사 — 실제로 그려진 iframe이 칸보다 넓으면(브라우저 · 확장 프로그램 · 반올림 등 무엇 때문이든) 그만큼 더 줄인다
+      const fr = f.getBoundingClientRect().width, hr = holder.getBoundingClientRect().width;
+      if (fr > hr + 0.5) {
+        const s2 = s * (hr / fr);
+        f.style.transform = `scale(${s2})`;
+        holder.style.height = `${Math.ceil(h * s2)}px`;
+      }
       lastAvail = holder.clientWidth;
     };
     const later = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(fit); };
+    const timers: number[] = [];
+    let mo: MutationObserver | null = null;
     const onLoad = () => {
       fit();
       const d = f.contentDocument;
       if (!d) return;
+      // 늦게 바뀌는 화면(글꼴 · 다른 부품)에도 맞게 조금 뒤에 몇 번 더 맞춘다 — 크기가 같으면 아무것도 안 바뀐다
+      timers.push(window.setTimeout(later, 300), window.setTimeout(later, 1200), window.setTimeout(later, 3000));
+      // 우클릭 · 드래그 막기 (v2.0 사용자 요청) — iframe 안은 사이트의 이미지 보호(ImgProtect)가 닿지 않아
+      // 이미지 저장 · 「프레임 소스 보기」로 HTML이 그대로 새어 나갔다. 프로필 HTML에는 쓸 일이 없으니 누구에게나 막는다
+      const block = (e: Event) => e.preventDefault();
+      d.addEventListener('contextmenu', block);
+      d.addEventListener('dragstart', block);
+      d.addEventListener('selectstart', block);
+      // 커스텀 커서 — 사이트 커서 스타일(CursorLayer의 #ohome-cursor-style)을 iframe 안에도 그대로 복사 (애니메이션 커서도 따라 바뀜)
+      const syncCursor = () => {
+        const src = document.getElementById('ohome-cursor-style');
+        let dst = d.getElementById('ohome-cursor-style');
+        if (!src) { dst?.remove(); return; }
+        if (!dst) { dst = d.createElement('style'); dst.id = 'ohome-cursor-style'; d.head.appendChild(dst); }
+        if (dst.textContent !== src.textContent) dst.textContent = src.textContent;
+      };
+      syncCursor();
+      mo?.disconnect();
+      mo = new MutationObserver(syncCursor);
+      mo.observe(document.head, { childList: true, subtree: true, characterData: true });
       d.addEventListener('load', later, true);            // 안의 이미지가 늦게 들어와 크기가 바뀌는 경우
       d.fonts?.ready.then(later).catch(() => {});
       ro?.disconnect();
@@ -238,6 +268,8 @@ function ProfileHtml({ html }: { html: string }) {
     window.addEventListener('resize', later);
     return () => {
       cancelAnimationFrame(raf);
+      timers.forEach(t => clearTimeout(t));
+      mo?.disconnect();
       ro?.disconnect();
       hro.disconnect();
       f.removeEventListener('load', onLoad);
