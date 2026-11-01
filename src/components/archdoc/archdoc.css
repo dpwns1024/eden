@@ -478,7 +478,6 @@ body:has(.arx)::before{display:none !important}
 /* 썸네일 칸은 안에서 스크롤 (스크롤바는 숨김 · v2.0 사용자 요청) — contain:size로 칸 자체 높이를 0으로 보게 해서
    줄 높이는 오른쪽 열람 칸이 정하고, 썸네일 칸은 그 높이에 맞춰 늘어난 뒤 넘치는 만큼 스크롤된다 */
 @media (min-width:821px){ .arx .ar-rv-idx{contain:size} }
-.arx .ar-rv-gh{position:sticky;top:0;z-index:2;background:rgba(10,14,19,.96)}
 .arx .ar-rv-g + .ar-rv-g{border-top:1px solid var(--ln)}
 .arx .ar-rv-gh{display:flex;align-items:center;gap:10px;height:38px;padding:0 16px;border-bottom:1px solid var(--ln);font:400 9px/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--mu);white-space:nowrap}
 .arx .ar-rv-gh b{font:400 11px/1 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.3em;color:#fff;overflow:hidden;text-overflow:ellipsis}
@@ -512,6 +511,7 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-rv-info .k{display:block;font:400 8.5px/1.4 'JetBrains Mono',monospace;letter-spacing:.3em;color:var(--mu)}
 .arx .ar-rv-info .nm{display:block;margin-top:12px;font:500 42px/1.1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.08em;word-break:keep-all;
   background:linear-gradient(180deg,#fff 20%,color-mix(in srgb,var(--ec) 70%,#fff) 140%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px color-mix(in srgb,var(--ec) 35%,transparent))}
+.arx .ar-rv-info .nm.lat{font-family:'Jost',sans-serif;font-weight:400;font-size:36px;letter-spacing:.14em;overflow-wrap:anywhere}
 .arx .ar-rv-fl{display:grid;grid-template-columns:1fr 1fr;margin:20px 0 0;border-top:1px solid var(--ln)}
 .arx .ar-rv-fl div{padding:10px 0;border-bottom:1px solid var(--ln)}
 .arx .ar-rv-fl dt{font:400 7.5px/1 'JetBrains Mono',monospace;letter-spacing:.3em;color:var(--dim)}
@@ -539,6 +539,7 @@ body:has(.arx)::before{display:none !important}
   .arx .ar-rv-view.pf{min-height:0;padding-bottom:56px}
   .arx .ar-rv-ring{max-width:200px}
   .arx .ar-rv-info .nm{font-size:32px}
+  .arx .ar-rv-info .nm.lat{font-size:28px}
   .arx .ar-rv-ghost{font-size:84px}
   .arx .ar-rv-th{grid-template-columns:repeat(auto-fill,minmax(58px,1fr));padding:12px}
   .arx .ar-rv-gh{padding:0 12px}
