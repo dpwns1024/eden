@@ -332,8 +332,7 @@ body:has(.arx)::before{display:none !important}
 .arx .am-legend button.pl{border-style:dashed}
 .arx .am-legend button:hover{color:#fff;border-color:rgba(var(--acr),.45)}
 .arx .am-legend button.on{color:#fff;border-color:rgba(var(--acr),.6);box-shadow:0 0 16px -4px rgba(var(--acr),.6)}
-.arx .am-legend button.on em,.arx .am-go em{color:var(--ac)}
-.arx .am-legend.am-go{grid-template-columns:1fr 1fr}
+.arx .am-legend button.on em{color:var(--ac)}
 /* 설명 카드 */
 .arx .am-card{overflow:hidden;animation:arIn .35s ease both}
 .arx .am-card > :not(.bg){position:relative;z-index:1}
@@ -344,12 +343,6 @@ body:has(.arx)::before{display:none !important}
 .arx .am-quote cite{display:block;margin-top:8px;font:normal 400 10.5px/1.4 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.08em;color:var(--mu)}
 .arx .am-card p.am-note{margin-top:16px;padding-top:12px;border-top:1px dashed var(--ln);font-size:12px;line-height:1.7;color:var(--mu)}
 .arx .am-card .bg{position:absolute;right:-6px;bottom:-24px;font:600 110px/1 'Saira Semi Condensed',sans-serif;color:transparent;-webkit-text-stroke:1px rgba(190,208,228,.07);pointer-events:none}
-.arx .am-gobox{display:grid;gap:8px;margin-top:20px}
-.arx .am-gobox button{display:grid;gap:6px;padding:14px 16px;border:1px solid var(--ln2);background:rgba(8,11,15,.5);cursor:var(--cur-pointer,pointer);text-align:left;color:var(--tx);transition:border-color .2s,box-shadow .2s}
-.arx .am-gobox button:hover{border-color:rgba(var(--acr),.6);box-shadow:0 0 16px -4px rgba(var(--acr),.6)}
-.arx .am-gobox small{font:400 8px/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--dim)}
-.arx .am-gobox b{font:400 18px/1 'Jost',sans-serif;letter-spacing:.3em;color:#fff}
-.arx .am-gobox span{font:400 12px/1.2 'Pretendard Variable',Pretendard,sans-serif;color:var(--mu)}
 @media (max-width:900px){
   .arx .am-dock{grid-template-columns:1fr}
 }
@@ -460,6 +453,11 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-el.tint{border-left-color:var(--ec);background:linear-gradient(90deg,color-mix(in srgb,var(--ec) 12%,transparent),transparent 70%)}
 .arx .ar-el.tint .ar-el-h .mk{color:color-mix(in srgb,var(--ec) 72%,#fff);filter:drop-shadow(0 0 4px var(--ec))}
 .arx .ar-el.tint .ar-el-h .mk svg [stroke-width="2.2"]{stroke:var(--ec)}
+/* 분류 페이지 꺾쇠 (v2.0 사용자 요청 — 「분류 페이지에도 전부 꺾쇠」). 넘침을 자르는 상자(.ar-sw 등)는 꺾쇠가 잘려 안 보였다 —
+   globals.css 꺾쇠 공통의 B(안쪽) 목록에 넣었다. 작은 칸은 꺾쇠를 짧게 */
+.arx .ar-els button,.arx .ar-el,.arx .ar-rank-bar button,.arx .ar-grade > span{position:relative}
+.arx .ar-els button,.arx .ar-el{--bks:7px}
+.arx .ar-rank-bar button,.arx .ar-grade > span{--bks:5px}
 /* 직급 분류 — PC: 왼쪽 세로 버튼 줄(지금 가로 줄 높이만큼 좁게) · 오른쪽 설명, 사이를 연결선으로 (v2.0 사용자 요청). 폰은 예전처럼 위아래 */
 .arx .ar-ranks > .ar-link{display:none}
 @media (min-width:821px){
@@ -472,50 +470,72 @@ body:has(.arx)::before{display:none !important}
   .arx .ar-ranks > .ar-link{position:absolute;z-index:3;top:50%;left:78px;width:18px;height:9px;margin-top:-4.5px;display:flex;align-items:center;pointer-events:none}
 }
 
-/* ── 요원 명부 (AGENTS 탭 · v2.0 사용자 요청) — 무리별 증명사진 카드 · 원소 딱지 · 상세 프로필 창 ── */
-.arx .ar-roster{display:grid;gap:40px;padding-top:10px}
-/* 밑줄 — 단색 2px 테두리(두껍게 보이던 쪽에 맞춤) + 가로 마스크로 흐리기. 그라디언트 배경 1px은 소수점 자리에 걸리면(카드 높이가 소수라 팀마다 다름)
-   위아래로 번져 팀마다 굵기가 달라 보였다 (v2.0 사용자 제보). 테두리는 어느 브라우저든 기기 픽셀에 맞춰 그린다 */
-.arx .ar-ag-gh{position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding-bottom:12px;margin-bottom:18px}
-.arx .ar-ag-gh::after{content:'';position:absolute;left:0;right:0;bottom:0;height:0;border-top:2px solid var(--gc);-webkit-mask-image:linear-gradient(90deg,#000,rgba(0,0,0,.3) 55%,transparent);mask-image:linear-gradient(90deg,#000,rgba(0,0,0,.3) 55%,transparent);pointer-events:none}
-.arx .ar-ag-gh b{font:400 16px/1 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.32em;color:#fff}
-.arx .ar-ag-gh em{font:normal 400 9px/1 'JetBrains Mono',monospace;letter-spacing:.26em;color:var(--gc);text-shadow:0 0 10px color-mix(in srgb,var(--gc) 60%,transparent)}
-.arx .ar-ag-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
-.arx .ar-ag{box-sizing:border-box;position:relative;display:block;width:100%;aspect-ratio:3/4;margin:0;padding:0;outline:0;-webkit-tap-highlight-color:transparent;overflow:hidden;cursor:var(--cur-pointer,pointer);border:1px solid var(--ln2);background:#0a0d12;
-  transition:border-color .25s,box-shadow .25s,transform .25s}
-.arx .ar-ag::before,.arx .ar-ag::after{content:'';position:absolute;z-index:3;width:9px;height:9px;border:solid rgba(220,230,240,.55);pointer-events:none}
-.arx .ar-ag::before{left:-1px;top:-1px;border-width:1px 0 0 1px}
-.arx .ar-ag::after{right:-1px;bottom:-1px;border-width:0 1px 1px 0}
-/* 전역 .ph(회색 바탕 · grid 가운데 정렬)가 겹쳐 아이폰 사파리에서 사진이 원본 비율에 따라 아래로 밀리고 위가 회색으로 비었다 (v2.0 사용자 제보) —
-   상자는 일반 블록, 사진은 상자를 꽉 채우게 못박는다 */
-.arx .ar-ag .ph{position:absolute;inset:0;display:block;overflow:hidden;background:none}
-.arx .ar-ag .ph img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
-.arx .ar-ag .ph::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 48%,rgba(5,7,10,.55) 70%,rgba(5,7,10,.95))}
-.arx .ar-ag-noimg{position:absolute;inset:0;display:grid;place-items:center;font:400 8.5px/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--dim)}
-.arx .ar-ag .tx{position:absolute;left:12px;right:12px;bottom:12px;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:6px}
-.arx .ar-ag .tx b{font:500 15px/1.2 'Pretendard Variable',Pretendard,'Jost',sans-serif;letter-spacing:.04em;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.8)}
-.arx .ar-ag .tx .nm{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 6px}
-.arx .ar-ag .tx small{font:400 11px/1.2 'Pretendard Variable',Pretendard,'Jost',sans-serif;letter-spacing:.04em;color:#aab5c1;text-shadow:0 1px 6px rgba(0,0,0,.8)}
-.arx .ar-ag.still{cursor:var(--cur-default,default)}
-.arx .ar-ag:not(.still):hover,.arx .ar-ag:focus-visible{border-color:color-mix(in srgb,var(--ec,#b8d8ff) 70%,transparent);box-shadow:0 0 22px -8px var(--ec,#b8d8ff)}
-.arx .ar-ag:not(.still):hover .ph img{transform:scale(1.04)}
-.ar-ag-el{display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 9px 0 6px;font:500 10.5px/1 'Pretendard Variable',Pretendard,sans-serif;color:#fff;
-  background:color-mix(in srgb,var(--ec) 78%,#05070a);border:1px solid color-mix(in srgb,var(--ec) 70%,#fff 30%);box-shadow:0 0 12px -3px var(--ec)}
+/* ── 요원 명부 (AGENTS 탭 · v2.0 사용자 요청) — 열람기(시안 C): 왼쪽 무리별 썸네일 · 오른쪽 원형 링 초상과 정보 ── */
+.arx .ar-agents{padding-top:10px}  /* .ar-roster는 홈페이지 HTML(03 인원 열람)의 3단 격자와 이름이 겹쳐 좁아졌다 */
+.arx .ar-rv{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);--bks:12px;--bkc:rgba(184,216,255,.8)}
+.arx .ar-rv-idx{min-width:0;border-right:1px solid var(--ln)}
+.arx .ar-rv-g + .ar-rv-g{border-top:1px solid var(--ln)}
+.arx .ar-rv-gh{display:flex;align-items:center;gap:10px;height:38px;padding:0 16px;border-bottom:1px solid var(--ln);font:400 9px/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--mu);white-space:nowrap}
+.arx .ar-rv-gh b{font:400 11px/1 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.3em;color:#fff;overflow:hidden;text-overflow:ellipsis}
+.arx .ar-rv-gh i{flex:1;height:1px;background:linear-gradient(90deg,color-mix(in srgb,var(--gc) 55%,transparent),transparent)}
+.arx .ar-rv-gh em{font-style:normal;color:var(--gc);text-shadow:0 0 10px color-mix(in srgb,var(--gc) 50%,transparent)}
+.arx .ar-rv-th{display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:8px;padding:14px 16px 16px}
+/* 썸네일 — 고르지 않은 요원은 흐리고 바랜 채, 고르면 원소색 테두리 · 빛 */
+.arx .ar-rv-t{position:relative;display:block;width:100%;aspect-ratio:3/4;margin:0;padding:0;overflow:hidden;border:1px solid var(--ln2);background:#0b1016;cursor:var(--cur-pointer,pointer);
+  -webkit-tap-highlight-color:transparent;opacity:.55;filter:grayscale(.7);transition:opacity .3s,filter .3s,border-color .3s,box-shadow .3s}
+.arx .ar-rv-t:hover{opacity:.9;filter:none}
+.arx .ar-rv-t.on{opacity:1;filter:none;border-color:var(--ec);box-shadow:0 0 18px -4px var(--ec)}
+.arx .ar-rv-t .ph{position:absolute;inset:0;display:block;overflow:hidden;background:none}
+.arx .ar-rv-t .ph img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover}
+.arx .ar-rv-t .nm{position:absolute;left:0;right:0;bottom:0;z-index:1;padding:16px 3px 5px;background:linear-gradient(transparent,rgba(5,7,10,.95));font:400 10px/1.1 'Pretendard Variable',Pretendard,sans-serif;color:#fff;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.arx .ar-ag-noimg{position:absolute;inset:0;display:grid;place-items:center;font:400 7.5px/1 'JetBrains Mono',monospace;letter-spacing:.2em;color:var(--dim)}
+/* 열람 칸 */
+.arx .ar-rv-view{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:26px;align-items:center;padding:32px 28px;overflow:hidden;
+  background:radial-gradient(circle at 30% 45%,color-mix(in srgb,var(--ec) 14%,transparent),transparent 60%);animation:arIn .4s ease both}
+.arx .ar-rv-ghost{position:absolute;right:-6px;bottom:-24px;font:600 120px/1 'Saira Semi Condensed',sans-serif;color:transparent;-webkit-text-stroke:1px color-mix(in srgb,var(--ec) 18%,transparent);pointer-events:none;white-space:nowrap}
+.arx .ar-rv-ring{position:relative;width:100%;max-width:260px;aspect-ratio:1;margin:0 auto}
+.arx .ar-rv-ring i{position:absolute;border-radius:50%}
+.arx .ar-rv-ring .r0{inset:0;background:repeating-conic-gradient(rgba(220,230,240,.5) 0 .4deg,transparent .4deg 6deg);-webkit-mask:radial-gradient(circle,transparent 66%,#000 66.5%,#000 70%,transparent 70.5%);mask:radial-gradient(circle,transparent 66%,#000 66.5%,#000 70%,transparent 70.5%);animation:arSpin 60s linear infinite}
+.arx .ar-rv-ring .r1{inset:9%;border:1px solid color-mix(in srgb,var(--ec) 75%,transparent);box-shadow:0 0 22px -4px var(--ec)}
+.arx .ar-rv-ring .r2{inset:5%;border:1px dashed rgba(220,230,240,.18);animation:arSpin 40s linear infinite reverse}
+.arx .ar-rv-ring .r3{inset:12%;border:2px solid transparent;border-top-color:var(--ec);animation:arSpin 9s linear infinite}
+.arx .ar-rv-ring .face{position:absolute;inset:16%;display:block;border-radius:50%;overflow:hidden;background:#0b1016;box-shadow:inset 0 0 40px rgba(0,0,0,.7)}
+.arx .ar-rv-ring .face img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;object-position:50% 22%}
+.arx .ar-rv-info{position:relative;min-width:0}
+.arx .ar-rv-info .k{display:block;font:400 8.5px/1.4 'JetBrains Mono',monospace;letter-spacing:.3em;color:var(--mu)}
+.arx .ar-rv-info .nm{display:block;margin-top:12px;font:500 42px/1.1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.08em;word-break:keep-all;
+  background:linear-gradient(180deg,#fff 20%,color-mix(in srgb,var(--ec) 70%,#fff) 140%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px color-mix(in srgb,var(--ec) 35%,transparent))}
+.arx .ar-rv-info .en{display:flex;align-items:center;gap:10px;margin-top:12px;font:400 10px/1 'Jost',sans-serif;letter-spacing:.4em;color:var(--tx)}
+.arx .ar-rv-info .en::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,color-mix(in srgb,var(--ec) 60%,transparent),transparent)}
+.arx .ar-rv-fl{display:grid;grid-template-columns:1fr 1fr;margin:20px 0 0;border-top:1px solid var(--ln)}
+.arx .ar-rv-fl div{padding:10px 0;border-bottom:1px solid var(--ln)}
+.arx .ar-rv-fl dt{font:400 7.5px/1 'JetBrains Mono',monospace;letter-spacing:.3em;color:var(--dim)}
+.arx .ar-rv-fl dd{margin:6px 0 0;font:400 11px/1.3 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.12em;color:var(--tx)}
+.arx .ar-rv-fl dd.el{color:color-mix(in srgb,var(--ec) 55%,#fff)}
+.arx .ar-rv-open{display:inline-flex;align-items:center;gap:12px;height:38px;margin-top:18px;padding:0 18px;border:1px solid var(--ln2);background:rgba(255,255,255,.02);cursor:var(--cur-pointer,pointer);
+  font:400 11px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.24em;color:var(--tx);transition:border-color .3s,box-shadow .3s,color .3s}
+.arx .ar-rv-open span{font-family:'JetBrains Mono',monospace;letter-spacing:0;transition:transform .3s}
+.arx .ar-rv-open:hover{border-color:color-mix(in srgb,var(--ec) 70%,transparent);box-shadow:0 0 24px -6px var(--ec);color:#fff}
+.arx .ar-rv-open:hover span{transform:translateX(4px)}
+/* 원소 딱지 (상세 프로필 창 머리) — 꽉 찬 색 → 가는 테두리 + 원소색 글씨 */
+.ar-ag-el{display:inline-flex;align-items:center;gap:6px;height:20px;padding:0 9px 0 6px;font:400 10.5px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.06em;
+  color:color-mix(in srgb,var(--ec) 55%,#fff);background:color-mix(in srgb,var(--ec) 10%,transparent);border:1px solid color-mix(in srgb,var(--ec) 55%,transparent)}
 .ar-ag-el i{display:block;width:13px;height:13px}
 .ar-ag-el i svg{display:block;width:100%;height:100%}
 .ar-ag-el i svg [stroke-width="2.2"]{stroke-opacity:1}
+@media (max-width:820px){
+  /* 좁은 화면 — 열람 칸을 위로, 썸네일을 아래로 */
+  .arx .ar-rv{grid-template-columns:1fr}
+  .arx .ar-rv-view{order:-1;border-bottom:1px solid var(--ln)}
+  .arx .ar-rv-idx{border-right:0}
+}
 @media (max-width:560px){
-  .arx .ar-roster{gap:30px}
-  /* 폰 — 한 줄 세 장으로 작게 (v2.0 사용자 요청) */
-  .arx .ar-ag-list{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-  .arx .ar-ag .tx{left:7px;right:7px;bottom:7px;gap:4px}
-  .arx .ar-ag .tx b{font-size:12px;letter-spacing:.02em}
-  .arx .ar-ag .tx .nm{gap:0 4px}
-  .arx .ar-ag .tx small{font-size:9px;letter-spacing:.02em}
-  .arx .ar-ag .ar-ag-el{height:16px;gap:3px;padding:0 6px 0 4px;font-size:9px}
-  .arx .ar-ag .ar-ag-el i{width:10px;height:10px}
-  .arx .ar-ag{--bks:7px}
-  .arx .ar-ag-gh b{font-size:14px;letter-spacing:.24em}
+  .arx .ar-rv-view{grid-template-columns:1fr;gap:20px;padding:26px 18px 22px}
+  .arx .ar-rv-ring{max-width:200px}
+  .arx .ar-rv-info .nm{font-size:32px}
+  .arx .ar-rv-ghost{font-size:84px}
+  .arx .ar-rv-th{grid-template-columns:repeat(auto-fill,minmax(58px,1fr));padding:12px}
+  .arx .ar-rv-gh{padding:0 12px}
 }
 /* 상세 프로필 창 (portal — .arx 밖) */
 .mng-box.ar-more-modal.ar-ag-modal{width:min(640px,94vw);max-height:88vh;overflow:hidden}

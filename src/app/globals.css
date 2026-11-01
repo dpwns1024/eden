@@ -253,24 +253,24 @@ html.ui-arch .page-arch .panel,html.ui-arch .page-arch .char-card,html.ui-arch .
    두 층은 크기 · 자리 · 그리는 방식이 같아 어떤 배율에서도 같은 픽셀에 찍힌다. 호버 · 붉은 깜빡임으로 바뀌는 테두리 색도 그대로 따라온다.
    A) 테두리 위에(inset:-1px)  B) 넘치는 부분을 잘라내는 칸은 잘리지 않게 안쪽에(inset:0) — 바깥 1px은 바탕도 비워 선이 칸 끝이 되게 */
 :is(.sp-panel,.ad-win,.arx .ar-btn,.arx .ar-pn,.pf-pn,.pf-pair,.pf-dos,.login-page.login-arch .login-card,.bgm.skin-arch,html.ui-arch .toast,html.ui-arch .up-busy),
-html.ui-arch .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.rel-bn),html.ui-arch .page-gallery .g-item,.mng-box.ar-more-modal,.arx .ar-ag{
+html.ui-arch .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.rel-bn),html.ui-arch .page-gallery .g-item,.mng-box.ar-more-modal,.arx .ar-ag,.arx .ar-pn:is(.ar-sw,.ar-cl,.ar-rank-card,.am-card,.am-frame),.arx .ar-els button:not(.pend),.arx .ar-el,.arx .ar-rank-bar button,.arx .ar-grade:not(.ar-rank-bar) > span{
   border-image:linear-gradient(transparent,transparent) 1 !important}
 :is(.sp-panel,.ad-win,.arx .ar-btn,.arx .ar-pn,.pf-pn,.pf-pair,.pf-dos,.login-page.login-arch .login-card,.bgm.skin-arch,html.ui-arch .toast,html.ui-arch .up-busy)::before,
 :is(.sp-panel,.ad-win,.arx .ar-btn,.arx .ar-pn,.pf-pn,.pf-pair,.pf-dos,.login-page.login-arch .login-card,.bgm.skin-arch,html.ui-arch .toast,html.ui-arch .up-busy)::after{
   content:'' !important;display:block !important;position:absolute !important;inset:-1px !important;width:auto !important;height:auto !important;transform:none !important;
   box-sizing:border-box !important;border-style:solid !important;border-width:1px !important;pointer-events:none;background:none !important}
-:is(html.ui-arch .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.rel-bn),html.ui-arch .page-gallery .g-item,.mng-box.ar-more-modal,.arx .ar-ag){background-clip:padding-box !important}
-:is(html.ui-arch .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.rel-bn),html.ui-arch .page-gallery .g-item,.mng-box.ar-more-modal,.arx .ar-ag)::before,
-:is(html.ui-arch .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.rel-bn),html.ui-arch .page-gallery .g-item,.mng-box.ar-more-modal,.arx .ar-ag)::after{
+:is(html.ui-arch .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.rel-bn),html.ui-arch .page-gallery .g-item,.mng-box.ar-more-modal,.arx .ar-ag,.arx .ar-pn:is(.ar-sw,.ar-cl,.ar-rank-card,.am-card,.am-frame),.arx .ar-els button:not(.pend),.arx .ar-el,.arx .ar-rank-bar button,.arx .ar-grade:not(.ar-rank-bar) > span){background-clip:padding-box !important}
+:is(html.ui-arch .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.rel-bn),html.ui-arch .page-gallery .g-item,.mng-box.ar-more-modal,.arx .ar-ag,.arx .ar-pn:is(.ar-sw,.ar-cl,.ar-rank-card,.am-card,.am-frame),.arx .ar-els button:not(.pend),.arx .ar-el,.arx .ar-rank-bar button,.arx .ar-grade:not(.ar-rank-bar) > span)::before,
+:is(html.ui-arch .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.rel-bn),html.ui-arch .page-gallery .g-item,.mng-box.ar-more-modal,.arx .ar-ag,.arx .ar-pn:is(.ar-sw,.ar-cl,.ar-rank-card,.am-card,.am-frame),.arx .ar-els button:not(.pend),.arx .ar-el,.arx .ar-rank-bar button,.arx .ar-grade:not(.ar-rank-bar) > span)::after{
   content:'' !important;display:block !important;position:absolute !important;inset:0 !important;width:auto !important;height:auto !important;transform:none !important;
   box-sizing:border-box !important;border-style:solid !important;border-width:1px !important;pointer-events:none;background:none !important}
 /* 테두리 선 — 칸의 테두리 색을 그대로 */
 :is(.sp-panel,.ad-win,.arx .ar-btn,.arx .ar-pn,.pf-pn,.pf-pair,.pf-dos,.login-page.login-arch .login-card,.bgm.skin-arch,html.ui-arch .toast,html.ui-arch .up-busy,
-  html.ui-arch .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.rel-bn),html.ui-arch .page-gallery .g-item,.mng-box.ar-more-modal,.arx .ar-ag)::before{
+  html.ui-arch .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.rel-bn),html.ui-arch .page-gallery .g-item,.mng-box.ar-more-modal,.arx .ar-ag,.arx .ar-pn:is(.ar-sw,.ar-cl,.ar-rank-card,.am-card,.am-frame),.arx .ar-els button:not(.pend),.arx .ar-el,.arx .ar-rank-bar button,.arx .ar-grade:not(.ar-rank-bar) > span)::before{
   border-color:inherit !important;opacity:1 !important;z-index:4;-webkit-mask:none !important;mask:none !important}
 /* 꺾쇠 — 같은 크기의 테두리에서 왼쪽 위 · 오른쪽 아래 모서리만 남긴다 (--bks 길이 · --bkc 색) */
 :is(.sp-panel,.ad-win,.arx .ar-btn,.arx .ar-pn,.pf-pn,.pf-pair,.pf-dos,.login-page.login-arch .login-card,.bgm.skin-arch,html.ui-arch .toast,html.ui-arch .up-busy,
-  html.ui-arch .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.rel-bn),html.ui-arch .page-gallery .g-item,.mng-box.ar-more-modal,.arx .ar-ag)::after{
+  html.ui-arch .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.rel-bn),html.ui-arch .page-gallery .g-item,.mng-box.ar-more-modal,.arx .ar-ag,.arx .ar-pn:is(.ar-sw,.ar-cl,.ar-rank-card,.am-card,.am-frame),.arx .ar-els button:not(.pend),.arx .ar-el,.arx .ar-rank-bar button,.arx .ar-grade:not(.ar-rank-bar) > span)::after{
   border-color:var(--bkc,var(--a-bkcol,rgba(220,230,240,.55))) !important;opacity:1 !important;z-index:5;
   -webkit-mask:linear-gradient(#000,#000) left top/var(--bks,9px) var(--bks,9px) no-repeat,linear-gradient(#000,#000) right bottom/var(--bks,9px) var(--bks,9px) no-repeat !important;
   mask:linear-gradient(#000,#000) left top/var(--bks,9px) var(--bks,9px) no-repeat,linear-gradient(#000,#000) right bottom/var(--bks,9px) var(--bks,9px) no-repeat !important}
