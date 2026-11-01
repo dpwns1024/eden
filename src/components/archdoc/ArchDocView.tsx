@@ -259,6 +259,9 @@ function ProfileHtml({ html }: { html: string }) {
       mo.observe(document.head, { childList: true, subtree: true, characterData: true });
       d.addEventListener('load', later, true);            // 안의 이미지가 늦게 들어와 크기가 바뀌는 경우
       d.fonts?.ready.then(later).catch(() => {});
+      // 글꼴(Inter 등)이 늦게 도착하면 딱지 폭이 바뀌는데, 딱지는 절대 위치라 본문 크기 감시(ResizeObserver)에 안 잡힌다 —
+      // 글꼴을 다 받을 때마다 다시 맞춘다 (v2.0 사용자 제보 — 모바일에서 딱지가 계속 꺾임)
+      d.fonts?.addEventListener('loadingdone', later);
       ro?.disconnect();
       ro = new ResizeObserver(later);
       ro.observe(d.body);
