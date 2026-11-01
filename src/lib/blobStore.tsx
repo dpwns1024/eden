@@ -137,6 +137,18 @@ export async function liftInlineImages(html: string): Promise<string> {
   return html.replace(re, m => map.get(m) ?? m);
 }
 
+/** 객체 안의 모든 글자 값에 liftInlineImages를 적용 (요원명부처럼 HTML이 문서 곳곳에 든 경우) */
+export async function liftInlineImagesDeep<T>(v: T): Promise<T> {
+  if (typeof v === 'string') return (await liftInlineImages(v)) as T;
+  if (Array.isArray(v)) return (await Promise.all(v.map(x => liftInlineImagesDeep(x)))) as T;
+  if (v && typeof v === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [k, x] of Object.entries(v)) out[k] = await liftInlineImagesDeep(x);
+    return out as T;
+  }
+  return v;
+}
+
 export type PromoteResult =
   | { kind: 'already' }                 // 이미 저장소 주소 — 할 일 없음
   | { kind: 'local-mode' }              // 서버 연결이 없다 — 올릴 곳 자체가 없음

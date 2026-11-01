@@ -17,7 +17,7 @@ import {
 import { newId } from '@/lib/postStore';
 import { sanitizeHtml } from '@/lib/sanitize';
 import { stripScripts } from '@/components/main/HtmlSlots';
-import { useBlobUrl, putBlob } from '@/lib/blobStore';
+import { useBlobUrl, putBlob, liftInlineImagesDeep } from '@/lib/blobStore';
 import { Modal } from '@/components/ui/Modal';
 import { KInput, KTextarea, KCheck, KSelect } from '@/components/ui/Kit';
 import { RichEditor } from '@/components/ui/RichEditor';
@@ -1207,7 +1207,23 @@ export function ArchDocView({ doc, canEdit, onSave, onUseHtml, fromHtml }: {
     setDraft(d => ({ ...d, tabs: d.tabs.map(t => (t.id === tab.id ? fn(t) : t)) }));
   const setBlocks = (fn: (b: ArchBlock[]) => ArchBlock[]) => setTab(t => ({ ...t, blocks: fn(t.blocks) }));
 
-  const save = () => { onSave(draft); setEdit(false); toast('저장되었습니다'); };
+  const [saving, setSaving] = useState(false);
+  const save = async () => {
+    if (saving) return;
+    // 상세 프로필 HTML 등에 글자로 박힌 사진(data:image)은 파일로 올리고 주소로 바꾼다 — 그대로 두면
+    // 이 페이지 문서가 저장 한도(1MB)를 넘어 서버가 거부한다 (사용자 제보: 상세 프로필 HTML이 안 올라감)
+    let next = draft;
+    setSaving(true);
+    try { next = await liftInlineImagesDeep(draft); }
+    catch (e) { toast(`본문 속 사진을 올리지 못했습니다 — ${e instanceof Error ? e.message : ''}`); setSaving(false); return; }
+    setSaving(false);
+    if (new TextEncoder().encode(JSON.stringify(next)).length > 900_000) {
+      setDraft(next);
+      toast('이 페이지 내용이 너무 큽니다(약 900KB 초과) — 상세 프로필 HTML을 줄이거나 다른 탭·페이지로 나눠 주세요');
+      return;
+    }
+    setDraft(next); onSave(next); setEdit(false); toast('저장되었습니다');
+  };
   const cancel = () => { setDraft(doc); setEdit(false); };
 
   if (!tab) return null;
@@ -1223,7 +1239,7 @@ export function ArchDocView({ doc, canEdit, onSave, onUseHtml, fromHtml }: {
                 <button className="btn btn-ghost" onClick={() => setHeadOpen(true)}>제목</button>
                 {onUseHtml && <button className="btn btn-ghost" onClick={onUseHtml}>HTML로 되돌리기</button>}
                 <button className="btn btn-ghost" onClick={cancel}>CANCEL</button>
-                <button className="btn btn-dark" disabled={!dirty && !fromHtml} onClick={save}>SAVE</button>
+                <button className="btn btn-dark" disabled={saving || (!dirty && !fromHtml)} onClick={save}>{saving ? '사진 올리는 중…' : 'SAVE'}</button>
               </>
             ) : (
               <button className="btn btn-ghost" onClick={() => { setDraft(clone(doc)); setEdit(true); }}>✎ EDIT</button>
