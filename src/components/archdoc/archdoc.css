@@ -494,10 +494,11 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-rv-t .nm{position:absolute;left:0;right:0;bottom:0;z-index:1;padding:16px 3px 5px;background:linear-gradient(transparent,rgba(5,7,10,.95));font:400 10px/1.1 'Pretendard Variable',Pretendard,sans-serif;color:#fff;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .arx .ar-ag-noimg{position:absolute;inset:0;display:grid;place-items:center;font:400 7.5px/1 'JetBrains Mono',monospace;letter-spacing:.2em;color:var(--dim)}
 /* 열람 칸 */
-.arx .ar-rv-view{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:center;min-height:340px;padding:24px 26px;overflow:hidden;
+.arx .ar-rv-view{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:center;min-height:390px;padding:34px 26px 64px;overflow:hidden;
   background:radial-gradient(circle at 30% 45%,color-mix(in srgb,var(--ec) 14%,transparent),transparent 60%);animation:arIn .4s ease both}
 /* 상세 프로필 버튼이 있는 요원 — 버튼이 뒤 큰 영문 이름에 붙어 보여 아래 여백을 넉넉히 (v2.0 사용자 요청) */
-.arx .ar-rv-view.pf{min-height:390px;padding-top:34px;padding-bottom:64px}
+/* 상세 프로필이 없는 요원도 버튼 자리를 비워 두어 열람 칸 크기가 같게 (v2.0 사용자 요청) */
+.arx .ar-rv-open.ghost{visibility:hidden}
 .arx .ar-rv-ghost{position:absolute;right:-6px;bottom:-24px;font:600 100px/1 'Saira Semi Condensed',sans-serif;color:transparent;-webkit-text-stroke:1px color-mix(in srgb,var(--ec) 18%,transparent);pointer-events:none;white-space:nowrap}
 .arx .ar-rv-ring{position:relative;width:100%;max-width:220px;aspect-ratio:1;margin:0 auto}
 .arx .ar-rv-ring i{position:absolute;border-radius:50%}
@@ -535,8 +536,7 @@ body:has(.arx)::before{display:none !important}
   .arx .ar-rv-idx{border-right:0;max-height:360px}   /* 좁은 화면 — 썸네일 칸 높이를 묶고 안에서 스크롤 */
 }
 @media (max-width:560px){
-  .arx .ar-rv-view{grid-template-columns:1fr;gap:20px;min-height:0;padding:26px 18px 22px}
-  .arx .ar-rv-view.pf{min-height:0;padding-bottom:56px}
+  .arx .ar-rv-view{grid-template-columns:1fr;gap:20px;min-height:0;padding:26px 18px 56px}
   .arx .ar-rv-ring{max-width:200px}
   .arx .ar-rv-info .nm{font-size:32px}
   .arx .ar-rv-info .nm.lat{font-size:28px}
