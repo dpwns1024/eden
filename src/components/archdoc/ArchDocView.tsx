@@ -165,6 +165,10 @@ function ProfileHtml({ html }: { html: string }) {
     if (!f || !holder || !box) return;
     let raf = 0;
     let ro: ResizeObserver | null = null;
+    let lastAvail = -1;
+    // 바깥 칸 폭이 맞춘 뒤에 바뀌면(스크롤바가 생기는 등) 다시 맞춘다 — 우리가 바꾼 폭이면 그대로 둔다
+    const hro = new ResizeObserver(() => { if (holder.clientWidth !== lastAvail) later(); });
+    hro.observe(holder);
     const fit = () => {
       const d = f.contentDocument, root = d?.documentElement;
       if (!d || !root || !d.body) return;
@@ -185,14 +189,19 @@ function ProfileHtml({ html }: { html: string }) {
       }
       // ② 그래도 넘치면 iframe을 원래 폭으로 그린 뒤 그림처럼 통째로 줄인다(transform).
       //    CSS zoom은 아이폰 사파리가 글씨에 최소 크기를 적용해 줄 간격만 줄고 글씨는 덜 줄어 겹쳤다 (v2.0 사용자 제보)
-      const w = Math.max(avail, need);
+      let w = Math.max(avail, need);
       f.style.width = `${w}px`;
-      const s = w > avail + 1 ? avail / w : 1;
+      // iframe 안에서 실제로 보이는 폭이 내용보다 좁으면(스크롤바 · 화면 배율에 따른 픽셀 반올림 등) 그만큼 넓힌다 —
+      // PC에서 오른쪽 끝 둥근 모서리가 잘려 보였다 (v2.0 사용자 제보)
+      const short = need - root.clientWidth;
+      if (short > 0 && root.clientWidth > 0) { w += Math.ceil(short); f.style.width = `${w}px`; }
+      const s = w > avail + 0.5 ? avail / w : 1;
       // 높이는 실제로 그려진 크기로 — scrollHeight는 iframe 높이보다 작아지지 않아 내용이 줄어도 창이 안 줄어든다
       const h = Math.ceil(Math.max(root.getBoundingClientRect().height, d.body.getBoundingClientRect().height));
       f.style.height = `${h}px`;
       f.style.transform = s < 1 ? `scale(${s})` : '';
       holder.style.height = `${Math.ceil(h * s)}px`;
+      lastAvail = holder.clientWidth;
     };
     const later = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(fit); };
     const onLoad = () => {
@@ -211,6 +220,7 @@ function ProfileHtml({ html }: { html: string }) {
     return () => {
       cancelAnimationFrame(raf);
       ro?.disconnect();
+      hro.disconnect();
       f.removeEventListener('load', onLoad);
       window.removeEventListener('resize', later);
       box.style.width = '';
