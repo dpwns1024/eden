@@ -619,14 +619,24 @@ body:has(.arx)::before{display:none !important}
   .ar-ag-pf{max-height:calc(88vh - 30px)}
 }
 .ar-ag-pf-b.pend{font:400 9.5px/1.6 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.22em;color:#5f6b79;padding:20px 0}
-/* 잠긴 프로필 — 비밀번호 칸 (v2.0 사용자 요청) */
-.ar-ag-lock{display:grid;gap:10px;justify-items:center;padding:34px 12px 30px;text-align:center}
-.ar-ag-lock b{font:400 10px/1.4 'JetBrains Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.26em;color:#e4e9ef}
-.ar-ag-lock small{font:400 11.5px/1.5 'Pretendard Variable',Pretendard,sans-serif;color:#8592a0}
-.ar-ag-lock .row{display:flex;gap:8px;width:min(300px,100%);margin-top:6px}
-.ar-ag-lock .row > :first-child{flex:1;min-width:0}
-.ar-ag-lock .row .ar-more-close{flex:none;margin:0}
-.ar-ag-lock .err{margin:0;font-size:12px;color:#ff8a8a}
+/* 잠긴 프로필 — 비밀번호 칸 (v2.0 사용자 요청). 칸과 버튼을 한 틀(38px)로 붙이고, 글꼴은 창의 다른 글씨와 맞춘다:
+   영문 표지 = JetBrains Mono · 버튼 = Jost(CLOSE와 같음) · 안내 = Pretendard */
+.ar-ag-lock{display:flex;flex-direction:column;align-items:center;gap:0;padding:30px 12px 22px;text-align:center}
+.ar-ag-lock .ic{display:block;width:22px;height:22px;color:color-mix(in srgb,var(--ec) 60%,#fff);opacity:.85}
+.ar-ag-lock b{margin-top:12px;font:400 10px/1 'JetBrains Mono',monospace;letter-spacing:.32em;color:color-mix(in srgb,var(--ec) 55%,#fff)}
+.ar-ag-lock small{margin-top:10px;font:300 12px/1.5 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.02em;color:#8592a0;word-break:keep-all}
+.ar-ag-lock .row{display:flex;align-items:stretch;width:min(320px,100%);height:38px;margin-top:20px;
+  border:1px solid rgba(190,208,228,.22);background:rgba(8,11,15,.72);transition:border-color .2s}
+.ar-ag-lock .row:focus-within{border-color:color-mix(in srgb,var(--ec) 60%,transparent)}
+.ar-ag-lock .row.bad{border-color:rgba(255,138,138,.6)}
+.ar-ag-lock input{flex:1;min-width:0;height:100%;margin:0;padding:0 14px;border:0;outline:0;background:transparent;color:#e4e9ef;
+  font:400 13px/1 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.12em}
+.ar-ag-lock input::placeholder{font:400 10px/1 'JetBrains Mono',monospace;letter-spacing:.3em;color:#4a5461}
+.ar-ag-lock button{flex:none;height:100%;margin:0;padding:0 18px;border:0;border-left:1px solid rgba(190,208,228,.22);
+  background:color-mix(in srgb,var(--ec) 10%,transparent);color:#c9d2dc;cursor:var(--cur-pointer,pointer);font:400 10px/1 'Jost',sans-serif;letter-spacing:.3em;transition:color .2s,background .2s}
+.ar-ag-lock button:hover:not(:disabled){color:#fff;background:color-mix(in srgb,var(--ec) 22%,transparent)}
+.ar-ag-lock button:disabled{color:#5f6b79;cursor:default}
+.ar-ag-lock .err{min-height:16px;margin:10px 0 0;font:400 11.5px/1.4 'Pretendard Variable',Pretendard,sans-serif;color:#ff8a8a}
 
 /* ARCH 소개 페이지(/arch) — 내용 왼쪽 끝 · 폭을 게시판(.page: 최대 1180px · 좌우 28px, 폰 16px)과 같게 (v2.0 사용자 요청 —
    게시판 제목은 머리 로고보다 30px 안쪽인데 ARCH 소개만 로고 끝에 붙어 메뉴를 오갈 때 옆으로 밀려 보였다) */
