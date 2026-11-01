@@ -298,13 +298,13 @@ function AgentModal({ a, g, onClose }: { a: ArchAgent | null; g: ArchAgentGroup 
       {a && g && (
         <div className="ar-ag-pf">
           {/* 스크롤은 이 안쪽 칸에서 — 창 상자가 스크롤되면 테두리 · 꺾쇠(::before · ::after)가 내용과 함께 밀려 올라갔다 (v2.0 사용자 제보) */}
-          <div className="ar-ag-pf-bar" style={{ '--ec': AG_COLOR[a.element] ?? g.color } as React.CSSProperties}><span className="dot" /><b>PERSONNEL FILE</b><i className="ln" /><span><KoMix t={g.title} /> · ACCESS LOGGED</span></div>
+          <div className="ar-ag-pf-bar" style={{ '--ec': AG_COLOR[a.element] ?? g.color } as React.CSSProperties}><span className="dot" /><b>AGENT FILE</b><i className="ln" /><span><KoMix t={g.title} /> · ACCESS LOGGED</span></div>
           <div className="ar-ag-pf-sc">
-          {/* 머리 — 시안 A 인사 파일 (v2.0 사용자 요청): 사진 꺾쇠 · 뒤 큰 영문 이름 · 스캔 줄 · CLASS / ELEMENT 칸 */}
+          {/* 머리 — 시안 A 인사 파일 (v2.0 사용자 요청): 사진 꺾쇠 · 뒤 큰 영문 이름 · 사진 위 스캔 줄 · CLASS / ELEMENT 칸.
+              빛 · 뒤 글씨 · 구분선은 모두 끝을 흐리게 — 상자 모서리에서 뚝 잘려 보였다 (v2.0 사용자 제보) */}
           <div className="ar-ag-pf-h" style={{ '--gc': g.color, '--ec': AG_COLOR[a.element] ?? g.color } as React.CSSProperties}>
             {a.enName?.trim() && <span className="gh" aria-hidden="true">{a.enName.trim()}</span>}
-            <i className="scan" aria-hidden="true" />
-            <span className="ph"><AgentPhoto src={a.photo} alt={a.name} /><i className="cn" aria-hidden="true" /></span>
+            <span className="ph"><AgentPhoto src={a.photo} alt={a.name} /><i className="scan" aria-hidden="true" /><i className="cn" aria-hidden="true" /></span>
             <div className="nm">
               <small><KoMix t={g.title} /></small>
               <b className={a.enName?.trim() ? 'lat' : undefined}>{a.enName?.trim() || a.name}</b>
