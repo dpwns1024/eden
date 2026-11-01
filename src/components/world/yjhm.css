@@ -56,7 +56,7 @@ a.yj-pill.yj-blk{min-height:44px;padding:0 22px;font-weight:900;font-size:16px}
 .yj-menu .oh-link{display:block;padding:10px 14px;text-align:center;font:700 13.5px/1.2 var(--yj-sans);color:var(--yj-ink)}
 .yj-menu .oh-link:hover,.yj-menu .oh-link.on{color:#f7f6f2;background:var(--yj-ac)}
 .yj-member{display:flex;justify-content:flex-end;align-items:center;min-height:30px}
-.yj-member .login-link{min-height:34px;padding:0 18px;border:2.5px solid var(--yj-ac);border-radius:999px;background:transparent;font:700 13px/1 var(--yj-sans);color:var(--yj-ink);cursor:pointer}
+.yj-member .login-link{min-height:34px;padding:0 18px;border:2.5px solid var(--yj-ac);border-radius:999px;background:transparent;font:700 13px/1 var(--yj-sans);color:var(--yj-ink);cursor:var(--cur-pointer,pointer)}
 .yj-member .login-link:hover{background:var(--yj-ac);color:#f7f6f2}
 
 /* 다른 페이지 — 한 줄 제호 */
@@ -132,7 +132,7 @@ body:has(.yj-main)::before{display:none !important}
 .yj-story-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding-bottom:12px;border-bottom:3px solid var(--yj-ac)}
 .yj-story-h dl{margin:0;display:grid;grid-template-columns:104px minmax(0,1fr);gap:4px 0;font:700 15px/1.5 var(--yj-narrow)}
 .yj-story-h dd{margin:0;font:500 15px/1.5 var(--yj-sans);word-break:keep-all}
-.yj-story-h .yj-pill{flex:none;background:transparent;color:var(--yj-ink);cursor:pointer}
+.yj-story-h .yj-pill{flex:none;background:transparent;color:var(--yj-ink);cursor:var(--cur-pointer,pointer)}
 .yj-story-body{font:400 16px/1.85 var(--yj-sans);word-break:keep-all;overflow-wrap:anywhere}
 .yj-story-body img{max-width:100%;height:auto}
 .yj-story .yj-faint{padding:0}
@@ -140,8 +140,8 @@ body:has(.yj-main)::before{display:none !important}
 .yj-story-edit > label{display:flex;flex-direction:column;gap:4px;font:700 13px/1.3 var(--yj-sans)}
 .yj-story-edit > small{font:700 12.5px/1 var(--yj-narrow);color:var(--yj-faint)}
 .yj-story-btns{display:flex;gap:8px}
-.yj-story-crop{align-self:flex-start;background:transparent;color:var(--yj-ink);cursor:pointer}
-.yj-story-btns .yj-pill{min-height:40px;padding:0 18px;cursor:pointer;background-color:transparent;color:var(--yj-ink)}
+.yj-story-crop{align-self:flex-start;background:transparent;color:var(--yj-ink);cursor:var(--cur-pointer,pointer)}
+.yj-story-btns .yj-pill{min-height:40px;padding:0 18px;cursor:var(--cur-pointer,pointer);background-color:transparent;color:var(--yj-ink)}
 .yj-story-btns .yj-pill.yj-blk{background-color:var(--yj-ac);color:#f7f6f2}
 
 /* 점수판 — 경기 기록 */
@@ -339,7 +339,7 @@ body:has(.yj-main)::before{display:none !important}
   .yj-top .yj-member > .world-switch{grid-area:ws;justify-self:start;margin:0}
   .yj-top .yj-member > :not(.world-switch){grid-area:login;justify-self:end}
 }
-.world-switch button{height:28px;padding:0 12px;border:0;background:transparent;cursor:pointer;font-size:10.5px;letter-spacing:.2em}
+.world-switch button{height:28px;padding:0 12px;border:0;background:transparent;cursor:var(--cur-pointer,pointer);font-size:10.5px;letter-spacing:.2em}
 .world-switch.ws-eveden{background:rgba(8,11,15,.86);border:1px solid rgba(190,208,228,.22)}
 .world-switch.ws-eveden button{color:#8592a0;font-family:'JetBrains Mono',monospace}
 .world-switch.ws-eveden button.on{color:#fff;background:rgba(184,216,255,.14)}

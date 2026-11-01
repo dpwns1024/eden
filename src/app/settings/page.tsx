@@ -588,7 +588,7 @@ function SplashPane() {
         )}
         {bgUrl && <p className="hint" style={{ marginTop: 4 }}>미리보기에서 표적(예: 눈동자)을 클릭하면 위치가 지정됩니다 — 화면 비율이 달라도(모바일 포함) 같은 지점이 표적이 됩니다.</p>}
         <br />
-        <label className="btn btn-ghost" style={{ marginTop: 6, display: 'inline-block', cursor: 'pointer' }}>
+        <label className="btn btn-ghost" style={{ marginTop: 6, display: 'inline-block', cursor: 'var(--cur-pointer,pointer)' }}>
           이미지 선택
           <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async e => {
             const f = e.target.files?.[0];

@@ -2,7 +2,7 @@
    형태(경고 머리 · 한글 한 줄 · 정보 칸 · 로그 · 버튼)는 그대로, 모양은 ARCH 홈 카드 결로 (v2.0 사용자 요청):
    남색 검정 반투명 칸 · 가는 테두리 · 9px 꺾쇠 · 모노 라벨 · Jost 값. 빨강은 경고 포인트(테두리 · 꺾쇠 · 제목 · 로그)에만 */
 .ad-ov,.ad-page{--ad:#ff3b30;--adr:255,59,48;--tx:#e4e9ef;--mu:#8592a0;--dim:#6f7b89;--ln:rgba(190,208,228,.10)}
-.ad-ov{position:fixed;inset:0;z-index:400;display:grid;place-items:center;padding:16px;cursor:default;
+.ad-ov{position:fixed;inset:0;z-index:400;display:grid;place-items:center;padding:16px;cursor:var(--cur-default,default);
   background:rgba(3,5,8,.82);animation:adFade .18s ease-out}
 /* 화면 쪽 경고 — 붉은 가로줄이 흘러내리고(::before), 화면이 창과 같은 박자로 붉게 차올랐다 빠진다(::after).
    둘 다 창 뒤에만(z-index:-1) — 예전엔 창 위에 덮여 창이 두 번 붉어졌다 (v2.0 사용자 제보) */

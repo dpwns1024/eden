@@ -11,8 +11,10 @@ import { parseAni, isCur } from '@/lib/aniCursor';
 // 상태 → 전역 CSS 변수 (v1.9) — globals.css·인라인 스타일의 cursor:var(--cur-pointer,pointer) /
 // var(--cur-grab,grab) 사용처 전부에 자동 적용. 셀렉터 나열로 못 잡던 div+onClick 요소
 // (로고·알림 종·프로필 등)도 이 변수로 커버 — 미등록 상태면 fallback 키워드로 동작.
+// CSS에 cursor:default·pointer 등을 직접 적으면 등록한 커서가 그 위에서만 시스템 커서로 돌아간다
+// (접근 거부 창 등 — v2.0 사용자 발견) — 커서를 지정할 땐 항상 var(--cur-…, 키워드)로 쓴다.
 const VAR_NAME: Partial<Record<CursorState, string>> = {
-  default: '--cur-default', pointer: '--cur-pointer', grab: '--cur-grab', active: '--cur-active',
+  default: '--cur-default', pointer: '--cur-pointer', text: '--cur-text', grab: '--cur-grab', active: '--cur-active',
   // 크기조절 4방향 (v1.9) — .rs 핸들·드래그 중 전역 고정 규칙이 사용
   rsNwse: '--cur-rs-nwse', rsNesw: '--cur-rs-nesw', rsEw: '--cur-rs-ew', rsNs: '--cur-rs-ns',
 };
