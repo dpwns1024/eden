@@ -72,6 +72,7 @@ export interface ArchAgent {
   id: string;
   name: string;                        // 카드 이름 (예: 해일)
   en?: string;                         // 영문 이름 · 코드 (선택)
+  enName?: string;                     // 영문 이름 — 요원 명부 열람기 뒤 큰 글씨 (선택 · v2.0 사용자 요청)
   photo: string;                       // 증명사진 (blob 참조)
   element: string;                     // 원소 마크 키(el-*) · 'none' = 무속성 딱지 · 비우면 딱지 없음
   html: string;                        // 상세 프로필 (HTML — 관리자 작성)

@@ -473,7 +473,12 @@ body:has(.arx)::before{display:none !important}
 /* ── 요원 명부 (AGENTS 탭 · v2.0 사용자 요청) — 열람기(시안 C): 왼쪽 무리별 썸네일 · 오른쪽 원형 링 초상과 정보 ── */
 .arx .ar-agents{padding-top:10px}  /* .ar-roster는 홈페이지 HTML(03 인원 열람)의 3단 격자와 이름이 겹쳐 좁아졌다 */
 .arx .ar-rv{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);--bks:12px;--bkc:rgba(184,216,255,.8)}
-.arx .ar-rv-idx{min-width:0;border-right:1px solid var(--ln)}
+.arx .ar-rv-idx{min-width:0;border-right:1px solid var(--ln);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;-ms-overflow-style:none}
+.arx .ar-rv-idx::-webkit-scrollbar{display:none}
+/* 썸네일 칸은 안에서 스크롤 (스크롤바는 숨김 · v2.0 사용자 요청) — contain:size로 칸 자체 높이를 0으로 보게 해서
+   줄 높이는 오른쪽 열람 칸이 정하고, 썸네일 칸은 그 높이에 맞춰 늘어난 뒤 넘치는 만큼 스크롤된다 */
+@media (min-width:821px){ .arx .ar-rv-idx{contain:size} }
+.arx .ar-rv-gh{position:sticky;top:0;z-index:2;background:rgba(10,14,19,.96)}
 .arx .ar-rv-g + .ar-rv-g{border-top:1px solid var(--ln)}
 .arx .ar-rv-gh{display:flex;align-items:center;gap:10px;height:38px;padding:0 16px;border-bottom:1px solid var(--ln);font:400 9px/1 'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--mu);white-space:nowrap}
 .arx .ar-rv-gh b{font:400 11px/1 'Jost','Pretendard Variable',Pretendard,sans-serif;letter-spacing:.3em;color:#fff;overflow:hidden;text-overflow:ellipsis}
@@ -490,10 +495,10 @@ body:has(.arx)::before{display:none !important}
 .arx .ar-rv-t .nm{position:absolute;left:0;right:0;bottom:0;z-index:1;padding:16px 3px 5px;background:linear-gradient(transparent,rgba(5,7,10,.95));font:400 10px/1.1 'Pretendard Variable',Pretendard,sans-serif;color:#fff;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .arx .ar-ag-noimg{position:absolute;inset:0;display:grid;place-items:center;font:400 7.5px/1 'JetBrains Mono',monospace;letter-spacing:.2em;color:var(--dim)}
 /* 열람 칸 */
-.arx .ar-rv-view{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:26px;align-items:center;padding:32px 28px;overflow:hidden;
+.arx .ar-rv-view{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:center;min-height:340px;padding:24px 26px;overflow:hidden;
   background:radial-gradient(circle at 30% 45%,color-mix(in srgb,var(--ec) 14%,transparent),transparent 60%);animation:arIn .4s ease both}
-.arx .ar-rv-ghost{position:absolute;right:-6px;bottom:-24px;font:600 120px/1 'Saira Semi Condensed',sans-serif;color:transparent;-webkit-text-stroke:1px color-mix(in srgb,var(--ec) 18%,transparent);pointer-events:none;white-space:nowrap}
-.arx .ar-rv-ring{position:relative;width:100%;max-width:260px;aspect-ratio:1;margin:0 auto}
+.arx .ar-rv-ghost{position:absolute;right:-6px;bottom:-24px;font:600 100px/1 'Saira Semi Condensed',sans-serif;color:transparent;-webkit-text-stroke:1px color-mix(in srgb,var(--ec) 18%,transparent);pointer-events:none;white-space:nowrap}
+.arx .ar-rv-ring{position:relative;width:100%;max-width:220px;aspect-ratio:1;margin:0 auto}
 .arx .ar-rv-ring i{position:absolute;border-radius:50%}
 .arx .ar-rv-ring .r0{inset:0;background:repeating-conic-gradient(rgba(220,230,240,.5) 0 .4deg,transparent .4deg 6deg);-webkit-mask:radial-gradient(circle,transparent 66%,#000 66.5%,#000 70%,transparent 70.5%);mask:radial-gradient(circle,transparent 66%,#000 66.5%,#000 70%,transparent 70.5%);animation:arSpin 60s linear infinite}
 .arx .ar-rv-ring .r1{inset:9%;border:1px solid color-mix(in srgb,var(--ec) 75%,transparent);box-shadow:0 0 22px -4px var(--ec)}
@@ -527,10 +532,10 @@ body:has(.arx)::before{display:none !important}
   /* 좁은 화면 — 열람 칸을 위로, 썸네일을 아래로 */
   .arx .ar-rv{grid-template-columns:1fr}
   .arx .ar-rv-view{order:-1;border-bottom:1px solid var(--ln)}
-  .arx .ar-rv-idx{border-right:0}
+  .arx .ar-rv-idx{border-right:0;max-height:360px}   /* 좁은 화면 — 썸네일 칸 높이를 묶고 안에서 스크롤 */
 }
 @media (max-width:560px){
-  .arx .ar-rv-view{grid-template-columns:1fr;gap:20px;padding:26px 18px 22px}
+  .arx .ar-rv-view{grid-template-columns:1fr;gap:20px;min-height:0;padding:26px 18px 22px}
   .arx .ar-rv-ring{max-width:200px}
   .arx .ar-rv-info .nm{font-size:32px}
   .arx .ar-rv-ghost{font-size:84px}
