@@ -6,7 +6,7 @@
  * 맨 위 큰 제목 아래 목차 탭(환경설정 카테고리와 같은 모양), 탭마다 블록(섹션 제목 · 정보 카드 · 분류 카드 · 글 · 이미지 · HTML).
  * 관리자는 오른쪽 위 EDIT → 블록마다 ✎ 고치기 · ↑↓ 순서 · ✕ 지우기, 탭 이름·순서·추가, 아래 ＋ 블록 추가. SAVE로 저장.
  */
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArchDoc, ArchBlock, ArchCard, ArchClass, ArchFact, ArchMore, ArchRank, ArchRanks, ICONS, iconSvg, iconKeyOf, blankBlock, blankCard, blankClass,
@@ -137,53 +137,84 @@ function AgentCard({ a, onOpen }: { a: ArchAgent; onOpen: () => void }) {
       : <div className="ar-ag still" style={style}>{body}</div>
   );
 }
-/** 상세 프로필 HTML — 관리자가 넣은 HTML이 창보다 넓으면 오른쪽이 잘렸다 (v2.0 사용자 제보).
- *  ① 넘치는 만큼 창을 넓히고(화면 94% · 1100px까지) ② 그래도 넘치면 본문을 통째로 줄여 창 폭에 맞춘다 (CSS zoom).
- *  폭은 렌더 뒤 실제로 그려진 크기로 잰다 — HTML 안의 고정 폭 · 격자를 미리 알 수 없으므로 */
+/** 상세 프로필 HTML — 관리자가 넣은 HTML을 창 안의 iframe에 따로 그린다 (v2.0 사용자 제보).
+ *  예전엔 창에 바로 심어서 ① 넓은 HTML은 오른쪽이 잘렸고 ② HTML 안의 미디어 쿼리가 창이 아니라 화면 폭을 봐서
+ *  모바일에서 레이아웃이 무너졌고 ③ HTML의 <style>이 사이트 전체에 새어 나갈 수 있었다.
+ *  iframe 안에서는 미디어 쿼리가 창 폭을 기준으로 돌고, 스타일도 밖으로 나가지 않는다.
+ *  그래도 창보다 넓게 고정된 HTML이면 ① 창을 넓히고(화면 94% · 1100px까지) ② 그래도 넘치면 통째로 줄인다(zoom).
+ *  사이트 글꼴 규칙(창 본문 300 · 13px, ARCH 창의 각진 모서리 등)도 안 들어가서 붙여 넣은 원본 모양 그대로 보인다 (#273의 목적).
+ *  높이는 내용 높이에 맞춰 늘려서, 스크롤은 바깥 창(.ar-ag-pf-sc) 하나로만 한다 */
 const AG_MODAL_MAX = 1100;
+const AG_FRAME_BASE = `<base target="_blank">
+<link rel="stylesheet" href="/fonts/pretendard/pretendard.css?v=2"><link rel="stylesheet" href="/fonts/jetbrains/jetbrains.css?v=2">
+<style>html{overflow:hidden;scrollbar-width:none}html::-webkit-scrollbar{display:none}
+body{margin:0;background:transparent;color:#c3ccd6;font-family:'Pretendard Variable',Pretendard,sans-serif;overflow-wrap:break-word}
+img,video{max-width:100%;height:auto}</style>`;
 function ProfileHtml({ html }: { html: string }) {
-  const outer = useRef<HTMLDivElement>(null);
-  const inner = useRef<HTMLDivElement>(null);
-  const safe = useMemo(() => stripScripts(html), [html]);
-  useLayoutEffect(() => {
-    const o = outer.current, el = inner.current;
-    const box = o?.closest<HTMLElement>('.mng-box');
-    if (!o || !el || !box) return;
-    const fit = () => {
-      el.style.zoom = '';
-      box.style.width = '';
-      let avail = o.clientWidth;
-      let need = el.scrollWidth;
-      if (need <= avail + 1) return;
-      // ① 창 넓히기
-      const maxW = Math.min(AG_MODAL_MAX, window.innerWidth * 0.94);
-      const cur = box.getBoundingClientRect().width;
-      if (cur < maxW) {
-        box.style.width = `${Math.min(maxW, cur + (need - avail))}px`;
-        avail = o.clientWidth;
-        need = el.scrollWidth;
-        if (need <= avail + 1) return;
-      }
-      // ② 그래도 넘치면 줄이기
-      el.style.zoom = String(avail / need);
-    };
-    fit();
+  const frame = useRef<HTMLIFrameElement>(null);
+  const srcDoc = useMemo(() => {
+    const origin = typeof location === 'undefined' ? '' : location.origin;
+    return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${
+      AG_FRAME_BASE.replace(/href="\//g, `href="${origin}/`)}</head><body>${stripScripts(html)}</body></html>`;
+  }, [html]);
+  useEffect(() => {
+    const f = frame.current;
+    const holder = f?.parentElement;
+    const box = f?.closest<HTMLElement>('.mng-box');
+    if (!f || !holder || !box) return;
     let raf = 0;
+    let ro: ResizeObserver | null = null;
+    const fit = () => {
+      const d = f.contentDocument, root = d?.documentElement;
+      if (!d || !root || !d.body) return;
+      root.style.zoom = '';
+      box.style.width = '';
+      let avail = holder.clientWidth;
+      let need = root.scrollWidth;
+      if (need > avail + 1) {
+        // ① 창 넓히기
+        const maxW = Math.min(AG_MODAL_MAX, window.innerWidth * (window.innerWidth <= 560 ? 0.96 : 0.94));   // 모바일 창 폭은 archdoc.css와 같게
+        const cur = box.getBoundingClientRect().width;
+        if (cur < maxW) {
+          box.style.width = `${Math.min(maxW, cur + (need - avail))}px`;
+          avail = holder.clientWidth;
+          need = root.scrollWidth;
+        }
+      }
+      // ② 그래도 넘치면 줄이기 — 소수점 반올림으로 오른쪽 끝 1px이 잘리지 않게 조금 덜 넓게
+      const z = need > avail + 1 ? (avail - 2) / need : 1;
+      if (z < 1) root.style.zoom = String(z);
+      // 높이는 실제로 그려진 크기로 — scrollHeight는 zoom이 이미 반영된 값이라 z를 또 곱하면 아래가 잘리고,
+      // iframe 높이보다 작아지지 않아 내용이 줄어도 창이 안 줄어든다
+      f.style.height = `${Math.ceil(Math.max(root.getBoundingClientRect().height, d.body.getBoundingClientRect().height))}px`;
+    };
     const later = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(fit); };
+    const onLoad = () => {
+      fit();
+      const d = f.contentDocument;
+      if (!d) return;
+      d.addEventListener('load', later, true);            // 안의 이미지가 늦게 들어와 크기가 바뀌는 경우
+      d.fonts?.ready.then(later).catch(() => {});
+      ro?.disconnect();
+      ro = new ResizeObserver(later);
+      ro.observe(d.body);
+    };
+    f.addEventListener('load', onLoad);
+    if (f.contentDocument?.readyState === 'complete') onLoad();
     window.addEventListener('resize', later);
-    // 이미지가 늦게 들어와 폭이 바뀌는 경우
-    el.addEventListener('load', later, true);
-    document.fonts?.ready.then(later).catch(() => {});
     return () => {
       cancelAnimationFrame(raf);
+      ro?.disconnect();
+      f.removeEventListener('load', onLoad);
       window.removeEventListener('resize', later);
-      el.removeEventListener('load', later, true);
       box.style.width = '';
     };
-  }, [safe]);
+  }, [srcDoc]);
   return (
-    <div ref={outer} className="ar-ag-pf-b">
-      <div ref={inner} className="ar-ag-pf-fit" dangerouslySetInnerHTML={{ __html: safe }} />
+    <div className="ar-ag-pf-b">
+      {/* 스크립트는 걷어 냈고 sandbox도 스크립트를 막는다. allow-same-origin은 높이를 재려고, allow-popups는 링크를 새 탭으로 열려고 */}
+      <iframe ref={frame} className="ar-ag-pf-frame" srcDoc={srcDoc} title="상세 프로필"
+        sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox" />
     </div>
   );
 }
