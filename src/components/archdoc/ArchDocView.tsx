@@ -151,6 +151,24 @@ const AG_FRAME_BASE = `<base target="_blank">
 <style>html{overflow:hidden;scrollbar-width:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}html::-webkit-scrollbar{display:none}
 body{margin:0;background:transparent;color:#c3ccd6;font-family:'Pretendard Variable',Pretendard,sans-serif;overflow-wrap:break-word}
 img,video{max-width:100%;height:auto}</style>`;
+/** 끼인 딱지 풀기 — 화면을 굳혀 내보낸 HTML은 절대 위치 요소에 left · right를 둘 다 px로 박아 둬서, 원래는 글자 길이만큼이던
+ *  딱지(S-CLASS ENTITY 등)가 그 폭에 갇힌다. 기기마다 글꼴 폭이 조금만 달라도 두 줄로 꺾였다 (v2.0 사용자 제보 — 모바일 딱지).
+ *  left를 풀어 오른쪽 기준으로 글자 길이만큼 늘게 하되, 풀었더니 오히려 좁아지면(일부러 늘여 둔 요소) 되돌린다 */
+function unsqueezeAbs(d: Document) {
+  d.querySelectorAll<HTMLElement>('[style*="left"]').forEach(el => {
+    const st = el.style;
+    if (el.dataset.agL == null) {
+      if (!st.left || !st.right || st.width || st.left === 'auto') return;
+      el.dataset.agL = st.left;
+    }
+    st.left = el.dataset.agL;
+    const pos = d.defaultView?.getComputedStyle(el).position;
+    if (pos !== 'absolute' && pos !== 'fixed') return;
+    const w0 = el.getBoundingClientRect().width;
+    st.left = 'auto';
+    if (el.getBoundingClientRect().width < w0 - 0.5) st.left = el.dataset.agL;
+  });
+}
 function ProfileHtml({ html }: { html: string }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const srcDoc = useMemo(() => {
@@ -195,6 +213,7 @@ function ProfileHtml({ html }: { html: string }) {
       // PC에서 오른쪽 끝 둥근 모서리가 잘려 보였다 (v2.0 사용자 제보)
       const short = need - root.clientWidth;
       if (short > 0 && root.clientWidth > 0) { w += Math.ceil(short); f.style.width = `${w}px`; }
+      unsqueezeAbs(d);   // 최종 폭에서 판정해야 원래 폭과 비교가 맞다
       const s = w > avail + 0.5 ? avail / w : 1;
       // 높이는 실제로 그려진 크기로 — scrollHeight는 iframe 높이보다 작아지지 않아 내용이 줄어도 창이 안 줄어든다
       const h = Math.ceil(Math.max(root.getBoundingClientRect().height, d.body.getBoundingClientRect().height));
