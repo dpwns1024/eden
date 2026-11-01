@@ -143,6 +143,11 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
   const listQuery = (coll: string, cs: Cons[]) =>
     (cs.length ? query(collection(db, coll), ...cs) : query(collection(db, coll)));
 
+  /* 서버 문서의 작성자 칸(authorId) — 화면 데이터에 authorId가 없는 종류(캐릭터 등)를 고쳐 저장할 때
+     작성자가 「저장한 사람」으로 바뀌지 않게 받아 둔다 (2026-11 보안 점검 — 보안 규칙이 이제 관리자 아닌
+     사람이 작성자를 바꾸는 저장을 거부한다. 예전엔 편집 권한을 받은 회원이 저장하면 글이 그 회원 것이 됐다) */
+  const authorSeen = new Map<string, string | null>();
+
   const listWith = async <T extends ListItem>(coll: string, sets: Cons[][]): Promise<T[]> => {
     // 반드시 getDocsFromServer — 일반 getDocs는 로컬(오프라인) 캐시가 있으면 그걸로 조용히 성공해
     // 버린다. 실시간 구독이 한 번의 쓰기에 두 번(로컬 반영·서버 확정) 반응해 재조회가 겹칠 때
@@ -156,7 +161,8 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
     const seen = new Map<string, { sort: number; item: T }>();
     snaps.forEach(s => s.docs.forEach(d => {
       if (seen.has(d.id)) return;
-      const raw = d.data() as { data?: Record<string, unknown>; sort?: number };
+      const raw = d.data() as { data?: Record<string, unknown>; sort?: number; authorId?: string | null };
+      authorSeen.set(`${coll}/${d.id}`, typeof raw.authorId === 'string' ? raw.authorId : null);
       seen.set(d.id, { sort: raw.sort ?? 0, item: { ...(raw.data ?? {}), id: d.id } as T });
     }));
     return [...seen.values()].sort((a, b) => a.sort - b.sort).map(v => v.item);
@@ -165,6 +171,7 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
   const syncWith = async <T extends ListItem>(coll: string, prev: T[], next: T[], uid: string | null) => {
     const { inserts, updates, moves, deletes } = diffList(prev, next);
     const ops = [...inserts, ...updates];
+    const updated = new Set(updates.map(u => u.item.id));
     // Firestore 배치는 500개 제한에 **요청 크기 10MiB 제한**도 있다 (v2.0 포크 제보 — 큰 로그
     // 본문 저장 실패). 개수(400)만 보고 끊으면 700KB짜리 본문 문서 십수 개에 10MiB를 넘어
     // 배치가 통째로 거부된다 — 대략 크기를 재서 8MB쯤에서 미리 끊는다.
@@ -180,7 +187,13 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
     for (const part of parts) {
       const batch = writeBatch(db);
       part.forEach(({ item, sort }) => {
-        const { authorId, visibility, editorIds } = metaOf(item, uid, visFloorOf(coll, item));
+        const meta = metaOf(item, uid, visFloorOf(coll, item));
+        const { visibility, editorIds } = meta;
+        // 고치는 글은 서버에 있던 작성자를 그대로 (위 authorSeen) — 화면 데이터에 작성자가 적힌 글은 그 값
+        const known = authorSeen.get(`${coll}/${item.id}`);
+        const authorId = updated.has(item.id) && !(typeof item.authorId === 'string' && item.authorId) && known !== undefined
+          ? known : meta.authorId;
+        authorSeen.set(`${coll}/${item.id}`, authorId);
         batch.set(doc(db, coll, item.id), {
           data: item, authorId, visibility, editorIds, sort, updatedAt: Date.now(),
           lockBoard: visibility === 'locked' ? lockKeyOfItem(coll, item) : null,
@@ -200,6 +213,7 @@ export async function createFirebaseBackend(cfg: FirebaseCfg): Promise<Backend> 
       const batch = writeBatch(db);
       part.forEach(id => batch.delete(doc(db, coll, id)));
       await batch.commit();
+      part.forEach(id => authorSeen.delete(`${coll}/${id}`));
     }
   };
 
