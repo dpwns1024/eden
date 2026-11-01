@@ -181,12 +181,20 @@ function unsqueezeAbs(d: Document) {
  *  vh로 높이를 준 칸(사진 띠 등)이 맞출 때마다 커지고 → 다시 맞추고를 되풀이했다. 언제 멈추는지가 브라우저 · 타이밍마다 달라
  *  크롬 · 웨일과 엣지에서 사진이 서로 다르게 잘려 보였다 (v2.0 사용자 제보). 스타일(<style> · style="") 안의 vh를
  *  열 때의 실제 화면 높이(px)로 바꿔, 원래 페이지에서처럼 화면 기준으로 한 번만 정해지게 한다 */
-const VH_RE = /(-?(?:\d+\.?\d*|\.\d+))[dsl]?vh\b/gi;
+// 앞이 글자 · 숫자 · 점 · 꺾쇠 등이 아닌 「진짜 숫자」만 — base64 그림 데이터(…3vh/…) 같은 글자 조각을 바꾸면 사진이 깨졌다 (v2.0 사용자 제보)
+const VH_RE = /(?<![\w.#%/+=-])(-?(?:\d+\.?\d*|\.\d+))[dsl]?vh(?![\w%])/gi;
+// url(…) · 따옴표 문자열 안은 아예 건드리지 않는다 — 그림 주소 · data: URI 보호
+const CSS_SKIP_RE = /url\([^)]*\)|"[^"]*"|'[^']*'/gi;
 function fixVh(html: string, vhPx: number) {
-  const conv = (css: string) => css.replace(VH_RE, (_, n: string) => `${+(parseFloat(n) * vhPx).toFixed(2)}px`);
+  const num = (css: string) => css.replace(VH_RE, (_, n: string) => `${+(parseFloat(n) * vhPx).toFixed(2)}px`);
+  const conv = (css: string) => {
+    let out = '', i = 0;
+    for (const m of css.matchAll(CSS_SKIP_RE)) { out += num(css.slice(i, m.index)) + m[0]; i = m.index! + m[0].length; }
+    return out + num(css.slice(i));
+  };
   return html
     .replace(/(<style\b[^>]*>)([\s\S]*?)(<\/style>)/gi, (_, a: string, css: string, b: string) => a + conv(css) + b)
-    .replace(/(\sstyle\s*=\s*)("[^"]*"|'[^']*')/gi, (_, a: string, v: string) => a + conv(v));
+    .replace(/(\sstyle\s*=\s*)("[^"]*"|'[^']*')/gi, (_, a: string, v: string) => a + v[0] + conv(v.slice(1, -1)) + v[0]);
 }
 function ProfileHtml({ html }: { html: string }) {
   const frame = useRef<HTMLIFrameElement>(null);
