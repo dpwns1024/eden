@@ -140,7 +140,7 @@ export function MenuListWidget() {
           font-size: 13px;
           font-weight: 600;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-          cursor: pointer;
+          cursor: var(--cur-pointer,pointer);
           user-select: none;
           white-space: nowrap;
           transition: all 0.15s ease;
@@ -188,7 +188,7 @@ export function MenuListWidget() {
           font-size: 13px;
           font-weight: 600;
           color: var(--submenu-color, var(--sub-color, #474c52));
-          cursor: pointer;
+          cursor: var(--cur-pointer,pointer);
           white-space: nowrap;
           text-align: center;
           transition: background 0.15s ease, color 0.15s ease;

@@ -508,7 +508,7 @@ export function HtmlBlockSettingEditor({ conf }: { conf: WidgetConf }) {
         <KStep value={draft.padding ?? 0} min={0} max={100} step={4} suffix="px"
           onChange={v => setDraft(d => ({ ...d, padding: v }))} />
       </div>
-      <label style={{ display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}>
+      <label style={{ display: 'flex', gap: 8, alignItems: 'center', cursor: 'var(--cur-pointer,pointer)' }}>
         <input type="checkbox" checked={draft.autoH ?? false}
           onChange={e => setDraft(d => ({ ...d, autoH: e.target.checked }))} />
         <span style={{ fontSize: 12 }}>화면 맞춤 — 가로는 화면 전체 폭, 높이는 내용만큼 · 창이 좁아지면 잘리지 않게 자동 축소</span>

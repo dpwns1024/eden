@@ -469,7 +469,7 @@ export function RichEditor({ value, onChange, placeholder }: {
             <button
               key={c}
               type="button"
-              style={{ width: 22, height: 22, borderRadius: '50%', backgroundColor: c, border: 'none', cursor: 'pointer' }}
+              style={{ width: 22, height: 22, borderRadius: '50%', backgroundColor: c, border: 'none', cursor: 'var(--cur-pointer,pointer)' }}
               onClick={() => handleColorChange(c)}
             />
           ))}
@@ -477,7 +477,7 @@ export function RichEditor({ value, onChange, placeholder }: {
             type="color"
             value={currentColor}
             onChange={e => handleColorChange(e.target.value)}
-            style={{ width: 28, height: 28, border: 'none', cursor: 'pointer', background: 'transparent' }}
+            style={{ width: 28, height: 28, border: 'none', cursor: 'var(--cur-pointer,pointer)', background: 'transparent' }}
           />
         </div>
       )}
