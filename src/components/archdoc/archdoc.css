@@ -537,7 +537,9 @@ body:has(.arx)::before{display:none !important}
 .ar-ag-pf-h .nm .nmr{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 10px}
 .ar-ag-pf-h .nm .en{font:400 13px/1.2 'Pretendard Variable',Pretendard,'Jost',sans-serif;letter-spacing:.04em;color:#aab5c1}
 .ar-ag-pf-b{font:300 13px/1.85 'Pretendard Variable',Pretendard,sans-serif;color:#c3ccd6;word-break:keep-all}
-.ar-ag-pf-frame{display:block;width:1px;min-width:100%;height:0;border:0;background:transparent;color-scheme:normal}  /* 1px + min-width — iOS 사파리가 iframe 폭을 안 내용 폭으로 늘리는 것 막기 */
+.ar-ag-pf-b:has(> .ar-ag-pf-frame){overflow:hidden}
+/* 폭 · 높이 · 축소(transform)는 ProfileHtml이 px로 정한다 — iOS 사파리가 iframe 폭을 안 내용 폭으로 멋대로 늘리지 못하게 */
+.ar-ag-pf-frame{display:block;width:100%;max-width:none;height:0;border:0;background:transparent;color-scheme:normal;transform-origin:0 0}
 /* 모바일 — 고정 폭 HTML은 통째로 줄여 보여 주므로, 창 여백을 줄여 조금이라도 크게 */
 @media (max-width:560px){
   .mng-box.ar-more-modal.ar-ag-modal{width:96vw;max-width:96vw;padding:16px 12px 12px}

@@ -141,7 +141,7 @@ function AgentCard({ a, onOpen }: { a: ArchAgent; onOpen: () => void }) {
  *  예전엔 창에 바로 심어서 ① 넓은 HTML은 오른쪽이 잘렸고 ② HTML 안의 미디어 쿼리가 창이 아니라 화면 폭을 봐서
  *  모바일에서 레이아웃이 무너졌고 ③ HTML의 <style>이 사이트 전체에 새어 나갈 수 있었다.
  *  iframe 안에서는 미디어 쿼리가 창 폭을 기준으로 돌고, 스타일도 밖으로 나가지 않는다.
- *  그래도 창보다 넓게 고정된 HTML이면 ① 창을 넓히고(화면 94% · 1100px까지) ② 그래도 넘치면 통째로 줄인다(zoom).
+ *  그래도 창보다 넓게 고정된 HTML이면 ① 창을 넓히고(화면 94% · 1100px까지) ② 그래도 넘치면 통째로 줄인다(transform: scale).
  *  사이트 글꼴 규칙(창 본문 300 · 13px, ARCH 창의 각진 모서리 등)도 안 들어가서 붙여 넣은 원본 모양 그대로 보인다 (#273의 목적).
  *  높이는 내용 높이에 맞춰 늘려서, 스크롤은 바깥 창(.ar-ag-pf-sc) 하나로만 한다 */
 const AG_MODAL_MAX = 1100;
@@ -168,9 +168,9 @@ function ProfileHtml({ html }: { html: string }) {
     const fit = () => {
       const d = f.contentDocument, root = d?.documentElement;
       if (!d || !root || !d.body) return;
-      root.style.zoom = '';
       box.style.width = '';
       let avail = holder.clientWidth;
+      f.style.width = `${avail}px`;
       let need = root.scrollWidth;
       if (need > avail + 1) {
         // ① 창 넓히기
@@ -179,15 +179,20 @@ function ProfileHtml({ html }: { html: string }) {
         if (cur < maxW) {
           box.style.width = `${Math.min(maxW, cur + (need - avail))}px`;
           avail = holder.clientWidth;
+          f.style.width = `${avail}px`;
           need = root.scrollWidth;
         }
       }
-      // ② 그래도 넘치면 줄이기 — 소수점 반올림으로 오른쪽 끝 1px이 잘리지 않게 조금 덜 넓게
-      const z = need > avail + 1 ? (avail - 2) / need : 1;
-      if (z < 1) root.style.zoom = String(z);
-      // 높이는 실제로 그려진 크기로 — scrollHeight는 zoom이 이미 반영된 값이라 z를 또 곱하면 아래가 잘리고,
-      // iframe 높이보다 작아지지 않아 내용이 줄어도 창이 안 줄어든다
-      f.style.height = `${Math.ceil(Math.max(root.getBoundingClientRect().height, d.body.getBoundingClientRect().height))}px`;
+      // ② 그래도 넘치면 iframe을 원래 폭으로 그린 뒤 그림처럼 통째로 줄인다(transform).
+      //    CSS zoom은 아이폰 사파리가 글씨에 최소 크기를 적용해 줄 간격만 줄고 글씨는 덜 줄어 겹쳤다 (v2.0 사용자 제보)
+      const w = Math.max(avail, need);
+      f.style.width = `${w}px`;
+      const s = w > avail + 1 ? avail / w : 1;
+      // 높이는 실제로 그려진 크기로 — scrollHeight는 iframe 높이보다 작아지지 않아 내용이 줄어도 창이 안 줄어든다
+      const h = Math.ceil(Math.max(root.getBoundingClientRect().height, d.body.getBoundingClientRect().height));
+      f.style.height = `${h}px`;
+      f.style.transform = s < 1 ? `scale(${s})` : '';
+      holder.style.height = `${Math.ceil(h * s)}px`;
     };
     const later = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(fit); };
     const onLoad = () => {
