@@ -193,6 +193,8 @@ function AgentModal({ a, g, onClose }: { a: ArchAgent | null; g: ArchAgentGroup 
     <Modal open={!!a} onClose={onClose} className="ar-more-modal ar-ag-modal">
       {a && g && (
         <div className="ar-ag-pf">
+          {/* 스크롤은 이 안쪽 칸에서 — 창 상자가 스크롤되면 테두리 · 꺾쇠(::before · ::after)가 내용과 함께 밀려 올라갔다 (v2.0 사용자 제보) */}
+          <div className="ar-ag-pf-sc">
           <div className="ar-ag-pf-h" style={{ '--gc': g.color } as React.CSSProperties}>
             <span className="ph"><AgentPhoto src={a.photo} alt={a.name} /></span>
             <div className="nm">
@@ -204,6 +206,7 @@ function AgentModal({ a, g, onClose }: { a: ArchAgent | null; g: ArchAgentGroup 
           {a.html.trim()
             ? <ProfileHtml html={a.html} />
             : <div className="ar-ag-pf-b pend">PROFILE · 기록 준비 중</div>}
+          </div>
           <div className="ar-more-foot"><button type="button" className="ar-more-close" onClick={onClose}>CLOSE</button></div>
         </div>
       )}
