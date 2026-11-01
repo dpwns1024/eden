@@ -145,9 +145,10 @@ function AgentCard({ a, onOpen }: { a: ArchAgent; onOpen: () => void }) {
  *  사이트 글꼴 규칙(창 본문 300 · 13px, ARCH 창의 각진 모서리 등)도 안 들어가서 붙여 넣은 원본 모양 그대로 보인다 (#273의 목적).
  *  높이는 내용 높이에 맞춰 늘려서, 스크롤은 바깥 창(.ar-ag-pf-sc) 하나로만 한다 */
 const AG_MODAL_MAX = 1100;
+/* text-size-adjust — iOS 사파리가 줄여 보여 주는(zoom) 프로필 안의 글씨를 작다고 보고 일부 문단만 크게 키워 레이아웃이 깨졌다 (v2.0 사용자 제보) */
 const AG_FRAME_BASE = `<base target="_blank">
 <link rel="stylesheet" href="/fonts/pretendard/pretendard.css?v=2"><link rel="stylesheet" href="/fonts/jetbrains/jetbrains.css?v=2">
-<style>html{overflow:hidden;scrollbar-width:none}html::-webkit-scrollbar{display:none}
+<style>html{overflow:hidden;scrollbar-width:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}html::-webkit-scrollbar{display:none}
 body{margin:0;background:transparent;color:#c3ccd6;font-family:'Pretendard Variable',Pretendard,sans-serif;overflow-wrap:break-word}
 img,video{max-width:100%;height:auto}</style>`;
 function ProfileHtml({ html }: { html: string }) {
