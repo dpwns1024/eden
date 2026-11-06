@@ -408,6 +408,12 @@ html.ui-yjhm .notif-menu .nset{border-top:1px solid rgba(44,62,87,.08)}
 .yj-film-wrap{position:relative;flex:1;min-height:0;display:flex;align-items:center}
 .yj-film{--fh:clamp(220px,43vh,388px);--cw:calc(var(--fh) * 1.134);position:relative;left:-80px;width:calc(100% + 160px);height:var(--fh);flex:none;overflow:hidden;transform:rotate(-1.6deg);
   background:#1d2a3d;box-shadow:0 26px 50px rgba(44,62,87,.3)}
+/* 뒤에 겹친 두 번째 띠 — 같은 필름, 기울기만 반대로(왼쪽이 올라감 — 사용자 요청). 앞 띠 뒤에서 X자로 엇갈리고, 제호에 닿지 않게 살짝만 위로 비킨다 */
+.yj-film.back{position:absolute;top:50%;margin-top:calc(var(--fh) * -.56);z-index:0;transform:rotate(3deg);box-shadow:0 18px 40px rgba(44,62,87,.22)}
+.yj-film.back .yj-track{animation-duration:84s;animation-delay:-30s}
+@media (max-height:780px){.yj-film.back{margin-top:calc(var(--fh) * -.5);transform:rotate(2.2deg)}}
+.yj-film.back::after{background:linear-gradient(180deg,rgba(255,255,255,.07),transparent 8%,transparent 92%,rgba(255,255,255,.05)),rgba(14,22,34,.18)}
+.yj-film:not(.back){z-index:1}
 .yj-film::before,.yj-film::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none}
 .yj-film::before{opacity:.5;mix-blend-mode:screen;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .6 0 0 0 0 .68 0 0 0 .5 -.12'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 .yj-film::after{background:linear-gradient(180deg,rgba(255,255,255,.07),transparent 8%,transparent 92%,rgba(255,255,255,.05))}
@@ -589,6 +595,7 @@ html.ui-yjhm body:has(.yj-fh.sub) #appMain .page-head p{font:400 13px/22px 'Pret
   .by-list{width:100%}
   .yj-film-wrap{flex:none;padding:34px 0}
   .yj-film{--fh:200px;left:-40px;width:calc(100% + 80px)}
+  .yj-film.back{margin-top:calc(var(--fh) / -2 - 16px)}
   .yj-ep{font-size:8px}
   .yj-cover-edit{left:16px;top:2px}
   .yj-lower{flex-direction:column;gap:30px;padding:0 16px 20px}
