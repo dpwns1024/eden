@@ -50,7 +50,7 @@ html.ui-yjhm.ui-arch body .page-arch .upzone{border:1px dashed rgba(96,124,160,.
 
 /* 탭 · 세그먼트 — DM Mono 글자, 고른 칸은 남색 라벨 테이프 */
 html.ui-yjhm.ui-arch body .page-arch :is(.seg,.mini-seg){padding:3px;gap:3px;border:0;border-radius:3px;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.14)}
-html.ui-yjhm.ui-arch body .page-arch :is(.seg,.mini-seg) button{border-radius:2px;color:#7d92ae;font:500 11px/1 var(--yj-mono);letter-spacing:.14em}
+html.ui-yjhm.ui-arch body .page-arch :is(.seg,.mini-seg) button{box-sizing:border-box;height:28px;padding-top:0;padding-bottom:0;border-radius:2px;color:#7d92ae;font:500 11px/1 var(--yj-mono);letter-spacing:.14em}
 html.ui-yjhm.ui-arch body .page-arch :is(.seg,.mini-seg) button:hover{color:var(--yj-ink)}
 html.ui-yjhm.ui-arch body .page-arch :is(.seg,.mini-seg) button.on{background:var(--yj-nv2);color:#f2f4f7;box-shadow:0 1px 3px rgba(20,30,48,.25)}
 html.ui-yjhm.ui-arch body .page-arch .arch-tabbar{gap:6px;padding:0;background:none;border:0;box-shadow:none}

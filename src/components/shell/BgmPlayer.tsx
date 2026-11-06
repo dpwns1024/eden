@@ -3,7 +3,10 @@
 // 기본 위치 오른쪽 아래 · 곡 리스트 팝업 (v1.9) · 페이지 이동에도 유지(레이아웃 상주)
 // 브라우저 정책상 소리 재생은 사용자의 첫 클릭부터 시작
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useBgm } from '@/lib/bgmStore';
+import { useWorld } from '@/lib/worldStore';
+import { useBgmSlot } from '@/lib/htmlSlots';
 import { ARCH_FONTS } from '@/lib/archFonts';
 import './bgmDial.css';
 
@@ -71,6 +74,11 @@ const DI = {
   fold: <svg viewBox="0 0 24 24"><path d="M7 6l6 6-6 6M12 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="1.6" /></svg>,
   x: <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" strokeWidth="1.6" /></svg>,
 };
+/* YJHM 재생 · 일시정지 — 24칸 한가운데(12)에 잉크 중심이 오게 (사용자 요청 — 픽셀 단위 정렬) */
+const YI = {
+  play: <svg viewBox="0 0 24 24"><path d="M7 5v14l12-7z" /></svg>,
+  pause: <svg viewBox="0 0 24 24"><path d="M7 5h3.4v14H7zM13.6 5H17v14h-3.4z" /></svg>,
+};
 /* 주파수판 — 87.5~108.5MHz. 곡마다 채널 하나씩 고르게 나눠 준다(곡이 하나면 98.0) */
 const FM_LO = 87.5, FM_SPAN = 21;
 const chFreq = (i: number, n: number) => (n > 1 ? 88.1 + (i * 19.8) / (n - 1) : 98);
@@ -96,6 +104,9 @@ export function BgmPlayer() {
   const rootRef = useRef<HTMLDivElement>(null);
   const holderRef = useRef<HTMLDivElement>(null);
   const volRef = useRef<HTMLDivElement>(null);
+  const uiRef = useRef<HTMLDivElement>(null);   // YJHM — 머리 자리로 옮겨 그린 화면
+  const { world } = useWorld();
+  const bgmSlot = useBgmSlot();
   const idxRef = useRef(0);
   idxRef.current = idx;
   const track = tracks[idx] ?? tracks[0];
@@ -298,7 +309,7 @@ export function BgmPlayer() {
   // 곡 목록 — 바깥을 누르면 닫힌다
   useEffect(() => {
     if (!listOpen) return;
-    const close = (e: Event) => { if (!rootRef.current?.contains(e.target as Node)) setListOpen(false); };
+    const close = (e: Event) => { const t = e.target as Node; if (!rootRef.current?.contains(t) && !uiRef.current?.contains(t)) setListOpen(false); };
     document.addEventListener('pointerdown', close);
     return () => document.removeEventListener('pointerdown', close);
   }, [listOpen]);
@@ -310,6 +321,64 @@ export function BgmPlayer() {
       <div ref={holderRef} />
     </div>
   );
+
+  /* ═══ YJHM — 머리 오른쪽 위 한 줄 (사용자 요청 — 「브금 디자인도 테마에 맞게」) ═══
+     떠 있는 카드 · 다이얼 대신 머리 글자 줄에 붙은 한 줄: 남색 테이프 재생 버튼 · TRACK 번호(DM Mono) · 곡 이름 · 이전/다음 · 목록.
+     목록은 흰 종이로 아래에 펼치고, 맨 아래에 볼륨 줄. 화면만 머리 자리(lib/htmlSlots.ts — bgm 자리)로 옮겨 그리고
+     유튜브 재생기는 여기 그대로 두어 페이지를 옮겨도 끊기지 않는다. 모양은 components/world/yjhm.css */
+  if (world === 'yjhm') {
+    const n = tracks.length;
+    const cur = Math.min(idx, n - 1);
+    const ui = (
+      <div ref={uiRef} className={`bgm-y${playing ? ' is-playing' : ''}${listOpen ? ' list-open' : ''}${bgmSlot ? '' : ' float'}`}>
+        <button type="button" className="by-pp" onClick={togglePlay} aria-label={playing ? '일시정지' : '재생'} data-tip={playing ? '일시정지' : '재생'}>
+          {playing ? YI.pause : YI.play}
+        </button>
+        <div className="by-info">
+          <span className="by-k"><b>TRACK {pad2(cur + 1)}</b><i>/</i>{pad2(n)}<span className="by-eq" aria-hidden="true"><i /><i /><i /><i /></span></span>
+          <Marquee className="by-tt" text={track?.title ?? ''} active={playing} />
+        </div>
+        <span className="by-ctl">
+          <button type="button" onClick={prev} aria-label="이전" data-tip="이전">{DI.prev}</button>
+          <button type="button" onClick={next} aria-label="다음" data-tip="다음">{DI.next}</button>
+          <button type="button" className={listOpen ? 'on' : ''} aria-label="BGM 리스트" aria-expanded={listOpen} data-tip="BGM 리스트"
+            onClick={e => { e.stopPropagation(); setListOpen(o => !o); }}>{DI.list}</button>
+        </span>
+        {listOpen && (
+          <div className="by-list">
+            <header><b>PLAYLIST</b><i>·</i>{pad2(n)}</header>
+            <div className="by-its">
+              {tracks.map((t, i) => (
+                <button type="button" key={t.id} className={`by-it${i === cur ? ' on' : ''}`} onClick={() => { playAt(i); setListOpen(false); }}>
+                  <span className="no">{pad2(i + 1)}</span>
+                  <span className="nm"><b>{t.title}</b>{t.desc && <small>{t.desc}</small>}</span>
+                  {i === cur && <em>{playing ? 'NOW' : 'CUE'}</em>}
+                </button>
+              ))}
+            </div>
+            <footer>
+              <span>VOL</span>
+              <div className="by-vol" ref={volRef} onPointerDown={onVolDrag} role="slider" tabIndex={0} aria-label="볼륨"
+                aria-valuemin={0} aria-valuemax={100} aria-valuenow={volume}
+                onKeyDown={e => {
+                  if (e.key === 'ArrowUp' || e.key === 'ArrowRight') { e.preventDefault(); stepVol(5); }
+                  if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') { e.preventDefault(); stepVol(-5); }
+                }}>
+                <i style={{ width: `${volume}%` }} />
+              </div>
+              <b>{String(volume).padStart(3, '0')}</b>
+            </footer>
+          </div>
+        )}
+      </div>
+    );
+    return (
+      <div ref={rootRef} className="bgm-y-root">
+        {holder}
+        {bgmSlot ? createPortal(ui, bgmSlot) : ui}
+      </div>
+    );
+  }
 
   /* ═══ ARCH 디자인 — 시안 B · FREQUENCY DIAL (v2.0 사용자 확정) ═══
      곡마다 채널(CH.01~) · 주파수판 바늘이 지금 곡 자리로 미끄러진다 · 큰 동그란 재생 버튼 · 은빛 곡 이름.

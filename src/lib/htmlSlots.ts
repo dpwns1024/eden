@@ -38,3 +38,23 @@ export function useMemberSlot(): Element | null {
 /** 이 HTML에 메뉴 자리가 있는가 — 있으면 메인에서는 메뉴 위젯 대신 그 자리에 메뉴를 그린다 */
 export const htmlHasMenuSlot = (html: unknown) =>
   typeof html === 'string' && /data-ohome\s*=\s*["']?menu\b/i.test(html);
+
+/* YJHM 머리 안 BGM 자리 (components/world/YjhmHeader.tsx) — BGM 플레이어가 화면(버튼 · 곡 이름)만 이 자리로 옮겨 그린다.
+   유튜브 재생기는 그대로 두어 페이지를 옮겨도 음악이 끊기지 않는다 */
+let bgmSlot: Element | null = null;
+const bgmSubs = new Set<() => void>();
+export function setBgmSlot(el: Element | null) {
+  if (bgmSlot === el) return;
+  bgmSlot = el;
+  bgmSubs.forEach(f => f());
+}
+export function clearBgmSlot(el: Element) {
+  if (bgmSlot === el) setBgmSlot(null);
+}
+export function useBgmSlot(): Element | null {
+  return useSyncExternalStore(
+    cb => { bgmSubs.add(cb); return () => { bgmSubs.delete(cb); }; },
+    () => bgmSlot,
+    () => null,
+  );
+}

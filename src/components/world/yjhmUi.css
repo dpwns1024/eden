@@ -1,0 +1,93 @@
+/* YJHM — 창 · 로그인 · 알림(토스트) · 말풍선(툴팁) · 로딩 · 버튼 (사용자 요청 — 「로그인 및 그 외 모든 창, 로딩창 등등 싹 다 테마에 맞게」).
+ * 메인 「필름」 1면과 같은 말투: 연회색 바탕 · 흰 종이 · 남색 #1d2a3d / #2c3e57 · 포인트 #607ca0 ·
+ * Inter 제목 + 포인트색 점 · DM Mono 작은 글자 · 남색 라벨 테이프 버튼 · 필름 구멍 띠.
+ * BoardSkinSync가 yjhm.css · yjhmArch.gen.css · yjhmBoard.css 다음에 불러 — 같은 세기면 여기가 이긴다. */
+
+html.ui-yjhm{
+  --yj-perf-svg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='6'%3E%3Crect x='4' y='0' width='8' height='6' rx='1.4' fill='%23eef0f3'/%3E%3C/svg%3E");
+}
+
+/* ── 창 (Modal · ConfirmModal · 관리 창 · ARCH로 뜨는 창 전부) ── */
+html.ui-yjhm .modal-ov{background:rgba(29,42,61,.34);backdrop-filter:blur(3px)}
+html.ui-yjhm .modal-ov .mng-box{position:relative;box-sizing:border-box;padding:42px 28px 24px;border:0 !important;border-radius:4px;background:#fff;color:#1d2a3d;overflow-x:hidden;
+  box-shadow:0 0 0 1px rgba(44,62,87,.1),0 30px 70px rgba(20,30,48,.3);font-family:'Pretendard Variable',Pretendard,'Noto Sans KR',sans-serif;
+  --line:rgba(44,62,87,.12);--line-dark:rgba(44,62,87,.12);--ink:#1d2a3d;--sub:#4a5a70;--faint:#6c7a8c;--accent:#607ca0;--accent-soft:#607ca0;--panel-solid:#fff;--panel:#fff;
+  --btn-dark:#2c3e57;--btn-dark-fg:#f2f4f7;--seg-bg:#eef0f3;--seg-fg:#4a5a70;--focus-bd:#607ca0;--focus-ring:0 0 0 3px rgba(96,124,160,.15);--sb-thumb:rgba(96,124,160,.3);--crop-bg:#eef0f3;
+  animation:yj-win-in .22s cubic-bezier(.2,.7,.2,1)}
+@keyframes yj-win-in{from{opacity:0;transform:translateY(10px)}}
+/* 위 가장자리 — 필름 구멍 띠 (꺾쇠 · 테두리 선 대신) */
+html.ui-yjhm .modal-ov .mng-box::before{content:"" !important;display:block !important;position:absolute;left:0;right:0;top:0;width:auto;height:16px;border:0 !important;border-radius:4px 4px 0 0;
+  background:var(--yj-perf-svg) 0 5px/16px 6px repeat-x,#1d2a3d}
+html.ui-yjhm .modal-ov .mng-box::after{display:none !important}
+html.ui-yjhm .modal-ov .mng-box h3{margin:0 0 6px;font:700 22px/1.15 'Inter','Pretendard Variable',Pretendard,sans-serif;letter-spacing:-.04em;color:#1d2a3d;text-transform:none}
+html.ui-yjhm .modal-ov .mng-box h3::after{content:".";color:#607ca0}
+html.ui-yjhm .modal-ov .mng-box .d{margin:0 0 16px;font:400 12.5px/1.65 'Pretendard Variable',Pretendard,sans-serif;color:#5d6e84;word-break:keep-all}
+html.ui-yjhm .modal-ov .mng-box .modal-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:20px;padding-top:16px;border-top:1px solid rgba(44,62,87,.08)}
+/* 입력 칸 */
+html.ui-yjhm .modal-ov .mng-box :is(.k-input,.k-textarea){border:1px solid rgba(44,62,87,.16) !important;border-radius:3px !important;background:#fff !important;color:#1d2a3d !important;box-shadow:none !important}
+html.ui-yjhm .modal-ov .mng-box .k-input{height:38px;padding:0 12px}
+html.ui-yjhm .modal-ov .mng-box :is(.k-input,.k-textarea)::placeholder{color:#9aa8ba;letter-spacing:0}
+html.ui-yjhm .modal-ov .mng-box :is(.k-input,.k-textarea):focus{border-color:#607ca0 !important;box-shadow:0 0 0 3px rgba(96,124,160,.15) !important}
+html.ui-yjhm .modal-ov .mng-box .k-select .cur{background:#fff;border:1px solid rgba(44,62,87,.16);border-radius:3px;color:#1d2a3d}
+html.ui-yjhm .modal-ov .mng-box .k-select .opts{background:#fff;border:0;border-radius:4px;box-shadow:0 0 0 1px rgba(44,62,87,.12),0 10px 24px rgba(44,62,87,.16)}
+html.ui-yjhm .modal-ov .mng-box .k-select .opts div{color:#1d2a3d}
+html.ui-yjhm .modal-ov .mng-box .k-select .opts div.sel{background:#eef0f3}
+html.ui-yjhm .modal-ov .mng-box .login-err{color:#b84038 !important}
+html.ui-yjhm .modal-ov .mng-box .login-info{color:#1d2a3d !important}
+
+/* ── 버튼 — 라벨 테이프 (창 · 로그인 · 방명록처럼 ARCH로 옮기지 않은 화면까지) ── */
+html.ui-yjhm :is(.modal-ov .mng-box,#appMain .page) :is(.btn-dark,.btn-ghost,.btn-accent,.btn-onbk):not(.yj-btn){display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-height:32px;height:auto;
+  padding:0 calc(14px - .14em) 0 14px;border:0 !important;border-radius:2px !important;background:#fff !important;color:#2c3e57 !important;box-shadow:0 0 0 1px rgba(44,62,87,.18) !important;
+  font:500 11px/1 'DM Mono','Pretendard Variable',Pretendard,monospace !important;letter-spacing:.12em !important;text-transform:uppercase;text-shadow:none;transition:background .15s,color .15s}
+html.ui-yjhm :is(.modal-ov .mng-box,#appMain .page) :is(.btn-ghost,.btn-onbk):not(.yj-btn):hover{background:#eef0f3 !important;color:#1d2a3d !important}
+html.ui-yjhm :is(.modal-ov .mng-box,#appMain .page) :is(.btn-dark,.btn-accent):not(.yj-btn){background:#2c3e57 !important;color:#f2f4f7 !important;text-shadow:0 1px 0 rgba(0,0,0,.4);box-shadow:0 1px 3px rgba(20,30,48,.25),inset 0 1px 0 rgba(255,255,255,.12) !important}
+html.ui-yjhm :is(.modal-ov .mng-box,#appMain .page) :is(.btn-dark,.btn-accent):not(.yj-btn):hover{background:#1d2a3d !important}
+html.ui-yjhm :is(.modal-ov .mng-box,#appMain .page) :is(.btn-dark,.btn-ghost,.btn-accent,.btn-onbk):not(.yj-btn):disabled{opacity:.4}
+
+/* ── 로그인 — 출입증(ACCESS PASS): 흰 종이 · 위에 필름 구멍 띠 · 왼쪽 정렬 Inter 제목 ── */
+html.ui-yjhm .login-page .login-card{position:relative;box-sizing:border-box;max-width:420px !important;margin:clamp(20px,6vh,70px) auto 0 !important;padding:50px 34px 30px !important;border:0 !important;border-radius:4px !important;
+  background:#fff !important;box-shadow:0 0 0 1px rgba(44,62,87,.08),0 24px 60px rgba(44,62,87,.16) !important;backdrop-filter:none !important;overflow:hidden !important;text-align:left}
+html.ui-yjhm .login-page .login-card::before{content:"" !important;display:block !important;position:absolute;left:0;right:0;top:0;width:auto;height:18px;border:0 !important;
+  background:var(--yj-perf-svg) 0 6px/16px 6px repeat-x,#1d2a3d}
+html.ui-yjhm .login-page .login-card::after{display:none !important}
+html.ui-yjhm .login-page .login-card h1{display:flex;flex-direction:column;align-items:flex-start;margin:0 !important;font:700 40px/.95 'Inter','Pretendard Variable',Pretendard,sans-serif !important;letter-spacing:-.055em !important;
+  text-align:left !important;color:#1d2a3d !important;background:none !important;-webkit-text-fill-color:currentColor !important}
+html.ui-yjhm .login-page .login-card h1::before{content:"MEMBERS ONLY — ACCESS PASS";display:block;margin:0 0 12px;font:500 10px/1 'DM Mono',monospace;letter-spacing:.24em;color:#607ca0;-webkit-text-fill-color:#607ca0}
+html.ui-yjhm .login-page .login-card h1::after{content:"";position:absolute;right:34px;top:50px;width:46px;height:46px;border-radius:50%;
+  background:repeating-radial-gradient(circle,transparent 0 4.5px,rgba(96,124,160,.35) 4.5px 5.5px),radial-gradient(circle,#607ca0 0 3px,transparent 3.5px)}
+html.ui-yjhm .login-page .login-card > div:first-of-type{margin:12px 0 24px !important;padding-bottom:20px;border-bottom:1px solid rgba(44,62,87,.1);text-align:left !important}
+html.ui-yjhm .login-page .login-card > div:first-of-type *{font:400 12.5px/1.65 'Pretendard Variable',Pretendard,sans-serif !important;color:#5d6e84 !important;text-align:left !important;word-break:keep-all}
+html.ui-yjhm .login-page .k-input{height:42px;padding:0 14px;border:1px solid rgba(44,62,87,.16) !important;border-radius:3px !important;background:#fff !important;color:#1d2a3d !important;box-shadow:none !important;font:400 13px 'Pretendard Variable',Pretendard,sans-serif}
+html.ui-yjhm .login-page .k-input::placeholder{color:#9aa8ba}
+html.ui-yjhm .login-page .k-input:focus{border-color:#607ca0 !important;box-shadow:0 0 0 3px rgba(96,124,160,.15) !important}
+html.ui-yjhm .login-page .login-card .btn-dark{height:44px !important;padding:0 12px !important;margin-top:4px;font:600 13px/1 'Pretendard Variable',Pretendard,sans-serif !important;letter-spacing:.3em !important;text-indent:.3em}
+html.ui-yjhm .login-page .login-card .login-sub{margin-top:8px !important}
+html.ui-yjhm .login-page .login-card .btn-ghost{height:32px !important;padding:0 12px !important;font:500 11.5px/1 'Pretendard Variable',Pretendard,sans-serif !important;letter-spacing:.06em !important}
+html.ui-yjhm .login-page .login-card .login-err{color:#b84038 !important}
+@media (max-width:620px){html.ui-yjhm .login-page .login-card{padding:46px 22px 24px !important}html.ui-yjhm .login-page .login-card h1::after{right:22px;top:46px}}
+
+/* ── 알림(토스트) — 남색 라벨 테이프 한 줄, 맨 아래 폴더 바 위 ── */
+html.ui-yjhm .toast-box{bottom:126px}
+html.ui-yjhm.ui-yjhm .toast{display:flex;align-items:center;gap:10px;padding:0 16px 0 0;height:34px;border:0;border-radius:2px;background:#2c3e57;color:#f2f4f7;backdrop-filter:none;
+  box-shadow:0 1px 3px rgba(20,30,48,.25),0 12px 28px rgba(20,30,48,.22),inset 0 1px 0 rgba(255,255,255,.12);font:500 12.5px/1 'Pretendard Variable',Pretendard,sans-serif;overflow:hidden}
+html.ui-yjhm.ui-yjhm .toast::before{content:"";flex:none;align-self:stretch;width:14px;background:#1d2a3d url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='12'%3E%3Crect x='0' y='3' width='6' height='6' rx='1.2' fill='%23eef0f3' fill-opacity='.85'/%3E%3C/svg%3E") 4px 5px/6px 12px repeat-y}
+html.ui-yjhm.ui-yjhm .toast::after{display:none !important}
+
+/* ── 말풍선(툴팁) — 작은 남색 테이프 ── */
+html.ui-yjhm .tip-pop{padding:6px 9px;border-radius:2px;background:#1d2a3d;color:#f2f4f7;box-shadow:0 6px 16px rgba(20,30,48,.25);font:500 11px/1.4 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:.02em}
+html.ui-yjhm .tip-pop::before,html.ui-yjhm .tip-pop::after{display:none !important}
+
+/* ── 로딩 — 과녁 링 위로 점이 박히는 표시 + DM Mono LOADING ── */
+html.ui-yjhm .boot-wait{gap:18px;align-content:center;background:#eef0f3}
+html.ui-yjhm .boot-wait i{position:relative;width:46px;height:46px;border:0;border-radius:50%;box-shadow:none;animation:none;
+  background:repeating-radial-gradient(circle,transparent 0 5px,rgba(96,124,160,.3) 5px 6px)}
+html.ui-yjhm .boot-wait i::before{content:"";position:absolute;left:50%;top:50%;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:#2c3e57;animation:yj-hit 1.2s cubic-bezier(.3,.7,.2,1) infinite}
+html.ui-yjhm .boot-wait i::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(96,124,160,.5);animation:yj-ring 1.2s ease-out infinite}
+html.ui-yjhm .boot-wait::after{content:"LOADING";margin-right:-.42em;font:500 9.5px/1 'DM Mono',monospace;letter-spacing:.42em;color:#607ca0}
+@keyframes yj-hit{0%{transform:scale(0);opacity:0}30%{transform:scale(1.25);opacity:1}55%,100%{transform:scale(1);opacity:1}}
+@keyframes yj-ring{0%,25%{transform:scale(.6);opacity:0}35%{opacity:1}100%{transform:scale(1.25);opacity:0}}
+@media (prefers-reduced-motion:reduce){html.ui-yjhm .boot-wait i::before,html.ui-yjhm .boot-wait i::after{animation:none}}
+
+/* ── 업로드 중 표시 ── */
+html.ui-yjhm .up-busy{border:0 !important;border-radius:2px !important;background:#2c3e57 !important;color:#f2f4f7 !important;box-shadow:0 12px 28px rgba(20,30,48,.22) !important;font:500 11px/1 'DM Mono','Pretendard Variable',Pretendard,monospace !important;letter-spacing:.14em}
+html.ui-yjhm .up-busy::before,html.ui-yjhm .up-busy::after{display:none !important}
