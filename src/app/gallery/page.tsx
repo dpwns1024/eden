@@ -106,6 +106,24 @@ function BackupPageInner() {
   useEffect(() => { setPage(1); }, [fCat]);
 
 
+  const tabRow = (
+    <div className="tag-row arch-tabbar">
+      <div className={`tag ${fCat === 'all' ? 'on' : ''}`} onClick={() => setFCat('all')}>
+        {arch ? 'ALL' : '전체'} <small>{readable.length}</small>
+      </div>
+      {cats.map(c => (
+        <div key={c.id} className={`tag ${fCat === c.id ? 'on' : ''}`} onClick={() => setFCat(c.id)}>
+          {c.name} <small>{c.n}</small>
+        </div>
+      ))}
+      {noCat > 0 && cats.length > 0 && (
+        <div className={`tag ${fCat === noKey ? 'on' : ''}`} onClick={() => setFCat(noKey)}>
+          {arch ? 'ETC' : '기타'} <small>{noCat}</small>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <section className="page page-arch page-gallery">
       <div className="page-head">
@@ -113,33 +131,16 @@ function BackupPageInner() {
         <EditableDesc k="backup-desc" def="로그형(웹툰 스크롤) / 단일형(좌우 넘김) · 페어링별로 나눠 보기" />
       </div>
       <div className="toolrow">
-        {/* 페어링 탭 — ARCH에선 목차 탭 줄 모양 (globals.css .arch-tabbar · JOURNAL · FIELD REPORT와 같은 모양) */}
-        <div className="tag-row arch-tabbar">
-          <div className={`tag ${fCat === 'all' ? 'on' : ''}`} onClick={() => setFCat('all')}>
-            {arch ? 'ALL' : '전체'} <small>{readable.length}</small>
-          </div>
-          {cats.map(c => (
-            <div key={c.id} className={`tag ${fCat === c.id ? 'on' : ''}`} onClick={() => setFCat(c.id)}>
-              {c.name} <small>{c.n}</small>
-            </div>
-          ))}
-          {noCat > 0 && cats.length > 0 && (
-            <div className={`tag ${fCat === noKey ? 'on' : ''}`} onClick={() => setFCat(noKey)}>
-              {arch ? 'ETC' : '기타'} <small>{noCat}</small>
-            </div>
-          )}
-        </div>
+        {/* 페어링 탭 — ARCH에선 목차 탭 줄 모양 (globals.css .arch-tabbar · JOURNAL · FIELD REPORT와 같은 모양).
+            YJHM은 바인더 위 책갈피로 옮긴다 (아래 yj-bm) */}
+        {!yj && tabRow}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {user && <button className="btn btn-dark" onClick={() => router.push('/gallery/write' + secQuery('gallery', sec.id))}>✎ WRITE</button>}
         </div>
       </div>
 
-      {yj && visible.length > 0 && (
-        <div className="yj-binder-h" aria-hidden="true">
-          <span>COLLECT BOOK</span><b>PAGE {String(cur).padStart(2, '0')}<i>/</i>{String(pages).padStart(2, '0')}</b>
-          <span>{visible.length} CARDS</span>
-        </div>
-      )}
+      {/* YJHM — 카테고리는 바인더 위에 꽂은 책갈피 (사용자 요청 — 「콜렉트북 · 페이지 없애고 카테고리를 바인더 위에 책갈피처럼」) */}
+      {yj && <div className="yj-bm">{tabRow}</div>}
       <div className={yj ? 'g3 yj-binder land' : 'g3'} style={{ display: visible.length > 0 ? undefined : 'none' }}>
           {paged.map((p, si) => {
             const i = start + si;
