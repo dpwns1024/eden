@@ -16,6 +16,8 @@ HAIR = 'rgba(96,124,160,.3)'
 def adj(key):
     a = ADJ.get(key, {})
     return a.get('w'), a.get('t', 0)
+A = lambda key, k, d=0: ADJ.get(key, {}).get(k, d)
+
 def dh(key):
     return ADJ.get(key, {}).get('h', 0)
 
@@ -183,60 +185,36 @@ S4 = slide(3, 'Misfire', '불발 기록', f'''
             </div>
             <div style="margin-top:8px;text-align:right;{F}font-size:9px;color:{LN};line-height:12px;">* 방아쇠에 손가락만 걸린 채 · 사선 밖으로 반출 금지</div>''')
 
-perf = "background:repeating-linear-gradient(90deg,transparent 0 4px,#eef0f3 4px 10px,transparent 10px 14px);"
-edge = lambda t: f'<span>{t}</span>'
-# 맨 위 가장자리 — 곧은 35mm 필름 띠 (구멍 줄 사이에 가장자리 인쇄만)
-FILM = f'''<div style="position:relative;height:26px;background:{INK};">
-      <div style="position:absolute;left:0;right:0;top:3px;height:4px;{perf}"></div>
-      <div style="position:absolute;left:0;right:0;bottom:3px;height:4px;{perf}"></div>
-      <div style="position:absolute;left:16px;right:16px;top:9px;display:flex;justify-content:space-between;align-items:center;gap:16px;{F}{NUM}font-size:7px;font-weight:600;letter-spacing:.16em;color:#c9cfd6;line-height:8px;white-space:nowrap;overflow:hidden;">
-        {edge('TEN RING 400')}{edge('▶ 11A')}<span style="flex-shrink:0;display:inline-block;width:30px;height:6px;opacity:.7;background:repeating-linear-gradient(90deg,#c9cfd6 0 3px,transparent 3px 5px,#c9cfd6 5px 6px,transparent 6px 10px);"></span>{edge('SAFETY FILM')}{edge('▶ 12')}
-      </div>
-    </div>'''
-
-# 10m 공기권총 표적 — 흰 바탕 링 + 검은 조준 구역 + 탄흔 세 개
-hole = lambda x, y: f'<span style="position:absolute;left:{x}px;top:{y}px;width:6px;height:6px;border-radius:50%;background:#f2f4f7;box-shadow:0 0 0 1px #fff,0 0 0 2.5px rgba(96,124,160,.55),inset 0 1px 2px rgba(29,42,61,.6);"></span>'
-TARGET = f'''<div style="position:relative;flex-shrink:0;width:108px;height:108px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.14),0 10px 22px rgba(44,62,87,.14);">
-            <span style="position:absolute;inset:5px;border-radius:50%;background:repeating-radial-gradient(circle,transparent 0 8.5px,rgba(44,62,87,.42) 8.5px 9.3px);"></span>
-            <span style="position:absolute;inset:21px;border-radius:50%;background:{INK};box-shadow:0 0 0 3px #fff,0 0 0 4px rgba(44,62,87,.35);"></span>
-            <span style="position:absolute;inset:21px;border-radius:50%;background:repeating-radial-gradient(circle,transparent 0 8.5px,rgba(255,255,255,.45) 8.5px 9.3px);"></span>
-            <span style="position:absolute;left:53.5px;top:0;bottom:0;width:1px;background:linear-gradient({AC} 0 14%,transparent 14% 86%,{AC} 86%);opacity:.7;"></span>
-            <span style="position:absolute;top:53.5px;left:0;right:0;height:1px;background:linear-gradient(90deg,{AC} 0 14%,transparent 14% 86%,{AC} 86%);opacity:.7;"></span>
-            {hole(49, 46)}{hole(60, 55)}{hole(42, 61)}
-          </div>'''
-
-def info(label, ph, last=False, val_style=''):
-    return f'''<div style="display:flex;align-items:center;gap:12px;min-height:34px;padding:0 14px;{'' if last else 'border-bottom:1px solid rgba(44,62,87,.08);'}">
-            <span style="position:relative;top:-1px;flex-shrink:0;width:30px;{F}font-size:10px;font-weight:600;color:{AC};line-height:12px;">{label}</span>
-            <span style="min-width:0;padding:8px 0;{F}font-size:12px;line-height:18px;color:{INK};{val_style}">{ph}</span>
-          </div>'''
+# 첫 화면 (시안 4 · 말풍선 대화) — 프로필 동그라미 (글자 위아래 · 크기는 측정값)
+def av(t, bg, key):
+    s = 30 + A(key, 's'); tt = A(key, 't')
+    return (f'<span data-c="{key}" style="flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;width:{s}px;height:{s}px;padding:{max(tt,0)}px 0 {max(-tt,0)}px;'
+            f'border-radius:50%;background:{bg};color:#fff;{F}font-size:10px;font-weight:800;letter-spacing:.02em;line-height:11px;box-shadow:0 0 0 2px #fff,0 0 0 3.5px {INK};">{t}</span>')
 
 HTML = f'''<div style="width:100%;max-width:520px;margin:16px auto;color:{INK};word-break:keep-all;line-height:1.5;{F}">
-  <div style="position:relative;overflow:hidden;background-color:#eef0f3;background-image:repeating-radial-gradient(circle at 74px 102px,transparent 0 64px,rgba(96,124,160,.12) 64px 65px);border-radius:6px;box-shadow:0 0 0 1px rgba(44,62,87,.1),0 18px 40px rgba(44,62,87,.14);">
-
-    <!-- ===== 맨 위 필름 가장자리 ===== -->
-    {FILM}
+  <div style="position:relative;overflow:hidden;background-color:#eef0f3;border-radius:6px;box-shadow:0 0 0 1px rgba(44,62,87,.1),0 18px 40px rgba(44,62,87,.14);">
 
     <details>
-      <summary style="list-style:none;cursor:pointer;user-select:none;padding:22px 20px 20px;">
-        <!-- 표적 + 제목 -->
-        <div style="display:flex;align-items:center;gap:20px;">
-          {TARGET}
-          <div style="min-width:0;">
-            <div style="line-height:10px;">{cap('TEN RING', 8.5, .2)}</div>
-            <div style="margin-top:9px;{F}font-size:26px;font-weight:800;letter-spacing:-.04em;color:{INK};line-height:30px;">격발 기록지<span style="color:{AC};">.</span></div>
-            <div style="margin-top:8px;{F}font-size:11px;font-weight:500;color:{SUB};line-height:14px;">국가대표 사격팀 · {{{{11}}}}번 레인</div>
-          </div>
+      <summary style="list-style:none;cursor:pointer;user-select:none;padding:20px 20px 20px;">
+        <!-- 제목 + 레인 -->
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+          <div style="min-width:0;position:relative;top:{A('_ttl_top', 0)}px;{FT}font-size:22px;font-weight:800;letter-spacing:-.04em;line-height:26px;color:{INK};">Hong Yejun Fan Account<span style="color:{AC};">♡</span></div>
+          {tape('LANE {{11}}', 'lane', h=22, size=9, ls=.14, extra='border-radius:11px;')}
         </div>
-        <!-- 정보 칸 -->
-        <div style="margin-top:20px;background:#fff;border-radius:4px;box-shadow:0 0 0 1px rgba(44,62,87,.1),0 6px 16px -8px rgba(44,62,87,.18);">
-          {info('일시', '{{3}} {{4}}', val_style=NUM + 'color:' + NV2 + ';font-weight:600;')}
-          {info('장소', '{{1}}', val_style='font-weight:700;')}
-          {info('상황', '{{2}}', last=True, val_style='color:' + SUB + ';')}
+        <!-- 하민 말풍선 — 장소 -->
+        <div style="display:flex;align-items:flex-end;gap:8px;margin-top:16px;">
+          {av('HM', NV2, 'av-hm')}
+          <div style="max-width:76%;padding:9px 13px;border-radius:16px 16px 16px 4px;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.12),2px 2px 0 rgba(44,62,87,.12);{F}font-size:12.5px;font-weight:700;line-height:19px;color:{INK};">{{{{1}}}}</div>
         </div>
-        <!-- 장전 버튼 -->
-        <div style="display:flex;margin-top:12px;">
-          {tape('LOAD RECORD', 'load', h=36, size=10.5, ls=.22, pad=14, extra='flex:1;border-radius:3px;')}
+        <!-- 예준 말풍선 — 상황 · 일시 -->
+        <div style="display:flex;justify-content:flex-end;align-items:flex-end;gap:8px;margin-top:8px;">
+          {cap('{{3}} {{4}}', 8.5, .04, LN, 600, 'padding-bottom:2px;')}
+          <div style="max-width:70%;padding:9px 13px;border-radius:16px 16px 4px 16px;background:{AC};box-shadow:2px 2px 0 rgba(29,42,61,.25);{F}font-size:12.5px;font-weight:600;line-height:19px;color:#fff;">{{{{2}}}} ♥</div>
+          {av('YJ', AC, 'av-yj')}
+        </div>
+        <!-- 펼치기 버튼 -->
+        <div style="display:flex;margin-top:18px;">
+          {tape('기사 전문 보기♡', 'load', h=36, size=11, ls=.06, extra='flex:1;border-radius:18px;')}
         </div>
       </summary>
 
