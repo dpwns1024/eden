@@ -95,3 +95,9 @@ html.ui-yjhm .bgm-d .bd-dial i::before{box-shadow:none}
 /* 그림 없는 자리(.ph) — 필름 빈 칸과 같은 연한 남색 그라데이션 */
 html.ui-yjhm.ui-arch body .page-arch .ph{background:linear-gradient(170deg,#d5dfeb,#9db0c9);color:#f2f4f7}
 html.ui-yjhm.ui-arch body .page-arch .ph span{background:none;padding:0 8px;font:500 11px/1 var(--yj-mono);letter-spacing:.22em}
+
+/* 게시판 목록 말머리 딱지(공지 · 페어 이름 · 접기) — 회색 알약 대신 흰 라벨 테이프 (사용자 제보 — 「YJHM」 딱지 정렬 · 모양)
+   높이 20 짝수 · DM Mono. 글자 가운데는 TagAlign이 화면에서 재서 맞춘다 */
+html.ui-yjhm.ui-arch body .page-arch :is(.b-badge,.brow .cat > span){display:inline-flex !important;align-items:center !important;justify-content:center !important;box-sizing:border-box !important;
+  height:20px !important;min-height:0 !important;padding:0 calc(7px - .14em) 0 7px !important;border:0 !important;border-radius:2px !important;background:#fff !important;color:#2c3e57 !important;
+  box-shadow:0 0 0 1px rgba(44,62,87,.2) !important;font:500 9px/1 'DM Mono','Pretendard Variable',Pretendard,monospace !important;letter-spacing:.14em !important;text-transform:uppercase}
