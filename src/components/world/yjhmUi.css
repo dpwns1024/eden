@@ -91,3 +91,59 @@ html.ui-yjhm .boot-wait::after{content:"LOADING";margin-right:-.42em;font:500 9.
 /* ── 업로드 중 표시 ── */
 html.ui-yjhm .up-busy{border:0 !important;border-radius:2px !important;background:#2c3e57 !important;color:#f2f4f7 !important;box-shadow:0 12px 28px rgba(20,30,48,.22) !important;font:500 11px/1 'DM Mono','Pretendard Variable',Pretendard,monospace !important;letter-spacing:.14em}
 html.ui-yjhm .up-busy::before,html.ui-yjhm .up-busy::after{display:none !important}
+
+/* ── 한글 자간 (사용자 요청 — 「한글에도 넓은 띄어쓰기 안 들어가게 무조건」) ──
+ * 영문 라벨용 넓은 자간이 한글 칸(로그인 · 비밀번호 · 입장 …)에 붙으면 글자가 띄어 보인다. 한글이 든 칸은
+ * components/shell/LetterSpacingFix.tsx가 data-ko로 표시하고(띄어쓰기 폭은 거기서 word-spacing으로 줄인다), 여기서 좁힌다.
+ * 라벨 테이프는 자간 끝 여백을 padding으로 상쇄해 두었으니, 한글이면 그 상쇄도 함께 걷는다 */
+html.ui-yjhm [data-ko][data-ko][data-ko],html.ui-yjhm #appMain [data-ko][data-ko][data-ko]{letter-spacing:.02em !important}
+html.ui-yjhm [data-ko-ph][data-ko-ph][data-ko-ph]::placeholder{letter-spacing:.02em !important}
+html.ui-yjhm .yj-tape[data-ko]{padding:0 calc(11px - .02em) 0 11px}
+@media (max-width:820px){html.ui-yjhm .yj-film-home .yj-tape[data-ko]{padding:0 calc(8px - .02em) 0 8px}}
+
+/* ── 회원증 (components/world/YjhmPass.tsx) — 로그인 · 잠긴 메뉴 · 잠긴 글 ──
+ * 홍예준 팬페이지 회원증 한 장: 남색 띠(필름 구멍 + TEAM YEJUN) → 머리글 · Inter 제목 + 점 · 과녁 문장 → 이름표 단 입력칸
+ * → 절취선(양옆 반달 홈) 아래 회원 번호 · 바코드. 홈 색은 뒤 바탕과 같게(--yj-notch) */
+html.ui-yjhm .yj-pass{--yj-notch:#eef0f3;position:relative;box-sizing:border-box;width:min(400px,100%);margin:clamp(20px,6vh,64px) auto 0;border-radius:6px;background:#fff;color:#1d2a3d;text-align:left;
+  box-shadow:0 0 0 1px rgba(44,62,87,.08),0 24px 60px rgba(44,62,87,.16);font-family:'Pretendard Variable',Pretendard,'Noto Sans KR',sans-serif}
+html.ui-yjhm body:has(.yj-fh.sub.tabbed) .yj-pass{--yj-notch:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.1),0 16px 40px rgba(44,62,87,.12)}
+html.ui-yjhm .yj-pass.lock{width:min(360px,100%);margin-top:clamp(12px,3vh,32px)}
+html.ui-yjhm .yj-pass-band{display:flex;justify-content:space-between;align-items:center;box-sizing:border-box;height:44px;padding:10px 22px 0;border-radius:6px 6px 0 0;
+  background:var(--yj-perf-svg) 3px 4px/16px 6px repeat-x,#1d2a3d;font:500 9.5px/1 'DM Mono',monospace;letter-spacing:.22em;color:#9fb0c6}
+html.ui-yjhm .yj-pass-band b{font-weight:500;color:#f2f4f7}
+html.ui-yjhm .yj-pass-body{position:relative;padding:26px 28px 26px}
+html.ui-yjhm .yj-pass-mark{position:absolute;right:26px;top:24px;width:50px;height:50px;border-radius:50%;
+  background:radial-gradient(circle,#607ca0 0 3px,transparent 3.5px),repeating-radial-gradient(circle,transparent 0 5px,rgba(96,124,160,.35) 5px 6px)}
+html.ui-yjhm .yj-pass-k{display:block;margin:0 0 10px;padding-right:60px;font:500 9.5px/14px 'DM Mono',monospace;letter-spacing:.2em;color:#607ca0}
+html.ui-yjhm .yj-pass-t{margin:0;padding:0;font:700 34px/1 'Inter','Pretendard Variable',Pretendard,sans-serif;letter-spacing:-.05em;color:#1d2a3d;text-align:left;background:none;-webkit-text-fill-color:currentColor}
+html.ui-yjhm .yj-pass-t i{font-style:normal;color:#607ca0}
+html.ui-yjhm .yj-pass-d{margin:14px 0 0;padding:0 0 18px;border-bottom:1px solid rgba(44,62,87,.1)}
+html.ui-yjhm .yj-pass-d,html.ui-yjhm .yj-pass-d *{font:400 12.5px/20px 'Pretendard Variable',Pretendard,sans-serif !important;letter-spacing:0 !important;color:#5d6e84 !important;text-align:left !important;word-break:keep-all}
+html.ui-yjhm .yj-pass-fs{display:grid;gap:12px;margin-top:20px}
+html.ui-yjhm .yj-pass-f{display:grid;gap:7px}
+html.ui-yjhm .yj-pass-f > span{font:500 9px/1 'DM Mono',monospace;letter-spacing:.22em;color:#8a9bb2}
+html.ui-yjhm .yj-pass .k-input{box-sizing:border-box;width:100%;height:42px;padding:0 14px;border:1px solid rgba(44,62,87,.16) !important;border-radius:3px !important;background:#fff !important;color:#1d2a3d !important;box-shadow:none !important;font:400 13px 'Pretendard Variable',Pretendard,sans-serif}
+html.ui-yjhm .yj-pass .k-input::placeholder{color:#9aa8ba}
+html.ui-yjhm .yj-pass .k-input:focus{border-color:#607ca0 !important;box-shadow:0 0 0 3px rgba(96,124,160,.15) !important}
+html.ui-yjhm .yj-pass .login-err{margin:0;font:400 12px/18px 'Pretendard Variable',Pretendard,sans-serif;color:#b84038 !important}
+html.ui-yjhm #appMain .yj-pass .btn.yj-pass-go{width:100%;height:44px;margin-top:4px;padding:0 12px !important;font:600 13px/1 'Pretendard Variable',Pretendard,sans-serif !important;letter-spacing:.02em !important}
+html.ui-yjhm .yj-pass-sub{display:flex;gap:6px;margin-top:8px}
+html.ui-yjhm #appMain .yj-pass-sub .btn{flex:1;height:34px;padding:0 10px !important;font:500 12px/1 'Pretendard Variable',Pretendard,sans-serif !important;letter-spacing:.02em !important}
+html.ui-yjhm .yj-pass-stub{position:relative;display:flex;justify-content:space-between;align-items:center;gap:12px;box-sizing:border-box;height:50px;padding:0 28px;border-top:1px dashed rgba(44,62,87,.22);border-radius:0 0 6px 6px;background:#f6f7f9;
+  font:500 9.5px/1 'DM Mono',monospace;letter-spacing:.16em;color:#607ca0;white-space:nowrap}
+html.ui-yjhm .yj-pass-stub::before,html.ui-yjhm .yj-pass-stub::after{content:"";position:absolute;top:-9px;width:18px;height:18px;border-radius:50%;background:var(--yj-notch);box-shadow:inset 0 0 0 1px rgba(44,62,87,.08)}
+html.ui-yjhm .yj-pass-stub::before{left:-9px;clip-path:inset(0 0 0 50%)}
+html.ui-yjhm .yj-pass-stub::after{right:-9px;clip-path:inset(0 50% 0 0)}
+html.ui-yjhm .yj-pass-stub i{font-style:normal;margin:0 8px;color:#9fb0c6}
+html.ui-yjhm .yj-pass-stub .yj-pass-bar{flex:none;width:92px;height:20px;margin:0;
+  background:repeating-linear-gradient(90deg,#2c3e57 0 1px,transparent 1px 3px,#2c3e57 3px 5px,transparent 5px 6px,#2c3e57 6px 7px,transparent 7px 10px,#2c3e57 10px 12px,transparent 12px 13px)}
+@media (max-width:620px){
+  html.ui-yjhm .yj-pass-body{padding:22px 20px 22px}
+  html.ui-yjhm .yj-pass-band{padding:10px 18px 0}
+  html.ui-yjhm .yj-pass-mark{right:18px;top:20px;width:42px;height:42px}
+  html.ui-yjhm .yj-pass-t{font-size:30px}
+  html.ui-yjhm .yj-pass-stub{padding:0 20px}
+  html.ui-yjhm .yj-pass-stub .yj-pass-bar{width:64px}
+}
+/* 자간 끝 여백을 padding으로 상쇄해 둔 칸 — 한글이면(자간 .02em) 상쇄도 그만큼만 */
+html.ui-yjhm .yj-fh .yj-member .login-link[data-ko]{padding:0 calc(9px - .02em) 0 9px}

@@ -8,6 +8,8 @@ import { useToast } from '@/components/ui/Toast';
 import { KInput } from '@/components/ui/Kit';
 import { Modal } from '@/components/ui/Modal';
 import { EditableDesc } from '@/components/ui/PageText';
+import { useWorld } from '@/lib/worldStore';
+import { YjhmPass, YjhmPassField } from '@/components/world/YjhmPass';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -35,7 +37,15 @@ export default function LoginPage() {
   // 로그인 화면 디자인 (환경설정 → 회원/보안) — ARCH면 각진 어두운 카드 + 요원 말투
   const [arch, setArch] = useState(false);
   useEffect(() => { setCanSignup(signupAllowed()); setArch(loginSkin() === 'arch'); }, []);
-  const T = arch
+  // YJHM 세계면 홍예준 팬페이지 회원증 (요원 말투 대신 팬페이지 회원 말투)
+  const { world } = useWorld();
+  const yj = world === 'yjhm';
+  const T = yj
+    ? { desc: '홍예준 팬페이지 회원 전용 공간입니다 — 회원 아이디로 로그인해 주세요', id: '아이디', findId: '아이디 찾기',
+        findTitle: mock ? '아이디·비밀번호 찾기' : '비밀번호 재설정',
+        findDesc: mock ? '가입할 때 적은 이메일로 아이디를 찾거나 임시 비밀번호를 받습니다' : '가입한 이메일로 재설정 링크를 보냅니다',
+        mail: '이메일', found: '아이디', cancel: '취소', send: '보내기' }
+    : arch
     ? { desc: 'ARCH 정식 요원만 접속할 수 있습니다 — 인가된 계정으로 인증하세요', id: '식별코드', findId: '식별코드 찾기',
         findTitle: mock ? '식별코드·비밀번호 찾기' : '비밀번호 재설정',
         findDesc: mock ? '지급한 단말기로 식별코드를 찾거나 임시 비밀번호를 발급합니다' : '지급한 단말기로 재설정 링크를 보냅니다',
@@ -45,10 +55,10 @@ export default function LoginPage() {
         findDesc: mock ? '가입 시 등록한 이메일로 아이디를 찾거나 임시 비밀번호를 발급합니다' : '가입한 이메일로 재설정 링크를 보냅니다',
         mail: '이메일', found: '아이디', cancel: 'CANCEL', send: 'SEND' };
   /* 서버가 돌려준 오류 문구도 ARCH 말투로 — 「이메일 형식이…」 대신 「식별코드가…」 */
-  const loginErr = (m: string) => (!arch ? m
+  const loginErr = (m: string) => (!arch || yj ? m
     : /이메일 형식/.test(m) ? '식별코드가 올바르지 않습니다.'
     : m.replace(/아이디|이메일/g, '식별코드'));
-  const findErr = (m: string) => (!arch ? m
+  const findErr = (m: string) => (!arch || yj ? m
     : /이메일 형식|올바르지 않/.test(m) ? '단말기 코드 번호가 올바르지 않습니다.'
     : m.replace(/이메일/g, '단말기 코드 번호').replace(/아이디/g, '식별코드'));
 
@@ -77,7 +87,7 @@ export default function LoginPage() {
     setFErr(''); setFInfo('');
     const r = await findId(fEmail.trim());
     if (!r.ok) { setFErr(findErr(r.error ?? '요청 실패')); return; }
-    setFInfo(`${arch ? '식별코드' : '아이디'}: ${r.foundId}`);
+    setFInfo(`${arch && !yj ? '식별코드' : '아이디'}: ${r.foundId}`);
   };
 
   const doFind = async () => {
@@ -89,8 +99,24 @@ export default function LoginPage() {
   };
 
   return (
-    <section className={`page login-page ${arch ? 'login-arch' : ''}`}>
-      {/* 타이틀은 카드 안 가운데 정렬 (v1.9 — 메뉴 페이지가 아니라 상단 대제목을 두지 않음) */}
+    <section className={`page login-page ${arch && !yj ? 'login-arch' : ''}${yj ? ' login-yj' : ''}`}>
+      {yj ? (
+        <YjhmPass card="MEMBERSHIP CARD" kicker="HONG YEJUN FAN PAGE — MEMBERS ONLY" title="Member Login">
+          <div className="yj-pass-d"><EditableDesc k="login-desc" def={T.desc} /></div>
+          <div className="yj-pass-fs">
+            <YjhmPassField label="MEMBER ID"><KInput placeholder={T.id} value={id} onChange={e => setId(e.target.value)} /></YjhmPassField>
+            <YjhmPassField label="PASSWORD"><KInput placeholder="비밀번호" type="password" value={pw} onChange={e => setPw(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') doLogin(); }} /></YjhmPassField>
+            {err && <p className="login-err">{err}</p>}
+            <button className="btn btn-dark yj-pass-go" onClick={doLogin}>로그인</button>
+          </div>
+          <div className="yj-pass-sub">
+            {canSignup && <button className="btn btn-ghost" onClick={() => setSignupOpen(true)}>회원가입</button>}
+            <button className="btn btn-ghost" onClick={() => setFindOpen(true)}>비밀번호 찾기</button>
+          </div>
+        </YjhmPass>
+      ) : (
+      /* 타이틀은 카드 안 가운데 정렬 (v1.9 — 메뉴 페이지가 아니라 상단 대제목을 두지 않음) */
       <div className="panel login-card" style={{ padding: 28, maxWidth: 480, margin: '40px auto 0' }}>
         <h1 style={{
           fontFamily: 'var(--serif)', fontSize: 24, letterSpacing: '.3em', textAlign: 'center',
@@ -116,13 +142,14 @@ export default function LoginPage() {
         </div>
         {/* (v1.9) 개발용 기본 계정 안내 제거 — 설치 화면에서 계정을 직접 지정하므로 배포본에는 불필요 */}
       </div>
+      )}
 
       {/* 회원가입 모달 (4.8 — 가입코드 방식) */}
       <Modal open={signupOpen} onClose={() => setSignupOpen(false)} small
-        title="회원가입" desc="가입코드(초대코드)가 있어야 가입할 수 있습니다"
+        title="회원가입" desc={yj ? '홍예준 팬페이지 회원이 되려면 가입코드(초대코드)가 필요합니다' : '가입코드(초대코드)가 있어야 가입할 수 있습니다'}
         dirty={!!(sId || sPw || sNick || sCode)}
         actions={<>
-          <button className="btn btn-ghost" onClick={() => setSignupOpen(false)}>CANCEL</button>
+          <button className="btn btn-ghost" onClick={() => setSignupOpen(false)}>{yj ? '취소' : 'CANCEL'}</button>
           <button className="btn btn-dark" onClick={doSignup}>가입</button>
         </>}>
         <div style={{ display: 'grid', gap: 9 }}>
@@ -140,7 +167,7 @@ export default function LoginPage() {
 
       {/* 아이디·비밀번호 찾기 모달 (4.8, v1.9) — 가입 이메일 기준 */}
       <Modal open={findOpen} onClose={() => { setFindOpen(false); setFInfo(''); setFErr(''); }} small
-        className={arch ? 'arch-modal' : undefined}
+        className={arch && !yj ? 'arch-modal' : undefined}
         title={T.findTitle}
         desc={T.findDesc}
         dirty={!!fEmail}

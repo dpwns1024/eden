@@ -4,6 +4,7 @@
  * 「메뉴 들어가면 메인이랑 아예 다르다」(사용자 지적) — 그래서 다른 페이지도 메인과 같은 머리(GOLD MEDALIST 줄 + Hong Yejun.)와
  * 같은 맨 아래 폴더 바를 쓴다. 다른 페이지 머리는 제호만 조금 작다(.sub).
  * 오른쪽 위: 세계 전환 · 로그인(TopBar가 member 자리로 옮겨 그린다 — lib/htmlSlots.ts) → 번호 · 날짜 → BGM 한 줄(BgmPlayer가 bgm 자리로 옮겨 그린다).
+ * 폴더를 누르면 하위 메뉴 목록 없이 첫 하위 메뉴로 바로 간다(SlotMenu direct) — 나머지는 머리 탭에서.
  * 폴더 바는 폴더가 모두 왼쪽 · 오른쪽 칸은 비워 둔다(사용자가 다른 것을 넣을 자리). 모양은 yjhm.css.
  */
 import React, { useEffect, useRef, useState } from 'react';
@@ -27,7 +28,7 @@ function useSlotRef(set: (el: Element) => void, clear: (el: Element) => void) {
 
 /** 2026.03.05부터 센 날 (그날이 1일 — 사용자 요청) */
 const DDAY_FROM = new Date(2026, 2, 5);
-const dday = (now: Date) => Math.floor((new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() - DDAY_FROM.getTime()) / 86400000) + 1;
+export const dday = (now: Date) => Math.floor((new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() - DDAY_FROM.getTime()) / 86400000) + 1;
 
 /** 다른 페이지 머리 줄의 지금 메뉴 — 맨 아래 폴더 바에서 켜진 폴더의 번호 · 이름 (예: 02 · PEOPLE) */
 function useSection(on: boolean) {
@@ -135,7 +136,7 @@ export function YjhmDock({ quote, onEditQuote }: { quote?: { who: string; text: 
       {onEditQuote
         ? <button type="button" className="yj-quote edit" onClick={onEditQuote} data-tip="한마디 고치기">{body}</button>
         : quote && <p className="yj-quote">{body}</p>}
-      <nav className="yj-dock-menu" aria-label="메뉴"><SlotMenu /></nav>
+      <nav className="yj-dock-menu" aria-label="메뉴"><SlotMenu direct /></nav>
     </div>
   );
 }

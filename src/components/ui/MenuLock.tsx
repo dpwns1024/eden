@@ -7,6 +7,8 @@ import { lockKeyOf } from '@/lib/menuLock';
 import { PageTitle } from '@/components/ui/PageText';
 import { KInput } from '@/components/ui/Kit';
 import { boardSkin } from '@/lib/boardSkin';
+import { useWorld } from '@/lib/worldStore';
+import { YjhmPass, YjhmPassField } from '@/components/world/YjhmPass';
 
 /** 이 잠긴 메뉴를 지금 볼 수 있는가 — 회원·관리자는 항상, 방문자는 비밀번호를 통과했을 때만.
  *  lockHref = 이 주소를 다스리는 잠긴 메뉴 (governingLock) — null이면 잠기지 않은 곳 */
@@ -41,6 +43,8 @@ export function MenuLockScreen({ lockHref, title }: { lockHref: string; title: s
   // 게시판 디자인 ARCH면 요원 말투 (로그인 화면과 같은 결)
   const [arch, setArch] = useState(false);
   useEffect(() => { setArch(boardSkin() === 'arch'); }, []);
+  // YJHM이면 홍예준 팬페이지 회원증 모양 (components/world/YjhmPass.tsx)
+  const { world } = useWorld();
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +58,22 @@ export function MenuLockScreen({ lockHref, title }: { lockHref: string; title: s
     setBusy(false);
   };
 
+  if (world === 'yjhm') {
+    return (
+      <section className="page page-arch page-lock">
+        <div className="page-head"><PageTitle>{title}</PageTitle><p>비밀번호가 걸린 메뉴입니다</p></div>
+        <YjhmPass as="form" onSubmit={submit} className="lock" card="PRIVATE ROOM" kicker="MEMBERS ONLY — PASSWORD" title="Locked">
+          <p className="yj-pass-d">회원은 로그인하면 비밀번호 없이 볼 수 있습니다</p>
+          <div className="yj-pass-fs">
+            <YjhmPassField label="PASSWORD"><KInput type="password" value={pw} autoFocus placeholder="비밀번호"
+              onChange={e => { setPw(e.target.value); setErr(''); }} /></YjhmPassField>
+            {err && <p className="login-err">{err}</p>}
+            <button type="submit" className="btn btn-dark yj-pass-go" disabled={busy || !pw}>{busy ? '확인 중…' : '입장'}</button>
+          </div>
+        </YjhmPass>
+      </section>
+    );
+  }
   return (
     <section className="page page-arch page-lock">
       <div className="page-head"><PageTitle>{title}</PageTitle><p>비밀번호가 걸린 메뉴입니다</p></div>

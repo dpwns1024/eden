@@ -73,7 +73,7 @@ function FilmCell({ f, n, stock }: { f: Frame; n: number; stock: string }) {
       <i className="yj-perf" /><i className="yj-perf b" />
       <span className="yj-ep t" style={{ left: '7%' }}>{n % 2 ? stock : 'SAFETY FILM'}</span>
       {n % 3 === 2 && <i className="yj-dx" />}
-      <span className="yj-ep t" style={{ left: '68%' }}>{n}&nbsp; ▸ {n}A</span>
+      <span className="yj-ep t" style={{ left: '68%' }}>{n} ▸ {n}A</span>
       {fr}
       <span className="yj-ep b" style={{ left: '7%' }}>▶ {n}</span>
       <span className="yj-ep b" style={{ left: '57%' }}>{n % 2 ? `ISO ${stock.match(/\d+/)?.[0] ?? '400'}` : `▶ ${n}A`}</span>

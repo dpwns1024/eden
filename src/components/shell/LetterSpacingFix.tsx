@@ -61,24 +61,60 @@ const ownText = (el: Element) => {
   for (const n of el.childNodes) if (n.nodeType === 3) t += n.nodeValue;
   return t;
 };
-function markOne(el: HTMLElement) {
+/**
+ * 띄어쓰기 폭 (YJHM — 사용자 요청 「영어 · 한글 모두 간격 넓은 띄어쓰기가 안 들어가게 무조건」).
+ * 자간은 띄어쓰기 칸에도 붙어서, 자간을 넓게 준 라벨(SCRAP · 1, GOLD MEDALIST — 10M …)은 낱말 사이가 크게 벌어진다.
+ * 고정폭 글꼴(DM Mono)은 띄어쓰기 자체도 글자 한 칸(.6em)이라 더 넓다. 그래서 띄어쓰기가 든 칸마다
+ * word-spacing으로 자간을 빼고, 고정폭이면 띄어쓰기를 보통 글꼴 폭(약 .28em)까지 줄인다.
+ * 자식은 word-spacing을 물려받으므로 자간이 좁은 칸은 0으로 되돌린다. 내가 붙인 것만 data-ws로 표시해 두고 걷는다.
+ */
+const SPACE = /[ \u00a0]/;
+const MONO = /mono/i;
+const wsCache = new WeakMap<Element, string>();
+function fixWs(el: HTMLElement, yj: boolean) {
+  if (!yj) { if (el.dataset.ws) { el.style.wordSpacing = ''; delete el.dataset.ws; } return; }
+  const t = ownText(el);
+  if (!SPACE.test(t)) return;
+  const key = `${t}|${el.className}|${el.dataset.ko ?? ''}|${window.innerWidth}`;
+  if (wsCache.get(el) === key && el.dataset.ws) return;
+  if (el.dataset.ws) { el.style.wordSpacing = ''; delete el.dataset.ws; }
+  const cs = getComputedStyle(el);
+  const fs = parseFloat(cs.fontSize) || 0;
+  const ls = Math.max(0, parseFloat(cs.letterSpacing) || 0);
+  const mono = MONO.test(cs.fontFamily.split(',')[0] ?? '');
+  const want = -ls - (mono ? fs * 0.32 : 0);
+  const cur = parseFloat(cs.wordSpacing) || 0;
+  wsCache.set(el, key);
+  if (Math.abs(cur - want) < 0.3) return;
+  el.style.wordSpacing = `${want.toFixed(2)}px`;
+  el.dataset.ws = '1';
+}
+function markOne(el: HTMLElement, yj: boolean) {
   if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
     const ko = HANGUL.test(el.placeholder || '');
     if (ko !== (el.dataset.koPh === '1')) { if (ko) el.dataset.koPh = '1'; else delete el.dataset.koPh; }
     return;
   }
   const ko = HANGUL.test(ownText(el));
-  if (!ko) { if (el.dataset.ko) delete el.dataset.ko; return; }
-  if (el.dataset.ko) return;
-  const cs = getComputedStyle(el);
-  if ((parseFloat(cs.letterSpacing) || 0) > parseFloat(cs.fontSize) * 0.1) el.dataset.ko = '1';
+  if (!ko) { if (el.dataset.ko) delete el.dataset.ko; }
+  else if (!el.dataset.ko) {
+    const cs = getComputedStyle(el);
+    if ((parseFloat(cs.letterSpacing) || 0) > parseFloat(cs.fontSize) * 0.1) el.dataset.ko = '1';
+  }
+  fixWs(el, yj);
 }
 const KO_SEL = '*:not(script):not(style):not(svg *)';
 /** root 안(root 포함)만 — 바뀐 곳만 바로 표시하려고 */
 function markKo(root: Element = document.body) {
-  if (!document.documentElement.classList.contains('ui-arch')) return;
-  if (root instanceof HTMLElement && root.matches(KO_SEL)) markOne(root);
-  root.querySelectorAll<HTMLElement>(KO_SEL).forEach(markOne);
+  const cl = document.documentElement.classList;
+  const yj = cl.contains('ui-yjhm');
+  if (!cl.contains('ui-arch') && !yj) {
+    // YJHM에서 나왔다 — 붙여 둔 띄어쓰기 보정을 걷는다
+    document.querySelectorAll<HTMLElement>('[data-ws]').forEach(el => fixWs(el, false));
+    return;
+  }
+  if (root instanceof HTMLElement && root.matches(KO_SEL)) markOne(root, yj);
+  root.querySelectorAll<HTMLElement>(KO_SEL).forEach(el => markOne(el, yj));
 }
 
 export function LetterSpacingFix() {
