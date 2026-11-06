@@ -20,14 +20,14 @@ const SEL = [
   // YJHM 다른 페이지 머리의 하위 메뉴 탭 (시안 A3 — 01 PHOTO …)
   'html.ui-yjhm .yj-tabs a',
   // YJHM 출전 명단의 CP 딱지 · 포토카드 컬렉션 번호 딱지
-  'html.ui-yjhm .yj-sl-cp em', 'html.ui-yjhm .yj-pc-no',
+  'html.ui-yjhm .yj-sl-cp em', 'html.ui-yjhm .yj-pc-no', 'html.ui-yjhm .yj-binder .pr-copy',
 ].join(',');
 /** YJHM 테이프 · 버튼 — 상자 자체를 화면 픽셀에 맞춘다 (사용자 요청 — 100% 배율에서 픽셀 단위로).
  *  글자 폭 때문에 상자 폭이 100.78px처럼 소수점이 되거나, 화면 높이에 따라 줄 위치가 664.25px처럼 걸치면
  *  상자 가장자리가 두 픽셀에 번져 그려져 글자가 0.5~1px 치우쳐 보였다.
  *  → 폭은 올림해 정수로, 자리는 translate로 가장 가까운 화면 픽셀에 붙인다(옆 상자는 밀지 않는다) */
 const SNAP = [
-  '.yj-tape', '.yj-tabs a', '.yj-sl-cp em', '.yj-pc-no', '.yj-sl-go', '.yj-quote > span', '.world-switch.ws-yjhm button', '.yj-fh .login-link', '.yj-btn', '.bgm-y .by-pp', '.by-it em',
+  '.yj-tape', '.yj-tabs a', '.yj-sl-cp em', '.yj-pc-no', '.yj-sl-go', '.yj-binder .pr-copy', '.yj-quote > span', '.world-switch.ws-yjhm button', '.yj-fh .login-link', '.yj-btn', '.bgm-y .by-pp', '.by-it em',
   // 다른 페이지 · 창의 버튼 · 탭도 (게시판 글쓰기 · 탭 · 로그인 · 창 아래 버튼)
   '#appMain .page :is(.btn,.seg > button,.mini-seg > button,.arch-tabbar .tag)',
   '#appMain .page :is(.b-badge,.cat-badge,.dt-badge,.cm-badge,.g-badge,.gi-tag,.cls-tag,.typ,.pill)', '.modal-ov .mng-box :is(.btn,.seg > button)',
