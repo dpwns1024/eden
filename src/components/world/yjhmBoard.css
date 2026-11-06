@@ -159,14 +159,14 @@ html.ui-yjhm body .yj-sl-r.is-classified .yj-sl-av{filter:grayscale(1) blur(2px)
 /* 책갈피 — 바인더 속지 뒤에 꽂혀 윗가장자리 위로 삐져나온 색인 탭. 아래 6px은 바인더 뒤로 숨어 바인더와 이어 보이고,
  * 고른 탭은 남색으로 더 높이 올라온다. 글 개수는 달지 않는다 (사용자 요청 — 페이지에서 YJHM일 때 개수를 빼고 그린다).
  * 탭 줄은 원래 가로 스크롤(overflow:auto)이라 탭 그림자가 네모나게 잘렸다 — 여기선 넘치면 다음 줄로 */
-html.ui-yjhm body #appMain .yj-bm{position:relative;z-index:0;max-width:1180px;box-sizing:border-box;margin:0 auto;padding:0 16px 0 52px}
+html.ui-yjhm body #appMain .yj-bm{position:relative;z-index:0;max-width:1180px;box-sizing:border-box;margin:0 auto 1px;padding:0 16px 0 52px}   /* 1px — 바인더 테두리(바깥 1px 선)가 탭 아래를 덮지 않게 */
 html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:4px;margin:0;padding:0;border:0;background:none;box-shadow:none;overflow:visible}
-html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;position:relative;height:26px;min-height:0;margin:0;padding:0 calc(16px - .16em) 0 16px;border:0;border-radius:7px 7px 0 0;
+html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;position:relative;height:26px;min-height:0;margin:0;padding:1.5px calc(16px - .16em) 0 16px;border:0;border-radius:7px 7px 0 0;
   background:linear-gradient(180deg,#f4f6f9,#dfe5ec);color:#607ca0;box-shadow:inset 0 1px 0 #fff,inset 0 0 0 1px rgba(44,62,87,.1);font:500 10.5px/1 var(--yj-mono);letter-spacing:.16em;text-shadow:none;cursor:var(--cur-pointer,pointer);transition:height .2s,background .15s,color .15s}
 html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag:hover{background:linear-gradient(180deg,#fff,#e6ebf1);color:var(--yj-ink)}
 html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag.on{height:32px;background:var(--yj-nv2);color:#f2f4f7;text-shadow:0 1px 0 rgba(0,0,0,.4);box-shadow:inset 0 1px 0 rgba(255,255,255,.14)}
 /* 탭 상자는 보이는 부분만 — 바인더 뒤로 들어가는 6px은 덧그린다(상자에 넣으면 글자 가운데 맞춤이 숨은 부분까지 셌다) */
-html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag::after{content:"";position:absolute;left:0;right:0;top:100%;height:6px;background:#dfe5ec;box-shadow:inset 1px 0 0 rgba(44,62,87,.1),inset -1px 0 0 rgba(44,62,87,.1);pointer-events:none}
+html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag::after{content:"";position:absolute;left:0;right:0;top:100%;height:7px;background:#dfe5ec;box-shadow:inset 1px 0 0 rgba(44,62,87,.1),inset -1px 0 0 rgba(44,62,87,.1);pointer-events:none}
 html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag.on::after{background:var(--yj-nv2);box-shadow:none}
 /* 바인더가 책갈피 아래쪽을 덮는다 */
 html.ui-yjhm body #appMain .yj-bm + .yj-binder,html.ui-yjhm body #appMain .yj-bm + * .yj-binder{z-index:1}
@@ -240,8 +240,8 @@ html.ui-yjhm body .yj-sleeve-empty b{display:block;font:300 26px/1 var(--yj-inte
   html.ui-yjhm body #appMain .yj-binder > .g-item .info{left:14px;bottom:18px}
   html.ui-yjhm body #appMain .yj-binder > .pr-card .yj-pc-lb{left:14px;right:14px;bottom:12px;gap:4px}
   html.ui-yjhm body #appMain .yj-bm{padding:0 8px 0 40px}
-  html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag{height:24px;padding:0 calc(13px - .14em) 0 13px;font-size:9.5px;letter-spacing:.14em}
-  html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag.on{height:29px}
+  html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag{height:24px;padding:2px calc(13px - .14em) 0 13px;font-size:9.5px;letter-spacing:.14em}
+  html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag.on{height:30px}
   /* 갤러리(가로 카드)는 폰에서 한 줄에 한 장 (사용자 요청) — 빈 슬리브는 두지 않는다 */
   html.ui-yjhm body #appMain .yj-binder.land{--cols:1}
   html.ui-yjhm body #appMain .yj-binder.land > :is(.g-item,.yj-sleeve-empty):nth-child(n){border-right-color:transparent;border-top:0}
