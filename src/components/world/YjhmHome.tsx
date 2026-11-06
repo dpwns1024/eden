@@ -2,9 +2,11 @@
 /**
  * YJHM 메인 화면 (lib/worldStore.ts) — 국가대표 사격선수 × 통역사 · 현대 일상 · 달달 로맨스.
  * 「필름」 1면 (사용자 확정 시안 Z3) — 미색 바탕 + 은은한 과녁 링 위에
- *  머리(Hong Yejun.) → 기울어진 35mm 필름 띠가 천천히 흐름 → 아래 줄 왼쪽 SCRAP · 오른쪽 GUESTBOOK → 맨 아래 폴더 바(폴더는 왼쪽 · BGM은 오른쪽) + 가운데 한마디.
+ *  머리(Hong Yejun. · 오른쪽 위 BGM) → 기울어진 35mm 필름 띠가 천천히 흐름 → 아래 줄 왼쪽 SCRAP(최근 글 리스트) · 오른쪽 GUESTBOOK
+ *  → 맨 아래 폴더 바(폴더는 왼쪽 · 오른쪽 칸은 비움) + 가운데 한마디.
  * 관리자가 이 자리에서 고치는 것 (lib/yjhmFrontStore.ts — 설정 한 칸):
- *  필름 — 대표 그림 + 이어지는 사진들 · 필름 보정 / SCRAP — 기사를 오려 붙인 것처럼 직접 적는다 / GUESTBOOK — 말풍선 / 한마디.
+ *  필름 — 대표 그림 + 이어지는 사진들 · 필름 보정 / GUESTBOOK — 말풍선 / 한마디.
+ * SCRAP은 처음 시안 그대로 최근 글 리스트(날짜 · 제목 · 종류) — 직접 적는 스크랩으로 바꿨던 것은 되돌렸다 (사용자 요청).
  * 필름 가장자리에는 실제 필름에 찍히는 것만 (필름 이름 · 프레임 번호 · 감도 · DX 바코드). 모양은 yjhm.css.
  */
 import React, { useState } from 'react';
@@ -18,7 +20,7 @@ import { logPath } from '@/lib/logPath';
 import { usePairings, pairIdOf } from '@/lib/pairLink';
 import { relOfWorld } from '@/lib/worldStore';
 import {
-  useYjhmFront, YjhmFront, YjhmFrame, YjhmScrap, YjhmNote, YjhmGrade, YJHM_GRADES, DEFAULT_GRADE, newId,
+  useYjhmFront, YjhmFront, YjhmFrame, YjhmNote, YjhmGrade, YJHM_GRADES, DEFAULT_GRADE, newId,
 } from '@/lib/yjhmFrontStore';
 import { putBlob, useBlobUrl } from '@/lib/blobStore';
 import { CroppedBlobImg, CropEditor, CropValue } from '@/components/ui/CropEditor';
@@ -37,9 +39,6 @@ const plain = (s: string | undefined) => (s ?? '')
   .replace(/\s+/g, ' ')
   .trim();
 const cut = (s: string, n: number) => (s.length > n ? `${s.slice(0, n).trimEnd()}…` : s);
-/** 2026.03.05부터 센 날 (그날이 1일 — 사용자 요청) */
-const DDAY_FROM = new Date(2026, 2, 5);
-const dday = (now: Date) => Math.floor((new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() - DDAY_FROM.getTime()) / 86400000) + 1;
 /** 2026-10-28… → 10.28 */
 const md = (d: string) => (d.length >= 10 ? `${d.slice(5, 7)}.${d.slice(8, 10)}` : d);
 const today = () => { const d = new Date(); return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`; };
@@ -49,6 +48,9 @@ const ext = (href: string) => /^https?:\/\//.test(href);
 const FRAME_ASPECT = 408 / 268;
 /** 칸이 이보다 적으면 빈 칸으로 채워 띠가 끊기지 않게 */
 const MIN_FRAMES = 6;
+
+/** SCRAP 리스트 오른쪽 작은 글자 — 글 종류 */
+type Kind = 'MATCH' | 'PHOTO' | 'DIARY' | 'NOTE';
 
 interface Frame { key: string; img?: string; crop?: CropValue; href?: string; title?: string }
 
@@ -194,35 +196,6 @@ function FilmEdit({ doc, save, onClose }: { doc: YjhmFront; save: (d: YjhmFront)
   );
 }
 
-/** 스크랩 — 기사 오려 붙이기 */
-function ScrapEdit({ doc, save, onClose }: { doc: YjhmFront; save: (d: YjhmFront) => void; onClose: () => void }) {
-  const toast = useToast();
-  const [list, setList] = useState<YjhmScrap[]>(doc.scraps ?? []);
-  const patch = (i: number, p: Partial<YjhmScrap>) => setList(l => l.map((s, k) => (k === i ? { ...s, ...p } : s)));
-  return (
-    <Modal open title="스크랩 편집" className="yj-modal" dirty={list !== (doc.scraps ?? [])} onClose={onClose}
-      desc="기사를 오려 붙이듯 적어 두세요. 위에 있는 것부터 메인에 실립니다."
-      actions={<EditActions onCancel={onClose} onSave={() => { save({ ...doc, scraps: list.filter(s => s.title.trim() || s.body.trim()) }); toast('스크랩을 저장했습니다'); onClose(); }} />}>
-      <div className="yj-ed">
-        {list.map((s, i) => (
-          <div key={s.id} className="yj-ed-card">
-            <div className="yj-ed-line">
-              <input className="yj-in sm" placeholder="날짜" value={s.date} onChange={e => patch(i, { date: e.target.value })} />
-              <input className="yj-in" placeholder="출처 (예: 스포츠일보 · 3면)" value={s.source} onChange={e => patch(i, { source: e.target.value })} />
-              <RowTools list={list} i={i} set={setList} />
-            </div>
-            <input className="yj-in strong" placeholder="기사 제목" value={s.title} onChange={e => patch(i, { title: e.target.value })} />
-            <textarea className="yj-in" rows={3} placeholder="오려 낸 본문" value={s.body} onChange={e => patch(i, { body: e.target.value })} />
-            <input className="yj-in" placeholder="원문 주소 (선택)" value={s.href ?? ''} onChange={e => patch(i, { href: e.target.value.trim() || undefined })} />
-          </div>
-        ))}
-        <button type="button" className="yj-btn add"
-          onClick={() => setList(l => [{ id: newId(), date: today(), source: '', title: '', body: '' }, ...l])}>+ 스크랩 더하기</button>
-      </div>
-    </Modal>
-  );
-}
-
 /** 방명록 말풍선 */
 function NoteEdit({ doc, save, onClose }: { doc: YjhmFront; save: (d: YjhmFront) => void; onClose: () => void }) {
   const toast = useToast();
@@ -271,24 +244,7 @@ function QuoteEdit({ doc, cur, save, onClose }: { doc: YjhmFront; cur?: { who: s
   );
 }
 
-/** 스크랩 한 장 읽기 */
-function ScrapRead({ s, onClose }: { s: YjhmScrap; onClose: () => void }) {
-  return (
-    <Modal open small className="yj-modal yj-clip-read" onClose={onClose}
-      actions={<>
-        {s.href && <a className="yj-btn" href={s.href} target={ext(s.href) ? '_blank' : undefined} rel="noreferrer">원문 보기</a>}
-        <button type="button" className="yj-btn on" onClick={onClose}>닫기</button>
-      </>}>
-      <article className="yj-clip-full">
-        <small>{[s.source, s.date].filter(Boolean).join(' · ')}</small>
-        <h4>{s.title}</h4>
-        <p>{s.body}</p>
-      </article>
-    </Modal>
-  );
-}
-
-type EditKind = 'film' | 'scrap' | 'note' | 'quote' | null;
+type EditKind = 'film' | 'note' | 'quote' | null;
 
 export function YjhmHome() {
   const { user, isAdmin } = useAuth();
@@ -296,7 +252,6 @@ export function YjhmHome() {
   const rel = relOfWorld(rels, 'yjhm');
   const [front, saveFront] = useYjhmFront();
   const [edit, setEdit] = useState<EditKind>(null);
-  const [reading, setReading] = useState<YjhmScrap | null>(null);
   const [chars] = useLocalList<Character>('ohome.chars.v1', CHAR_SEED);
   const [logs] = useLocalList<TrpgLog>('ohome.trpg.v1', TRPG_SEED);
   const [gal] = useLocalList<BackupPost>('ohome.backup.v1', BACKUP_SEED);
@@ -309,12 +264,14 @@ export function YjhmHome() {
   const can = (v: string) => isAdmin || v === 'public' || (v === 'member' && !!user);
   const nos = backupNos(gal);
   const picked = (front.frames ?? []).filter(f => f.img);
-  const auto: (Frame & { date: string })[] = picked.length ? [] : [
-    ...logs.filter(l => mine(l) && can(l.visibility) && (!l.listHidden || isAdmin)).map(l => ({ key: l.id, date: l.date ?? '', href: logPath(l), img: l.thumbId || l.thumbUrl, crop: l.thumbCrop, title: l.title })),
-    ...gal.filter(p => mine(p) && can(p.visibility)).map(p => ({ key: p.id, date: p.date, href: backupPath(p, nos), img: p.images[0], crop: p.thumbCrop, title: p.title })),
-    ...diary.filter(p => mine(p) && can(p.visibility)).map(p => ({ key: p.id, date: p.date, href: `/diary#${p.id}`, img: p.imgIds[0], title: p.title })),
-    ...posts.filter(p => mine(p) && !p.secret).map(p => ({ key: p.id, date: p.date, href: `/board/${p.id}`, img: p.thumbSrc, crop: p.thumbCrop, title: p.title })),
-  ].filter(s => s.img).sort((a, b) => b.date.localeCompare(a.date));
+  // 이 페어로 쓴 글 전부 (최근 순) — SCRAP 리스트와, 관리자가 사진을 안 골랐을 때의 필름 칸
+  const all: (Frame & { date: string; kind: Kind; title: string })[] = [
+    ...logs.filter(l => mine(l) && can(l.visibility) && (!l.listHidden || isAdmin)).map(l => ({ key: l.id, kind: 'MATCH' as const, date: l.date ?? '', href: logPath(l), img: l.thumbId || l.thumbUrl, crop: l.thumbCrop, title: l.title })),
+    ...gal.filter(p => mine(p) && can(p.visibility)).map(p => ({ key: p.id, kind: 'PHOTO' as const, date: p.date, href: backupPath(p, nos), img: p.images[0], crop: p.thumbCrop, title: p.title })),
+    ...diary.filter(p => mine(p) && can(p.visibility)).map(p => ({ key: p.id, kind: 'DIARY' as const, date: p.date, href: `/diary#${p.id}`, img: p.imgIds[0], title: p.title })),
+    ...posts.filter(p => mine(p) && !p.secret).map(p => ({ key: p.id, kind: 'NOTE' as const, date: p.date, href: `/board/${p.id}`, img: p.thumbSrc, crop: p.thumbCrop, title: p.title })),
+  ].sort((a, b) => b.date.localeCompare(a.date));
+  const auto = picked.length ? [] : all.filter(s => s.img);
   const frames: Frame[] = [
     { key: 'cover', img: front.img ?? rel?.arts?.[0] ?? rel?.thumbId, crop: front.crop ?? (front.img ? undefined : rel?.thumbCrop), title: front.title || rel?.name },
     ...(picked.length ? picked.map(f => ({ key: f.id, img: f.img, crop: f.crop, href: f.href, title: f.title })) : auto.slice(0, 9)),
@@ -325,7 +282,6 @@ export function YjhmHome() {
   const notes: YjhmNote[] = front.notes?.length ? front.notes.slice(0, 3) : guest.filter(g => !g.secret)
     .sort((a, b) => b.date.localeCompare(a.date)).slice(0, 2)
     .map((g, i) => ({ id: g.id, who: g.author, text: cut(plain(g.body), 40), date: md(g.date), me: i % 2 === 1 }));
-  const scraps = front.scraps ?? [];
 
   // 한마디 — 관리자가 적은 것 → 예준의 한마디 → 다른 멤버의 한마디 → 페어 대사
   const members = (rel?.members ?? []).map(m => ({ m, c: chars.find(c => c.id === m.charId) })).filter((x): x is { m: RelMember; c: Character } => !!x.c);
@@ -340,7 +296,7 @@ export function YjhmHome() {
   return (
     <div className="yj-main yj-film-home">
       <i className="yj-rings" aria-hidden="true" />
-      <YjhmHeader front={{ no: `NO.${String(dday(new Date())).padStart(4, '0')}` }} />
+      <YjhmHeader main />
 
       <div className="yj-film-wrap">
         <Film frames={frames} grade={front.grade ?? DEFAULT_GRADE} />
@@ -349,16 +305,11 @@ export function YjhmHome() {
 
       <div className="yj-lower">
         <section className="yj-scrap" aria-label="스크랩">
-          <div className="yj-sec-h"><span className="yj-tape">SCRAP · {scraps.length}</span>{editBtn('scrap')}</div>
-          <div className="yj-clips">
-            {scraps.length ? scraps.slice(0, 3).map(s => (
-              <button key={s.id} type="button" className="yj-clip" onClick={() => setReading(s)}>
-                <i className="yj-clip-tape" />
-                <small>{[s.source, s.date].filter(Boolean).join(' · ')}</small>
-                <b>{s.title}</b>
-                {s.body && <span>{s.body}</span>}
-              </button>
-            )) : <p className="yj-faint">{isAdmin ? 'EDIT을 눌러 기사를 오려 붙여 보세요' : '아직 오려 둔 기사가 없습니다'}</p>}
+          <Link className="yj-tape" href="/trpg">SCRAP · {all.length}</Link>
+          <div className="yj-scrap-l">
+            {all.length ? all.slice(0, 4).map(s => (
+              <Link key={s.key} href={s.href ?? '/'}><time>{md(s.date)}</time><span>{s.title}</span><em>{s.kind}</em></Link>
+            )) : <p className="yj-faint">아직 실린 글이 없습니다</p>}
           </div>
         </section>
         <section className="yj-gb" aria-label="방명록">
@@ -377,10 +328,8 @@ export function YjhmHome() {
       <YjhmDock quote={quote} onEditQuote={isAdmin ? () => setEdit('quote') : undefined} />
 
       {edit === 'film' && <FilmEdit doc={front} save={saveFront} onClose={() => setEdit(null)} />}
-      {edit === 'scrap' && <ScrapEdit doc={front} save={saveFront} onClose={() => setEdit(null)} />}
       {edit === 'note' && <NoteEdit doc={front} save={saveFront} onClose={() => setEdit(null)} />}
       {edit === 'quote' && <QuoteEdit doc={front} cur={quote} save={saveFront} onClose={() => setEdit(null)} />}
-      {reading && <ScrapRead s={reading} onClose={() => setReading(null)} />}
     </div>
   );
 }

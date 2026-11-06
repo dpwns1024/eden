@@ -11,7 +11,7 @@ import { useMainZoom } from '@/lib/useMainZoom';
 import { useSiteHeader } from '@/lib/htmlPageStore';
 import { useHtmlSlots, stripScripts } from '@/components/main/HtmlSlots';
 import { useWorld } from '@/lib/worldStore';
-import { YjhmHeader } from '@/components/world/YjhmHeader';
+import { YjhmHeader, YjhmDock } from '@/components/world/YjhmHeader';
 
 const EDITABLE = ['banner', 'menu_pc', 'menu'];
 
@@ -45,7 +45,8 @@ export function GlobalHeader() {
     return null;
   }
 
-  if (world === 'yjhm') return <div className="yj-head-wrap"><YjhmHeader /></div>;
+  // 메인과 같은 머리 + 같은 맨 아래 폴더 바 (사용자 요청 — 「메뉴 들어가면 메인이랑 아예 다르잖아」)
+  if (world === 'yjhm') return <><YjhmHeader /><YjhmDock /></>;
 
   if (headHtml) {
     return (
