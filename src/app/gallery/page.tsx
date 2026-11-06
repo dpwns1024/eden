@@ -35,7 +35,8 @@ function BackupPageInner() {
   const [fCat, setFCat] = useState<string>('all');
   // 페어별 홈 (lib/worldStore.ts) — 다른 세계 페어의 글은 숨긴다
   const { rels, show, world } = useWorldFilter();
-  // YJHM — 포토카드 바인더 (사용자 확정 시안 B2): 비닐 속지 한 장에 4칸씩, 빈 칸은 빈 슬리브로 채운다
+  // YJHM — 가로 포토카드 바인더 (사용자 요청 — 「갤러리는 사진이 가로가 긴 포카바인더, 게시글 제목은 없애」):
+  // 비닐 속지 한 줄에 3칸씩, 빈 칸은 빈 슬리브로 채운다. 제목은 감추고 페어 딱지만 카드 위에
   const yj = world === 'yjhm';
   // EVEDEN 세계는 페어링 대신 환경설정의 말머리(모든 게시판 공통)로 나눈다 (v2.0 사용자 요청 — lib/boardCats.ts).
   // 같은 fCat 자리에 'all' · 말머리 id · NO_CAT를 담는다
@@ -139,7 +140,7 @@ function BackupPageInner() {
           <span>{visible.length} CARDS</span>
         </div>
       )}
-      <div className={yj ? 'g3 yj-binder' : 'g3'} style={{ display: visible.length > 0 ? undefined : 'none' }}>
+      <div className={yj ? 'g3 yj-binder land' : 'g3'} style={{ display: visible.length > 0 ? undefined : 'none' }}>
           {paged.map((p, si) => {
             const i = start + si;
             const folded = p.fold && !unveiled[p.id];
@@ -175,8 +176,8 @@ function BackupPageInner() {
               </div>
             );
           })}
-          {/* 빈 슬리브 — 속지 한 줄(4칸)을 채운다 */}
-          {yj && Array.from({ length: (4 - (paged.length % 4)) % 4 }, (_, k) => (
+          {/* 빈 슬리브 — 속지 한 줄(3칸)을 채운다 */}
+          {yj && Array.from({ length: (3 - (paged.length % 3)) % 3 }, (_, k) => (
             <div key={`empty-${k}`} className="yj-sleeve-empty" aria-hidden="true"><span><b>+</b>EMPTY<br />SLEEVE</span></div>
           ))}
         </div>

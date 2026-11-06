@@ -22,6 +22,7 @@ import { Modal, useConfirmDelete } from '@/components/ui/Modal';
 import { KInput, Pager } from '@/components/ui/Kit';
 import { useCardSort } from '@/lib/cardSort';
 import { PageTitle, EditableDesc } from '@/components/ui/PageText';
+import { useWorld } from '@/lib/worldStore';
 import { useToast } from '@/components/ui/Toast';
 
 export interface PromptItem {
@@ -53,11 +54,14 @@ function Img({ src, className }: { src?: string; className?: string }) {
 }
 
 /** 카드 — 대표 사진(3:4) + 제목 · COPY (프로필 카드 모양) */
-function PromptCard({ p, onOpen, onCopy, sortProps }: {
+function PromptCard({ p, onOpen, onCopy, sortProps, no }: {
   p: PromptItem; onOpen: () => void; onCopy: () => void; sortProps: Record<string, unknown>;
+  /** YJHM 바인더의 컬렉션 번호 딱지 (No.01) */
+  no?: number;
 }) {
   return (
     <div className="char-card pr-card" {...sortProps}>
+      {no != null && <span className="yj-pc-no" aria-hidden="true">No.{String(no).padStart(2, '0')}</span>}
       <div className="thumb" role="button" tabIndex={0} aria-label={`${p.title || '프롬프트'} 원문 보기`} onClick={onOpen}
         onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(); } }}>
         {p.images?.[0] ? <Img src={p.images[0]} /> : <div className="pr-ph pr-noimg"><span>NO IMAGE</span></div>}
@@ -98,6 +102,7 @@ export default function PromptPage() {
   // 스티커 메모·메모 게시판 항목은 그대로 두고 프롬프트만 바꾼다
   const setItems = (next: PromptItem[]) => setAll([...(next as unknown as AnyMemo[]), ...all.filter(m => !isPrompt(m))]);
   const canEdit = (p: PromptItem) => isAdmin || (!!user && p.authorId === user.id);
+  const yj = useWorld().world === 'yjhm';
 
   // 카테고리 — 탭으로 걸러 보기
   const [memoSet, patchMemoSet] = useMemoSettings();
@@ -212,9 +217,20 @@ export default function PromptPage() {
 
       {pageItems.length > 0 ? (
         <>
-          <div className="pr-grid">
+          {/* YJHM — 세로 포토카드 바인더 (사용자 요청 — 「프롬프트는 세로가 긴 바인더」): 속지 한 줄 4칸, 빈 칸은 빈 슬리브 */}
+          {yj && (
+            <div className="yj-binder-h" aria-hidden="true">
+              <span>COLLECT BOOK</span><b>PAGE {String(pg).padStart(2, '0')}<i>/</i>{String(pages).padStart(2, '0')}</b>
+              <span>{shown.length} CARDS</span>
+            </div>
+          )}
+          <div className={yj ? 'pr-grid yj-binder' : 'pr-grid'}>
             {pageItems.map((p, i) => (
-              <PromptCard key={p.id} p={p} sortProps={sort(i)} onOpen={() => setViewId(p.id)} onCopy={() => copy(p.prompt)} />
+              <PromptCard key={p.id} p={p} sortProps={sort(i)} onOpen={() => setViewId(p.id)} onCopy={() => copy(p.prompt)}
+                no={yj ? (pg - 1) * PER + i + 1 : undefined} />
+            ))}
+            {yj && Array.from({ length: (4 - (pageItems.length % 4)) % 4 }, (_, k) => (
+              <div key={`empty-${k}`} className="yj-sleeve-empty" aria-hidden="true"><span><b>+</b>EMPTY<br />SLEEVE</span></div>
             ))}
           </div>
           <Pager page={pg} total={pages} block={8} onChange={setPage} />
