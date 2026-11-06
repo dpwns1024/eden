@@ -34,6 +34,7 @@ export default function RelsPage() {
   }, []);
 
   const colorOf = (id: string) => chars.find(c => c.id === id)?.color ?? '#666';
+  const charOf = (id: string) => chars.find(c => c.id === id);
   const nameOf = (id: string) => chars.find(c => c.id === id)?.name ?? '';
   const arch = useBoardSkin() === 'arch';   // ARCH 디자인이면 가로 배너 목록 (v2.0 사용자 선택 E)
   const { showRel, world } = useWorldShow();
@@ -60,7 +61,61 @@ export default function RelsPage() {
           </div>
         )}
       </div>
-      {arch ? (
+      {world === 'yjhm' ? (
+        /* YJHM — 출전 명단 · 팀 엔트리 (사용자 확정 시안 B4): 한 줄에 한 팀 — 팀 번호 · 멤버 얼굴 겹침 · 이름 · 캐치프레이즈 · 멤버 · CP.
+           배너형과 같은 동작: 클릭 열람 · 멤버공개 안내 · 기밀 잠금 · 나만보기 흐리게 · 관리자 끌어서 정렬 */
+        <div className="yj-sl team">
+          <div className="yj-sl-h" aria-hidden="true"><span>TEAM</span><span /><span>PAIR</span><span>MEMBERS</span><span>CP</span><span /></div>
+          {shown.map((r, i) => {
+            const no = String(i + 1).padStart(2, '0');
+            if (isStub(r)) return (
+              <div key={r.id} className="yj-sl-r is-classified" onClick={() => setDenied(r.name)}>
+                <span className="yj-sl-no"><small>TEAM</small>{no}</span>
+                <span className="yj-sl-avs"><span className="yj-sl-av"><CroppedBlobImg fileRef={r.thumb} crop={r.thumbCrop} ph={r.ph ?? ''} label="" /></span></span>
+                <span className="yj-sl-who"><b>{r.name}</b><small>접근 권한 없음</small></span>
+                <span className="yj-sl-info">{(r.members ?? []).map((m, k) => <span key={k} className="mem"><i style={{ background: m.color }} />{m.name}</span>)}</span>
+                <span className="yj-sl-cp"><span className="cls-tag">CLASSIFIED</span></span>
+                <span className="yj-sl-go" aria-hidden="true" />
+              </div>
+            );
+            const memberLocked = r.visibility === 'member' && !user;
+            const priv = r.visibility === 'private' && !r.classified;
+            const sp = sort(i) as { style?: React.CSSProperties };
+            const cp = cpLabelFor(r);
+            return (
+              <div key={r.id} className={`yj-sl-r${r.classified ? ' is-classified' : ''}`} {...sort(i)}
+                style={{ ...(priv ? { opacity: .45 } : undefined), ...sp.style }}
+                onClick={() => {
+                  if (editOn) return;
+                  if (memberLocked) { toast('멤버공개 — 로그인 후 열람할 수 있습니다'); return; }
+                  router.push(relPath(r));
+                }}>
+                <span className="yj-sl-no"><small>TEAM</small>{no}</span>
+                <span className="yj-sl-avs">
+                  {r.members.length ? r.members.slice(0, 4).map(m => {
+                    const c = charOf(m.charId);
+                    return <span key={m.charId} className="yj-sl-av"><CroppedBlobImg fileRef={c?.arts?.[0] ?? c?.thumbId} crop={c?.thumbCrop} ph={c?.thumbClass ?? r.thumbClass} label="" /></span>;
+                  }) : <span className="yj-sl-av"><CroppedBlobImg fileRef={r.thumbId} crop={r.thumbCrop} ph={r.thumbClass} label="" /></span>}
+                </span>
+                <span className="yj-sl-who">
+                  <b>{r.name}{r.visibility === 'member' && <span className="pill">멤버</span>}</b>
+                  {(priv || memberLocked) ? <small>{priv ? '관리자에게만 표시됨' : '로그인 시 열람 가능'}</small> : r.catchphrase && <small>{r.catchphrase}</small>}
+                </span>
+                <span className="yj-sl-info">
+                  {r.members.map(m => <span key={m.charId} className="mem"><i style={{ background: colorOf(m.charId) }} />{nameOf(m.charId)}</span>)}
+                </span>
+                <span className="yj-sl-cp">
+                  {r.classified && <span className="cls-tag">CLASSIFIED</span>}
+                  {cp && <em>{cp}</em>}
+                  {r.aus.length > 1 && <small>AU {r.aus.length - 1}</small>}
+                </span>
+                <span className="yj-sl-go" aria-hidden="true" />
+              </div>
+            );
+          })}
+          {shown.length === 0 && <p className="yj-sl-empty">표시할 페어가 없습니다</p>}
+        </div>
+      ) : arch ? (
         /* MISSION BANNER (v2.0 사용자 선택 E) — 그림을 가로로 크게 깔고 왼쪽에 이름·정보, 오른쪽 아래 큰 번호.
            카드형과 같은 동작: 클릭 열람 · 멤버공개 안내 · 나만보기 흐리게 · 편집모드 드래그 정렬 */
         <div className="rel-bns">
