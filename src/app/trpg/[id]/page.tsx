@@ -26,7 +26,8 @@ import { ColorField } from '@/components/ui/ColorField';
 import { CropEditor, CropImg, CropValue } from '@/components/ui/CropEditor';
 import { useToast } from '@/components/ui/Toast';
 import { GUARD_SNIPPET } from '@/components/shell/ContentGuard';
-import { useFollowWorld } from '@/lib/worldStore';
+import { useFollowWorld, useWorld } from '@/lib/worldStore';
+import { YjhmPass, YjhmPassField } from '@/components/world/YjhmPass';
 import { useBoardCats, useCatMode, catIdOf, catOptions } from '@/lib/boardCats';
 
 /** 로그 렌더 프레임 — 대형 문서도 안정적으로 로드되도록 srcdoc 대신 Blob URL 사용 */
@@ -138,6 +139,7 @@ export default function TrpgDetailPage() {
   const unlocked = unlockedLocal || (!!l?.pwLock && logLockState === 'open');
   const [pwTry, setPwTry] = useState('');
   const [pwBusy, setPwBusy] = useState(false);
+  const { world } = useWorld();
   const sitePw = useSitePwOn();   // 공통 비밀번호를 쓰는가 (수정 창 — 비밀번호 칸 대신 걸기 칸)
   useEffect(() => {
     try { if (sessionStorage.getItem(`trpg-unlock:${id}`) === '1') setUnlockedLocal(true); } catch { /* 무시 */ }
@@ -356,11 +358,20 @@ export default function TrpgDetailPage() {
         {/* 안내 문구는 환경설정 > TRPG에서 수정 — 관리자는 이 화면을 볼 수 없다 */}
         <div className="page-head"><PageTitle href={tt.href}>{tt.title}</PageTitle>
           <EditableDesc k="trpg-lock-desc" def="비밀번호를 입력하면 열람할 수 있습니다" always /></div>
+        {world === 'yjhm' ? (
+          <YjhmPass as="form" onSubmit={e => { e.preventDefault(); void tryUnlock(); }} className="lock" card="PRIVATE FILE" kicker="MEMBERS ONLY — PASSWORD" title="Locked">
+            <div className="yj-pass-fs">
+              <YjhmPassField label="PASSWORD"><KInput type="password" placeholder="비밀번호" value={pwTry} onChange={e => setPwTry(e.target.value)} autoFocus /></YjhmPassField>
+              <button type="submit" className="btn btn-dark yj-pass-go" disabled={pwBusy || !pwTry}>확인</button>
+            </div>
+          </YjhmPass>
+        ) : (
         <div className="panel" style={{ maxWidth: 420, margin: '0 auto', padding: 26, display: 'grid', gap: 10 }}>
           <KInput type="password" placeholder="비밀번호" value={pwTry} onChange={e => setPwTry(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') void tryUnlock(); }} />
           <button className="btn btn-dark" style={{ justifyContent: 'center', padding: 9 }} disabled={pwBusy} onClick={() => void tryUnlock()}>확인</button>
         </div>
+        )}
       </section>
     );
   }

@@ -15,6 +15,10 @@ const SEL = [
   '[data-box-head] > [data-box-tag]',
   // YJHM 한마디 이름 딱지 · BGM 목록의 NOW 딱지 — 버튼이 아니라 글자만 든 상자 (사용자 제보 — YEJUN 딱지 위아래 어긋남)
   'html.ui-yjhm .yj-quote .yj-tape', 'html.ui-yjhm .by-it em',
+  // YJHM 메인 SCRAP · GUESTBOOK 테이프 — 폰에서 작게 줄이자 글자가 1px 넘게 위로 떴다
+  'html.ui-yjhm .yj-sec-h .yj-tape',
+  // YJHM 한마디 흰 띠 — 끝 글자(마침표 등) 옆 여백만큼 글자가 왼쪽으로 쏠렸다. 잘린(…) 글은 건드리지 않는다
+  'html.ui-yjhm .yj-quote > span',
   // YJHM 목록 위 탭(ALL 1 · YJHM 1 — 안에 작은 숫자 <small>) — 사용자 제보
   'html.ui-yjhm .arch-tabbar .tag',
   // YJHM 다른 페이지 머리의 하위 메뉴 탭 (시안 A3 — 01 PHOTO …)
@@ -63,13 +67,13 @@ const yjhm = () => document.documentElement.classList.contains('ui-yjhm');
 /** 글자 잉크를 「그려 보고」 픽셀로 잰다 — measureText의 잉크 값은 한글 글꼴(Pretendard 조각 글꼴)에서 틀렸다.
  *  화면에 이미 그려진 글자라 그 조각 글꼴은 받아져 있고, canvas도 같은 글꼴로 그린다. K배로 키워 그려 0.1px 단위로 */
 let pcv: HTMLCanvasElement | null = null;
-function pixelInk(text: string, font: (size: number) => string, size: number, ls: number) {
+function pixelInk(text: string, font: (size: number) => string, size: number, ls: number, ws = 0) {
   const K = 4;
   pcv ??= document.createElement('canvas');
-  const c = pcv.getContext('2d', { willReadFrequently: true }) as (CanvasRenderingContext2D & { letterSpacing?: string }) | null;
+  const c = pcv.getContext('2d', { willReadFrequently: true }) as (CanvasRenderingContext2D & { letterSpacing?: string; wordSpacing?: string }) | null;
   if (!c) return null;
   const fs = size * K;
-  const prep = () => { c.font = font(fs); if ('letterSpacing' in c) c.letterSpacing = `${ls * K}px`; c.textBaseline = 'alphabetic'; };
+  const prep = () => { c.font = font(fs); if ('letterSpacing' in c) c.letterSpacing = `${ls * K}px`; if ('wordSpacing' in c) c.wordSpacing = `${ws * K}px`; c.textBaseline = 'alphabetic'; };
   prep();
   const W = Math.ceil(c.measureText(text).width + fs * 2), H = Math.ceil(fs * 3);
   pcv.width = W; pcv.height = H;
@@ -98,6 +102,8 @@ function fix(el: HTMLElement, guard = false) {
   if (el.childElementCount && (!yjhm() || !textOnly(el))) return;
   const raw = el.textContent?.trim() ?? '';
   if (!raw || raw.includes('\n')) return;
+  // 넘쳐서 잘린(…) 글자는 잉크 자리를 잴 수 없다 — 그대로
+  if ([el, ...el.querySelectorAll<HTMLElement>('*')].some(e => e.scrollWidth > e.clientWidth + 1)) return;
   // 한글 — canvas measureText가 한글 글꼴의 잉크를 잘못 재 오히려 어긋났다. YJHM에서는 그려 본 픽셀로 재고(pixelInk),
   // 다른 세계는 예전처럼 건드리지 않는다
   if (HANGUL.test(raw) && !yjhm()) return;
@@ -125,15 +131,18 @@ function fix(el: HTMLElement, guard = false) {
     const pcs = n.parentElement === el ? cs : getComputedStyle(n.parentElement!);
     const text = pcs.textTransform === 'uppercase' ? t0.toUpperCase() : pcs.textTransform === 'lowercase' ? t0.toLowerCase() : t0;
     const ls = parseFloat(pcs.letterSpacing) || 0;
+    // 띄어쓰기 폭 보정(LetterSpacingFix — YJHM word-spacing)도 canvas에 같이 — 빼면 띄어쓰기 든 딱지 글자 폭을 넓게 재 왼쪽으로 쏠렸다
+    const ws = parseFloat(pcs.wordSpacing) || 0;
     const font = (sz: number) => `${pcs.fontStyle} ${pcs.fontWeight} ${sz}px ${pcs.fontFamily}`;
     let m: Part['m'] | null;
     let extra = 0;
-    if (HANGUL.test(text)) m = pixelInk(text, font, parseFloat(pcs.fontSize), ls);
+    if (HANGUL.test(text)) m = pixelInk(text, font, parseFloat(pcs.fontSize), ls, ws);
     else {
       ctx.font = font(parseFloat(pcs.fontSize) * K);
-      const c2 = ctx as CanvasRenderingContext2D & { letterSpacing?: string };
+      const c2 = ctx as CanvasRenderingContext2D & { letterSpacing?: string; wordSpacing?: string };
       const lsCanvas = 'letterSpacing' in c2;
       if (lsCanvas) c2.letterSpacing = `${ls * K}px`;
+      if ('wordSpacing' in c2) c2.wordSpacing = `${ws * K}px`;
       const mk = ctx.measureText(text);
       m = { actualBoundingBoxLeft: mk.actualBoundingBoxLeft / K, actualBoundingBoxRight: mk.actualBoundingBoxRight / K,
         actualBoundingBoxAscent: mk.actualBoundingBoxAscent / K, actualBoundingBoxDescent: mk.actualBoundingBoxDescent / K };
@@ -242,7 +251,7 @@ let rcv: HTMLCanvasElement | null = null;
 function rasterInk(el: HTMLElement): { l: number; r: number; t: number; b: number } | null {
   const d = window.devicePixelRatio || 1;
   rcv ??= document.createElement('canvas');
-  const c = rcv.getContext('2d', { willReadFrequently: true }) as (CanvasRenderingContext2D & { letterSpacing?: string }) | null;
+  const c = rcv.getContext('2d', { willReadFrequently: true }) as (CanvasRenderingContext2D & { letterSpacing?: string; wordSpacing?: string }) | null;
   if (!c) return null;
   let L = Infinity, R = -Infinity, T = Infinity, B = -Infinity;
   const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
@@ -263,8 +272,8 @@ function rasterInk(el: HTMLElement): { l: number; r: number; t: number; b: numbe
     const lb = probe.getBoundingClientRect().top;
     wrap.replaceWith(n);
     const base = Math.round((Math.round(lb + window.scrollY) - window.scrollY) * d);   // 그려지는 기준선(화면 픽셀)
-    const fs = parseFloat(pcs.fontSize) * d, ls = (parseFloat(pcs.letterSpacing) || 0) * d;
-    const prep = () => { c.font = `${pcs.fontStyle} ${pcs.fontWeight} ${fs}px ${pcs.fontFamily}`; if ('letterSpacing' in c) c.letterSpacing = `${ls}px`; c.textBaseline = 'alphabetic'; };
+    const fs = parseFloat(pcs.fontSize) * d, ls = (parseFloat(pcs.letterSpacing) || 0) * d, ws = (parseFloat(pcs.wordSpacing) || 0) * d;
+    const prep = () => { c.font = `${pcs.fontStyle} ${pcs.fontWeight} ${fs}px ${pcs.fontFamily}`; if ('letterSpacing' in c) c.letterSpacing = `${ls}px`; if ('wordSpacing' in c) c.wordSpacing = `${ws}px`; c.textBaseline = 'alphabetic'; };
     prep();
     const pad = Math.ceil(fs);
     const W = Math.ceil(c.measureText(text).width + pad * 2), H = Math.ceil(fs * 2.5 + pad);
@@ -375,7 +384,7 @@ export function TagAlign() {
         const q = rg.getBoundingClientRect();
         off = `${(q.left - r.left).toFixed(2)},${(q.top - r.top).toFixed(2)}`;
       }
-      return `${el.textContent}|${cs.font}|${cs.letterSpacing}|${r.width.toFixed(2)}x${r.height.toFixed(2)}|${off}`;
+      return `${el.textContent}|${cs.font}|${cs.letterSpacing}|${cs.wordSpacing}|${r.width.toFixed(2)}x${r.height.toFixed(2)}|${off}`;
     };
     const scan = () => {
       // 먼저 상자를 화면 픽셀에 붙이고(폭 · 자리), 그 상자 안에서 글자를 가운데로

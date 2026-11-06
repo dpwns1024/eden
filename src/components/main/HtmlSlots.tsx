@@ -65,7 +65,9 @@ export function useMenuItems() {
   ];
 }
 
-export function SlotMenu() {
+/** direct — 폴더(상위 메뉴)를 누르면 하위 메뉴 목록을 펼치지 않고 첫 하위 메뉴로 바로 간다 (YJHM 폴더 바 — 사용자 요청).
+ *  나머지 하위 메뉴는 YJHM 머리 탭(YjhmHeader)에서 고른다 */
+export function SlotMenu({ direct }: { direct?: boolean } = {}) {
   const pathname = useAppPathname();
   const menuItems = useMenuItems();
   const [open, setOpen] = useState<string | null>(null);
@@ -103,7 +105,17 @@ export function SlotMenu() {
 
   return (
     <nav className="oh-menu" ref={ref}>
-      {items.map(m => (m.children ? (
+      {items.map(m => (m.children && direct ? (() => {
+        const first = m.children.find(c => !ext(c.href)) ?? m.children[0];
+        if (!first) return null;
+        return (
+          <div key={m.label} className={`oh-grp${m.children.some(c => isOn(c.href)) ? ' on' : ''}`}>
+            {ext(first.href)
+              ? <a className="oh-item" href={first.href} target="_blank" rel="noreferrer">{nm(m)}</a>
+              : <Link className="oh-item" href={toPublicHref(first.href)}>{nm(m)}</Link>}
+          </div>
+        );
+      })() : m.children ? (
         <div key={m.label} className={`oh-grp${open === m.label ? ' open' : ''}${m.children.some(c => isOn(c.href)) ? ' on' : ''}`}>
           <button type="button" className="oh-item" aria-expanded={open === m.label}
             onClick={() => setOpen(o => (o === m.label ? null : m.label))}>{nm(m)}</button>

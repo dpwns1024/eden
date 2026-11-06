@@ -631,6 +631,12 @@ html.ui-yjhm body:has(.yj-fh.sub) #appMain .page-head p{font:400 13px/22px 'Pret
   .yj-dock-menu .oh-item{font-size:9px;letter-spacing:.04em}
   .yj-dock-menu .oh-item::before{width:34px;height:26px}
   .yj-dock-menu .oh-sub{left:50%}
+  /* 메인 라벨 · 한마디 — 폰에서는 작게 (사용자 요청 — 「모바일 메인에서 라벨이랑 예준 한마디가 너무 커」). PC는 그대로 */
+  .yj-film-home .yj-tape{height:20px;padding:0 calc(8px - .16em) 0 8px;font-size:9.5px;letter-spacing:.16em}
+  .yj-film-home .yj-gb-l > :is(a,p){padding:6px 10px;font-size:11.5px;line-height:15px}
+  .yj-quote{top:-11px;height:22px;max-width:calc(100vw - 32px);box-shadow:0 2px 6px rgba(44,62,87,.12)}
+  .yj-quote .yj-tape{height:22px;padding:0 calc(8px - .16em) 0 8px;font-size:9px;letter-spacing:.16em}
+  .yj-quote > span{box-sizing:border-box;height:22px;padding:2px 10px 0;font-size:11px;line-height:22px}
 }
 
 /* ══════════ 메인 편집 창 (관리자 — 필름 · 방명록 · 한마디) ══════════ */
