@@ -6,7 +6,7 @@
  * 오른쪽 위: 세계 전환 · 로그인(TopBar가 member 자리로 옮겨 그린다 — lib/htmlSlots.ts) → 번호 · 날짜 → BGM 한 줄(BgmPlayer가 bgm 자리로 옮겨 그린다).
  * 폴더 바는 폴더가 모두 왼쪽 · 오른쪽 칸은 비워 둔다(사용자가 다른 것을 넣을 자리). 모양은 yjhm.css.
  */
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { SlotMenu } from '@/components/main/HtmlSlots';
 import { setMemberSlot, clearMemberSlot, setBgmSlot, clearBgmSlot } from '@/lib/htmlSlots';
@@ -27,37 +27,55 @@ function useSlotRef(set: (el: Element) => void, clear: (el: Element) => void) {
 const DDAY_FROM = new Date(2026, 2, 5);
 const dday = (now: Date) => Math.floor((new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() - DDAY_FROM.getTime()) / 86400000) + 1;
 
-/** 다른 페이지 제목 위 작은 줄 — 맨 아래 폴더 바에서 지금 켜진 폴더의 번호 · 이름 (예: 02 — PEOPLE).
- *  게시판마다 제목 줄을 고치지 않고 <html>에 글자를 걸어 두면 yjhm.css가 제목(.page-head) 위에 그린다 */
-function useSectionLabel(on: boolean) {
+/** 다른 페이지 머리 줄의 지금 메뉴 — 맨 아래 폴더 바에서 켜진 폴더의 번호 · 이름 (예: 02 · PEOPLE) */
+function useSection(on: boolean) {
+  const [sec, setSec] = useState<{ no: string; label: string } | null>(null);
   useEffect(() => {
     if (!on) return;
-    const root = document.documentElement;
-    const set = () => {
+    const read = () => {
       const menu = document.querySelector('.yj-dock-menu .oh-menu');
       const items = menu ? [...menu.children] : [];
       const i = items.findIndex(el => el.matches('.oh-item.on, .oh-grp.on'));
       const item = i < 0 ? null : (items[i].matches('.oh-item') ? items[i] : items[i].querySelector('.oh-item'));
-      const label = item?.textContent?.replace(/["\\]/g, '').trim();
-      if (!label) { root.classList.remove('yj-has-sec'); root.style.removeProperty('--yj-sec'); return; }
-      root.style.setProperty('--yj-sec', `"${String(i + 1).padStart(2, '0')} — ${label.toUpperCase()}"`);
-      root.classList.add('yj-has-sec');
+      const label = item?.textContent?.trim();
+      setSec(prev => {
+        const next = label ? { no: String(i + 1).padStart(2, '0'), label: label.toUpperCase() } : null;
+        return prev?.no === next?.no && prev?.label === next?.label ? prev : next;
+      });
     };
-    set();
+    read();
     const dock = document.querySelector('.yj-dock');
-    const mo = new MutationObserver(set);
+    const mo = new MutationObserver(read);
     if (dock) mo.observe(dock, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'], characterData: true });
-    return () => { mo.disconnect(); root.classList.remove('yj-has-sec'); root.style.removeProperty('--yj-sec'); };
+    return () => mo.disconnect();
   }, [on]);
+  return sec;
 }
 
-/** main — 메인 1면 (제호가 크다). 아니면 다른 페이지 (제호만 작고 나머지는 같다) */
+/** main — 메인 1면 (큰 제호 · 오른쪽 위 전환/로그인 → 번호 · 날짜 → BGM).
+ *  다른 페이지 — EVEDEN처럼 얇은 머리 한 줄: 작은 제호 · 지금 메뉴(번호 · 이름) …… BGM · 전환/로그인, 아래 얇은 선.
+ *  그 아래 본문 제목(ROSTER. 등)으로 바로 이어진다 (사용자 지적 — 「제호 · 메뉴 이름 · 제목이 똑같이 반복되고 여백도 넓어 난잡하다」) */
 export function YjhmHeader({ main }: { main?: boolean }) {
   const memberRef = useSlotRef(setMemberSlot, clearMemberSlot);
   const bgmRef = useSlotRef(setBgmSlot, clearBgmSlot);
-  useSectionLabel(!main);
+  const sec = useSection(!main);
+  if (!main) {
+    return (
+      <header className="yj-fh sub">
+        <link rel="stylesheet" href={YJ_FONTS} precedence="default" />
+        <div className="yj-fh-l">
+          <Link className="yj-fh-n" href="/">Hong Yejun<i>.</i></Link>
+          {sec && <span className="yj-fh-sec"><b>{sec.no}</b>{sec.label}</span>}
+        </div>
+        <div className="yj-fh-r">
+          <div className="yj-bgm-slot" ref={bgmRef} />
+          <div className="yj-member" ref={memberRef} />
+        </div>
+      </header>
+    );
+  }
   return (
-    <header className={`yj-fh${main ? '' : ' sub'}`}>
+    <header className="yj-fh">
       <link rel="stylesheet" href={YJ_FONTS} precedence="default" />
       <div className="yj-fh-l">
         <span className="yj-fh-k">GOLD MEDALIST — 10M AIR PISTOL</span>

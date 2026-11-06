@@ -15,6 +15,8 @@ const SEL = [
   '[data-box-head] > [data-box-tag]',
   // YJHM 한마디 이름 딱지 · BGM 목록의 NOW 딱지 — 버튼이 아니라 글자만 든 상자 (사용자 제보 — YEJUN 딱지 위아래 어긋남)
   'html.ui-yjhm .yj-quote .yj-tape', 'html.ui-yjhm .by-it em',
+  // YJHM 목록 위 탭(ALL 1 · YJHM 1 — 안에 작은 숫자 <small>) — 사용자 제보
+  'html.ui-yjhm .arch-tabbar .tag',
 ].join(',');
 /** YJHM 테이프 · 버튼 — 상자 자체를 화면 픽셀에 맞춘다 (사용자 요청 — 100% 배율에서 픽셀 단위로).
  *  글자 폭 때문에 상자 폭이 100.78px처럼 소수점이 되거나, 화면 높이에 따라 줄 위치가 664.25px처럼 걸치면
@@ -23,7 +25,8 @@ const SEL = [
 const SNAP = [
   '.yj-tape', '.yj-quote > span', '.world-switch.ws-yjhm button', '.yj-fh .login-link', '.yj-btn', '.bgm-y .by-pp', '.by-it em',
   // 다른 페이지 · 창의 버튼 · 탭도 (게시판 글쓰기 · 탭 · 로그인 · 창 아래 버튼)
-  '#appMain .page :is(.btn,.seg > button,.mini-seg > button,.arch-tabbar .tag)', '.modal-ov .mng-box :is(.btn,.seg > button)',
+  '#appMain .page :is(.btn,.seg > button,.mini-seg > button,.arch-tabbar .tag)',
+  '#appMain .page :is(.b-badge,.cat-badge,.dt-badge,.cm-badge,.g-badge,.gi-tag,.cls-tag,.typ,.pill)', '.modal-ov .mng-box :is(.btn,.seg > button)',
 ].map(x => `html.ui-yjhm ${x}`).join(',');
 /** 가운데에 띄운 상자(translate -50%를 이미 쓰는 것) — 폭은 그대로 두고 margin으로 자리만 맞춘다 */
 const SNAP_BOX = 'html.ui-yjhm .yj-quote';
@@ -81,17 +84,23 @@ function pixelInk(text: string, font: (size: number) => string, size: number, ls
     actualBoundingBoxAscent: (oy - y0) / K, actualBoundingBoxDescent: (y1 + 1 - oy) / K, lsIncluded: 'letterSpacing' in c };
 }
 
+/** 글자만 든 안쪽 요소(작은 숫자 <small> 등)인지 — 그림 · 입력 칸 · 줄바꿈이 섞이면 다루지 않는다 */
+const textOnly = (el: Element): boolean => [...el.children].every(c =>
+  !/^(IMG|SVG|CANVAS|VIDEO|INPUT|SELECT|TEXTAREA|BR|BUTTON|IFRAME)$/i.test(c.tagName) && !(c as HTMLElement).dataset?.[ORIG] && textOnly(c));
+
 function fix(el: HTMLElement, guard = false) {
-  if (el.childElementCount || !el.offsetWidth) return;
+  if (!el.offsetWidth) return;
+  // 안쪽 요소가 있으면 YJHM에서만 — 「ALL <small>1</small>」 같은 탭도 글자 전체를 한 덩어리로 가운데에 (사용자 제보)
+  if (el.childElementCount && (!yjhm() || !textOnly(el))) return;
   const raw = el.textContent?.trim() ?? '';
   if (!raw || raw.includes('\n')) return;
   // 한글 — canvas measureText가 한글 글꼴의 잉크를 잘못 재 오히려 어긋났다. YJHM에서는 그려 본 픽셀로 재고(pixelInk),
   // 다른 세계는 예전처럼 건드리지 않는다
-  const hangul = HANGUL.test(raw);
-  if (hangul && !yjhm()) return;
+  if (HANGUL.test(raw) && !yjhm()) return;
   const cs = getComputedStyle(el);
   if (cs.transform !== 'none') return;   // 돌린 딱지는 상자 재기가 어긋난다
-  if (guard && !boxed(cs)) return;
+  // 바탕 없는 탭 · 버튼도 YJHM 맞춤 대상(SNAP)이면 — 고르면 바탕이 생기고, 자간 보정 들여쓰기가 남아 1px 쏠렸다
+  if (guard && !boxed(cs) && !(yjhm() && el.matches(SNAP))) return;
   ctx ??= document.createElement('canvas').getContext('2d');
   if (!ctx) return;
   // 재는 동안 변화 애니메이션(transition)을 끈다 — 켜 두면 방금 바꾼 들여쓰기 · 여백이 천천히 움직이는 중간값을 잰다
@@ -100,50 +109,70 @@ function fix(el: HTMLElement, guard = false) {
   const done = () => { void el.offsetWidth; el.style.setProperty('transition', trans); };
   // 자간 보정(LetterSpacingFix)이 넣은 들여쓰기는 걷고 여기서 한 번에 맞춘다
   if (el.dataset.lsfix) { el.style.textIndent = ''; el.style.removeProperty('--lsfix'); delete el.dataset.lsfix; }
-  const text = cs.textTransform === 'uppercase' ? raw.toUpperCase() : cs.textTransform === 'lowercase' ? raw.toLowerCase() : raw;
-  // 10배 크기로 재서 나눈다 — 작은 글씨는 canvas가 잉크 높이를 정수 px로 반올림해 1px 가까이 틀렸다
-  const K = 10;
-  ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${parseFloat(cs.fontSize) * K}px ${cs.fontFamily}`;
-  const ls = parseFloat(cs.letterSpacing) || 0;
-  const c2 = ctx as CanvasRenderingContext2D & { letterSpacing?: string };
-  const lsCanvas = 'letterSpacing' in c2;
-  if (lsCanvas) c2.letterSpacing = `${ls * K}px`;
-  const mk = ctx.measureText(text);
-  const pi = hangul ? pixelInk(text, sz => `${cs.fontStyle} ${cs.fontWeight} ${sz}px ${cs.fontFamily}`, parseFloat(cs.fontSize), ls) : null;
-  if (hangul && !pi) { done(); return; }
-  const m = pi ?? { actualBoundingBoxLeft: mk.actualBoundingBoxLeft / K, actualBoundingBoxRight: mk.actualBoundingBoxRight / K,
-    actualBoundingBoxAscent: mk.actualBoundingBoxAscent / K, actualBoundingBoxDescent: mk.actualBoundingBoxDescent / K };
 
-  const node = [...el.childNodes].find(n => n.nodeType === 3 && n.nodeValue?.trim()) as Text | undefined;
-  if (!node) { done(); return; }
+  // 글자 덩어리마다 (글꼴 · 크기가 다를 수 있다) 잉크 치수
+  const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  type Part = { node: Text; m: { actualBoundingBoxLeft: number; actualBoundingBoxRight: number; actualBoundingBoxAscent: number; actualBoundingBoxDescent: number }; extra: number };
+  const parts: Part[] = [];
+  const K = 10;   // 10배 크기로 재서 나눈다 — 작은 글씨는 canvas가 잉크 높이를 정수 px로 반올림해 1px 가까이 틀렸다
+  for (let n = tw.nextNode() as Text | null; n; n = tw.nextNode() as Text | null) {
+    const t0 = n.nodeValue?.trim();
+    if (!t0) continue;
+    const pcs = n.parentElement === el ? cs : getComputedStyle(n.parentElement!);
+    const text = pcs.textTransform === 'uppercase' ? t0.toUpperCase() : pcs.textTransform === 'lowercase' ? t0.toLowerCase() : t0;
+    const ls = parseFloat(pcs.letterSpacing) || 0;
+    const font = (sz: number) => `${pcs.fontStyle} ${pcs.fontWeight} ${sz}px ${pcs.fontFamily}`;
+    let m: Part['m'] | null;
+    let extra = 0;
+    if (HANGUL.test(text)) m = pixelInk(text, font, parseFloat(pcs.fontSize), ls);
+    else {
+      ctx.font = font(parseFloat(pcs.fontSize) * K);
+      const c2 = ctx as CanvasRenderingContext2D & { letterSpacing?: string };
+      const lsCanvas = 'letterSpacing' in c2;
+      if (lsCanvas) c2.letterSpacing = `${ls * K}px`;
+      const mk = ctx.measureText(text);
+      m = { actualBoundingBoxLeft: mk.actualBoundingBoxLeft / K, actualBoundingBoxRight: mk.actualBoundingBoxRight / K,
+        actualBoundingBoxAscent: mk.actualBoundingBoxAscent / K, actualBoundingBoxDescent: mk.actualBoundingBoxDescent / K };
+      if (!lsCanvas) extra = ls * (text.length - 1);
+    }
+    if (!m) { done(); return; }
+    parts.push({ node: n, m, extra });
+  }
+  if (!parts.length) { done(); return; }
 
   let last: { l: number; r: number; t: number; b: number } | null = null;
   const keepInk = () => { if (last) el.dataset[INK] = JSON.stringify(last); };
-  // 지금 모습에서 글자 잉크 중심이 상자 안쪽 중심에서 얼마나 빗겨 있는지
+  // 지금 모습에서 글자 잉크(모든 덩어리를 합친 것) 중심이 상자 안쪽 중심에서 얼마나 빗겨 있는지
   const measure = () => {
-    // 글자 시작 자리 — 글자 범위(Range)의 왼쪽 끝
-    const rg = document.createRange();
-    rg.setStart(node, node.nodeValue!.length - node.nodeValue!.trimStart().length);
-    rg.setEnd(node, node.nodeValue!.trimEnd().length);
-    const lr = rg.getClientRects()[0];
-    if (!lr) return null;
-    // 기준선 — 글자를 잠깐 인라인 상자로 감싸고 그 안 맨 앞에 크기 0인 표시를 기준선에 놓아 잰다
-    // (상자가 flex여도 감싼 안쪽은 보통 줄이라 표시가 정확히 기준선에 선다)
-    // 사이트 CSS가 걸리지 않는 이름 없는 태그로 — span이면 「딱지 안 span」 규칙이 걸려 기준선이 바뀌었다
-    const wrap = document.createElement('tag-align-w');
-    const probe = document.createElement('tag-align-p');
-    probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline;padding:0;margin:0;border:0';
-    node.replaceWith(wrap); wrap.append(probe, node);
-    const layoutBase = probe.getBoundingClientRect().top;
-    wrap.replaceWith(node);
-    // 브라우저는 글자 기준선을 CSS 1px 단위로 반올림해 그린다(배율과 상관없이 — 실측). 그려지는 자리로 잰다
-    const base = Math.round(layoutBase + window.scrollY) - window.scrollY;
     const r = el.getBoundingClientRect();
     const s = el.offsetWidth ? r.width / el.offsetWidth : 1;   // 확대 · 축소(zoom) 보정
-    const inkL = lr.left - m.actualBoundingBoxLeft * s;
-    const inkR = lr.left + (m.actualBoundingBoxRight + (lsCanvas ? 0 : ls * (text.length - 1))) * s;
-    const inkT = base - m.actualBoundingBoxAscent * s;
-    const inkB = base + m.actualBoundingBoxDescent * s;
+    let inkL = Infinity, inkR = -Infinity, inkT = Infinity, inkB = -Infinity, layoutBase = 0, base = 0;
+    for (let i = 0; i < parts.length; i++) {
+      const { node, m, extra } = parts[i];
+      // 글자 시작 자리 — 글자 범위(Range)의 왼쪽 끝. 두 줄로 꺾였으면 다루지 않는다
+      const rg = document.createRange();
+      rg.setStart(node, node.nodeValue!.length - node.nodeValue!.trimStart().length);
+      rg.setEnd(node, node.nodeValue!.trimEnd().length);
+      const rs = rg.getClientRects();
+      if (rs.length !== 1) return null;
+      const lr = rs[0];
+      // 기준선 — 글자를 잠깐 인라인 상자로 감싸고 그 안 맨 앞에 크기 0인 표시를 기준선에 놓아 잰다
+      // (상자가 flex여도 감싼 안쪽은 보통 줄이라 표시가 정확히 기준선에 선다)
+      // 사이트 CSS가 걸리지 않는 이름 없는 태그로 — span이면 「딱지 안 span」 규칙이 걸려 기준선이 바뀌었다
+      const wrap = document.createElement('tag-align-w');
+      const probe = document.createElement('tag-align-p');
+      probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline;padding:0;margin:0;border:0';
+      node.replaceWith(wrap); wrap.append(probe, node);
+      const lb = probe.getBoundingClientRect().top;
+      wrap.replaceWith(node);
+      // 브라우저는 글자 기준선을 CSS 1px 단위로 반올림해 그린다(배율과 상관없이 — 실측). 그려지는 자리로 잰다
+      const bs = Math.round(lb + window.scrollY) - window.scrollY;
+      if (i === 0) { layoutBase = lb; base = bs; }
+      inkL = Math.min(inkL, lr.left - m.actualBoundingBoxLeft * s);
+      inkR = Math.max(inkR, lr.left + (m.actualBoundingBoxRight + extra) * s);
+      inkT = Math.min(inkT, bs - m.actualBoundingBoxAscent * s);
+      inkB = Math.max(inkB, bs + m.actualBoundingBoxDescent * s);
+    }
     // 상자 기준 잉크 자리 — 홀짝 맞춤(parity)이 다음에 쓴다
     last = { l: inkL - r.left, r: inkR - r.left, t: inkT - r.top, b: inkB - r.top };
     const dy = (r.top + (el.clientTop + el.clientHeight / 2) * s - (inkT + inkB) / 2) / s;
@@ -173,6 +202,7 @@ function fix(el: HTMLElement, guard = false) {
     if (Math.abs(d.dy) >= 0.2) move('padding-top', 'padding-bottom', d.dy);
   };
 
+  const ls = parseFloat(cs.letterSpacing) || 0;
   const d1 = measure();
   // 버튼은 글자가 원래 가운데 근처일 때만 — 왼쪽 정렬로 둔 넓은 버튼은 그대로
   if (!d1 || (Math.abs(d1.dx) < 0.3 && Math.abs(d1.dy) < 0.3 && cs.display !== 'inline')
@@ -202,49 +232,70 @@ function unsnap(el: HTMLElement) {
   delete el.dataset[SNAPPED];
 }
 
-/** 글자 잉크의 좌우 끝 (CSS px, 화면 기준) — 영문 · 숫자 한 줄만 */
-function inkX(el: HTMLElement): { l: number; r: number } | null {
-  if (el.childElementCount) return null;
-  const node = [...el.childNodes].find(n => n.nodeType === 3 && n.nodeValue?.trim()) as Text | undefined;
-  const raw = node?.nodeValue?.trim() ?? '';
-  if (!node || !raw) return null;
-  const hangul = HANGUL.test(raw);
-  const cs = getComputedStyle(el);
-  ctx ??= document.createElement('canvas').getContext('2d');
-  if (!ctx) return null;
-  const text = cs.textTransform === 'uppercase' ? raw.toUpperCase() : cs.textTransform === 'lowercase' ? raw.toLowerCase() : raw;
-  const K = 10;
-  ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${parseFloat(cs.fontSize) * K}px ${cs.fontFamily}`;
-  const ls = parseFloat(cs.letterSpacing) || 0;
-  const c2 = ctx as CanvasRenderingContext2D & { letterSpacing?: string };
-  const lsCanvas = 'letterSpacing' in c2;
-  if (lsCanvas) c2.letterSpacing = `${ls * K}px`;
-  const mk = hangul ? pixelInk(text, sz => `${cs.fontStyle} ${cs.fontWeight} ${sz}px ${cs.fontFamily}`, parseFloat(cs.fontSize), ls) : ctx.measureText(text);
-  if (!mk) return null;
-  const k = hangul ? 1 : K;
-  const rg = document.createRange();
-  rg.setStart(node, node.nodeValue!.length - node.nodeValue!.trimStart().length);
-  rg.setEnd(node, node.nodeValue!.trimEnd().length);
-  const lr = rg.getClientRects()[0];
-  if (!lr) return null;
-  return { l: lr.left - mk.actualBoundingBoxLeft / k, r: lr.left + mk.actualBoundingBoxRight / k + (lsCanvas ? 0 : ls * (text.length - 1)) };
+/** 화면에 그려지는 글자 잉크의 화면 픽셀 범위 — 글자를 화면과 같은 소수점 자리 · 같은 크기(기기 배율)로 canvas에 그려 보고
+ *  반 넘게 칠해진 픽셀만 센다. 글꼴 치수로 짐작하면 Y · W처럼 비스듬한 글자에서 1px씩 틀렸다 (사용자 제보 — YJHM 딱지) */
+let rcv: HTMLCanvasElement | null = null;
+function rasterInk(el: HTMLElement): { l: number; r: number; t: number; b: number } | null {
+  const d = window.devicePixelRatio || 1;
+  rcv ??= document.createElement('canvas');
+  const c = rcv.getContext('2d', { willReadFrequently: true }) as (CanvasRenderingContext2D & { letterSpacing?: string }) | null;
+  if (!c) return null;
+  let L = Infinity, R = -Infinity, T = Infinity, B = -Infinity;
+  const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  for (let n = tw.nextNode() as Text | null; n; n = tw.nextNode() as Text | null) {
+    const t0 = n.nodeValue?.trim();
+    if (!t0) continue;
+    const pcs = getComputedStyle(n.parentElement!);
+    const text = pcs.textTransform === 'uppercase' ? t0.toUpperCase() : pcs.textTransform === 'lowercase' ? t0.toLowerCase() : t0;
+    const rg = document.createRange();
+    rg.setStart(n, n.nodeValue!.length - n.nodeValue!.trimStart().length);
+    rg.setEnd(n, n.nodeValue!.trimEnd().length);
+    const rs = rg.getClientRects();
+    if (rs.length !== 1) return null;
+    const wrap = document.createElement('tag-align-w');
+    const probe = document.createElement('tag-align-p');
+    probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline;padding:0;margin:0;border:0';
+    n.replaceWith(wrap); wrap.append(probe, n);
+    const lb = probe.getBoundingClientRect().top;
+    wrap.replaceWith(n);
+    const base = Math.round((Math.round(lb + window.scrollY) - window.scrollY) * d);   // 그려지는 기준선(화면 픽셀)
+    const fs = parseFloat(pcs.fontSize) * d, ls = (parseFloat(pcs.letterSpacing) || 0) * d;
+    const prep = () => { c.font = `${pcs.fontStyle} ${pcs.fontWeight} ${fs}px ${pcs.fontFamily}`; if ('letterSpacing' in c) c.letterSpacing = `${ls}px`; c.textBaseline = 'alphabetic'; };
+    prep();
+    const pad = Math.ceil(fs);
+    const W = Math.ceil(c.measureText(text).width + pad * 2), H = Math.ceil(fs * 2.5 + pad);
+    rcv.width = W; rcv.height = H;
+    prep();
+    const x0 = rs[0].left * d, fx = x0 - Math.floor(x0);
+    const oy = Math.round(fs * 1.6);
+    c.clearRect(0, 0, W, H);
+    c.fillText(text, pad + fx, oy);
+    const px = c.getImageData(0, 0, W, H).data;
+    let a = W, b = -1, t = H, u = -1;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      if (px[(y * W + x) * 4 + 3] < 128) continue;
+      if (x < a) a = x; if (x > b) b = x; if (y < t) t = y; if (y > u) u = y;
+    }
+    if (b < 0) continue;
+    L = Math.min(L, Math.floor(x0) + a - pad); R = Math.max(R, Math.floor(x0) + b - pad + 1);
+    T = Math.min(T, base + t - oy); B = Math.max(B, base + u - oy + 1);
+  }
+  return R > L ? { l: L, r: R, t: T, b: B } : null;
 }
 
 /** 정수 상자 안에서 글자가 반 픽셀 남는 경우(상자 폭 · 높이와 잉크의 홀짝이 달라서) — 모자란 쪽으로 상자를 1화면픽셀 늘린다.
  *  늘린 만큼 그쪽 여백도 더해 글자는 제자리에 둔다 (예: 왼쪽 10 · 오른쪽 9 → 10 · 10, 위 9 · 아래 8 → 9 · 9) */
 function parity(el: HTMLElement) {
   if (!el.dataset[SNAPPED] || !el.offsetWidth) return;
-  // 한글은 그려 본 잉크와 화면 잉크가 1px 안팎 달라 홀짝을 잘못 짚었다 — 가운데 맞춤(fix)까지만
-  if (HANGUL.test(el.textContent ?? '')) return;
+  if (el.childElementCount && !textOnly(el)) return;
+  const ink = rasterInk(el);
+  if (!ink) return;
   const r = el.getBoundingClientRect();
-  const st = el.dataset[INK] ? JSON.parse(el.dataset[INK]!) as { l: number; r: number; t: number; b: number } : null;
-  const ix = st ? { l: r.left + st.l, r: r.left + st.r } : inkX(el);
-  if (!ix) return;
   const d = window.devicePixelRatio || 1;
   const P = (v: number) => Math.round(v * d);
-  const gl = P(ix.l) - P(r.left), gr = P(r.right) - P(ix.r);
-  const gt = st ? P(r.top + st.t) - P(r.top) : 0, gb = st ? P(r.bottom) - P(r.top + st.b) : 0;
-  const fixX = Math.abs(gl - gr) === 1, fixY = !!st && Math.abs(gt - gb) === 1;
+  const gl = ink.l - P(r.left), gr = P(r.right) - ink.r;
+  const gt = ink.t - P(r.top), gb = P(r.bottom) - ink.b;
+  const fixX = Math.abs(gl - gr) === 1, fixY = Math.abs(gt - gb) === 1;
   if (!fixX && !fixY) return;
   const cs = getComputedStyle(el);
   const keys = ['width', 'height', 'translate', 'padding-left', 'padding-right', 'padding-top', 'padding-bottom', 'margin-right', 'margin-bottom'];
@@ -274,7 +325,7 @@ function snap(el: HTMLElement, box = false) {
   unsnap(el);
   if (!el.offsetWidth) return;
   // 컴포넌트가 직접 준 폭 · 자리는 기억했다가 되돌린다
-  el.dataset[SNAPPED] = JSON.stringify(['width', 'translate', 'margin-left', 'margin-top', 'margin-right'].map(k => [k, el.style.getPropertyValue(k), el.style.getPropertyPriority(k)]));
+  el.dataset[SNAPPED] = JSON.stringify(['width', 'height', 'translate', 'margin-left', 'margin-top', 'margin-right', 'margin-bottom'].map(k => [k, el.style.getPropertyValue(k), el.style.getPropertyPriority(k)]));
   if (!box) {
     const w = el.getBoundingClientRect().width;
     const wi = Math.ceil(w - 0.01);
@@ -283,6 +334,14 @@ function snap(el: HTMLElement, box = false) {
       const mr = parseFloat(getComputedStyle(el).marginRight) || 0;
       el.style.setProperty('width', `${wi}px`, 'important');
       el.style.setProperty('margin-right', `${mr - (wi - w)}px`, 'important');
+    }
+    // 높이도 정수로 (20.5px 딱지는 위아래 가장자리가 번져 글자가 반 픽셀 떠 보였다)
+    const h = el.getBoundingClientRect().height;
+    const hi = Math.ceil(h - 0.01);
+    if (hi - h > 0.01) {
+      const mb = parseFloat(getComputedStyle(el).marginBottom) || 0;
+      el.style.setProperty('height', `${hi}px`, 'important');
+      el.style.setProperty('margin-bottom', `${mb - (hi - h)}px`, 'important');
     }
   }
   const r = el.getBoundingClientRect();

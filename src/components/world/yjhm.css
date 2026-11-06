@@ -348,7 +348,7 @@ body:has(.yj-main)::before{display:none !important}
 .yj-film-home .yj-faint{padding:6px 0;font-size:12.5px}
 
 /* 라벨 테이프 */
-.yj-tape{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;height:24px;margin:0;padding:0 calc(11px - .22em) 0 11px;border:0;border-radius:2px;background:var(--nv2,#2c3e57);color:#f2f4f7 !important;font:700 11px/1 var(--mono);letter-spacing:.22em;white-space:nowrap;
+.yj-tape{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;height:24px;margin:0;padding:0 calc(11px - .22em) 0 11px;border:0;border-radius:2px;background:var(--nv2,#2c3e57);color:#f2f4f7 !important;font:500 11px/1 var(--mono);letter-spacing:.22em;white-space:nowrap;
   text-shadow:0 1px 0 rgba(0,0,0,.4);box-shadow:0 1px 3px rgba(20,30,48,.25),inset 0 1px 0 rgba(255,255,255,.12);cursor:var(--cur-pointer,pointer)}
 
 /* 머리 — 메인과 다른 페이지가 같은 것 (YjhmHeader). 다른 페이지(.sub)는 제호만 작다.
@@ -391,10 +391,18 @@ html.ui-yjhm .notif-menu .nh .all{width:auto;font:500 10px/1 'DM Mono',monospace
 html.ui-yjhm .notif-menu .nt small{font-family:'DM Mono',monospace;letter-spacing:.08em}
 html.ui-yjhm .notif-menu .nset{border-top:1px solid rgba(44,62,87,.08)}
 
-/* 다른 페이지 — 머리와 본문이 같은 왼쪽 선에서 시작한다(예전엔 본문만 가운데로 몰려 제목이 두 번 어긋나 보였다).
- * 제호는 작게, 본문 제목(ROSTER. 등)이 이 화면의 큰 제목. 폭은 메인과 같은 1600 · 옆 여백 44 */
-.yj-fh.sub{max-width:1600px;margin:0 auto;padding:30px 44px 0;box-sizing:border-box}
-.yj-fh.sub .yj-fh-n{font-size:round(clamp(40px,3.6vw,52px),1px);line-height:round(.8em,1px);padding-bottom:round(.12em,1px)}
+/* 다른 페이지 — EVEDEN처럼 얇은 머리 한 줄 (사용자 지적 — 「제호 · 메뉴 이름 · 제목이 반복되고 여백도 넓어 난잡」).
+ * 왼쪽 작은 제호 │ 지금 메뉴(번호 · 이름) …… 오른쪽 BGM │ 전환 · 로그인. 아래 얇은 선 하나, 그 밑에서 본문 제목이 바로 이어진다.
+ * 폭은 메인과 같은 1600 · 옆 여백 44 — 본문과 같은 왼쪽 선 */
+.yj-fh.sub{position:relative;max-width:1600px;height:72px;margin:0 auto;padding:0 44px;box-sizing:border-box;align-items:center}
+.yj-fh.sub::after{content:"";position:absolute;left:44px;right:44px;bottom:0;height:1px;background:rgba(96,124,160,.3)}
+.yj-fh.sub .yj-fh-l{flex-direction:row;align-items:center;gap:16px}
+.yj-fh.sub .yj-fh-n{margin:0;padding:0;font-size:28px;line-height:28px;letter-spacing:-.05em}
+.yj-fh-sec{display:flex;align-items:center;gap:10px;height:16px;padding-left:16px;border-left:1px solid rgba(96,124,160,.35);font:500 10px/1 var(--mono);letter-spacing:.24em;color:#2c3e57;white-space:nowrap}
+.yj-fh-sec b{font-weight:500;color:#607ca0}
+.yj-fh.sub .yj-fh-r{flex-direction:row;align-items:center;gap:20px}
+.yj-fh.sub .bgm-y{width:250px;height:36px;padding-right:20px;border:0;border-right:1px solid rgba(96,124,160,.3)}
+.yj-fh.sub .by-list{right:20px}
 
 /* 필름 */
 .yj-film-wrap{position:relative;flex:1;min-height:0;display:flex;align-items:center}
@@ -552,15 +560,13 @@ html.ui-yjhm body:has(.yj-fh.sub)::before{inset:0;filter:none;
   background:repeating-radial-gradient(circle at 50% 47%,transparent 0 94px,rgba(96,124,160,.12) 94px 95.5px),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .25 0 0 0 0 .32 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 html.ui-yjhm body:has(.yj-fh.sub){padding-bottom:80px}
-html.ui-yjhm body:has(.yj-fh.sub) #appMain .page{box-sizing:border-box;max-width:1600px;padding:44px 44px 120px;animation:yj-page-in .5s cubic-bezier(.2,.7,.2,1) both}
+html.ui-yjhm body:has(.yj-fh.sub) #appMain .page{box-sizing:border-box;max-width:1600px;padding:40px 44px 120px;animation:yj-page-in .5s cubic-bezier(.2,.7,.2,1) both}
 @keyframes yj-page-in{from{opacity:0;transform:translateY(14px)}}
 /* 제목 줄 — ARCH로 옮기지 않은 화면(방명록 등)도 같은 크기 · 같은 선 */
 html.ui-yjhm body:has(.yj-fh.sub) #appMain .page-head{padding-bottom:18px;margin-bottom:26px;border-bottom:1px solid rgba(96,124,160,.3);color:#1d2a3d}
 html.ui-yjhm body:has(.yj-fh.sub) #appMain .page-head::after{display:none}
-html.ui-yjhm body:has(.yj-fh.sub) #appMain .page-head h1{margin:0;padding-bottom:round(.08em,1px);font:700 round(clamp(36px,5vw,68px),1px)/round(.95em,1px) 'Inter','Pretendard Variable',Pretendard,sans-serif;letter-spacing:-.055em;background:none;color:#1d2a3d;-webkit-text-fill-color:currentColor}
+html.ui-yjhm body:has(.yj-fh.sub) #appMain .page-head h1{margin:0;padding-bottom:round(.08em,1px);font:700 round(clamp(36px,4.2vw,60px),1px)/round(.95em,1px) 'Inter','Pretendard Variable',Pretendard,sans-serif;letter-spacing:-.055em;background:none;color:#1d2a3d;-webkit-text-fill-color:currentColor}
 html.ui-yjhm body:has(.yj-fh.sub) #appMain .page-head p{font:400 13px/22px 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:0;color:#5d6e84}
-/* 제목 위 작은 줄 — 폴더 바에서 켜진 폴더 번호 · 이름 (YjhmHeader가 --yj-sec에 건다) */
-html.ui-yjhm.yj-has-sec body:has(.yj-fh.sub) #appMain .page-head::before{content:var(--yj-sec);grid-column:1 / -1;display:block;width:100%;margin:0 0 14px;font:500 10px/1 'DM Mono',monospace;letter-spacing:.24em;color:#607ca0}
 @media (prefers-reduced-motion:reduce){html.ui-yjhm body:has(.yj-fh.sub) #appMain .page{animation:none}}
 
 /* 폰 — 세로로 쌓는다 */
@@ -569,9 +575,14 @@ html.ui-yjhm.yj-has-sec body:has(.yj-fh.sub) #appMain .page-head::before{content
   .yj-fh{flex-direction:column-reverse;gap:14px;padding:18px 16px 0}
   .yj-fh-r{flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px 14px;align-self:stretch;justify-content:space-between}
   .yj-fh-n{font-size:clamp(46px,14vw,72px)}
-  .yj-fh.sub{min-height:0;padding:18px 16px 0}
   .yj-bgm-slot{flex-basis:100%}
-  .yj-fh.sub .yj-fh-n{font-size:clamp(38px,11vw,56px)}
+  .yj-fh.sub{height:auto;flex-direction:column;align-items:stretch;gap:12px;padding:14px 16px 14px}
+  .yj-fh.sub::after{left:16px;right:16px}
+  .yj-fh.sub .yj-fh-n{font-size:26px;line-height:26px}
+  .yj-fh.sub .yj-fh-r{order:-1;flex-wrap:wrap;justify-content:space-between;gap:10px;margin-bottom:6px}
+  .yj-fh.sub .yj-bgm-slot{order:2}
+  .yj-fh.sub .bgm-y{width:100%;padding-right:0;border-right:0;border-top:1px solid rgba(96,124,160,.3)}
+  .yj-fh.sub .by-list{right:0}
   html.ui-yjhm body:has(.yj-fh.sub){padding-bottom:110px}
   html.ui-yjhm body:has(.yj-fh.sub) #appMain .page{padding:26px 16px 120px}
   .bgm-y{width:100%}
