@@ -81,12 +81,16 @@ function FilmCell({ f, n, stock }: { f: Frame; n: number; stock: string }) {
   );
 }
 
-/** 흐르는 필름 띠 — 같은 칸 묶음을 두 번 이어 붙여 끝없이 흐르게 한다 */
-function Film({ frames, grade }: { frames: Frame[]; grade: YjhmGrade }) {
+/** 흐르는 필름 띠 — 같은 칸 묶음을 두 번 이어 붙여 끝없이 흐르게 한다.
+ *  back — 뒤에 겹친 두 번째 띠 (사용자 요청 — 「필름 똑같은데 각도만 다르게 뒤에 하나, 대표 그림 말고 다른 사진부터」):
+ *  칸 묶음을 반쯤 돌려 다른 사진에서 시작하고, 프레임 번호도 그 자리 번호를 그대로 단다 */
+function Film({ frames, grade, back }: { frames: Frame[]; grade: YjhmGrade; back?: boolean }) {
   const stock = (YJHM_GRADES.find(g => g.key === grade) ?? YJHM_GRADES[0]).stock;
-  const roll = (pre: string) => frames.map((f, i) => <FilmCell key={`${pre}${f.key}`} f={f} n={i + 1} stock={stock} />);
+  const start = back ? Math.max(1, Math.floor(frames.length / 2)) : 0;
+  const order = frames.map((f, i) => ({ f, n: i + 1 })).slice(start).concat(frames.map((f, i) => ({ f, n: i + 1 })).slice(0, start));
+  const roll = (pre: string) => order.map(({ f, n }) => <FilmCell key={`${pre}${f.key}`} f={f} n={n} stock={stock} />);
   return (
-    <div className="yj-film" data-grade={grade} aria-label="사진 필름">
+    <div className={back ? 'yj-film back' : 'yj-film'} data-grade={grade} aria-label={back ? undefined : '사진 필름'} aria-hidden={back || undefined}>
       <div className="yj-track">
         <div className="yj-roll">{roll('')}</div>
         <div className="yj-roll" aria-hidden="true">{roll('b-')}</div>
@@ -350,6 +354,7 @@ export function YjhmHome() {
       <YjhmHeader main />
 
       <div className="yj-film-wrap">
+        <Film frames={frames} grade={front.grade ?? DEFAULT_GRADE} back />
         <Film frames={frames} grade={front.grade ?? DEFAULT_GRADE} />
         {isAdmin && <div className="yj-cover-edit">{editBtn('film', '필름 편집')}</div>}
       </div>
