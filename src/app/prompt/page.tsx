@@ -13,7 +13,7 @@
  * 카테고리 (v2.0 사용자 요청) — 관리자가 CATEGORY 창에서 만들고, 목록 위 탭으로 걸러 본다.
  * 목록은 메모 설정(promptCats)에, 글에는 카테고리 id(catId)로. 탭은 만든 카테고리만(ALL 없음) — 처음엔 첫 카테고리.
  */
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useLocalList, newId } from '@/lib/postStore';
 import { MEMO_SEED, useMemoSettings } from '@/lib/memoStore';
@@ -54,22 +54,62 @@ function Img({ src, className }: { src?: string; className?: string }) {
 }
 
 /** 카드 — 대표 사진(3:4) + 제목 · COPY (프로필 카드 모양) */
-function PromptCard({ p, onOpen, onCopy, sortProps, no }: {
+/** 카드 위 제목 딱지 — 남는 폭에 맞게 글자를 직접 줄여 끝에 「…」를 붙인다.
+ *  CSS 말줄임(text-overflow)은 「…」 뒤에 남는 빈칸이 생겨 딱지 안 글자가 왼쪽으로 쏠렸다(4~5px) — 잘라 낸 글자 폭만큼 딱지가 줄어야 가운데에 온다 */
+function FitTitle({ text, className }: { text: string; className: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [shown, setShown] = useState(text);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    const box = el?.parentElement;
+    if (!el || !box) return;
+    const fit = () => {
+      const cs = getComputedStyle(el);
+      const other = [...box.children].filter(c => c !== el).reduce((w, c) => w + (c as HTMLElement).offsetWidth, 0);
+      const room = box.clientWidth - other - (parseFloat(getComputedStyle(box).columnGap) || 0)
+        - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 1;
+      const c = document.createElement('canvas').getContext('2d') as (CanvasRenderingContext2D & { letterSpacing?: string }) | null;
+      if (!c) return;
+      c.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+      if ('letterSpacing' in c) c.letterSpacing = cs.letterSpacing === 'normal' ? '0px' : cs.letterSpacing;
+      const w = (t: string) => c.measureText(t).width;
+      if (w(text) <= room) { setShown(text); return; }
+      const chars = [...text];
+      let n = chars.length;
+      while (n > 1 && w(`${chars.slice(0, n).join('').trimEnd()}…`) > room) n--;
+      setShown(`${chars.slice(0, n).join('').trimEnd()}…`);
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(box);
+    void document.fonts?.ready.then(fit);
+    return () => ro.disconnect();
+  }, [text]);
+  return <span ref={ref} className={className} title={shown !== text ? text : undefined}>{shown}</span>;
+}
+
+function PromptCard({ p, onOpen, onCopy, sortProps, yj }: {
   p: PromptItem; onOpen: () => void; onCopy: () => void; sortProps: Record<string, unknown>;
-  /** YJHM 바인더의 컬렉션 번호 딱지 (No.01) */
-  no?: number;
+  /** YJHM 바인더 — 카드 위 제목 · COPY 딱지 */
+  yj?: boolean;
 }) {
   return (
     <div className="char-card pr-card" {...sortProps}>
-      {no != null && <span className="yj-pc-no" aria-hidden="true">No.{String(no).padStart(2, '0')}</span>}
+      {/* YJHM 바인더 — 번호 대신 제목 딱지 · 같은 모양의 COPY 딱지를 그림 아래쪽에 (왼쪽 제목 · 오른쪽 COPY) */}
+      {yj && (
+        <span className="yj-pc-lb">
+          <FitTitle className={`yj-pc-no yj-pc-tt${p.title ? '' : ' untitled'}`} text={p.title || 'UNTITLED'} />
+          <button type="button" className="yj-pc-no yj-pc-copy" onClick={e => { e.stopPropagation(); onCopy(); }}>COPY</button>
+        </span>
+      )}
       <div className="thumb" role="button" tabIndex={0} aria-label={`${p.title || '프롬프트'} 원문 보기`} onClick={onOpen}
         onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(); } }}>
         {p.images?.[0] ? <Img src={p.images[0]} /> : <div className="pr-ph pr-noimg"><span>NO IMAGE</span></div>}
       </div>
-      <div className="nm">
+      {!yj && <div className="nm">
         {p.title ? <b className="pr-title">{p.title}</b> : <b className="pr-title pr-untitled">UNTITLED</b>}
         <button type="button" className="pr-copy" onClick={e => { e.stopPropagation(); onCopy(); }}>COPY</button>
-      </div>
+      </div>}
     </div>
   );
 }
@@ -185,6 +225,16 @@ export default function PromptPage() {
     navigator.clipboard?.writeText(text).then(() => toast('프롬프트를 복사했습니다'), () => toast('복사하지 못했습니다'));
   };
 
+  const tabRow = (
+    <div className="tag-row arch-tabbar">
+      {cats.map(c => ({ ...c, n: items.filter(p => p.catId === c.id).length })).map(c => (
+        <div key={c.id} className={`tag ${curCat === c.id ? 'on' : ''}`} onClick={() => { setCat(c.id); setPage(1); }}>
+          {c.name} <small>{c.n}</small>
+        </div>
+      ))}
+    </div>
+  );
+
   if (!loaded) return <section className="page page-arch page-prompt" />;
 
   return (
@@ -195,16 +245,9 @@ export default function PromptPage() {
       </div>
 
       <div className="toolrow pr-tool">
-        {/* 카테고리 탭 — 갤러리 말머리 · FIELD REPORT와 같은 탭 줄 모양 (globals.css .arch-tabbar · v2.0 사용자 요청) */}
-        {cats.length > 0 ? (
-          <div className="tag-row arch-tabbar">
-            {cats.map(c => ({ ...c, n: items.filter(p => p.catId === c.id).length })).map(c => (
-              <div key={c.id} className={`tag ${curCat === c.id ? 'on' : ''}`} onClick={() => { setCat(c.id); setPage(1); }}>
-                {c.name} <small>{c.n}</small>
-              </div>
-            ))}
-          </div>
-        ) : (
+        {/* 카테고리 탭 — 갤러리 말머리 · FIELD REPORT와 같은 탭 줄 모양 (globals.css .arch-tabbar · v2.0 사용자 요청).
+            YJHM은 바인더 위 책갈피로 옮긴다 (아래 yj-bm) */}
+        {cats.length > 0 ? (!yj && tabRow) : (
           <div className="pr-left">
             <span className="pr-count">TOTAL {shown.length}</span>
           </div>
@@ -215,19 +258,15 @@ export default function PromptPage() {
         </div>
       </div>
 
+      {/* YJHM — 카테고리는 바인더 위에 꽂은 책갈피 (사용자 요청 — 「콜렉트북 · 페이지 없애고 카테고리를 바인더 위에 책갈피처럼」) */}
+      {yj && cats.length > 0 && <div className="yj-bm">{tabRow}</div>}
       {pageItems.length > 0 ? (
         <>
           {/* YJHM — 세로 포토카드 바인더 (사용자 요청 — 「프롬프트는 세로가 긴 바인더」): 속지 한 줄 4칸, 빈 칸은 빈 슬리브 */}
-          {yj && (
-            <div className="yj-binder-h" aria-hidden="true">
-              <span>COLLECT BOOK</span><b>PAGE {String(pg).padStart(2, '0')}<i>/</i>{String(pages).padStart(2, '0')}</b>
-              <span>{shown.length} CARDS</span>
-            </div>
-          )}
           <div className={yj ? 'pr-grid yj-binder' : 'pr-grid'}>
             {pageItems.map((p, i) => (
               <PromptCard key={p.id} p={p} sortProps={sort(i)} onOpen={() => setViewId(p.id)} onCopy={() => copy(p.prompt)}
-                no={yj ? (pg - 1) * PER + i + 1 : undefined} />
+                yj={yj} />
             ))}
             {yj && Array.from({ length: (4 - (pageItems.length % 4)) % 4 }, (_, k) => (
               <div key={`empty-${k}`} className="yj-sleeve-empty" aria-hidden="true"><span><b>+</b>EMPTY<br />SLEEVE</span></div>
