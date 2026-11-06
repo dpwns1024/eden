@@ -422,6 +422,12 @@ html.ui-yjhm .notif-menu .nset{border-top:1px solid rgba(44,62,87,.08)}
 /* 본문 = 탭 아래 한 장의 흰 종이 */
 html.ui-yjhm body:has(.yj-fh.sub.tabbed) #appMain .page{width:calc(100% - 88px);max-width:1512px;margin:0 auto 40px;padding:38px 40px 70px;background:#fff;border-radius:6px;box-shadow:0 0 0 1px rgba(44,62,87,.06),0 18px 40px rgba(44,62,87,.08);animation-name:yj-paper-in}
 @keyframes yj-paper-in{from{opacity:0;transform:translateY(8px)}}
+/* 라벨(탭) 아래 큰 제목(PROMPT. · ROSTER. …)은 없앤다 — 탭이 이미 이름을 말한다 (사용자 요청 — 모든 게시판).
+ * 제목 줄의 선 · 여백도 함께 걷고, 설명 · 버튼처럼 보이는 것이 남으면 그것만 아래 22px 띄운다(숨은 것은 자리를 안 차지한다) */
+html.ui-yjhm body:has(.yj-fh.sub.tabbed) #appMain .page .page-head{min-height:0;padding:0;margin:0;border-bottom:0}
+html.ui-yjhm body:has(.yj-fh.sub.tabbed) #appMain .page .page-head h1{display:none}
+html.ui-yjhm body:has(.yj-fh.sub.tabbed) #appMain .page .page-head > :not(h1){margin-top:0;margin-bottom:22px}
+html.ui-yjhm body:has(.yj-fh.sub.tabbed) #appMain .page .page-head .head-actions{position:static;grid-column:2;grid-row:1;justify-self:end;align-self:start}
 
 /* 필름 */
 .yj-film-wrap{position:relative;flex:1;min-height:0;display:flex;align-items:center}
