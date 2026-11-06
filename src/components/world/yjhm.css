@@ -404,20 +404,39 @@ html.ui-yjhm .notif-menu .nset{border-top:1px solid rgba(44,62,87,.08)}
 .yj-fh.sub .bgm-y{width:250px;height:36px;padding-right:20px;border:0;border-right:1px solid rgba(96,124,160,.3)}
 .yj-fh.sub .by-list{right:20px}
 
+/* 머리 탭 (사용자 확정 시안 A3 — 바인더 인덱스 탭) — 지금 폴더의 하위 메뉴가 종이 위쪽에 꽂힌 탭으로.
+ * 지금 탭만 흰색이고 아래 흰 종이(본문)와 이어진다. 머리 아래 선 대신 종이 윗변이 경계 */
+.yj-fh.sub.tabbed{align-items:flex-end}
+.yj-fh.sub.tabbed::after{display:none}
+.yj-fh.sub.tabbed .yj-fh-l{align-self:stretch;align-items:flex-end;gap:22px}
+.yj-fh.sub.tabbed .yj-fh-n{align-self:center}
+.yj-fh.sub.tabbed .yj-fh-r{align-self:center}
+.yj-tabs{display:flex;align-items:flex-end;gap:4px;min-width:0}
+.yj-tabs a{position:relative;display:flex;align-items:center;gap:7px;height:33px;padding:0 calc(16px - .2em) 0 16px;border-radius:7px 7px 0 0;background:#dfe4eb;box-sizing:border-box;
+  font:500 10px/1 var(--mono);letter-spacing:.2em;color:#5d6e84 !important;white-space:nowrap;text-decoration:none;transition:background .15s,color .15s}
+.yj-tabs a b{font-weight:500;color:#607ca0}
+.yj-tabs a:hover{background:#e8ecf1;color:var(--nv) !important;opacity:1 !important}
+.yj-tabs a.on{height:37px;background:#fff;color:var(--nv) !important;box-shadow:0 -4px 14px rgba(44,62,87,.06)}
+.yj-tabs a.on::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:6px;background:#fff}   /* 종이와 이어 붙이는 자리 */
+.yj-tabs a:focus-visible{outline:2px solid #607ca0;outline-offset:-2px}
+/* 본문 = 탭 아래 한 장의 흰 종이 */
+html.ui-yjhm body:has(.yj-fh.sub.tabbed) #appMain .page{width:calc(100% - 88px);max-width:1512px;margin:0 auto 40px;padding:38px 40px 70px;background:#fff;border-radius:6px;box-shadow:0 0 0 1px rgba(44,62,87,.06),0 18px 40px rgba(44,62,87,.08);animation-name:yj-paper-in}
+@keyframes yj-paper-in{from{opacity:0;transform:translateY(8px)}}
+
 /* 필름 */
 .yj-film-wrap{position:relative;flex:1;min-height:0;display:flex;align-items:center}
 .yj-film{--fh:clamp(220px,43vh,388px);--cw:calc(var(--fh) * 1.134);position:relative;left:-80px;width:calc(100% + 160px);height:var(--fh);flex:none;overflow:hidden;transform:rotate(-1.6deg);
   background:#1d2a3d;box-shadow:0 26px 50px rgba(44,62,87,.3)}
 /* 뒤에 겹친 두 번째 띠 — 같은 필름, 기울기만 반대로(왼쪽이 올라감 — 사용자 요청). 앞 띠 뒤에서 X자로 엇갈리고, 제호에 닿지 않게 살짝만 위로 비킨다 */
-.yj-film.back{position:absolute;top:50%;margin-top:calc(var(--fh) * -.56);z-index:0;transform:rotate(3deg);box-shadow:0 18px 40px rgba(44,62,87,.22)}
-.yj-film.back .yj-track{animation-duration:84s;animation-delay:-30s}
-@media (max-height:780px){.yj-film.back{margin-top:calc(var(--fh) * -.5);transform:rotate(2.2deg)}}
+.yj-film.back{position:absolute;top:50%;margin-top:calc(var(--fh) * -.47);z-index:0;transform:rotate(4.6deg);box-shadow:0 18px 40px rgba(44,62,87,.22)}
+.yj-film.back .yj-track{animation-duration:120s;animation-delay:-40s}
+@media (max-height:780px){.yj-film.back{margin-top:calc(var(--fh) * -.5);transform:rotate(2.9deg)}}
 .yj-film.back::after{background:linear-gradient(180deg,rgba(255,255,255,.07),transparent 8%,transparent 92%,rgba(255,255,255,.05)),rgba(14,22,34,.18)}
 .yj-film:not(.back){z-index:1}
 .yj-film::before,.yj-film::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none}
 .yj-film::before{opacity:.5;mix-blend-mode:screen;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .6 0 0 0 0 .68 0 0 0 .5 -.12'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 .yj-film::after{background:linear-gradient(180deg,rgba(255,255,255,.07),transparent 8%,transparent 92%,rgba(255,255,255,.05))}
-.yj-track{display:flex;width:max-content;height:100%;animation:yj-roll 70s linear infinite}
+.yj-track{display:flex;width:max-content;height:100%;animation:yj-roll 100s linear infinite}
 .yj-film:hover .yj-track{animation-play-state:paused}
 @keyframes yj-roll{to{transform:translateX(-50%)}}
 @media (prefers-reduced-motion:reduce){.yj-track{animation:none}}
@@ -466,15 +485,16 @@ html.ui-yjhm .notif-menu .nset{border-top:1px solid rgba(44,62,87,.08)}
 .yj-gb .yj-sec-h{align-self:flex-end}
 
 .yj-scrap .yj-sec-h{align-self:flex-start}
-.yj-scrap-l > :is(a,button){all:unset;box-sizing:border-box;display:flex;align-items:center;gap:12px;width:100%;height:26px;border-bottom:1px solid rgba(44,62,87,.1);font:400 12.5px/1 var(--sans);color:var(--nv);cursor:var(--cur-pointer,pointer)}
+.yj-scrap-l > :is(a,button,p){all:unset;box-sizing:border-box;display:flex;align-items:center;gap:12px;width:100%;height:26px;border-bottom:1px solid rgba(44,62,87,.1);font:400 12.5px/1 var(--sans);color:var(--nv);cursor:var(--cur-pointer,pointer)}
 .yj-scrap-l > :is(a,button):hover span{color:#607ca0}
+.yj-scrap-l > p{cursor:default}   /* 최근 글 — 게시판으로 넘어가지 않는다 (사용자 요청) */
 .yj-scrap-l > button:focus-visible{outline:2px solid #607ca0;outline-offset:1px}
 .yj-scrap-l time{flex:none;width:34px;font:500 10px/1 var(--mono);color:#607ca0}
 .yj-scrap-l span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .yj-scrap-l em{margin-left:auto;flex:none;font:500 9px/1 var(--mono);font-style:normal;letter-spacing:.12em;color:#9fb0c6}
 .yj-gb-l{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
-.yj-gb-l > a{max-width:280px;padding:7px 12px;border-radius:14px 14px 4px 14px;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.1);font:400 12.5px/17px var(--sans);color:var(--nv);word-break:keep-all}
-.yj-gb-l > a.me{background:var(--nv);color:#fff;box-shadow:none}
+.yj-gb-l > :is(a,p){margin:0;max-width:280px;padding:7px 12px;border-radius:14px 14px 4px 14px;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.1);font:400 12.5px/17px var(--sans);color:var(--nv);word-break:keep-all}
+.yj-gb-l > :is(a,p).me{background:var(--nv);color:#fff;box-shadow:none}
 .yj-gb-l > small{margin:-2px 4px 0 0;font:500 9px/1 var(--mono);letter-spacing:.12em;color:#9fb0c6}
 
 /* 맨 아래 폴더 메뉴 바 + 가운데 한마디 — 메인 · 다른 페이지 같은 것. 폴더는 왼쪽, 오른쪽 칸은 비워 둔다(사용자가 다른 것을 넣을 자리) */
@@ -589,6 +609,12 @@ html.ui-yjhm body:has(.yj-fh.sub) #appMain .page-head p{font:400 13px/22px 'Pret
   .yj-fh.sub .yj-bgm-slot{order:2}
   .yj-fh.sub .bgm-y{width:100%;padding-right:0;border-right:0;border-top:1px solid rgba(96,124,160,.3)}
   .yj-fh.sub .by-list{right:0}
+  .yj-fh.sub.tabbed .yj-fh-l{flex-direction:column;align-items:flex-start;gap:12px}
+  .yj-fh.sub.tabbed .yj-fh-n{align-self:flex-start}
+  .yj-fh.sub.tabbed{padding-bottom:0}
+  .yj-tabs{max-width:100%;overflow-x:auto;scrollbar-width:none}
+  .yj-tabs a{padding:0 calc(12px - .2em) 0 12px;letter-spacing:.14em}
+  html.ui-yjhm body:has(.yj-fh.sub.tabbed) #appMain .page{width:calc(100% - 20px);padding:24px 16px 60px}
   html.ui-yjhm body:has(.yj-fh.sub){padding-bottom:110px}
   html.ui-yjhm body:has(.yj-fh.sub) #appMain .page{padding:26px 16px 120px}
   .bgm-y{width:100%}

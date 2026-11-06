@@ -361,26 +361,26 @@ export function YjhmHome() {
 
       <div className="yj-lower">
         <section className="yj-scrap" aria-label="스크랩">
-          <div className="yj-sec-h"><Link className="yj-tape" href="/trpg">SCRAP · {scraps.length || all.length}</Link>{editBtn('scrap')}</div>
+          <div className="yj-sec-h"><span className="yj-tape">SCRAP · {scraps.length || all.length}</span>{editBtn('scrap')}</div>
           <div className="yj-scrap-l">
             {scraps.length ? scraps.slice(0, 4).map(s => (
               <button key={s.id} type="button" onClick={() => setReading(s)}>
                 <time>{md(s.date.replace(/\./g, '-'))}</time><span>{s.title || cut(s.body, 30)}</span>{s.source && <em>{s.source}</em>}
               </button>
             )) : all.length ? all.slice(0, 4).map(s => (
-              <Link key={s.key} href={s.href ?? '/'}><time>{md(s.date)}</time><span>{s.title}</span><em>{s.kind}</em></Link>
+              <p key={s.key}><time>{md(s.date)}</time><span>{s.title}</span><em>{s.kind}</em></p>
             )) : <p className="yj-faint">아직 실린 글이 없습니다</p>}
           </div>
         </section>
         <section className="yj-gb" aria-label="방명록">
-          <div className="yj-sec-h">{editBtn('note')}<Link className="yj-tape" href="/guest">GUESTBOOK</Link></div>
+          <div className="yj-sec-h">{editBtn('note')}<span className="yj-tape">GUESTBOOK</span></div>
           <div className="yj-gb-l">
             {notes.length ? notes.map(n => (
               <React.Fragment key={n.id}>
-                <Link href="/guest" className={n.me ? 'me' : ''}>{n.text}</Link>
+                <p className={n.me ? 'me' : ''}>{n.text}</p>
                 <small>{[n.who, n.date].filter(Boolean).join(' · ')}</small>
               </React.Fragment>
-            )) : <Link href="/guest">첫 응원을 남겨 주세요</Link>}
+            )) : <p className="yj-faint">아직 남긴 말이 없습니다</p>}
           </div>
         </section>
       </div>

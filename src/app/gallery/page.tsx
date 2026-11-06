@@ -34,7 +34,9 @@ function BackupPageInner() {
   // 'all' · 페어링 id · NO_PAIR(페어링 없음)
   const [fCat, setFCat] = useState<string>('all');
   // 페어별 홈 (lib/worldStore.ts) — 다른 세계 페어의 글은 숨긴다
-  const { rels, show } = useWorldFilter();
+  const { rels, show, world } = useWorldFilter();
+  // YJHM — 포토카드 바인더 (사용자 확정 시안 B2): 비닐 속지 한 장에 4칸씩, 빈 칸은 빈 슬리브로 채운다
+  const yj = world === 'yjhm';
   // EVEDEN 세계는 페어링 대신 환경설정의 말머리(모든 게시판 공통)로 나눈다 (v2.0 사용자 요청 — lib/boardCats.ts).
   // 같은 fCat 자리에 'all' · 말머리 id · NO_CAT를 담는다
   const catMode = useCatMode();
@@ -131,7 +133,13 @@ function BackupPageInner() {
         </div>
       </div>
 
-      <div className="g3" style={{ display: visible.length > 0 ? undefined : 'none' }}>
+      {yj && visible.length > 0 && (
+        <div className="yj-binder-h" aria-hidden="true">
+          <span>COLLECT BOOK</span><b>PAGE {String(cur).padStart(2, '0')}<i>/</i>{String(pages).padStart(2, '0')}</b>
+          <span>{visible.length} CARDS</span>
+        </div>
+      )}
+      <div className={yj ? 'g3 yj-binder' : 'g3'} style={{ display: visible.length > 0 ? undefined : 'none' }}>
           {paged.map((p, si) => {
             const i = start + si;
             const folded = p.fold && !unveiled[p.id];
@@ -141,6 +149,7 @@ function BackupPageInner() {
             return (
               <div key={p.id} className="panel g-item" {...sort(i)}
                 onClick={() => { if (!folded && !editOn) router.push(backupPath(p, nos)); }}>
+                {yj && <span className="yj-pc-no" aria-hidden="true">No.{String(i + 1).padStart(2, '0')}</span>}
                 <div className={`thumb ${folded ? 'veil' : ''}`}>
                   <div style={{ position: 'absolute', inset: 0 }}>
                     <CroppedBlobImg fileRef={p.images[0]} crop={p.thumbCrop} ph={p.phList[0] ?? 'cool'} />
@@ -166,6 +175,10 @@ function BackupPageInner() {
               </div>
             );
           })}
+          {/* 빈 슬리브 — 속지 한 줄(4칸)을 채운다 */}
+          {yj && Array.from({ length: (4 - (paged.length % 4)) % 4 }, (_, k) => (
+            <div key={`empty-${k}`} className="yj-sleeve-empty" aria-hidden="true"><span><b>+</b>EMPTY<br />SLEEVE</span></div>
+          ))}
         </div>
 
       {visible.length === 0 && (

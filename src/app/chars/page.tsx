@@ -72,6 +72,46 @@ function CharsInner() {
           </div>
         )}
       </div>
+      {world === 'yjhm' ? (
+        /* YJHM — 출전 명단 (사용자 확정 시안 B4): 대회 스타트 리스트처럼 한 줄에 한 사람 — 번호 · 동그란 얼굴 · 이름 · 프로필 몇 칸 · 테마색.
+           카드형과 같은 동작: 클릭 열람 · 기밀 잠금 · 비공개 흐리게 · 관리자 끌어서 정렬 */
+        <div className="yj-sl">
+          <div className="yj-sl-h" aria-hidden="true"><span>NO.</span><span /><span>ATHLETE</span><span>PROFILE</span><span>COLOR</span><span /></div>
+          {shown.map((c, i) => {
+            const no = String(i + 1).padStart(2, '0');
+            if (isStub(c)) return (
+              <div key={c.id} className="yj-sl-r is-classified" onClick={() => setDenied(c.name)}>
+                <span className="yj-sl-no"><small>NO.</small>{no}</span>
+                <span className="yj-sl-av"><CroppedBlobImg fileRef={c.img} crop={c.crop} ph={c.ph ?? ''} label="" /></span>
+                <span className="yj-sl-who"><b>{c.name}</b><small>접근 권한 없음</small></span>
+                <span className="yj-sl-info"><span className="cls-tag">CLASSIFIED</span></span>
+                <span className="yj-sl-col"><i style={{ background: c.color }} /></span>
+                <span className="yj-sl-go" aria-hidden="true" />
+              </div>
+            );
+            const priv = c.visibility === 'private' && !c.classified;
+            const sp = sort(i) as { style?: React.CSSProperties };
+            const specs = (c.specs ?? []).filter(x => x.label?.trim() && x.value?.trim()).slice(0, 3);
+            const cols = (c.colors ?? []).map(x => x.hex).filter(Boolean).slice(0, 4);
+            return (
+              <div key={c.id} className={`yj-sl-r${c.classified ? ' is-classified' : ''}`} {...sort(i)}
+                style={{ ...(priv ? { opacity: .45 } : undefined), ...sp.style }}
+                onClick={() => { if (!editOn) router.push(charPath(c)); }}>
+                <span className="yj-sl-no"><small>NO.</small>{no}</span>
+                <span className="yj-sl-av"><CroppedBlobImg fileRef={c.arts?.[0] ?? c.thumbId} crop={c.thumbCrop} ph={c.thumbClass} label="" /></span>
+                <span className="yj-sl-who"><b>{c.name}</b>{(c.sub || priv) && <small>{priv ? '비공개' : c.sub}</small>}</span>
+                <span className="yj-sl-info">
+                  {c.classified && <span className="cls-tag">CLASSIFIED</span>}
+                  {specs.map(x => <span key={x.label}><small>{x.label}</small>{x.value}</span>)}
+                </span>
+                <span className="yj-sl-col">{(cols.length ? cols : [c.color]).map((h, k) => <i key={k} style={{ background: h }} />)}</span>
+                <span className="yj-sl-go" aria-hidden="true" />
+              </div>
+            );
+          })}
+          {shown.length === 0 && <p className="yj-sl-empty">표시할 캐릭터가 없습니다</p>}
+        </div>
+      ) : (
       <div className="g5 chars-grid">
         {shown.map((c, i) => {
           if (isStub(c)) return (
@@ -112,6 +152,7 @@ function CharsInner() {
           </p>
         )}
       </div>
+      )}
       {denied !== null && <AccessDenied kind="chars" name={denied} onClose={() => setDenied(null)} />}
     </section>
   );

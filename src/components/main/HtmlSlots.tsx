@@ -50,13 +50,24 @@ export function useHtmlSlots(boxRef: React.RefObject<HTMLElement | null>, deps: 
  *       button.oh-item                   상위 메뉴 — 마우스를 올리거나 누르면 펼침
  *       div.oh-sub > a.oh-link(.on)      하위 메뉴
  */
-export function SlotMenu() {
-  const pathname = useAppPathname();
+/** 사이트 메뉴 목록 (HOME 포함) — 폴더 바(SlotMenu)와 YJHM 머리 탭(YjhmHeader)이 같은 것을 쓴다. 준비 전이면 null */
+export function useMenuItems() {
   const { user, isAdmin } = useAuth();
   const [menuSet, , menuLoaded] = useMenuSettings();
   const { boards, loaded: boardsLoaded } = useBoards();
   const { map: secMap } = useSections();
   const { links } = useCustomLinks();
+  if (!menuLoaded || !boardsLoaded) return null;
+  return [
+    { label: 'HOME', href: '/' } as ReturnType<typeof buildMenu>[number],
+    ...buildMenu(menuSet, [...boardEntries(boards), ...sectionMenuEntries(secMap), ...linkEntries(links)],
+      { loggedIn: !!user, isAdmin }),
+  ];
+}
+
+export function SlotMenu() {
+  const pathname = useAppPathname();
+  const menuItems = useMenuItems();
   const [open, setOpen] = useState<string | null>(null);
   const ref = useRef<HTMLElement>(null);
   // YJHM 세계면 메뉴 이름을 신문 지면 이름으로 (lib/yjhmNames.ts — 저장된 메뉴 설정은 그대로)
@@ -85,12 +96,8 @@ export function SlotMenu() {
     if (shift) sub.style.marginLeft = `${Math.round(shift)}px`;
   }, [open]);
 
-  if (!menuLoaded || !boardsLoaded) return <nav className="oh-menu" ref={ref} />;
-  const items = [
-    { label: 'HOME', href: '/' },
-    ...buildMenu(menuSet, [...boardEntries(boards), ...sectionMenuEntries(secMap), ...linkEntries(links)],
-      { loggedIn: !!user, isAdmin }),
-  ];
+  if (!menuItems) return <nav className="oh-menu" ref={ref} />;
+  const items = menuItems;
   const isOn = (href: string) => href.split('?')[0] === pathname;
   const ext = (href: string) => /^https?:\/\//.test(href);
 
