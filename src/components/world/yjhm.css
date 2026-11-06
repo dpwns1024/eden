@@ -63,19 +63,8 @@ a.yj-pill.yj-blk{min-height:44px;padding:0 22px;font-weight:900;font-size:16px}
 .yj-menu .oh-link{display:block;padding:9px 16px;border-radius:4px;text-align:center;font:500 12px/1.2 var(--yj-pre);letter-spacing:.04em;color:var(--yj-ink)}
 .yj-menu .oh-link:hover,.yj-menu .oh-link.on{background:#eef0f3;color:var(--yj-ink)}
 .yj-member{display:flex;justify-content:flex-end;align-items:center;min-height:30px}
-.yj-member .login-link{min-height:30px;padding:0 calc(14px - .2em) 0 14px;border:1px solid rgba(44,62,87,.18);border-radius:2px;background:#fff;font:500 10.5px/1 var(--yj-mono);letter-spacing:.2em;color:var(--yj-nv2);cursor:var(--cur-pointer,pointer)}
-.yj-member .login-link:hover{background:var(--yj-nv2);border-color:var(--yj-nv2);color:#f2f4f7}
 
 .yj-head-wrap{max-width:1600px;margin:0 auto;padding:0 var(--yj-gut)}
-.yj-top{position:relative;z-index:20;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:24px;margin-bottom:22px;padding:18px 0 22px}
-.yj-top::after{content:"";position:absolute;left:calc(var(--yj-gut) * -1);right:calc(var(--yj-gut) * -1);bottom:0;height:14px;pointer-events:none;
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 14'%3E%3Crect x='7' y='4' width='10' height='6' rx='1.5' fill='%23eef0f3'/%3E%3C/svg%3E") 0 0/24px 14px repeat-x,#1d2a3d;
-  box-shadow:0 8px 18px rgba(44,62,87,.14)}
-.yj-brand{display:flex;flex-direction:column;gap:7px;font:700 30px/.85 var(--yj-inter);letter-spacing:-.05em;color:var(--yj-ink) !important;text-decoration:none;white-space:nowrap}
-.yj-brand small{font:500 8.5px/1 var(--yj-mono);letter-spacing:.24em;color:var(--yj-ac)}
-.yj-brand i{font-style:normal;color:var(--yj-ac)}
-.yj-top .yj-menu{justify-content:center}
-.yj-top .yj-menu .oh-menu{justify-content:center}
 
 /* ── 메인 ── */
 body:has(.yj-main)::before{display:none !important}
@@ -249,12 +238,8 @@ body:has(.yj-main)::before{display:none !important}
   .yj-letters{grid-column:1 / -1}
   /* 가로 스크롤(overflow)은 펼친 하위 메뉴 상자를 잘라 가렸다 (v2.0 사용자 제보) — 줄바꿈으로 감싼다 */
   .yj-menu .oh-sub{z-index:60}
-  .yj-top{grid-template-columns:1fr auto;grid-template-areas:"brand member" "menu menu";gap:10px}
-  .yj-brand{grid-area:brand}.yj-top .yj-member{grid-area:member}.yj-top .yj-menu{grid-area:menu;justify-content:flex-start}
-  .yj-top .yj-menu .oh-menu{justify-content:flex-start}
 }
 @media (max-width:640px){
-  .yj-brand{font-size:19px}
   .yj-strip{font-size:11px;letter-spacing:.12em;padding-top:10px;padding-bottom:10px}
   .yj-ticker{margin:2px -12px 0;padding:7px 0;font-size:15px;transform:rotate(-1.5deg)}
   .yj-ticker > div{gap:20px;padding-left:20px}
@@ -272,7 +257,6 @@ body:has(.yj-main)::before{display:none !important}
   .yj-menu .oh-menu{gap:6px}
   .yj-menu .oh-item{min-height:36px;padding:0 11px;gap:5px;font-size:12.5px;border-width:2px !important}
   .yj-menu .oh-item::before{font-size:10px}
-  .yj-top .yj-menu .oh-item{min-height:34px;padding:0 10px;font-size:12px}
   .yj-menu .oh-link{padding:9px 12px;font-size:12.5px}
   .yj-story{padding:16px;gap:12px}
   .yj-story-h dl{grid-template-columns:84px minmax(0,1fr);font-size:12.5px}
@@ -339,23 +323,18 @@ body:has(.yj-main)::before{display:none !important}
   .arx .ar-member > .world-switch button{height:22px;padding:0 9px;font-size:9px;letter-spacing:.16em}
   .arx .ar-util > :last-child{visibility:hidden}
 }
-/* YJHM 다른 페이지 머리(폰) — 제호 옆에 전환 버튼 · 로그인이 다 들어가지 않아, 제호는 한 줄을 다 쓰고
-   그 아래 줄 왼쪽에 전환 버튼 · 오른쪽에 로그인 (로그인 자리를 풀어 머리 격자에 바로 놓는다) */
-@media (max-width:560px){
-  .yj-top{grid-template-columns:1fr auto;grid-template-areas:"brand brand" "ws login" "menu menu"}
-  .yj-top .yj-member{display:contents}
-  .yj-top .yj-member > .world-switch{grid-area:ws;justify-self:start;margin:0}
-  .yj-top .yj-member > :not(.world-switch){grid-area:login;justify-self:end}
-}
 .world-switch button{height:28px;padding:0 12px;border:0;background:transparent;cursor:var(--cur-pointer,pointer);font-size:10.5px;letter-spacing:.2em}
 .world-switch.ws-eveden{background:rgba(8,11,15,.86);border:1px solid rgba(190,208,228,.22)}
 .world-switch.ws-eveden button{color:#8592a0;font-family:'JetBrains Mono',monospace}
 .world-switch.ws-eveden button.on{color:#fff;background:rgba(184,216,255,.14)}
-/* YJHM — 메인 「필름」 1면 말투: 흰 종이 위 DM Mono 글자, 고른 쪽은 남색 라벨 테이프 (v2.0 사용자 요청 — 둥근 알약이 지금 테마와 안 맞았다) */
-.world-switch.ws-yjhm{gap:3px;padding:3px;background:#fff;border:0;border-radius:3px;box-shadow:0 0 0 1px rgba(44,62,87,.14),0 2px 8px rgba(44,62,87,.08)}
-.world-switch.ws-yjhm button{height:24px;padding:0 calc(10px - .22em) 0 10px;border-radius:2px;color:#7d92ae;font:500 10px/1 'DM Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.22em}
+/* YJHM — 흰 상자 · 그림자 없이 머리 글자와 같은 줄에 납작하게 (사용자 지적 — 「디자인 붕 뜨고 위치도 구려」).
+   DM Mono 글자, 고른 쪽만 남색 라벨 테이프(SCRAP · GUESTBOOK과 같은 것). 글자 가운데 맞춤은 .yj-tape과 같은 규칙 —
+   글자 간격(.22em)이 끝 글자 뒤에도 붙으므로 오른쪽 padding에서 그만큼 뺀다 */
+.world-switch.ws-yjhm{gap:2px;margin:0;padding:0;background:none;border:0;border-radius:0;box-shadow:none}
+.world-switch.ws-yjhm button{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;height:25px;padding:0 calc(9px - .22em - .35px) 0 9.35px;border-radius:2px;
+  color:#8a9bb2;font:500 10px/1 'DM Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.22em;transition:color .15s,background .15s}
 .world-switch.ws-yjhm button:hover{color:#1d2a3d}
-.world-switch.ws-yjhm button.on{color:#f2f4f7;background:#2c3e57;text-shadow:0 1px 0 rgba(0,0,0,.4);box-shadow:0 1px 3px rgba(20,30,48,.25),inset 0 1px 0 rgba(255,255,255,.12)}
+.world-switch.ws-yjhm button.on{color:#f2f4f7;background:#2c3e57;text-shadow:0 1px 0 rgba(0,0,0,.4);box-shadow:0 1px 3px rgba(20,30,48,.25),inset 0 1px 0 rgba(255,255,255,.12);cursor:default}
 
 /* ══════════ 메인 「필름」 1면 (사용자 확정 시안 Z3 · components/world/YjhmHome.tsx) ══════════
  * 미색 바탕 + 은은한 과녁 링 · 머리(Hong Yejun.) · 기울어진 35mm 필름 띠가 천천히 흐름 · 아래 줄 SCRAP / GUESTBOOK · 맨 아래 폴더 메뉴 바.
@@ -372,16 +351,27 @@ body:has(.yj-main)::before{display:none !important}
 .yj-tape{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;height:24px;margin:0;padding:0 calc(11px - .22em) 0 11px;border:0;border-radius:2px;background:var(--nv2,#2c3e57);color:#f2f4f7 !important;font:700 11px/1 var(--mono);letter-spacing:.22em;white-space:nowrap;
   text-shadow:0 1px 0 rgba(0,0,0,.4);box-shadow:0 1px 3px rgba(20,30,48,.25),inset 0 1px 0 rgba(255,255,255,.12);cursor:var(--cur-pointer,pointer)}
 
-/* 머리 */
-.yj-fh{position:relative;z-index:5;display:flex;justify-content:space-between;align-items:flex-start;gap:24px;padding:34px 44px 0}
+/* 머리 — 메인과 다른 페이지가 같은 것 (YjhmHeader). 다른 페이지(.sub)는 제호만 작다.
+ * 오른쪽 위: [세계 전환 | 로그인] → 번호 · 날짜 → BGM 한 줄 카드(아래 BGM 규칙이 이 자리로 옮긴다) */
+.yj-fh{--nv:#1d2a3d;--nv2:#2c3e57;--mono:'DM Mono','Pretendard Variable',Pretendard,monospace;--sans:'Pretendard Variable',Pretendard,'Noto Sans KR',sans-serif;
+  position:relative;z-index:5;display:flex;justify-content:space-between;align-items:flex-start;gap:24px;padding:34px 44px 0;color:var(--nv)}
 .yj-fh-l{display:flex;flex-direction:column;min-width:0}
-.yj-fh-k{font:500 10px/1 var(--mono);letter-spacing:.24em;color:#607ca0}
-.yj-fh-n{margin-top:14px;font:700 clamp(60px,7.8vw,112px)/.8 'Inter',var(--sans);letter-spacing:-.055em;color:var(--nv) !important;white-space:nowrap;padding-bottom:.12em}
+.yj-fh-k{display:flex;align-items:center;height:24px;font:500 10px/1 var(--mono);letter-spacing:.24em;color:#607ca0}
+.yj-fh-n{margin-top:4px;font:700 clamp(60px,7.8vw,112px)/.8 'Inter',var(--sans);letter-spacing:-.055em;color:var(--nv) !important;white-space:nowrap;padding-bottom:.12em;text-decoration:none}
+.yj-fh-n:hover{opacity:1 !important}
 .yj-fh-n i{font-style:normal;color:#607ca0}
-.yj-fh-r{display:flex;flex-direction:column;align-items:flex-end;gap:6px;font:500 10px/1.4 var(--mono);letter-spacing:.18em;color:#607ca0}
-.yj-fh-r .yj-member{min-height:0;gap:8px}
-.yj-fh-r .yj-member .login-link{min-height:0;height:auto;padding:0;border:0;border-radius:0;background:none;font:500 10px/1.4 var(--mono);letter-spacing:.18em;color:#607ca0}
-.yj-fh-r .yj-member .login-link:hover{background:none;color:var(--nv)}
+.yj-fh-r{display:flex;flex-direction:column;align-items:flex-end;gap:10px;flex:none}
+.yj-fh-meta{display:flex;align-items:center;gap:10px;height:12px;font:500 10px/1 var(--mono);letter-spacing:.18em;margin-right:-.18em;color:#607ca0}
+.yj-fh-meta i{font-style:normal;color:#9fb0c6}
+/* 세계 전환 · 로그인 — 한 줄, 사이에 얇은 세로선. 로그인도 테이프와 같은 상자(24px)라 글자 줄이 맞는다 */
+.yj-fh .yj-member{display:flex;align-items:center;gap:0;min-height:25px}
+.yj-fh .world-switch.ws-yjhm::after{content:"";flex:none;width:1px;height:12px;margin:0 8px 0 9px;background:rgba(96,124,160,.35)}
+.yj-fh .yj-member .login-link{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-height:0;height:25px;padding:0 calc(9px - .22em) 0 9px;border:0;border-radius:2px;background:none;
+  font:500 10px/1 var(--mono);letter-spacing:.22em;color:#607ca0}
+.yj-fh .yj-member .login-link:hover{background:rgba(96,124,160,.12);color:var(--nv)}
+/* 다른 페이지 — 제호만 작게, 오른쪽 위 BGM 카드까지 비켜서 본문이 시작된다 */
+.yj-fh.sub{min-height:170px;box-sizing:border-box}
+.yj-fh.sub .yj-fh-n{font-size:clamp(44px,4.6vw,68px)}
 
 /* 필름 */
 .yj-film-wrap{position:relative;flex:1;min-height:0;display:flex;align-items:center}
@@ -422,9 +412,10 @@ body:has(.yj-main)::before{display:none !important}
 .yj-film[data-grade=tungsten] .yj-fr img{filter:saturate(1.05) contrast(1.1) brightness(.96) hue-rotate(4deg)}
 .yj-film[data-grade=tungsten] .yj-grade{mix-blend-mode:soft-light;background:linear-gradient(180deg,rgba(40,110,190,.5),rgba(20,60,120,.35))}
 .yj-film[data-grade=tungsten] .yj-leak{opacity:.4;mix-blend-mode:screen;background:radial-gradient(40% 50% at 78% 22%,rgba(255,80,60,.55),transparent 70%)}
-.yj-film[data-grade=fade] .yj-fr img{filter:sepia(.22) saturate(.68) contrast(.84) brightness(1.1)}
-.yj-film[data-grade=fade] .yj-grade{mix-blend-mode:screen;background:linear-gradient(180deg,rgba(120,110,150,.16),rgba(230,205,170,.2))}
-.yj-film[data-grade=fade] .yj-cell:nth-child(4n+2) .yj-leak{opacity:.45;mix-blend-mode:screen;background:linear-gradient(100deg,transparent 55%,rgba(255,150,90,.6) 92%)}
+/* 바랜 필름 — 덜 바랜 쪽으로 (사용자 요청): 색 · 대비를 덜 빼고 뿌연 막도 얇게 */
+.yj-film[data-grade=fade] .yj-fr img{filter:sepia(.12) saturate(.86) contrast(.94) brightness(1.04)}
+.yj-film[data-grade=fade] .yj-grade{mix-blend-mode:screen;background:linear-gradient(180deg,rgba(120,110,150,.07),rgba(230,205,170,.09))}
+.yj-film[data-grade=fade] .yj-cell:nth-child(4n+2) .yj-leak{opacity:.3;mix-blend-mode:screen;background:linear-gradient(100deg,transparent 55%,rgba(255,150,90,.6) 92%)}
 .yj-film[data-grade=mono] .yj-fr img{filter:grayscale(1) contrast(1.18) brightness(1.02)}
 .yj-film[data-grade=mono] .yj-grain{opacity:.42}
 .yj-film[data-grade=none] .yj-grain{display:none}
@@ -432,33 +423,25 @@ body:has(.yj-main)::before{display:none !important}
 /* 아래 줄 — 왼쪽 SCRAP · 가운데 비움 · 오른쪽 GUESTBOOK. 두 라벨 높이를 같게, 내용은 라벨 + 14px부터 */
 .yj-lower{position:relative;z-index:4;display:flex;justify-content:space-between;align-items:flex-start;gap:24px;padding:0 44px 24px}
 .yj-scrap,.yj-gb{display:flex;flex-direction:column;gap:14px}
-.yj-scrap{width:min(560px,48vw)}
+.yj-scrap{width:340px}
 .yj-gb{width:300px;align-items:flex-end}
 .yj-sec-h{display:flex;gap:6px;align-items:center}
 .yj-gb .yj-sec-h{align-self:flex-end}
-/* 스크랩 — 신문에서 오려 낸 종이 조각을 테이프로 붙인 모양 (관리자가 직접 적는다) */
-.yj-clips{display:flex;gap:16px;align-items:flex-start;padding:4px 2px 0}
-.yj-clip{all:unset;box-sizing:border-box;position:relative;display:flex;flex-direction:column;gap:5px;flex:0 1 176px;min-width:0;padding:14px 13px 15px;cursor:var(--cur-pointer,pointer);
-  background:#fbfaf6 linear-gradient(180deg,rgba(44,62,87,.03),transparent 30%);color:var(--nv);box-shadow:0 1px 2px rgba(20,30,48,.14),0 8px 18px rgba(44,62,87,.1);
-  clip-path:polygon(0 2%,6% 0,15% 1.5%,27% 0,40% 1%,52% 0,66% 1.5%,78% 0,90% 1%,100% 0,99% 22%,100% 48%,99.2% 75%,100% 100%,88% 98.5%,74% 100%,61% 98.8%,47% 100%,33% 98.5%,20% 100%,8% 98.6%,0 100%,.8% 70%,0 40%);
-  transform:rotate(-1.4deg);transition:transform .25s cubic-bezier(.3,1.5,.5,1)}
-.yj-clip:nth-child(2){transform:rotate(1.2deg) translateY(5px)}
-.yj-clip:nth-child(3){transform:rotate(-.6deg) translateY(1px)}
-.yj-clip:hover{transform:rotate(0) translateY(-3px)}
-.yj-clip:focus-visible{outline:2px solid #607ca0;outline-offset:2px}
-.yj-clip-tape{position:absolute;left:50%;top:-1px;width:46px;height:12px;translate:-50% 0;rotate:-3deg;background:rgba(159,176,198,.45);box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
-.yj-clip small{font:500 8.5px/1.2 var(--mono);letter-spacing:.14em;color:#607ca0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.yj-clip b{font:700 13.5px/1.3 var(--sans);letter-spacing:-.02em;word-break:keep-all;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;padding-bottom:5px;border-bottom:1px solid rgba(29,42,61,.55)}
-.yj-clip span{font:400 11px/1.55 'Noto Serif KR',var(--sans);color:#3a4a60;word-break:keep-all;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;column-count:1}
+
+.yj-scrap .yj-tape{align-self:flex-start}
+.yj-scrap-l > a{display:flex;align-items:center;gap:12px;height:26px;border-bottom:1px solid rgba(44,62,87,.1);font:400 12.5px/1 var(--sans);color:var(--nv)}
+.yj-scrap-l time{flex:none;width:34px;font:500 10px/1 var(--mono);color:#607ca0}
+.yj-scrap-l span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.yj-scrap-l em{margin-left:auto;flex:none;font:500 9px/1 var(--mono);font-style:normal;letter-spacing:.12em;color:#9fb0c6}
 .yj-gb-l{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
 .yj-gb-l > a{max-width:280px;padding:7px 12px;border-radius:14px 14px 4px 14px;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.1);font:400 12.5px/1.35 var(--sans);color:var(--nv);word-break:keep-all}
 .yj-gb-l > a.me{background:var(--nv);color:#fff;box-shadow:none}
 .yj-gb-l > small{margin:-2px 4px 0 0;font:500 9px/1 var(--mono);letter-spacing:.12em;color:#9fb0c6}
 
-/* 맨 아래 폴더 메뉴 바 + 가운데 한마디 */
-.yj-dock{position:fixed;left:0;right:0;bottom:0;z-index:50;height:80px;border-top:1px solid rgba(96,124,160,.25);backdrop-filter:blur(8px);
+/* 맨 아래 폴더 메뉴 바 + 가운데 한마디 — 메인 · 다른 페이지 같은 것. 폴더는 왼쪽, 오른쪽 칸은 비워 둔다(사용자가 다른 것을 넣을 자리) */
+.yj-dock{--nv:#1d2a3d;--nv2:#2c3e57;--mono:'DM Mono','Pretendard Variable',Pretendard,monospace;--sans:'Pretendard Variable',Pretendard,'Noto Sans KR',sans-serif;position:fixed;left:0;right:0;bottom:0;z-index:50;height:80px;border-top:1px solid rgba(96,124,160,.25);backdrop-filter:blur(8px);
   background:rgba(250,251,252,.88) repeating-linear-gradient(90deg,transparent 0 3px,rgba(96,124,160,.04) 3px 4px)}
-.yj-dock-menu{height:100%;padding-right:430px;box-sizing:border-box}   /* 오른쪽 430px — BGM 플레이어 자리 */
+.yj-dock-menu{height:100%;box-sizing:border-box}
 .yj-dock-menu .oh-menu{flex-wrap:nowrap;justify-content:flex-start;height:100%;gap:22px;padding:0 30px;box-sizing:border-box}
 .yj-dock-menu .oh-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:0;font:700 10px/1 var(--sans);letter-spacing:.08em;color:#607ca0;text-decoration:none}
 .yj-dock-menu .oh-item::before{content:"";width:42px;height:32px;transition:transform .25s cubic-bezier(.3,1.6,.5,1);
@@ -474,45 +457,55 @@ body:has(.yj-main)::before{display:none !important}
 .yj-quote{position:absolute;left:50%;top:-14px;z-index:2;translate:-50% 0;display:flex;height:28px;margin:0;padding:0;border:0;background:none;max-width:min(620px,calc(100vw - 32px));box-shadow:0 2px 8px rgba(44,62,87,.12)}
 button.yj-quote{cursor:var(--cur-pointer,pointer);font:inherit}
 button.yj-quote:hover > span{background:#f4f6f9}
-.yj-quote .yj-tape{height:28px;flex:none;padding:0 calc(11.75px - .22em) 0 10.25px;border-radius:2px 0 0 2px;box-shadow:none;cursor:default}
+.yj-quote .yj-tape{height:28px;flex:none;padding:0 calc(11px - .22em) 0 11px;border-radius:2px 0 0 2px;box-shadow:none;cursor:default}
 .yj-quote > span{display:flex;align-items:center;min-width:0;height:28px;padding:0 16px;background:#fff;border-radius:0 2px 2px 0;font:400 12.5px/28px var(--sans);color:var(--nv)}
 .yj-quote > span > span{display:block;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transform:translateY(-.25px)}
-/* BGM 플레이어 — 메인에서는 아래 폴더 바 오른쪽 칸에 한 줄로 (폴더는 왼쪽 · 한마디는 가운데 위) — 주파수판 줄은 접고 채널 · 곡 · 버튼만 */
+/* BGM 플레이어 — 머리 오른쪽 위, 번호 · 날짜 아래에 한 줄 카드로 (사용자 요청 — 폴더 바 오른쪽은 다른 것을 넣을 자리).
+ * 메인 · 다른 페이지 같은 자리. 페이지를 옮겨도 음악이 끊기지 않게 플레이어는 그대로 두고 자리만 옮긴다(absolute — 머리와 같이 스크롤).
+ * 위 = 머리 위 여백 34 + 전환 줄 24 + 10 + 번호 줄 12 + 12 · 오른쪽 = 머리 옆 여백 44. 주파수판 줄은 접고 채널 · 곡 · 버튼만 */
 @media (min-width:821px){
-  html:has(.yj-film-home) .bgm-d,html:has(.yj-film-home) .bgm-d.is-left{left:auto;right:28px;bottom:12px;width:390px;transform:none}
-  html:has(.yj-film-home) .bgm-d .bd-card{grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:0 12px;height:54px;padding:0 10px 0 14px;box-sizing:border-box}
-  html:has(.yj-film-home) .bgm-d .bd-row,html:has(.yj-film-home) .bgm-d .bd-desc{display:none}
-  html:has(.yj-film-home) .bgm-d .bd-side{position:static;order:3}
-  html:has(.yj-film-home) .bgm-d .bd-ctl{margin:0}
-  html:has(.yj-film-home) .bgm-d .bd-ctl .pp{width:34px;height:34px;padding:9px}
-  html:has(.yj-film-home) .bgm-d .bd-tt{margin-top:5px;font-size:15px}
-  html:has(.yj-film-home) .bgm-d.folded{width:auto;bottom:6px}
+  html:has(.yj-fh) .bgm-d,html:has(.yj-fh) .bgm-d.is-left{position:absolute;left:auto;right:44px;top:92px;bottom:auto;z-index:40;width:330px;transform:none}
+  html:has(.yj-fh) .bgm-d .bd-card{grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:0 10px;height:50px;padding:0 8px 0 14px;box-sizing:border-box;
+    box-shadow:0 0 0 1px rgba(44,62,87,.1),0 4px 14px rgba(44,62,87,.08)}
+  html:has(.yj-fh) .bgm-d .bd-row,html:has(.yj-fh) .bgm-d .bd-desc{display:none}
+  html:has(.yj-fh) .bgm-d .bd-side{position:static;order:3}
+  html:has(.yj-fh) .bgm-d .bd-ctl{margin:0}
+  html:has(.yj-fh) .bgm-d .bd-ctl .pp{width:32px;height:32px;padding:9px}
+  html:has(.yj-fh) .bgm-d .bd-tt{margin-top:4px;font-size:14px}
+  html:has(.yj-fh) .bgm-d .bd-list{top:calc(100% + 8px);bottom:auto}
+  html:has(.yj-fh) .bgm-d.folded{width:auto;top:86px}
 }
-@media (max-width:820px){html:has(.yj-film-home) .bgm-d{bottom:96px}}
+@media (max-width:820px){html:has(.yj-fh) .bgm-d{bottom:96px}}
+
+/* 다른 페이지 — 메인과 같은 바탕(과녁 링 + 결), 맨 아래 폴더 바만큼 비운다 */
+html.ui-yjhm body:has(.yj-fh.sub)::before{inset:0;filter:none;
+  background:repeating-radial-gradient(circle at 50% 47%,transparent 0 94px,rgba(96,124,160,.12) 94px 95.5px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .25 0 0 0 0 .32 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+html.ui-yjhm body:has(.yj-fh.sub){padding-bottom:80px}
 
 /* 폰 — 세로로 쌓는다 */
 @media (max-width:820px){
   .yj-main.yj-film-home{height:auto;min-height:100vh;overflow:hidden;padding-bottom:170px}   /* 폴더 바(80) + 한마디 + BGM 다이얼을 비켜서 */
   .yj-fh{flex-direction:column-reverse;gap:14px;padding:18px 16px 0}
-  .yj-fh-r{flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px 14px;align-self:stretch;justify-content:flex-end}
+  .yj-fh-r{flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px 14px;align-self:stretch;justify-content:space-between}
   .yj-fh-n{font-size:clamp(46px,14vw,72px)}
+  .yj-fh.sub{min-height:0;padding-bottom:18px}
+  .yj-fh.sub .yj-fh-n{font-size:clamp(38px,11vw,56px)}
+  html.ui-yjhm body:has(.yj-fh.sub){padding-bottom:110px}
   .yj-film-wrap{flex:none;padding:34px 0}
   .yj-film{--fh:200px;left:-40px;width:calc(100% + 80px)}
   .yj-ep{font-size:8px}
   .yj-cover-edit{left:16px;top:2px}
   .yj-lower{flex-direction:column;gap:30px;padding:0 16px 20px}
   .yj-scrap,.yj-gb{width:100%}
-  .yj-dock-menu{padding-right:0}
   .yj-dock-menu .oh-menu{gap:0;padding:0 8px;justify-content:space-around}
   .yj-scrap{width:100%}
-  .yj-clips{gap:10px;overflow-x:auto;padding:6px 2px 10px}
-  .yj-clip{flex:0 0 160px}
   .yj-dock-menu .oh-item{font-size:9px;letter-spacing:.04em}
   .yj-dock-menu .oh-item::before{width:34px;height:26px}
   .yj-dock-menu .oh-sub{left:50%}
 }
 
-/* ══════════ 메인 편집 창 (관리자 — 필름 · 스크랩 · 방명록 · 한마디) · 스크랩 읽기 창 ══════════ */
+/* ══════════ 메인 편집 창 (관리자 — 필름 · 방명록 · 한마디) ══════════ */
 html.ui-yjhm .mng-box.yj-modal{width:min(720px,calc(100vw - 32px));max-height:calc(100vh - 48px);overflow:auto;box-sizing:border-box;padding:24px 26px;border:0;border-radius:6px;background:#fff;color:#1d2a3d;
   box-shadow:0 0 0 1px rgba(44,62,87,.12),0 30px 70px rgba(20,30,48,.28);font-family:'Pretendard Variable',Pretendard,'Noto Sans KR',sans-serif}
 html.ui-yjhm .mng-box.yj-modal.sm{width:min(440px,calc(100vw - 32px))}
@@ -557,15 +550,10 @@ html.ui-yjhm .mng-box.yj-modal .modal-actions{display:flex;justify-content:flex-
 .yj-gr[data-grade=warm] i{filter:sepia(.3) saturate(1.1) brightness(1.04)}
 .yj-gr[data-grade=cool] i{filter:saturate(.8) hue-rotate(-12deg) contrast(1.1)}
 .yj-gr[data-grade=tungsten] i{filter:hue-rotate(18deg) saturate(1.2) brightness(.85)}
-.yj-gr[data-grade=fade] i{filter:sepia(.3) saturate(.6) contrast(.75) brightness(1.15)}
+.yj-gr[data-grade=fade] i{filter:sepia(.16) saturate(.82) contrast(.9) brightness(1.06)}
 .yj-gr[data-grade=mono] i{filter:grayscale(1) contrast(1.2)}
 .yj-gr b{font:600 12.5px/1.2 'Pretendard Variable',Pretendard,sans-serif;color:#1d2a3d}
 .yj-gr small{font:500 9px/1 'DM Mono',monospace;letter-spacing:.14em;color:#7d92ae}
-/* 스크랩 읽기 */
-.yj-clip-full{padding:22px 22px 24px;background:#fbfaf6;box-shadow:0 1px 2px rgba(20,30,48,.12),0 8px 20px rgba(44,62,87,.1)}
-.yj-clip-full small{font:500 10px/1.2 'DM Mono',monospace;letter-spacing:.16em;color:#607ca0}
-.yj-clip-full h4{margin:8px 0 10px;padding-bottom:10px;border-bottom:1.5px solid #1d2a3d;font:700 20px/1.35 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:-.03em;word-break:keep-all}
-.yj-clip-full p{margin:0;white-space:pre-wrap;font:400 14px/1.85 'Noto Serif KR','Pretendard Variable',Pretendard,serif;color:#2c3e57;word-break:keep-all}
 @media (max-width:620px){
   .yj-ed-row{flex-wrap:wrap}
   .yj-ed-line{flex-wrap:wrap}
