@@ -5,8 +5,9 @@
  *  머리(Hong Yejun. · 오른쪽 위 BGM) → 기울어진 35mm 필름 띠가 천천히 흐름 → 아래 줄 왼쪽 SCRAP(최근 글 리스트) · 오른쪽 GUESTBOOK
  *  → 맨 아래 폴더 바(폴더는 왼쪽 · 오른쪽 칸은 비움) + 가운데 한마디.
  * 관리자가 이 자리에서 고치는 것 (lib/yjhmFrontStore.ts — 설정 한 칸):
- *  필름 — 대표 그림 + 이어지는 사진들 · 필름 보정 / GUESTBOOK — 말풍선 / 한마디.
- * SCRAP은 처음 시안 그대로 최근 글 리스트(날짜 · 제목 · 종류) — 직접 적는 스크랩으로 바꿨던 것은 되돌렸다 (사용자 요청).
+ *  필름 — 대표 그림 + 이어지는 사진들 · 필름 보정 / SCRAP — 기사(날짜 · 출처 · 제목 · 본문 · 원문 주소) / GUESTBOOK — 말풍선 / 한마디.
+ * SCRAP은 처음 시안 그대로 리스트(날짜 · 제목 · 출처) 모양 — 관리자가 기사를 직접 적어 두면 그것이, 없으면 최근 글이 실린다.
+ *  (사용자 요청 — 「리스트 형식 유지하고 이전 버전처럼 내가 기사 글 수정할 수 있게」) 누르면 오려 둔 기사 한 장을 읽는다.
  * 필름 가장자리에는 실제 필름에 찍히는 것만 (필름 이름 · 프레임 번호 · 감도 · DX 바코드). 모양은 yjhm.css.
  */
 import React, { useState } from 'react';
@@ -20,7 +21,7 @@ import { logPath } from '@/lib/logPath';
 import { usePairings, pairIdOf } from '@/lib/pairLink';
 import { relOfWorld } from '@/lib/worldStore';
 import {
-  useYjhmFront, YjhmFront, YjhmFrame, YjhmNote, YjhmGrade, YJHM_GRADES, DEFAULT_GRADE, newId,
+  useYjhmFront, YjhmFront, YjhmFrame, YjhmScrap, YjhmNote, YjhmGrade, YJHM_GRADES, DEFAULT_GRADE, newId,
 } from '@/lib/yjhmFrontStore';
 import { putBlob, useBlobUrl } from '@/lib/blobStore';
 import { CroppedBlobImg, CropEditor, CropValue } from '@/components/ui/CropEditor';
@@ -196,6 +197,52 @@ function FilmEdit({ doc, save, onClose }: { doc: YjhmFront; save: (d: YjhmFront)
   );
 }
 
+/** 스크랩 — 기사 오려 붙이기 (메인에는 날짜 · 제목 · 출처 한 줄씩) */
+function ScrapEdit({ doc, save, onClose }: { doc: YjhmFront; save: (d: YjhmFront) => void; onClose: () => void }) {
+  const toast = useToast();
+  const [list, setList] = useState<YjhmScrap[]>(doc.scraps ?? []);
+  const patch = (i: number, p: Partial<YjhmScrap>) => setList(l => l.map((s, k) => (k === i ? { ...s, ...p } : s)));
+  return (
+    <Modal open title="스크랩 편집" className="yj-modal" dirty={list !== (doc.scraps ?? [])} onClose={onClose}
+      desc="기사를 오려 붙이듯 적어 두세요. 위에 있는 것부터 메인 SCRAP 리스트에 한 줄씩(날짜 · 제목 · 출처) 실리고, 누르면 본문을 읽습니다. 하나도 없으면 최근 글이 실립니다."
+      actions={<EditActions onCancel={onClose} onSave={() => { save({ ...doc, scraps: list.filter(s => s.title.trim() || s.body.trim()) }); toast('스크랩을 저장했습니다'); onClose(); }} />}>
+      <div className="yj-ed">
+        {list.map((s, i) => (
+          <div key={s.id} className="yj-ed-card">
+            <div className="yj-ed-line">
+              <input className="yj-in sm" placeholder="날짜" value={s.date} onChange={e => patch(i, { date: e.target.value })} />
+              <input className="yj-in" placeholder="출처 (예: 스포츠일보 · 3면)" value={s.source} onChange={e => patch(i, { source: e.target.value })} />
+              <RowTools list={list} i={i} set={setList} />
+            </div>
+            <input className="yj-in strong" placeholder="기사 제목" value={s.title} onChange={e => patch(i, { title: e.target.value })} />
+            <textarea className="yj-in" rows={4} placeholder="오려 낸 본문" value={s.body} onChange={e => patch(i, { body: e.target.value })} />
+            <input className="yj-in" placeholder="원문 주소 (선택)" value={s.href ?? ''} onChange={e => patch(i, { href: e.target.value.trim() || undefined })} />
+          </div>
+        ))}
+        <button type="button" className="yj-btn add"
+          onClick={() => setList(l => [{ id: newId(), date: today(), source: '', title: '', body: '' }, ...l])}>+ 스크랩 더하기</button>
+      </div>
+    </Modal>
+  );
+}
+
+/** 스크랩 한 장 읽기 */
+function ScrapRead({ s, onClose }: { s: YjhmScrap; onClose: () => void }) {
+  return (
+    <Modal open small className="yj-modal yj-clip-read" onClose={onClose}
+      actions={<>
+        {s.href && <a className="yj-btn" href={s.href} target={ext(s.href) ? '_blank' : undefined} rel="noreferrer">원문 보기</a>}
+        <button type="button" className="yj-btn on" onClick={onClose}>닫기</button>
+      </>}>
+      <article className="yj-clip-full">
+        <small>{[s.source, s.date].filter(Boolean).join(' · ')}</small>
+        <h4>{s.title}</h4>
+        {s.body && <p>{s.body}</p>}
+      </article>
+    </Modal>
+  );
+}
+
 /** 방명록 말풍선 */
 function NoteEdit({ doc, save, onClose }: { doc: YjhmFront; save: (d: YjhmFront) => void; onClose: () => void }) {
   const toast = useToast();
@@ -244,7 +291,7 @@ function QuoteEdit({ doc, cur, save, onClose }: { doc: YjhmFront; cur?: { who: s
   );
 }
 
-type EditKind = 'film' | 'note' | 'quote' | null;
+type EditKind = 'film' | 'scrap' | 'note' | 'quote' | null;
 
 export function YjhmHome() {
   const { user, isAdmin } = useAuth();
@@ -252,6 +299,7 @@ export function YjhmHome() {
   const rel = relOfWorld(rels, 'yjhm');
   const [front, saveFront] = useYjhmFront();
   const [edit, setEdit] = useState<EditKind>(null);
+  const [reading, setReading] = useState<YjhmScrap | null>(null);
   const [chars] = useLocalList<Character>('ohome.chars.v1', CHAR_SEED);
   const [logs] = useLocalList<TrpgLog>('ohome.trpg.v1', TRPG_SEED);
   const [gal] = useLocalList<BackupPost>('ohome.backup.v1', BACKUP_SEED);
@@ -277,6 +325,9 @@ export function YjhmHome() {
     ...(picked.length ? picked.map(f => ({ key: f.id, img: f.img, crop: f.crop, href: f.href, title: f.title })) : auto.slice(0, 9)),
   ];
   while (frames.length < MIN_FRAMES) frames.push({ key: `empty-${frames.length}` });
+
+  // 스크랩 — 관리자가 적은 기사, 없으면 최근 글 (all)
+  const scraps = front.scraps ?? [];
 
   // 방명록 — 관리자가 적은 말풍선, 없으면 방명록 최근 글
   const notes: YjhmNote[] = front.notes?.length ? front.notes.slice(0, 3) : guest.filter(g => !g.secret)
@@ -305,9 +356,13 @@ export function YjhmHome() {
 
       <div className="yj-lower">
         <section className="yj-scrap" aria-label="스크랩">
-          <Link className="yj-tape" href="/trpg">SCRAP · {all.length}</Link>
+          <div className="yj-sec-h"><Link className="yj-tape" href="/trpg">SCRAP · {scraps.length || all.length}</Link>{editBtn('scrap')}</div>
           <div className="yj-scrap-l">
-            {all.length ? all.slice(0, 4).map(s => (
+            {scraps.length ? scraps.slice(0, 4).map(s => (
+              <button key={s.id} type="button" onClick={() => setReading(s)}>
+                <time>{md(s.date.replace(/\./g, '-'))}</time><span>{s.title || cut(s.body, 30)}</span>{s.source && <em>{s.source}</em>}
+              </button>
+            )) : all.length ? all.slice(0, 4).map(s => (
               <Link key={s.key} href={s.href ?? '/'}><time>{md(s.date)}</time><span>{s.title}</span><em>{s.kind}</em></Link>
             )) : <p className="yj-faint">아직 실린 글이 없습니다</p>}
           </div>
@@ -328,8 +383,10 @@ export function YjhmHome() {
       <YjhmDock quote={quote} onEditQuote={isAdmin ? () => setEdit('quote') : undefined} />
 
       {edit === 'film' && <FilmEdit doc={front} save={saveFront} onClose={() => setEdit(null)} />}
+      {edit === 'scrap' && <ScrapEdit doc={front} save={saveFront} onClose={() => setEdit(null)} />}
       {edit === 'note' && <NoteEdit doc={front} save={saveFront} onClose={() => setEdit(null)} />}
       {edit === 'quote' && <QuoteEdit doc={front} cur={quote} save={saveFront} onClose={() => setEdit(null)} />}
+      {reading && <ScrapRead s={reading} onClose={() => setReading(null)} />}
     </div>
   );
 }
