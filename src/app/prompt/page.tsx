@@ -229,7 +229,7 @@ export default function PromptPage() {
     <div className="tag-row arch-tabbar">
       {cats.map(c => ({ ...c, n: items.filter(p => p.catId === c.id).length })).map(c => (
         <div key={c.id} className={`tag ${curCat === c.id ? 'on' : ''}`} onClick={() => { setCat(c.id); setPage(1); }}>
-          {c.name} <small>{c.n}</small>
+          {c.name}{!yj && <> <small>{c.n}</small></>}
         </div>
       ))}
     </div>

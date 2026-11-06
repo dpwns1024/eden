@@ -156,17 +156,24 @@ html.ui-yjhm body .yj-sl-r.is-classified .yj-sl-av{filter:grayscale(1) blur(2px)
  * 갤러리는 제목 없이 카드 위 페어 딱지만, 프롬프트는 카드 아래쪽에 제목 딱지(왼쪽) · COPY 딱지(오른쪽).
  * 카테고리는 바인더 위 가장자리에 꽂은 책갈피(.yj-bm) — 고른 것만 남색으로 길게 올라온다.
  * 선택자에 #appMain을 넣어 ARCH · 게시판 기본 카드 규칙보다 세게 */
-/* 책갈피 — 바인더 윗가장자리에 꽂혀 위로 삐져나온 색인 탭. 바인더와 1px 겹쳐 붙고, 고른 탭은 더 길게(높게) 올라온다 */
-html.ui-yjhm body #appMain .yj-bm{position:relative;z-index:2;max-width:1180px;box-sizing:border-box;margin:0 auto -1px;padding:0 16px 0 52px}
-html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:4px;margin:0;padding:0;border:0;background:none;box-shadow:none}
-html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;height:28px;min-height:0;margin:0;padding:0 calc(14px - .16em) 0 14px;border:0;border-radius:7px 7px 0 0;
-  background:linear-gradient(180deg,#f4f6f9,#e3e8ef);color:#607ca0;box-shadow:inset 0 1px 0 #fff,0 0 0 1px rgba(44,62,87,.1);font:500 10.5px/1 var(--yj-mono);letter-spacing:.16em;text-shadow:none;cursor:var(--cur-pointer,pointer);transition:height .2s,background .15s,color .15s}
-html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag:hover{background:linear-gradient(180deg,#fff,#eaeef3);color:var(--yj-ink)}
-html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag.on{height:34px;background:var(--yj-nv2);color:#f2f4f7;text-shadow:0 1px 0 rgba(0,0,0,.4);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 -2px 6px rgba(20,30,48,.14)}
-html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag small{margin-left:.5em;font:500 1em/1 var(--yj-mono);color:#9fb0c6}
-html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag.on small{color:#c9d3e0}
-/* 책갈피를 바인더 위로 옮겨 탭 줄 오른쪽 버튼(WRITE · NEW PROMPT)만 남았다 — 오른쪽에 그대로 */
+/* 책갈피 — 바인더 속지 뒤에 꽂혀 윗가장자리 위로 삐져나온 색인 탭. 아래 6px은 바인더 뒤로 숨어 바인더와 이어 보이고,
+ * 고른 탭은 남색으로 더 높이 올라온다. 글 개수는 달지 않는다 (사용자 요청 — 페이지에서 YJHM일 때 개수를 빼고 그린다).
+ * 탭 줄은 원래 가로 스크롤(overflow:auto)이라 탭 그림자가 네모나게 잘렸다 — 여기선 넘치면 다음 줄로 */
+html.ui-yjhm body #appMain .yj-bm{position:relative;z-index:0;max-width:1180px;box-sizing:border-box;margin:0 auto;padding:0 16px 0 52px}
+html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:4px;margin:0;padding:0;border:0;background:none;box-shadow:none;overflow:visible}
+html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;position:relative;height:26px;min-height:0;margin:0;padding:0 calc(16px - .16em) 0 16px;border:0;border-radius:7px 7px 0 0;
+  background:linear-gradient(180deg,#f4f6f9,#dfe5ec);color:#607ca0;box-shadow:inset 0 1px 0 #fff,inset 0 0 0 1px rgba(44,62,87,.1);font:500 10.5px/1 var(--yj-mono);letter-spacing:.16em;text-shadow:none;cursor:var(--cur-pointer,pointer);transition:height .2s,background .15s,color .15s}
+html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag:hover{background:linear-gradient(180deg,#fff,#e6ebf1);color:var(--yj-ink)}
+html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag.on{height:32px;background:var(--yj-nv2);color:#f2f4f7;text-shadow:0 1px 0 rgba(0,0,0,.4);box-shadow:inset 0 1px 0 rgba(255,255,255,.14)}
+/* 탭 상자는 보이는 부분만 — 바인더 뒤로 들어가는 6px은 덧그린다(상자에 넣으면 글자 가운데 맞춤이 숨은 부분까지 셌다) */
+html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag::after{content:"";position:absolute;left:0;right:0;top:100%;height:6px;background:#dfe5ec;box-shadow:inset 1px 0 0 rgba(44,62,87,.1),inset -1px 0 0 rgba(44,62,87,.1);pointer-events:none}
+html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag.on::after{background:var(--yj-nv2);box-shadow:none}
+/* 바인더가 책갈피 아래쪽을 덮는다 */
+html.ui-yjhm body #appMain .yj-bm + .yj-binder,html.ui-yjhm body #appMain .yj-bm + * .yj-binder{z-index:1}
+/* 책갈피를 바인더 위로 옮겨 탭 줄에는 버튼(WRITE · NEW PROMPT)만 남는다 — 오른쪽에. 버튼도 없으면(방문자) 줄째 감춰 여백을 줄인다 */
 html.ui-yjhm body #appMain :is(.page-gallery,.page-prompt) .toolrow > :last-child{margin-left:auto}
+html.ui-yjhm body #appMain :is(.page-gallery,.page-prompt):has(.yj-bm) .toolrow:not(:has(button)){display:none}
+html.ui-yjhm body #appMain :is(.page-gallery,.page-prompt):has(.yj-bm) .page-head{margin-bottom:18px}
 html.ui-yjhm body #appMain .yj-binder{--cols:4;--ar:55/85;position:relative;display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:0;max-width:1180px;box-sizing:border-box;margin:0 auto;padding:16px 16px 16px 40px;border-radius:4px 12px 12px 4px;
   background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0) 30%),linear-gradient(165deg,#eef1f5,#e5eaf0);
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.9),0 0 0 1px rgba(44,62,87,.1),0 16px 36px rgba(44,62,87,.1)}
@@ -177,7 +184,7 @@ html.ui-yjhm body #appMain .yj-binder::before{content:"";position:absolute;left:
 /* 구멍 줄을 보강한 띠의 경계 */
 html.ui-yjhm body #appMain .yj-binder::after{content:"";position:absolute;left:26px;top:8px;bottom:8px;width:1px;background:rgba(44,62,87,.1)}
 /* 슬리브 한 칸 */
-html.ui-yjhm body #appMain .yj-binder > :is(.g-item,.pr-card,.yj-sleeve-empty){position:relative;display:flex;flex-direction:column;min-width:0;padding:16px 14px 14px;margin:0;border:0;border-right:1px dashed rgba(44,62,87,.16);border-radius:0;overflow:visible;
+html.ui-yjhm body #appMain .yj-binder > :is(.g-item,.pr-card,.yj-sleeve-empty){position:relative;display:flex;flex-direction:column;min-width:0;padding:16px 14px 11px;margin:0;border:0;border-right:1px dashed rgba(44,62,87,.16);border-radius:0;overflow:visible;
   background:linear-gradient(180deg,transparent 9px,rgba(255,255,255,.95) 9px 10px,rgba(44,62,87,.07) 10px 11px,transparent 11px);box-shadow:none;transform:none;color:var(--yj-ink);opacity:1}
 html.ui-yjhm body #appMain .yj-binder > :is(.g-item,.pr-card,.yj-sleeve-empty):nth-child(4n){border-right-color:transparent}
 html.ui-yjhm body #appMain .yj-binder > :is(.g-item,.pr-card,.yj-sleeve-empty):nth-child(n+5){border-top:1px dashed rgba(44,62,87,.16)}
@@ -199,14 +206,17 @@ html.ui-yjhm body .yj-pc-no{position:absolute;right:22px;top:24px;z-index:3;disp
   font:500 9px/1 var(--yj-mono);letter-spacing:.14em;color:var(--yj-nv2);pointer-events:none;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
 html.ui-yjhm body #appMain .yj-binder > :hover .yj-pc-no{transform:translateY(-12px)}
 html.ui-yjhm body #appMain .yj-binder.land > :hover .yj-pc-no{transform:translateY(-10px)}
-/* 갤러리 — 제목은 감추고 페어 딱지만 카드 왼쪽 아래에 */
+/* 갤러리 — 페어 딱지(YJHM)는 없애고 번호 딱지를 프롬프트 제목 딱지처럼 카드 왼쪽 아래로 (사용자 요청) */
+html.ui-yjhm body #appMain .yj-binder.land > .g-item .yj-pc-no{top:auto;right:auto;left:22px;bottom:19px}
+html.ui-yjhm body #appMain .yj-binder.land > .g-item .info{display:none}
+/* (예전) 제목은 감추고 페어 딱지만 카드 왼쪽 아래에 */
 html.ui-yjhm body #appMain .yj-binder > .g-item .info{position:absolute;left:22px;bottom:22px;z-index:3;margin:0;padding:0;background:none;box-shadow:none;pointer-events:none;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
 html.ui-yjhm body #appMain .yj-binder > .g-item:hover .info{transform:translateY(-10px)}
 html.ui-yjhm body #appMain .yj-binder > .g-item .g-head{display:flex;gap:6px}
 html.ui-yjhm body #appMain .yj-binder > .g-item .g-head :is(b,.tag-in){display:none}
 html.ui-yjhm body #appMain .yj-binder > .g-item .g-head .typ{background:rgba(255,255,255,.94) !important;box-shadow:0 1px 4px rgba(0,0,0,.18)}
 /* 프롬프트 — 번호 딱지 자리에 제목 딱지(작은 글자) · 같은 모양 COPY 딱지, 둘 다 카드 아래쪽 (왼쪽 제목 · 오른쪽 COPY) */
-html.ui-yjhm body #appMain .yj-binder > .pr-card .yj-pc-lb{position:absolute;left:22px;right:22px;bottom:22px;z-index:3;display:flex;justify-content:space-between;align-items:center;gap:6px;pointer-events:none}
+html.ui-yjhm body #appMain .yj-binder > .pr-card .yj-pc-lb{position:absolute;left:22px;right:22px;bottom:19px;z-index:3;display:flex;justify-content:space-between;align-items:center;gap:6px;pointer-events:none}
 html.ui-yjhm body #appMain .yj-binder > .pr-card .yj-pc-lb .yj-pc-no{position:relative;right:auto;top:auto}
 html.ui-yjhm body #appMain .yj-binder > .pr-card .yj-pc-tt{display:block;min-width:0;max-width:100%;padding:0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 9.5px/19px var(--yj-pre);letter-spacing:0;color:var(--yj-ink)}
 html.ui-yjhm body #appMain .yj-binder > .pr-card .yj-pc-tt.untitled{font:500 8.5px/19px var(--yj-mono);letter-spacing:.14em;padding:0 calc(8px - .14em) 0 8px;color:#9aa8ba}
@@ -224,20 +234,21 @@ html.ui-yjhm body .yj-sleeve-empty b{display:block;font:300 26px/1 var(--yj-inte
   html.ui-yjhm body #appMain .yj-binder > :is(.g-item,.pr-card,.yj-sleeve-empty):nth-child(n){border-right-color:rgba(44,62,87,.16);border-top:0}
   html.ui-yjhm body #appMain .yj-binder > :is(.g-item,.pr-card,.yj-sleeve-empty):nth-child(even){border-right-color:transparent}
   html.ui-yjhm body #appMain .yj-binder > :is(.g-item,.pr-card,.yj-sleeve-empty):nth-child(n+3){border-top:1px dashed rgba(44,62,87,.16)}
-  html.ui-yjhm body #appMain .yj-binder > :is(.g-item,.pr-card,.yj-sleeve-empty){padding:14px 8px 10px}
-  html.ui-yjhm body .yj-pc-no{right:14px;top:22px}
+  /* 카드 사이 위아래 간격 = 좌우 간격(16px + 선 1px) — 예전엔 위아래가 25px로 벌어졌다 (사용자 지적). 슬리브 입구 선도 카드 위 6px로 */
+  html.ui-yjhm body #appMain .yj-binder > :is(.g-item,.pr-card,.yj-sleeve-empty){padding:12px 8px 4px;background:linear-gradient(180deg,transparent 5px,rgba(255,255,255,.95) 5px 6px,rgba(44,62,87,.07) 6px 7px,transparent 7px)}
+  html.ui-yjhm body .yj-pc-no{right:14px;top:20px}
   html.ui-yjhm body #appMain .yj-binder > .g-item .info{left:14px;bottom:18px}
-  html.ui-yjhm body #appMain .yj-binder > .pr-card .yj-pc-lb{left:14px;right:14px;bottom:18px;gap:4px}
+  html.ui-yjhm body #appMain .yj-binder > .pr-card .yj-pc-lb{left:14px;right:14px;bottom:12px;gap:4px}
   html.ui-yjhm body #appMain .yj-bm{padding:0 8px 0 40px}
-  html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag{height:26px;padding:0 calc(11px - .14em) 0 11px;font-size:9.5px;letter-spacing:.14em}
-  html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag.on{height:31px}
+  html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag{height:24px;padding:0 calc(13px - .14em) 0 13px;font-size:9.5px;letter-spacing:.14em}
+  html.ui-yjhm.ui-arch body #appMain .yj-bm .arch-tabbar .tag.on{height:29px}
   /* 갤러리(가로 카드)는 폰에서 한 줄에 한 장 (사용자 요청) — 빈 슬리브는 두지 않는다 */
   html.ui-yjhm body #appMain .yj-binder.land{--cols:1}
   html.ui-yjhm body #appMain .yj-binder.land > :is(.g-item,.yj-sleeve-empty):nth-child(n){border-right-color:transparent;border-top:0}
   html.ui-yjhm body #appMain .yj-binder.land > :is(.g-item,.yj-sleeve-empty):nth-child(n+2){border-top:1px dashed rgba(44,62,87,.16)}
   html.ui-yjhm body #appMain .yj-binder.land > .yj-sleeve-empty{display:none}
-  html.ui-yjhm body #appMain .yj-binder.land > .g-item{padding:14px 12px 12px}
-  html.ui-yjhm body #appMain .yj-binder.land .yj-pc-no{right:20px}
+  html.ui-yjhm body #appMain .yj-binder.land > .g-item{padding:12px 12px 4px}
+  html.ui-yjhm body #appMain .yj-binder.land > .g-item .yj-pc-no{left:20px;bottom:12px}
   html.ui-yjhm body #appMain .yj-binder.land > .g-item .info{left:20px;bottom:20px}
   /* 두 칸 속지 — 채우려고 넣은 빈 슬리브 중 새 줄을 여는 것부터는 감춘다 */
   html.ui-yjhm body #appMain .yj-binder > .yj-sleeve-empty:nth-child(odd),html.ui-yjhm body #appMain .yj-binder > .yj-sleeve-empty:nth-child(odd) ~ .yj-sleeve-empty{display:none}

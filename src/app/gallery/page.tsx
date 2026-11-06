@@ -109,16 +109,16 @@ function BackupPageInner() {
   const tabRow = (
     <div className="tag-row arch-tabbar">
       <div className={`tag ${fCat === 'all' ? 'on' : ''}`} onClick={() => setFCat('all')}>
-        {arch ? 'ALL' : '전체'} <small>{readable.length}</small>
+        {arch ? 'ALL' : '전체'}{!yj && <> <small>{readable.length}</small></>}
       </div>
       {cats.map(c => (
         <div key={c.id} className={`tag ${fCat === c.id ? 'on' : ''}`} onClick={() => setFCat(c.id)}>
-          {c.name} <small>{c.n}</small>
+          {c.name}{!yj && <> <small>{c.n}</small></>}
         </div>
       ))}
       {noCat > 0 && cats.length > 0 && (
         <div className={`tag ${fCat === noKey ? 'on' : ''}`} onClick={() => setFCat(noKey)}>
-          {arch ? 'ETC' : '기타'} <small>{noCat}</small>
+          {arch ? 'ETC' : '기타'}{!yj && <> <small>{noCat}</small></>}
         </div>
       )}
     </div>
