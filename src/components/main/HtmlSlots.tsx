@@ -50,7 +50,8 @@ export function useHtmlSlots(boxRef: React.RefObject<HTMLElement | null>, deps: 
  *       button.oh-item                   상위 메뉴 — 마우스를 올리거나 누르면 펼침
  *       div.oh-sub > a.oh-link(.on)      하위 메뉴
  */
-export function SlotMenu() {
+/** split — 메뉴를 반으로 나눠 가운데에 빈 자리(i.oh-split)를 둔다 (YJHM 메인 아래 폴더 바 — 가운데에 한마디가 걸린다) */
+export function SlotMenu({ split = false }: { split?: boolean } = {}) {
   const pathname = useAppPathname();
   const { user, isAdmin } = useAuth();
   const [menuSet, , menuLoaded] = useMenuSettings();
@@ -94,9 +95,10 @@ export function SlotMenu() {
   const isOn = (href: string) => href.split('?')[0] === pathname;
   const ext = (href: string) => /^https?:\/\//.test(href);
 
+  const half = split ? Math.ceil(items.length / 2) : -1;
   return (
     <nav className="oh-menu" ref={ref}>
-      {items.map(m => (m.children ? (
+      {items.map((m, i) => [i === half && <i key="split" className="oh-split" aria-hidden="true" />, m.children ? (
         <div key={m.label} className={`oh-grp${open === m.label ? ' open' : ''}${m.children.some(c => isOn(c.href)) ? ' on' : ''}`}>
           <button type="button" className="oh-item" aria-expanded={open === m.label}
             onClick={() => setOpen(o => (o === m.label ? null : m.label))}>{nm(m)}</button>
@@ -108,7 +110,7 @@ export function SlotMenu() {
         </div>
       ) : m.href && (ext(m.href)
         ? <a key={m.href} className="oh-item" href={m.href} target="_blank" rel="noreferrer">{nm(m)}</a>
-        : <Link key={m.href} className={`oh-item${isOn(m.href) ? ' on' : ''}`} href={toPublicHref(m.href)}>{nm(m)}</Link>)))}
+        : <Link key={m.href} className={`oh-item${isOn(m.href) ? ' on' : ''}`} href={toPublicHref(m.href)}>{nm(m)}</Link>)])}
     </nav>
   );
 }
