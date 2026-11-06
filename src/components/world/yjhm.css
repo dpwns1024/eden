@@ -3,28 +3,34 @@
  * 미색 바탕에 신문지 결 · 포인트 #607ca0 · 본문 #2c3e57 · Archivo Black · 굵은 상자 · 반전 블록 · 망점 · 별 딱지 · Rubik Bubbles 스티커.
  * 사이트 테마(환경설정)는 <html> style에 변수를 직접 쓰므로, 여기서는 !important로 덮는다 (YJHM일 때만). */
 html.ui-yjhm{
-  --yj-bg:#f2f1ec;--yj-pn:#f7f6f2;--yj-ink:#2c3e57;--yj-sub:#4a5a70;--yj-faint:#6c7a8c;
+  /* 메인 「필름」 1면과 같은 색 — 연회색 바탕 · 흰 종이 · 남색 글자 · 포인트 #607ca0 (v2.0 사용자 요청 — 다른 화면도 지금 스타일로) */
+  --yj-bg:#eef0f3;--yj-pn:#ffffff;--yj-ink:#1d2a3d;--yj-nv2:#2c3e57;--yj-sub:#4a5a70;--yj-faint:#6c7a8c;
   --yj-ac:#607ca0;--yj-ln:#9fb0c6;
   --yj-sans:'Noto Sans KR','Apple SD Gothic Neo',sans-serif;
   --yj-black:'Archivo Black','Noto Sans KR',sans-serif;
   --yj-narrow:'Archivo Narrow','Noto Sans KR',sans-serif;
   --yj-bubble:'Rubik Bubbles','Noto Sans KR',sans-serif;
+  --yj-mono:'DM Mono','Pretendard Variable',Pretendard,monospace;
+  --yj-inter:'Inter','Pretendard Variable',Pretendard,'Noto Sans KR',sans-serif;
+  --yj-pre:'Pretendard Variable',Pretendard,'Noto Sans KR',sans-serif;
+  --yj-noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .25 0 0 0 0 .32 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --yj-gut:clamp(16px,3.75vw,48px);
   --bg-g1:var(--yj-bg) !important;--bg-g2:var(--yj-bg) !important;--bg-image:none !important;--bg-blur:0px !important;
-  --panel:rgba(247,246,242,.96) !important;--panel-solid:var(--yj-pn) !important;
+  --panel:rgba(255,255,255,.96) !important;--panel-solid:var(--yj-pn) !important;
   --ink:var(--yj-ink) !important;--sub:var(--yj-sub) !important;--faint:var(--yj-faint) !important;
   --accent:var(--yj-ac) !important;--accent-soft:rgba(96,124,160,.12) !important;
-  --top-bg:rgba(242,241,236,.94) !important;--top-fg:var(--yj-ink) !important;--top-hv:var(--yj-ac) !important;--top-brand:var(--yj-ac) !important;
-  --dd-bg:rgba(247,246,242,.99) !important;--dd-fg:var(--yj-ink) !important;--dd-hv:rgba(96,124,160,.1) !important;
-  --page-title:var(--yj-ac) !important;--page-desc:var(--yj-sub) !important;
-  --btn-dark:#607ca0 !important;--btn-dark-fg:#f7f6f2 !important;--btn-dark-hv:#4f6a8c !important;
-  --seg-bg:#e6e6e0 !important;--seg-fg:var(--yj-sub) !important;
-  --tab-bg:#e6e6e0 !important;--tab-fg:var(--yj-sub) !important;--tab-on-bg:var(--yj-pn) !important;--tab-on-fg:var(--yj-ink) !important;
-  --sh-sm:3px 3px 0 rgba(96,124,160,.25) !important;--sh-md:5px 5px 0 rgba(96,124,160,.25) !important;
+  --top-bg:rgba(238,240,243,.94) !important;--top-fg:var(--yj-ink) !important;--top-hv:var(--yj-ac) !important;--top-brand:var(--yj-ac) !important;
+  --dd-bg:rgba(255,255,255,.99) !important;--dd-fg:var(--yj-ink) !important;--dd-hv:rgba(96,124,160,.1) !important;
+  --page-title:var(--yj-ink) !important;--page-desc:var(--yj-sub) !important;
+  --btn-dark:#2c3e57 !important;--btn-dark-fg:#f2f4f7 !important;--btn-dark-hv:#1d2a3d !important;
+  --seg-bg:#e3e7ec !important;--seg-fg:var(--yj-sub) !important;
+  --tab-bg:#e3e7ec !important;--tab-fg:var(--yj-sub) !important;--tab-on-bg:var(--yj-pn) !important;--tab-on-fg:var(--yj-ink) !important;
+  --sh-sm:0 2px 8px rgba(44,62,87,.08) !important;--sh-md:0 14px 34px rgba(44,62,87,.12) !important;
   --radius:4px !important;--radius-s:2px !important;
 }
-html.ui-yjhm body{color:var(--yj-ink)}
-html.ui-yjhm .page-head h1,html.ui-yjhm .page-head h2{font-family:var(--yj-black);font-weight:400;letter-spacing:-.02em}
+html.ui-yjhm body{color:var(--yj-ink);background-color:var(--yj-bg);background-image:var(--yj-noise)}
+html.ui-yjhm .page-head h1,html.ui-yjhm .page-head h2{font-family:var(--yj-inter);font-weight:700;letter-spacing:-.045em}
+html.ui-yjhm .page-head h1::after{content:".";color:var(--yj-ac);-webkit-text-fill-color:var(--yj-ac)}   /* 제목 끝 점 — 메인 Hong Yejun. 처럼 */
 
 /* 신문지 결 (미색 바탕 · 가로세로 결 · 잔 점) · 반전 블록(포인트색 위 망점) · 망점 자리 */
 .yj-main,.yj-paperbg{background-color:var(--yj-bg);background-image:repeating-linear-gradient(0deg,rgba(40,40,40,.018) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(40,40,40,.012) 0 1px,transparent 1px 5px),radial-gradient(rgba(30,30,30,.07) .55px,transparent .9px),radial-gradient(rgba(30,30,30,.05) .5px,transparent .8px),radial-gradient(rgba(255,255,255,.7) .6px,transparent 1px);background-size:auto,auto,5px 5px,9px 9px,6px 6px;background-position:0 0,0 0,0 0,4px 6px,2px 1px}
@@ -44,30 +50,32 @@ a.yj-pill.yj-blk{min-height:44px;padding:0 22px;font-weight:900;font-size:16px}
 .yj-pic-dots{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(rgba(96,124,160,.55) 30%,transparent 36%);background-size:4px 4px;mix-blend-mode:multiply;opacity:.55}
 .yj-pic:has(.ph) .yj-pic-dots{display:none}
 
-/* ── 머리 · 지면 메뉴 (메인 · 다른 페이지 공용) — 알약 메뉴 · 번호 ── */
-.yj-menu{display:flex;min-height:44px}
-.yj-menu .oh-menu{gap:10px;flex-wrap:wrap;counter-reset:yjm}
-.yj-menu .oh-item{counter-increment:yjm;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border:2.5px solid var(--yj-ac) !important;border-radius:999px;background:transparent;font:900 15px/1 var(--yj-sans);color:var(--yj-ink);box-sizing:border-box}
-.yj-menu .oh-item::before{content:counter(yjm,decimal-leading-zero);font:700 12px/1 var(--yj-narrow);color:var(--yj-ac)}
-.yj-menu .oh-item:hover{background:rgba(96,124,160,.1)}
-.yj-menu .oh-item.on,.yj-menu .oh-grp.on > .oh-item{background-color:var(--yj-ac);background-image:radial-gradient(rgba(242,241,236,.2) .8px,transparent 1.3px);background-size:5px 5px;color:#f7f6f2}
-.yj-menu .oh-item.on::before,.yj-menu .oh-grp.on > .oh-item::before{color:#f7f6f2}
-.yj-menu .oh-sub{margin-top:6px;background:var(--yj-pn);border:3px solid var(--yj-ac);border-radius:0;box-shadow:5px 5px 0 rgba(96,124,160,.3);padding:4px}
-.yj-menu .oh-link{display:block;padding:10px 14px;text-align:center;font:700 13.5px/1.2 var(--yj-sans);color:var(--yj-ink)}
-.yj-menu .oh-link:hover,.yj-menu .oh-link.on{color:#f7f6f2;background:var(--yj-ac)}
+/* ── 다른 페이지 머리 — 메인 「필름」 1면과 같은 말투 (v2.0 사용자 요청 — 나머지 화면도 지금 스타일로) ──
+ * 왼쪽 작은 제호(GOLD MEDALIST 줄 + Hong Yejun.) · 가운데 메뉴(DM Mono 글자, 지금 칸은 남색 라벨 테이프) · 오른쪽 전환 버튼 · 로그인.
+ * 아래 경계는 필름 띠 한 줄(남색 띠 + 구멍) */
+.yj-menu{display:flex;min-height:40px}
+.yj-menu .oh-menu{gap:4px;flex-wrap:wrap}
+.yj-menu .oh-item{display:inline-flex;align-items:center;min-height:30px;padding:0 calc(12px - .2em) 0 12px;border:0;border-radius:2px;background:transparent;
+  font:500 11px/1 var(--yj-mono);letter-spacing:.2em;text-transform:uppercase;color:var(--yj-ac);box-sizing:border-box;white-space:nowrap}
+.yj-menu .oh-item:hover{color:var(--yj-ink);background:rgba(96,124,160,.1)}
+.yj-menu .oh-item.on,.yj-menu .oh-grp.on > .oh-item,.yj-menu .oh-grp.open > .oh-item{background:var(--yj-nv2);color:#f2f4f7;text-shadow:0 1px 0 rgba(0,0,0,.4);box-shadow:0 1px 3px rgba(20,30,48,.25),inset 0 1px 0 rgba(255,255,255,.12)}
+.yj-menu .oh-sub{margin-top:8px;padding:5px;background:#fff;border:0;border-radius:6px;box-shadow:0 0 0 1px rgba(44,62,87,.12),0 10px 24px rgba(44,62,87,.16)}
+.yj-menu .oh-link{display:block;padding:9px 16px;border-radius:4px;text-align:center;font:500 12px/1.2 var(--yj-pre);letter-spacing:.04em;color:var(--yj-ink)}
+.yj-menu .oh-link:hover,.yj-menu .oh-link.on{background:#eef0f3;color:var(--yj-ink)}
 .yj-member{display:flex;justify-content:flex-end;align-items:center;min-height:30px}
-.yj-member .login-link{min-height:34px;padding:0 18px;border:2.5px solid var(--yj-ac);border-radius:999px;background:transparent;font:700 13px/1 var(--yj-sans);color:var(--yj-ink);cursor:var(--cur-pointer,pointer)}
-.yj-member .login-link:hover{background:var(--yj-ac);color:#f7f6f2}
+.yj-member .login-link{min-height:30px;padding:0 calc(14px - .2em) 0 14px;border:1px solid rgba(44,62,87,.18);border-radius:2px;background:#fff;font:500 10.5px/1 var(--yj-mono);letter-spacing:.2em;color:var(--yj-nv2);cursor:var(--cur-pointer,pointer)}
+.yj-member .login-link:hover{background:var(--yj-nv2);border-color:var(--yj-nv2);color:#f2f4f7}
 
-/* 다른 페이지 — 한 줄 제호 */
 .yj-head-wrap{max-width:1600px;margin:0 auto;padding:0 var(--yj-gut)}
-.yj-top{position:relative;z-index:20;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:24px;padding:14px 0 12px;border-bottom:3px solid var(--yj-ac)}
-.yj-brand{display:block;font:400 26px/1 var(--yj-black);letter-spacing:-.02em;color:var(--yj-ac);text-decoration:none;white-space:nowrap}
-.yj-brand .yj-out{-webkit-text-stroke-width:1.5px}
-.yj-brand small{display:block;margin-top:6px;font:700 10.5px/1 var(--yj-narrow);letter-spacing:.4em;color:var(--yj-ink)}
+.yj-top{position:relative;z-index:20;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:24px;margin-bottom:22px;padding:18px 0 22px}
+.yj-top::after{content:"";position:absolute;left:calc(var(--yj-gut) * -1);right:calc(var(--yj-gut) * -1);bottom:0;height:14px;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 14'%3E%3Crect x='7' y='4' width='10' height='6' rx='1.5' fill='%23eef0f3'/%3E%3C/svg%3E") 0 0/24px 14px repeat-x,#1d2a3d;
+  box-shadow:0 8px 18px rgba(44,62,87,.14)}
+.yj-brand{display:flex;flex-direction:column;gap:7px;font:700 30px/.85 var(--yj-inter);letter-spacing:-.05em;color:var(--yj-ink) !important;text-decoration:none;white-space:nowrap}
+.yj-brand small{font:500 8.5px/1 var(--yj-mono);letter-spacing:.24em;color:var(--yj-ac)}
+.yj-brand i{font-style:normal;color:var(--yj-ac)}
 .yj-top .yj-menu{justify-content:center}
-.yj-top .yj-menu .oh-menu{justify-content:center;gap:8px}
-.yj-top .yj-menu .oh-item{min-height:38px;padding:0 14px;font-size:13.5px}
+.yj-top .yj-menu .oh-menu{justify-content:center}
 
 /* ── 메인 ── */
 body:has(.yj-main)::before{display:none !important}
@@ -222,7 +230,7 @@ body:has(.yj-main)::before{display:none !important}
 
 /* 판권 — 메인은 대형 DAILY · 다른 페이지(SiteFooter)는 한 줄 */
 .yj-foot{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding-top:16px;font:700 12.5px/1.5 var(--yj-narrow);letter-spacing:.1em;color:var(--yj-ink)}
-.yj-head-wrap .yj-foot{margin-top:48px;padding:16px 0 34px;border-top:3px solid var(--yj-ac)}
+.yj-head-wrap .yj-foot{margin-top:56px;padding:16px 0 34px;border-top:1px solid rgba(96,124,160,.3);font:500 10px/1.5 var(--yj-mono);letter-spacing:.22em;color:var(--yj-ac)}
 .yj-foot-main{display:block;margin-top:60px;padding-top:0;overflow:hidden}
 .yj-foot-main > div{display:flex;justify-content:space-between;gap:16px;padding-top:14px;border-top:3px solid var(--yj-ac);font-size:13px}
 .yj-foot-main > b{display:block;font:400 clamp(100px,19.5vw,312px)/.78 var(--yj-black);letter-spacing:-.04em;color:var(--yj-ac);margin-top:10px;margin-bottom:-.16em;white-space:nowrap}
@@ -343,9 +351,11 @@ body:has(.yj-main)::before{display:none !important}
 .world-switch.ws-eveden{background:rgba(8,11,15,.86);border:1px solid rgba(190,208,228,.22)}
 .world-switch.ws-eveden button{color:#8592a0;font-family:'JetBrains Mono',monospace}
 .world-switch.ws-eveden button.on{color:#fff;background:rgba(184,216,255,.14)}
-.world-switch.ws-yjhm{background:#f2f1ec;border:2.5px solid #607ca0;border-radius:999px;box-shadow:3px 3px 0 rgba(96,124,160,.3)}
-.world-switch.ws-yjhm button{border-radius:999px;color:#2c3e57;font-family:'Archivo Narrow','Noto Sans KR',sans-serif;font-weight:700}
-.world-switch.ws-yjhm button.on{color:#f7f6f2;background:#607ca0}
+/* YJHM — 메인 「필름」 1면 말투: 흰 종이 위 DM Mono 글자, 고른 쪽은 남색 라벨 테이프 (v2.0 사용자 요청 — 둥근 알약이 지금 테마와 안 맞았다) */
+.world-switch.ws-yjhm{gap:3px;padding:3px;background:#fff;border:0;border-radius:3px;box-shadow:0 0 0 1px rgba(44,62,87,.14),0 2px 8px rgba(44,62,87,.08)}
+.world-switch.ws-yjhm button{height:24px;padding:0 calc(10px - .22em) 0 10px;border-radius:2px;color:#7d92ae;font:500 10px/1 'DM Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.22em}
+.world-switch.ws-yjhm button:hover{color:#1d2a3d}
+.world-switch.ws-yjhm button.on{color:#f2f4f7;background:#2c3e57;text-shadow:0 1px 0 rgba(0,0,0,.4);box-shadow:0 1px 3px rgba(20,30,48,.25),inset 0 1px 0 rgba(255,255,255,.12)}
 
 /* ══════════ 메인 「필름」 1면 (사용자 확정 시안 Z3 · components/world/YjhmHome.tsx) ══════════
  * 미색 바탕 + 은은한 과녁 링 · 머리(Hong Yejun.) · 기울어진 35mm 필름 띠가 천천히 흐름 · 아래 줄 SCRAP / GUESTBOOK · 맨 아래 폴더 메뉴 바.
@@ -397,19 +407,49 @@ body:has(.yj-main)::before{display:none !important}
 .yj-fr img{width:100%;height:100%;object-fit:cover}
 .ph.yj-film-ph{background:linear-gradient(170deg,#d5dfeb,#9db0c9) !important}
 .yj-cover-edit{position:absolute;left:44px;top:6px;z-index:6;display:flex;gap:6px}
-.yj-cover-edit input{display:none}
+.yj-tape.ghost{background:#fff;color:var(--nv2,#2c3e57) !important;text-shadow:none;box-shadow:0 0 0 1px rgba(44,62,87,.18)}
+.yj-tape.ghost:hover{background:var(--nv2,#2c3e57);color:#f2f4f7 !important}
+
+/* 필름 보정 (관리자가 고른다 — lib/yjhmFrontStore.ts YJHM_GRADES) — 사진 색 · 색 막 · 빛샘 · 입자. 빈 칸(.ph)에는 색 막만 */
+.yj-fr > :is(.yj-grade,.yj-leak,.yj-grain){position:absolute;inset:0;pointer-events:none;z-index:1}
+.yj-grain{opacity:.32;mix-blend-mode:overlay;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.25' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E")}
+.yj-leak{opacity:0}
+.yj-film[data-grade=warm] .yj-fr img{filter:sepia(.16) saturate(.92) contrast(1.06) brightness(1.03)}
+.yj-film[data-grade=warm] .yj-grade{mix-blend-mode:soft-light;background:linear-gradient(180deg,rgba(255,176,96,.38),rgba(255,214,160,.12) 55%,rgba(40,70,120,.28))}
+.yj-film[data-grade=warm] .yj-cell:nth-child(3n+1) .yj-leak{opacity:.55;mix-blend-mode:screen;background:radial-gradient(60% 90% at 0% 30%,rgba(255,120,40,.75),rgba(255,170,90,.25) 45%,transparent 70%)}
+.yj-film[data-grade=cool] .yj-fr img{filter:saturate(.82) contrast(1.12) brightness(1.02) hue-rotate(-6deg)}
+.yj-film[data-grade=cool] .yj-grade{mix-blend-mode:soft-light;background:linear-gradient(170deg,rgba(150,200,255,.36),rgba(80,140,150,.22))}
+.yj-film[data-grade=tungsten] .yj-fr img{filter:saturate(1.05) contrast(1.1) brightness(.96) hue-rotate(4deg)}
+.yj-film[data-grade=tungsten] .yj-grade{mix-blend-mode:soft-light;background:linear-gradient(180deg,rgba(40,110,190,.5),rgba(20,60,120,.35))}
+.yj-film[data-grade=tungsten] .yj-leak{opacity:.4;mix-blend-mode:screen;background:radial-gradient(40% 50% at 78% 22%,rgba(255,80,60,.55),transparent 70%)}
+.yj-film[data-grade=fade] .yj-fr img{filter:sepia(.22) saturate(.68) contrast(.84) brightness(1.1)}
+.yj-film[data-grade=fade] .yj-grade{mix-blend-mode:screen;background:linear-gradient(180deg,rgba(120,110,150,.16),rgba(230,205,170,.2))}
+.yj-film[data-grade=fade] .yj-cell:nth-child(4n+2) .yj-leak{opacity:.45;mix-blend-mode:screen;background:linear-gradient(100deg,transparent 55%,rgba(255,150,90,.6) 92%)}
+.yj-film[data-grade=mono] .yj-fr img{filter:grayscale(1) contrast(1.18) brightness(1.02)}
+.yj-film[data-grade=mono] .yj-grain{opacity:.42}
+.yj-film[data-grade=none] .yj-grain{display:none}
 
 /* 아래 줄 — 왼쪽 SCRAP · 가운데 비움 · 오른쪽 GUESTBOOK. 두 라벨 높이를 같게, 내용은 라벨 + 14px부터 */
 .yj-lower{position:relative;z-index:4;display:flex;justify-content:space-between;align-items:flex-start;gap:24px;padding:0 44px 24px}
 .yj-scrap,.yj-gb{display:flex;flex-direction:column;gap:14px}
-.yj-scrap{width:340px}
-.yj-scrap .yj-tape,.yj-gb .yj-tape{align-self:flex-start}
+.yj-scrap{width:min(560px,48vw)}
 .yj-gb{width:300px;align-items:flex-end}
-.yj-gb .yj-tape{align-self:flex-end}
-.yj-scrap-l > a{display:flex;align-items:center;gap:12px;height:26px;border-bottom:1px solid rgba(44,62,87,.1);font:400 12.5px/1 var(--sans);color:var(--nv)}
-.yj-scrap-l time{flex:none;width:34px;font:500 10px/1 var(--mono);color:#607ca0}
-.yj-scrap-l span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.yj-scrap-l em{margin-left:auto;flex:none;font:500 9px/1 var(--mono);font-style:normal;letter-spacing:.12em;color:#9fb0c6}
+.yj-sec-h{display:flex;gap:6px;align-items:center}
+.yj-gb .yj-sec-h{align-self:flex-end}
+/* 스크랩 — 신문에서 오려 낸 종이 조각을 테이프로 붙인 모양 (관리자가 직접 적는다) */
+.yj-clips{display:flex;gap:16px;align-items:flex-start;padding:4px 2px 0}
+.yj-clip{all:unset;box-sizing:border-box;position:relative;display:flex;flex-direction:column;gap:5px;flex:0 1 176px;min-width:0;padding:14px 13px 15px;cursor:var(--cur-pointer,pointer);
+  background:#fbfaf6 linear-gradient(180deg,rgba(44,62,87,.03),transparent 30%);color:var(--nv);box-shadow:0 1px 2px rgba(20,30,48,.14),0 8px 18px rgba(44,62,87,.1);
+  clip-path:polygon(0 2%,6% 0,15% 1.5%,27% 0,40% 1%,52% 0,66% 1.5%,78% 0,90% 1%,100% 0,99% 22%,100% 48%,99.2% 75%,100% 100%,88% 98.5%,74% 100%,61% 98.8%,47% 100%,33% 98.5%,20% 100%,8% 98.6%,0 100%,.8% 70%,0 40%);
+  transform:rotate(-1.4deg);transition:transform .25s cubic-bezier(.3,1.5,.5,1)}
+.yj-clip:nth-child(2){transform:rotate(1.2deg) translateY(5px)}
+.yj-clip:nth-child(3){transform:rotate(-.6deg) translateY(1px)}
+.yj-clip:hover{transform:rotate(0) translateY(-3px)}
+.yj-clip:focus-visible{outline:2px solid #607ca0;outline-offset:2px}
+.yj-clip-tape{position:absolute;left:50%;top:-1px;width:46px;height:12px;translate:-50% 0;rotate:-3deg;background:rgba(159,176,198,.45);box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+.yj-clip small{font:500 8.5px/1.2 var(--mono);letter-spacing:.14em;color:#607ca0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.yj-clip b{font:700 13.5px/1.3 var(--sans);letter-spacing:-.02em;word-break:keep-all;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;padding-bottom:5px;border-bottom:1px solid rgba(29,42,61,.55)}
+.yj-clip span{font:400 11px/1.55 'Noto Serif KR',var(--sans);color:#3a4a60;word-break:keep-all;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;column-count:1}
 .yj-gb-l{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
 .yj-gb-l > a{max-width:280px;padding:7px 12px;border-radius:14px 14px 4px 14px;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.1);font:400 12.5px/1.35 var(--sans);color:var(--nv);word-break:keep-all}
 .yj-gb-l > a.me{background:var(--nv);color:#fff;box-shadow:none}
@@ -418,9 +458,8 @@ body:has(.yj-main)::before{display:none !important}
 /* 맨 아래 폴더 메뉴 바 + 가운데 한마디 */
 .yj-dock{position:fixed;left:0;right:0;bottom:0;z-index:50;height:80px;border-top:1px solid rgba(96,124,160,.25);backdrop-filter:blur(8px);
   background:rgba(250,251,252,.88) repeating-linear-gradient(90deg,transparent 0 3px,rgba(96,124,160,.04) 3px 4px)}
-.yj-dock-menu{height:100%}
-.yj-dock-menu .oh-menu{flex-wrap:nowrap;height:100%;gap:22px;padding:0 30px;box-sizing:border-box}
-.yj-dock-menu .oh-split{flex:1}
+.yj-dock-menu{height:100%;padding-right:430px;box-sizing:border-box}   /* 오른쪽 430px — BGM 플레이어 자리 */
+.yj-dock-menu .oh-menu{flex-wrap:nowrap;justify-content:flex-start;height:100%;gap:22px;padding:0 30px;box-sizing:border-box}
 .yj-dock-menu .oh-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:0;font:700 10px/1 var(--sans);letter-spacing:.08em;color:#607ca0;text-decoration:none}
 .yj-dock-menu .oh-item::before{content:"";width:42px;height:32px;transition:transform .25s cubic-bezier(.3,1.6,.5,1);
   background:linear-gradient(#c3cfdd 0 7px,#dfe6ef 7px);
@@ -432,19 +471,30 @@ body:has(.yj-main)::before{display:none !important}
 .yj-dock-menu .oh-sub{top:auto;bottom:calc(100% + 12px);left:50%;transform:translateX(-50%);min-width:0;width:max-content;padding:5px;background:#fff;border-radius:6px;box-shadow:0 0 0 1px rgba(44,62,87,.12),0 10px 24px rgba(44,62,87,.16)}
 .yj-dock-menu .oh-link{display:block;padding:9px 16px;border-radius:4px;font:500 12px/1 var(--sans);letter-spacing:.04em;color:var(--nv);text-align:center}
 .yj-dock-menu .oh-link:hover,.yj-dock-menu .oh-link.on{background:#eef0f3}
-.yj-quote{position:absolute;left:50%;top:-14px;z-index:2;translate:-50% 0;display:flex;height:28px;margin:0;max-width:calc(100vw - 32px);box-shadow:0 2px 8px rgba(44,62,87,.12)}
+.yj-quote{position:absolute;left:50%;top:-14px;z-index:2;translate:-50% 0;display:flex;height:28px;margin:0;padding:0;border:0;background:none;max-width:min(620px,calc(100vw - 32px));box-shadow:0 2px 8px rgba(44,62,87,.12)}
+button.yj-quote{cursor:var(--cur-pointer,pointer);font:inherit}
+button.yj-quote:hover > span{background:#f4f6f9}
 .yj-quote .yj-tape{height:28px;flex:none;padding:0 calc(11.75px - .22em) 0 10.25px;border-radius:2px 0 0 2px;box-shadow:none;cursor:default}
 .yj-quote > span{display:flex;align-items:center;min-width:0;height:28px;padding:0 16px;background:#fff;border-radius:0 2px 2px 0;font:400 12.5px/28px var(--sans);color:var(--nv)}
 .yj-quote > span > span{display:block;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transform:translateY(-.25px)}
-/* BGM 플레이어 — 메인에서는 비워 둔 아래 줄 가운데로 (오른쪽 아래는 방명록 · 아래는 폴더 바) */
-@media (min-width:821px){html:has(.yj-film-home) .bgm-d{left:50%;right:auto;bottom:104px;transform:translateX(-50%)}}
-@media (max-width:820px){html:has(.yj-film-home) .bgm-d{bottom:100px}}
+/* BGM 플레이어 — 메인에서는 아래 폴더 바 오른쪽 칸에 한 줄로 (폴더는 왼쪽 · 한마디는 가운데 위) — 주파수판 줄은 접고 채널 · 곡 · 버튼만 */
+@media (min-width:821px){
+  html:has(.yj-film-home) .bgm-d,html:has(.yj-film-home) .bgm-d.is-left{left:auto;right:28px;bottom:12px;width:390px;transform:none}
+  html:has(.yj-film-home) .bgm-d .bd-card{grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:0 12px;height:54px;padding:0 10px 0 14px;box-sizing:border-box}
+  html:has(.yj-film-home) .bgm-d .bd-row,html:has(.yj-film-home) .bgm-d .bd-desc{display:none}
+  html:has(.yj-film-home) .bgm-d .bd-side{position:static;order:3}
+  html:has(.yj-film-home) .bgm-d .bd-ctl{margin:0}
+  html:has(.yj-film-home) .bgm-d .bd-ctl .pp{width:34px;height:34px;padding:9px}
+  html:has(.yj-film-home) .bgm-d .bd-tt{margin-top:5px;font-size:15px}
+  html:has(.yj-film-home) .bgm-d.folded{width:auto;bottom:6px}
+}
+@media (max-width:820px){html:has(.yj-film-home) .bgm-d{bottom:96px}}
 
 /* 폰 — 세로로 쌓는다 */
 @media (max-width:820px){
-  .yj-main.yj-film-home{height:auto;min-height:100vh;overflow:hidden;padding-bottom:110px}
+  .yj-main.yj-film-home{height:auto;min-height:100vh;overflow:hidden;padding-bottom:170px}   /* 폴더 바(80) + 한마디 + BGM 다이얼을 비켜서 */
   .yj-fh{flex-direction:column-reverse;gap:14px;padding:18px 16px 0}
-  .yj-fh-r{flex-direction:row;align-items:center;gap:14px;align-self:stretch;justify-content:flex-end}
+  .yj-fh-r{flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px 14px;align-self:stretch;justify-content:flex-end}
   .yj-fh-n{font-size:clamp(46px,14vw,72px)}
   .yj-film-wrap{flex:none;padding:34px 0}
   .yj-film{--fh:200px;left:-40px;width:calc(100% + 80px)}
@@ -452,9 +502,72 @@ body:has(.yj-main)::before{display:none !important}
   .yj-cover-edit{left:16px;top:2px}
   .yj-lower{flex-direction:column;gap:30px;padding:0 16px 20px}
   .yj-scrap,.yj-gb{width:100%}
+  .yj-dock-menu{padding-right:0}
   .yj-dock-menu .oh-menu{gap:0;padding:0 8px;justify-content:space-around}
-  .yj-dock-menu .oh-split{display:none}
+  .yj-scrap{width:100%}
+  .yj-clips{gap:10px;overflow-x:auto;padding:6px 2px 10px}
+  .yj-clip{flex:0 0 160px}
   .yj-dock-menu .oh-item{font-size:9px;letter-spacing:.04em}
   .yj-dock-menu .oh-item::before{width:34px;height:26px}
   .yj-dock-menu .oh-sub{left:50%}
+}
+
+/* ══════════ 메인 편집 창 (관리자 — 필름 · 스크랩 · 방명록 · 한마디) · 스크랩 읽기 창 ══════════ */
+html.ui-yjhm .mng-box.yj-modal{width:min(720px,calc(100vw - 32px));max-height:calc(100vh - 48px);overflow:auto;box-sizing:border-box;padding:24px 26px;border:0;border-radius:6px;background:#fff;color:#1d2a3d;
+  box-shadow:0 0 0 1px rgba(44,62,87,.12),0 30px 70px rgba(20,30,48,.28);font-family:'Pretendard Variable',Pretendard,'Noto Sans KR',sans-serif}
+html.ui-yjhm .mng-box.yj-modal.sm{width:min(440px,calc(100vw - 32px))}
+html.ui-yjhm .mng-box.yj-modal::before,html.ui-yjhm .mng-box.yj-modal::after{display:none}
+html.ui-yjhm .mng-box.yj-modal h3{margin:0 0 6px;font:700 22px/1.1 'Inter','Pretendard Variable',Pretendard,sans-serif;letter-spacing:-.04em;color:#1d2a3d}
+html.ui-yjhm .mng-box.yj-modal .d{margin:0 0 16px;font:400 12.5px/1.6 'Pretendard Variable',Pretendard,sans-serif;color:#5d6e84}
+html.ui-yjhm .mng-box.yj-modal .modal-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:18px}
+.yj-btn{display:inline-flex;align-items:center;justify-content:center;gap:4px;box-sizing:border-box;height:30px;padding:0 calc(12px - .14em) 0 12px;border:0;border-radius:2px;background:#fff;
+  box-shadow:0 0 0 1px rgba(44,62,87,.18);color:#2c3e57;font:500 11px/1 'DM Mono','Pretendard Variable',Pretendard,monospace;letter-spacing:.14em;white-space:nowrap;cursor:var(--cur-pointer,pointer);text-decoration:none}
+.yj-btn:hover:not(:disabled){background:#eef0f3}
+.yj-btn:disabled{opacity:.35;cursor:default}
+.yj-btn.on{background:#2c3e57;color:#f2f4f7;box-shadow:0 1px 3px rgba(20,30,48,.25);text-shadow:0 1px 0 rgba(0,0,0,.4)}
+.yj-btn.on:hover{background:#1d2a3d}
+.yj-btn.ic{width:30px;padding:0}
+.yj-btn.del:hover:not(:disabled){background:#fbeaea;color:#a33}
+.yj-btn.add{align-self:flex-start;border:1px dashed rgba(96,124,160,.6);box-shadow:none;background:transparent}
+.yj-btn input{display:none}
+.yj-ed{display:flex;flex-direction:column;gap:10px}
+.yj-ed h4{margin:10px 0 0;font:500 10px/1 'DM Mono',monospace;letter-spacing:.22em;color:#607ca0}
+.yj-ed h4:first-child{margin-top:0}
+.yj-ed-row{display:flex;align-items:center;gap:10px;padding:8px;border-radius:4px;background:#f4f6f9}
+.yj-ed-row > .yj-in{flex:1;min-width:0}
+.yj-ed-no{flex:none;width:18px;font:500 11px/1 'DM Mono',monospace;color:#7d92ae;text-align:center}
+.yj-ed-card{display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:4px;background:#f4f6f9}
+.yj-ed-line{display:flex;align-items:center;gap:6px}
+.yj-ed-line > .yj-in{flex:1;min-width:0}
+.yj-ed-line > .yj-in.sm{flex:0 0 110px}
+.yj-in{box-sizing:border-box;width:100%;min-height:32px;padding:7px 10px;border:1px solid rgba(44,62,87,.16);border-radius:3px;background:#fff;color:#1d2a3d;font:400 13px/1.5 'Pretendard Variable',Pretendard,'Noto Sans KR',sans-serif;outline:0;resize:vertical}
+.yj-in:focus{border-color:#607ca0;box-shadow:0 0 0 3px rgba(96,124,160,.15)}
+.yj-in.strong{font-weight:700;font-size:14px}
+.yj-chk{display:inline-flex;align-items:center;gap:5px;flex:none;font:400 12px/1 'Pretendard Variable',Pretendard,sans-serif;color:#2c3e57;white-space:nowrap}
+.yj-rt{display:inline-flex;gap:4px;flex:none}
+.yj-fp{display:flex;align-items:center;gap:6px;flex:none}
+.yj-fp-pic{position:relative;flex:none;width:76px;height:50px;overflow:hidden;border-radius:3px;background:#c3d0e0}
+.yj-fp-pic img{width:100%;height:100%;object-fit:cover}
+/* 필름 보정 고르기 — 견본 칸에 같은 색을 미리 씌운다 */
+.yj-grades{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.yj-gr{all:unset;box-sizing:border-box;display:grid;grid-template-columns:34px 1fr;grid-template-rows:auto auto;gap:3px 10px;align-items:center;padding:8px;border-radius:4px;background:#f4f6f9;cursor:var(--cur-pointer,pointer);box-shadow:0 0 0 1px transparent}
+.yj-gr:hover{background:#eaeef3}
+.yj-gr.on{background:#fff;box-shadow:0 0 0 2px #2c3e57}
+.yj-gr i{grid-row:1/3;width:34px;height:34px;border-radius:3px;background:linear-gradient(135deg,#e8b48a 0 30%,#7fa3c9 30% 62%,#3d5875 62%)}
+.yj-gr[data-grade=warm] i{filter:sepia(.3) saturate(1.1) brightness(1.04)}
+.yj-gr[data-grade=cool] i{filter:saturate(.8) hue-rotate(-12deg) contrast(1.1)}
+.yj-gr[data-grade=tungsten] i{filter:hue-rotate(18deg) saturate(1.2) brightness(.85)}
+.yj-gr[data-grade=fade] i{filter:sepia(.3) saturate(.6) contrast(.75) brightness(1.15)}
+.yj-gr[data-grade=mono] i{filter:grayscale(1) contrast(1.2)}
+.yj-gr b{font:600 12.5px/1.2 'Pretendard Variable',Pretendard,sans-serif;color:#1d2a3d}
+.yj-gr small{font:500 9px/1 'DM Mono',monospace;letter-spacing:.14em;color:#7d92ae}
+/* 스크랩 읽기 */
+.yj-clip-full{padding:22px 22px 24px;background:#fbfaf6;box-shadow:0 1px 2px rgba(20,30,48,.12),0 8px 20px rgba(44,62,87,.1)}
+.yj-clip-full small{font:500 10px/1.2 'DM Mono',monospace;letter-spacing:.16em;color:#607ca0}
+.yj-clip-full h4{margin:8px 0 10px;padding-bottom:10px;border-bottom:1.5px solid #1d2a3d;font:700 20px/1.35 'Pretendard Variable',Pretendard,sans-serif;letter-spacing:-.03em;word-break:keep-all}
+.yj-clip-full p{margin:0;white-space:pre-wrap;font:400 14px/1.85 'Noto Serif KR','Pretendard Variable',Pretendard,serif;color:#2c3e57;word-break:keep-all}
+@media (max-width:620px){
+  .yj-ed-row{flex-wrap:wrap}
+  .yj-ed-line{flex-wrap:wrap}
+  .yj-ed-line > .yj-in.sm{flex:1 1 90px}
 }

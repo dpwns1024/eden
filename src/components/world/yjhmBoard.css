@@ -1,80 +1,97 @@
-/* YJHM 게시판 — 「The Shooting Daily」 지면 손질 (v2.0 사용자 요청 — 「ARCH에 맞춰 고친 게시판 · 글쓰기 화면 전부 YJHM판도」).
- * 배치는 ARCH 그대로, 색 · 글꼴은 yjhmArch.gen.css(자동 변환)가 YJHM으로 뒤집고, 여기서 메인 컨셉에 맞게 손본다 —
- * Archivo Black 제목 · 굵은 포인트색 상자 + 어긋난 그림자 · 알약 버튼/탭 · 망점 반전 블록. 꺾쇠 · 빛 번짐은 뺀다.
+/* YJHM 게시판 · 영역 — 메인 「필름」 1면 말투로 (v2.0 사용자 요청 — 「나머지 게시판이랑 영역들도 지금 스타일에 맞춰서 전부」).
+ * 배치는 ARCH 그대로, 색 · 글꼴은 yjhmArch.gen.css(자동 변환)가 YJHM으로 뒤집고, 여기서 메인과 같은 말투로 손본다 —
+ * 연회색 바탕 + 흰 종이 · 얇은 선 · 부드러운 그림자 · Inter 제목(끝에 포인트색 점) · DM Mono 작은 글자 · 남색 라벨 테이프 버튼/탭.
+ * 꺾쇠 · 빛 번짐 · 굵은 상자 · 어긋난 그림자 · 알약은 뺀다.
  * 선택자는 html.ui-yjhm.ui-arch body … — 자동 변환 규칙보다 한 단계 세게. */
-html.ui-yjhm.ui-arch body .page-arch{--a-pn:var(--yj-pn);--a-ln:rgba(96,124,160,.28);--a-ln2:rgba(96,124,160,.55);--a-tx:var(--yj-ink);--a-mu:var(--yj-faint);--a-dim:#9aa6b4;--a-ac:var(--yj-ac);--a-acr:96,124,160;--a-sil:linear-gradient(var(--yj-ac),var(--yj-ac));color:var(--yj-ink)}
+html.ui-yjhm.ui-arch body .page-arch{--a-pn:#fff;--a-ln:rgba(44,62,87,.1);--a-ln2:rgba(44,62,87,.2);--a-tx:var(--yj-ink);--a-mu:#5d6e84;--a-dim:#9aa8ba;--a-ac:var(--yj-ac);--a-acr:96,124,160;--a-sil:linear-gradient(var(--yj-ink),var(--yj-ink));color:var(--yj-ink)}
 
-/* 제목 줄 — 굵은 Archivo Black + 3px 줄 */
-html.ui-yjhm.ui-arch body .page-arch .page-head{border-bottom:3px solid var(--yj-ac)}
+/* 제목 줄 — Inter 굵게 + 포인트색 점 · 위에 DM Mono 작은 줄 · 아래 얇은 선 */
+html.ui-yjhm.ui-arch body .page-arch .page-head{border-bottom:1px solid rgba(96,124,160,.3)}
 html.ui-yjhm.ui-arch body .page-arch .page-head::after{display:none}
-html.ui-yjhm.ui-arch body .page-arch .page-head h1{font:400 clamp(34px,5vw,64px)/1 var(--yj-black);letter-spacing:-.02em;background:none;-webkit-background-clip:border-box;background-clip:border-box;color:var(--yj-ac);-webkit-text-fill-color:currentColor;padding-bottom:0;margin-bottom:0}
-html.ui-yjhm.ui-arch body .page-arch .page-head p{font:500 14px/1.7 var(--yj-sans);letter-spacing:0;color:var(--yj-sub)}
+html.ui-yjhm.ui-arch body .page-arch .page-head h1{font:700 clamp(36px,5vw,68px)/.95 var(--yj-inter);letter-spacing:-.055em;background:none;-webkit-background-clip:border-box;background-clip:border-box;color:var(--yj-ink);-webkit-text-fill-color:currentColor;padding-bottom:.08em;margin-bottom:0}
+html.ui-yjhm.ui-arch body .page-arch .page-head p{font:400 13px/1.7 var(--yj-pre);letter-spacing:0;color:#5d6e84}
 
-/* 버튼 — 알약 (채운 것 = 망점 반전 블록) */
-html.ui-yjhm.ui-arch body .page-arch :is(.btn-dark,.btn-ghost,.form-actions .btn-onbk,.form-actions .btn-accent){height:38px;padding:0 18px;border:2.5px solid var(--yj-ac);border-radius:999px;background:transparent;color:var(--yj-ink);font:900 13px/1 var(--yj-sans);letter-spacing:.02em;box-shadow:none}
-html.ui-yjhm.ui-arch body .page-arch .form-actions .btn{height:44px}
-html.ui-yjhm.ui-arch body .page-arch :is(.btn-dark,.form-actions .btn-accent){background-color:var(--yj-ac);background-image:radial-gradient(rgba(242,241,236,.2) .8px,transparent 1.3px);background-size:5px 5px;color:#f7f6f2}
-html.ui-yjhm.ui-arch body .page-arch :is(.btn-dark,.btn-ghost,.form-actions .btn-onbk,.form-actions .btn-accent):hover{border-color:var(--yj-ac);box-shadow:3px 3px 0 rgba(96,124,160,.35);color:inherit}
-html.ui-yjhm.ui-arch body .page-arch :is(.btn-dark,.form-actions .btn-accent):hover{background-color:#4f6a8c;color:#f7f6f2}
-html.ui-yjhm.ui-arch body .page-arch .btn-ghost:hover,html.ui-yjhm.ui-arch body .page-arch .form-actions .btn-onbk:hover{background:rgba(96,124,160,.1)}
+/* 버튼 — 라벨 테이프 (채운 것 = 남색 테이프 · 빈 것 = 흰 종이 + 얇은 선) */
+html.ui-yjhm.ui-arch body .page-arch :is(.btn-dark,.btn-ghost,.form-actions .btn-onbk,.form-actions .btn-accent){height:32px;padding:0 calc(14px - .16em) 0 14px;border:0;border-radius:2px;background:#fff;color:var(--yj-nv2);
+  font:500 11px/1 var(--yj-mono);letter-spacing:.16em;box-shadow:0 0 0 1px rgba(44,62,87,.18);text-transform:uppercase}
+html.ui-yjhm.ui-arch body .page-arch .form-actions .btn{height:38px}
+html.ui-yjhm.ui-arch body .page-arch :is(.btn-dark,.form-actions .btn-accent){background:var(--yj-nv2);color:#f2f4f7;text-shadow:0 1px 0 rgba(0,0,0,.4);box-shadow:0 1px 3px rgba(20,30,48,.25),inset 0 1px 0 rgba(255,255,255,.12)}
+html.ui-yjhm.ui-arch body .page-arch :is(.btn-dark,.form-actions .btn-accent):hover{background:var(--yj-ink);color:#f2f4f7}
+html.ui-yjhm.ui-arch body .page-arch .btn-ghost:hover,html.ui-yjhm.ui-arch body .page-arch .form-actions .btn-onbk:hover{background:#eef0f3;color:var(--yj-ink);box-shadow:0 0 0 1px rgba(44,62,87,.28)}
 
-/* 상자 — 굵은 테두리 + 어긋난 그림자, 꺾쇠 없음 */
+/* 상자 — 흰 종이 · 얇은 선 · 부드러운 그림자, 꺾쇠 없음 */
 html.ui-yjhm.ui-arch body .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.mp-quote,.rel-bn),
-html.ui-yjhm.ui-arch body .page-gallery .g-item{border:3px solid var(--yj-ac);border-radius:0;background:var(--yj-pn);color:var(--yj-ink);box-shadow:5px 5px 0 rgba(96,124,160,.22)}
+html.ui-yjhm.ui-arch body .page-gallery .g-item{border:0;border-radius:4px;background:#fff;color:var(--yj-ink);box-shadow:0 0 0 1px rgba(44,62,87,.08),0 10px 28px rgba(44,62,87,.08)}
 html.ui-yjhm.ui-arch body .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.mp-quote,.rel-bn)::before,
 html.ui-yjhm.ui-arch body .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.mp-quote,.rel-bn)::after,
-html.ui-yjhm.ui-arch body .page-gallery .g-item::before,html.ui-yjhm.ui-arch body .page-gallery .g-item::after{display:none}
-html.ui-yjhm.ui-arch body .page-arch :is(.char-card,.rel-card):hover,html.ui-yjhm.ui-arch body .page-gallery .g-item:hover{border-color:var(--yj-ac);box-shadow:7px 7px 0 rgba(96,124,160,.32);transform:translate(-2px,-2px)}
-html.ui-yjhm.ui-arch body .page-arch :is(.char-card,.rel-card) .thumb{border-bottom:3px solid var(--yj-ac)}
+html.ui-yjhm.ui-arch body .page-gallery .g-item::before,html.ui-yjhm.ui-arch body .page-gallery .g-item::after{display:none !important}   /* 꺾쇠 · 테두리 선(globals.css가 !important로 그린다) */
+html.ui-yjhm.ui-arch body .page-arch :is(.char-card,.rel-card):hover,html.ui-yjhm.ui-arch body .page-gallery .g-item:hover{box-shadow:0 0 0 1px rgba(44,62,87,.12),0 18px 38px rgba(44,62,87,.16);transform:translateY(-3px)}
+html.ui-yjhm.ui-arch body .page-arch :is(.char-card,.rel-card) .thumb{border-bottom:0;border-radius:4px 4px 0 0;overflow:hidden}
 html.ui-yjhm.ui-arch body .page-arch :is(.char-card,.rel-card) .thumb::after{background:none}
-html.ui-yjhm.ui-arch body .page-arch .char-card .nm b{font:900 calc(14px*var(--fs,1))/1.25 var(--yj-sans);letter-spacing:.02em;color:var(--yj-ink)}
+html.ui-yjhm.ui-arch body .page-arch .char-card .nm b{font:700 calc(14px*var(--fs,1))/1.25 var(--yj-pre);letter-spacing:-.01em;color:var(--yj-ink)}
 
-/* 프로필 이름 · 소제목 — 그라데이션 글자 대신 포인트색 */
-html.ui-yjhm.ui-arch body .page-arch :is(.profile-info .pf-name,.profile-info h3){background:none !important;-webkit-background-clip:border-box !important;background-clip:border-box !important;color:var(--cc,var(--yj-ac)) !important;-webkit-text-fill-color:currentColor !important}
-html.ui-yjhm.ui-arch body .page-arch .profile-info .pf-name:not([data-font]){font-family:var(--yj-black);font-weight:400;letter-spacing:-.01em !important}
-html.ui-yjhm.ui-arch body .page-arch .profile-info h3{font:400 calc(20px*var(--fs,1))/1.2 var(--yj-black);letter-spacing:0}
-html.ui-yjhm.ui-arch body .page-char-detail{--cc:var(--yj-ac)}
+/* 프로필 이름 · 소제목 — 그라데이션 글자 대신 남색 */
+html.ui-yjhm.ui-arch body .page-arch :is(.profile-info .pf-name,.profile-info h3){background:none !important;-webkit-background-clip:border-box !important;background-clip:border-box !important;color:var(--cc,var(--yj-ink)) !important;-webkit-text-fill-color:currentColor !important}
+html.ui-yjhm.ui-arch body .page-arch .profile-info .pf-name:not([data-font]){font-family:var(--yj-inter);font-weight:700;letter-spacing:-.04em !important}
+html.ui-yjhm.ui-arch body .page-arch .profile-info h3{font:500 calc(11px*var(--fs,1))/1.2 var(--yj-mono);letter-spacing:.22em;color:var(--yj-ac) !important}
+html.ui-yjhm.ui-arch body .page-char-detail{--cc:var(--yj-ink)}
 
 /* 본문 */
 html.ui-yjhm.ui-arch body .page-arch .prose{color:var(--yj-ink);font-weight:400}
 html.ui-yjhm.ui-arch body .page-arch :is(.prose,.post-body) :is(b,strong){color:var(--yj-ink);font-weight:700}
 
-/* 입력 칸 */
-html.ui-yjhm.ui-arch body .page-arch :is(.k-input,.k-textarea,.k-select .cur,.searchbar){border:2px solid var(--yj-ln);border-radius:0;background:#fbfaf7;color:var(--yj-ink)}
-html.ui-yjhm.ui-arch body .page-arch :is(.k-input,.k-textarea):focus,html.ui-yjhm.ui-arch body .page-arch .k-select.open .cur{border-color:var(--yj-ac);box-shadow:3px 3px 0 rgba(96,124,160,.22)}
-html.ui-yjhm.ui-arch body .page-arch .k-select .opts{background:var(--yj-pn);border:3px solid var(--yj-ac);box-shadow:5px 5px 0 rgba(96,124,160,.3)}
+/* 입력 칸 — 흰 종이 · 얇은 선, 고르면 포인트색 테두리 */
+html.ui-yjhm.ui-arch body .page-arch :is(.k-input,.k-textarea,.k-select .cur,.searchbar){border:1px solid rgba(44,62,87,.16);border-radius:3px;background:#fff;color:var(--yj-ink)}
+html.ui-yjhm.ui-arch body .page-arch :is(.k-input,.k-textarea):focus,html.ui-yjhm.ui-arch body .page-arch .k-select.open .cur{border-color:var(--yj-ac);box-shadow:0 0 0 3px rgba(96,124,160,.15)}
+html.ui-yjhm.ui-arch body .page-arch .k-select .opts{background:#fff;border:0;border-radius:6px;box-shadow:0 0 0 1px rgba(44,62,87,.12),0 10px 24px rgba(44,62,87,.16)}
 html.ui-yjhm.ui-arch body .page-arch .k-select .opts div{color:var(--yj-ink)}
-html.ui-yjhm.ui-arch body .page-arch .k-select .opts div.sel{background:var(--yj-ac);color:#f7f6f2}
-html.ui-yjhm.ui-arch body .page-arch .upzone{border:2.5px dashed var(--yj-ac);background:rgba(96,124,160,.05);color:var(--yj-sub)}
+html.ui-yjhm.ui-arch body .page-arch .k-select .opts div.sel{background:#eef0f3;color:var(--yj-ink)}
+html.ui-yjhm.ui-arch body .page-arch .upzone{border:1px dashed rgba(96,124,160,.55);border-radius:4px;background:rgba(96,124,160,.04);color:#5d6e84}
 
-/* 탭 · 세그먼트 — 알약, 고른 칸은 반전 블록 */
-html.ui-yjhm.ui-arch body .page-arch :is(.seg,.mini-seg){padding:3px;gap:3px;border:2.5px solid var(--yj-ac);border-radius:999px;background:transparent}
-html.ui-yjhm.ui-arch body .page-arch :is(.seg,.mini-seg) button{border-radius:999px;color:var(--yj-ink);font:700 12.5px/1 var(--yj-sans);letter-spacing:.02em}
-html.ui-yjhm.ui-arch body .page-arch :is(.seg,.mini-seg) button.on{background:var(--yj-ac);color:#f7f6f2;box-shadow:none}
-html.ui-yjhm.ui-arch body .page-arch .arch-tabbar{gap:8px;padding:0;background:none;border:0;box-shadow:none}
+/* 탭 · 세그먼트 — DM Mono 글자, 고른 칸은 남색 라벨 테이프 */
+html.ui-yjhm.ui-arch body .page-arch :is(.seg,.mini-seg){padding:3px;gap:3px;border:0;border-radius:3px;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.14)}
+html.ui-yjhm.ui-arch body .page-arch :is(.seg,.mini-seg) button{border-radius:2px;color:#7d92ae;font:500 11px/1 var(--yj-mono);letter-spacing:.14em}
+html.ui-yjhm.ui-arch body .page-arch :is(.seg,.mini-seg) button:hover{color:var(--yj-ink)}
+html.ui-yjhm.ui-arch body .page-arch :is(.seg,.mini-seg) button.on{background:var(--yj-nv2);color:#f2f4f7;box-shadow:0 1px 3px rgba(20,30,48,.25)}
+html.ui-yjhm.ui-arch body .page-arch .arch-tabbar{gap:6px;padding:0;background:none;border:0;box-shadow:none}
 html.ui-yjhm.ui-arch body .page-arch .arch-tabbar::before,html.ui-yjhm.ui-arch body .page-arch .arch-tabbar::after{display:none}
-html.ui-yjhm.ui-arch body .page-arch .arch-tabbar .tag{padding:0 16px;min-height:38px;border:2.5px solid var(--yj-ac);border-radius:999px;background:transparent;color:var(--yj-ink);font:900 13px/1 var(--yj-sans);letter-spacing:.02em;box-shadow:none}
-html.ui-yjhm.ui-arch body .page-arch .arch-tabbar .tag:hover{background:rgba(96,124,160,.1);border-color:var(--yj-ac);color:var(--yj-ink)}
-html.ui-yjhm.ui-arch body .page-arch .arch-tabbar .tag.on{background:var(--yj-ac);border-color:var(--yj-ac);color:#f7f6f2;box-shadow:none}
-html.ui-yjhm.ui-arch body .page-arch .arch-tabbar .tag small{font:400 1em/1 var(--yj-black);color:var(--yj-ac)}
-html.ui-yjhm.ui-arch body .page-arch .arch-tabbar .tag.on small{color:#f7f6f2}
+html.ui-yjhm.ui-arch body .page-arch .arch-tabbar .tag{padding:0 calc(12px - .16em) 0 12px;min-height:28px;border:0;border-radius:2px;background:#fff;color:#607ca0;font:500 11px/1 var(--yj-mono);letter-spacing:.16em;box-shadow:0 0 0 1px rgba(44,62,87,.14)}
+html.ui-yjhm.ui-arch body .page-arch .arch-tabbar .tag:hover{background:#eef0f3;color:var(--yj-ink)}
+html.ui-yjhm.ui-arch body .page-arch .arch-tabbar .tag.on{background:var(--yj-nv2);color:#f2f4f7;text-shadow:0 1px 0 rgba(0,0,0,.4);box-shadow:0 1px 3px rgba(20,30,48,.25),inset 0 1px 0 rgba(255,255,255,.12)}
+html.ui-yjhm.ui-arch body .page-arch .arch-tabbar .tag small{font:500 1em/1 var(--yj-mono);color:#9fb0c6}
+html.ui-yjhm.ui-arch body .page-arch .arch-tabbar .tag.on small{color:#c9d3e0}
 
-/* 창(관리 모달) */
-html.ui-yjhm .mng-box.arch-modal{border:3px solid var(--yj-ac);background:var(--yj-pn);color:var(--yj-ink);box-shadow:8px 8px 0 rgba(96,124,160,.3)}
+/* 창(관리 모달) — 흰 종이 · 큰 부드러운 그림자 */
+html.ui-yjhm .mng-box.arch-modal{border:0;border-radius:6px;background:#fff;color:var(--yj-ink);box-shadow:0 0 0 1px rgba(44,62,87,.12),0 30px 70px rgba(20,30,48,.28)}
 html.ui-yjhm .mng-box.arch-modal::before,html.ui-yjhm .mng-box.arch-modal::after{display:none}
-html.ui-yjhm .mng-box.arch-modal h3{font:400 20px/1.2 var(--yj-black);letter-spacing:0;color:var(--yj-ac)}
+html.ui-yjhm .mng-box.arch-modal h3{font:700 22px/1.15 var(--yj-inter);letter-spacing:-.04em;color:var(--yj-ink)}
 
 @media (max-width:640px){
-  html.ui-yjhm.ui-arch body .page-arch .page-head h1{font-size:clamp(28px,9vw,40px)}
-  html.ui-yjhm.ui-arch body .page-arch :is(.panel,.char-card,.rel-card,.profile-center,.rel-center,.mp-quote,.rel-bn),
-  html.ui-yjhm.ui-arch body .page-gallery .g-item{border-width:2.5px;box-shadow:4px 4px 0 rgba(96,124,160,.22)}
-  html.ui-yjhm.ui-arch body .page-arch :is(.btn-dark,.btn-ghost){height:36px;padding:0 14px;font-size:12px}
-  html.ui-yjhm.ui-arch body .page-arch .arch-tabbar .tag{min-height:36px;padding:0 13px;font-size:12px}
+  html.ui-yjhm.ui-arch body .page-arch .page-head h1{font-size:clamp(30px,10vw,44px)}
+  html.ui-yjhm.ui-arch body .page-arch :is(.btn-dark,.btn-ghost){height:30px;padding:0 calc(11px - .14em) 0 11px;font-size:10.5px;letter-spacing:.14em}
+  html.ui-yjhm.ui-arch body .page-arch .arch-tabbar .tag{min-height:28px;padding:0 calc(10px - .14em) 0 10px;font-size:10.5px;letter-spacing:.14em}
 }
 
-/* BGM 다이얼 (components/shell/bgmDial.css) — 카드는 굵은 상자 + 어긋난 그림자 */
-html.ui-yjhm .bgm-d .bd-card{background:var(--yj-pn);backdrop-filter:none;border:3px solid var(--yj-ac);border-radius:0;box-shadow:5px 5px 0 rgba(96,124,160,.3)}
+/* BGM 다이얼 (components/shell/bgmDial.css) — 흰 종이 카드 · 남색 곡 이름(자동 변환의 그라데이션 글자는 바탕 전체가 칠해져 막대처럼 보였다) */
+html.ui-yjhm .bgm-d{--d-ac:#607ca0;--d-ln:rgba(44,62,87,.1);--d-ln2:rgba(44,62,87,.2);--d-mu:#607ca0;--d-dim:#9aa8ba;color:var(--yj-ink)}
+html.ui-yjhm .bgm-d .bd-card{background:#fff;backdrop-filter:none;border:0;border-radius:4px;box-shadow:0 0 0 1px rgba(44,62,87,.1),0 12px 30px rgba(44,62,87,.14)}
+html.ui-yjhm .bgm-d .bd-ch{font:500 9px/1 var(--yj-mono);letter-spacing:.22em}
+html.ui-yjhm .bgm-d .bd-tt{font:600 17px/1.2 var(--yj-inter);letter-spacing:-.02em;text-transform:none;background:none;-webkit-background-clip:border-box;background-clip:border-box;color:var(--yj-ink);-webkit-text-fill-color:currentColor}
+html.ui-yjhm .bgm-d .bd-desc{font:400 11px/1.3 var(--yj-pre);color:#7d8ea4}
+html.ui-yjhm .bgm-d .bd-ctl button{border-color:rgba(44,62,87,.18);color:#607ca0}
+html.ui-yjhm .bgm-d .bd-ctl button:hover{color:var(--yj-ink);border-color:rgba(44,62,87,.4)}
+html.ui-yjhm .bgm-d .bd-ctl .pp{border:0;background:var(--yj-nv2);color:#f2f4f7;box-shadow:0 2px 6px rgba(20,30,48,.25)}
+html.ui-yjhm .bgm-d .bd-ctl .pp:hover{background:var(--yj-ink);color:#fff}
+html.ui-yjhm .bgm-d .bd-ruler .lb,html.ui-yjhm .bgm-d .bd-list header,html.ui-yjhm .bgm-d .bd-list .it{font-family:var(--yj-mono)}
+html.ui-yjhm .bgm-d .bd-ruler .nd{box-shadow:none}
+html.ui-yjhm .bgm-d .bd-knob{background:#fff;box-shadow:0 1px 3px rgba(20,30,48,.15)}
+html.ui-yjhm .bgm-d .bd-knob i::before{box-shadow:none}
+html.ui-yjhm .bgm-d .bd-list{background:#fff;backdrop-filter:none;border:0;border-radius:6px;box-shadow:0 0 0 1px rgba(44,62,87,.12),0 16px 36px rgba(44,62,87,.18)}
+html.ui-yjhm .bgm-d .bd-list .nm b{font:600 12.5px/1.3 var(--yj-pre);letter-spacing:0;text-transform:none;color:var(--yj-nv2)}
+html.ui-yjhm .bgm-d .bd-list .it em{border-color:rgba(96,124,160,.5);font-family:var(--yj-mono)}
+html.ui-yjhm .bgm-d .bd-dial{background:#fff;border:0;box-shadow:0 0 0 1px rgba(44,62,87,.14),0 8px 20px rgba(44,62,87,.18)}
+html.ui-yjhm .bgm-d .bd-dial i::before{box-shadow:none}
 
-/* 그림 없는 자리(.ph) — 어두운 그라데이션 대신 메인과 같은 망점 */
-html.ui-yjhm.ui-arch body .page-arch .ph{background-color:var(--yj-bg);background-image:linear-gradient(160deg,rgba(242,241,236,.9) 0%,rgba(242,241,236,0) 45%,rgba(242,241,236,0) 72%,rgba(242,241,236,.65) 100%),radial-gradient(var(--yj-ac) 38%,transparent 42%);background-size:auto,5px 5px;color:var(--yj-ac)}
-html.ui-yjhm.ui-arch body .page-arch .ph span{background:var(--yj-bg);padding:0 8px;font-family:var(--yj-narrow);letter-spacing:.2em}
+/* 그림 없는 자리(.ph) — 필름 빈 칸과 같은 연한 남색 그라데이션 */
+html.ui-yjhm.ui-arch body .page-arch .ph{background:linear-gradient(170deg,#d5dfeb,#9db0c9);color:#f2f4f7}
+html.ui-yjhm.ui-arch body .page-arch .ph span{background:none;padding:0 8px;font:500 11px/1 var(--yj-mono);letter-spacing:.22em}
