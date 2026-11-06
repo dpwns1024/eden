@@ -7,8 +7,9 @@
  * 폴더를 누르면 하위 메뉴 목록 없이 첫 하위 메뉴로 바로 간다(SlotMenu direct) — 나머지는 머리 탭에서.
  * 폴더 바는 폴더가 모두 왼쪽 · 오른쪽 칸은 비워 둔다(사용자가 다른 것을 넣을 자리). 모양은 yjhm.css.
  */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { SlotMenu, useMenuItems } from '@/components/main/HtmlSlots';
 import { useAppPathname, toPublicHref } from '@/lib/routeAlias';
 import { YJHM_PAGE } from '@/lib/yjhmNames';
@@ -58,11 +59,25 @@ function useSection(on: boolean) {
 /** 머리 탭 (사용자 확정 시안 A3 — 「큰 메뉴 말고 누른 메뉴의 하위 메뉴가 뜨게」) — 맨 아래 폴더 바에서 고른 폴더의 하위 메뉴들.
  *  지금 주소가 들어 있는 폴더를 찾아 그 하위 메뉴를 탭으로, 단독 메뉴면 그것 하나. 상세 주소(/chars/…)도 앞부분으로 찾는다.
  *  같은 주소에 ?s= 만 다른 메뉴(PHOTO · B-CUT)는 주소 뒤 물음표까지 맞춰 지금 탭을 고른다 */
+/** 주소 뒤 물음표(?s=)만 바뀌는 이동도 알아챈다 — 머리는 레이아웃에 있어 경로가 같으면 다시 그려지지 않았다
+ *  (사용자 제보 「1번 탭 → 2번 탭으로 옮겨지는데 켜진 탭은 1번 그대로」). useSearchParams는 Suspense가 필요해 작은 조각으로 따로 감싼다 */
+function SearchWatch({ onChange }: { onChange: (s: string) => void }) {
+  const sp = useSearchParams();
+  const s = sp?.toString() ?? '';
+  useEffect(() => { onChange(s ? `?${s}` : ''); }, [s, onChange]);
+  return null;
+}
+
 function useTabs() {
   const items = useMenuItems();
   const path = useAppPathname();
   const [search, setSearch] = useState('');
   useEffect(() => { setSearch(window.location.search); }, [path]);
+  const watch = <Suspense fallback={null}><SearchWatch onChange={setSearch} /></Suspense>;
+  return { watch, tabs: tabList(items, path, search) };
+}
+
+function tabList(items: ReturnType<typeof useMenuItems>, path: string, search: string) {
   if (!items) return null;
   const base = (h: string) => h.split('?')[0];
   const inside = (h: string) => { const b = base(h); return b !== '/' && (path === b || path.startsWith(`${b}/`)); };
@@ -85,11 +100,12 @@ export function YjhmHeader({ main }: { main?: boolean }) {
   const memberRef = useSlotRef(setMemberSlot, clearMemberSlot);
   const bgmRef = useSlotRef(setBgmSlot, clearBgmSlot);
   const sec = useSection(!main);
-  const tabs = useTabs();
+  const { watch, tabs } = useTabs();
   if (!main) {
     return (
       <header className={tabs ? 'yj-fh sub tabbed' : 'yj-fh sub'}>
         <link rel="stylesheet" href={YJ_FONTS} precedence="default" />
+        {watch}
         <div className="yj-fh-l">
           <Link className="yj-fh-n" href="/">Hong Yejun<i>.</i></Link>
           {tabs ? (
