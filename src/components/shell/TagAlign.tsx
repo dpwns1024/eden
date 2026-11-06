@@ -96,8 +96,12 @@ function pixelInk(text: string, font: (size: number) => string, size: number, ls
 const textOnly = (el: Element): boolean => [...el.children].every(c =>
   !/^(IMG|SVG|CANVAS|VIDEO|INPUT|SELECT|TEXTAREA|BR|BUTTON|IFRAME)$/i.test(c.tagName) && !(c as HTMLElement).dataset?.[ORIG] && textOnly(c));
 
+/** JS 맞춤에서 뺀 상자 — CSS만으로 가운데에 둔다. YJHM 바인더 책갈피: canvas 글자 치수가 브라우저(아이폰 사파리)마다 달라
+ *  크롬에선 맞던 것이 폰에서 0.5~1px 쏠렸다 (사용자 제보). 대칭 여백 + 고정 기준선 보정이 어느 브라우저에서나 같다 */
+const SKIP = (el: HTMLElement) => !!el.closest('.yj-bm');
+
 function fix(el: HTMLElement, guard = false) {
-  if (!el.offsetWidth) return;
+  if (!el.offsetWidth || SKIP(el)) return;
   // 안쪽 요소가 있으면 YJHM에서만 — 「ALL <small>1</small>」 같은 탭도 글자 전체를 한 덩어리로 가운데에 (사용자 제보)
   if (el.childElementCount && (!yjhm() || !textOnly(el))) return;
   const raw = el.textContent?.trim() ?? '';
@@ -299,7 +303,7 @@ function rasterInk(el: HTMLElement): { l: number; r: number; t: number; b: numbe
 /** 정수 상자 안에서 글자가 반 픽셀 남는 경우(상자 폭 · 높이와 잉크의 홀짝이 달라서) — 모자란 쪽으로 상자를 1화면픽셀 늘린다.
  *  늘린 만큼 그쪽 여백도 더해 글자는 제자리에 둔다 (예: 왼쪽 10 · 오른쪽 9 → 10 · 10, 위 9 · 아래 8 → 9 · 9) */
 function parity(el: HTMLElement) {
-  if (!el.dataset[SNAPPED] || !el.offsetWidth) return;
+  if (!el.dataset[SNAPPED] || !el.offsetWidth || SKIP(el)) return;
   if (el.childElementCount && !textOnly(el)) return;
   const ink = rasterInk(el);
   if (!ink) return;
@@ -336,7 +340,7 @@ function parity(el: HTMLElement) {
 /** 폭을 정수로 · 자리를 화면 픽셀에. box면 margin으로(이미 translate를 쓰는 상자) */
 function snap(el: HTMLElement, box = false) {
   unsnap(el);
-  if (!el.offsetWidth) return;
+  if (!el.offsetWidth || SKIP(el)) return;
   // 컴포넌트가 직접 준 폭 · 자리는 기억했다가 되돌린다
   el.dataset[SNAPPED] = JSON.stringify(['width', 'height', 'translate', 'margin-left', 'margin-top', 'margin-right', 'margin-bottom'].map(k => [k, el.style.getPropertyValue(k), el.style.getPropertyPriority(k)]));
   if (!box) {
