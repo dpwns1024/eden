@@ -214,32 +214,58 @@ S2 = slide(1, f'''
             {pass_('전하민', 'INTERPRETER', 'STAFF', '{{25}}', EVE, [('POSE', '{{19}}'), ('OUTFIT', '{{18}}')])}
           </div>''')
 
-def step(no, label, ph, color, first=False):
-    """로드맵 한 줄 — 왼쪽 큰 번호 · 머리글 · 글"""
-    return f'''<div style="display:flex;gap:12px;padding:10px 0;{'' if first else 'border-top:1px solid ' + LINE + ';'}">
-            <span style="flex-shrink:0;width:26px;{FT}{NUM}font-size:20px;font-weight:700;letter-spacing:-.04em;line-height:20px;color:{color};">{no}</span>
-            <div style="flex:1;min-width:0;">
-              <div style="line-height:10px;">{cap(label, 8.5, .16, color, 700)}</div>
+PERF_V = 'repeating-linear-gradient(180deg,transparent 0 4px,rgba(238,240,243,.9) 4px 9px,transparent 9px 13px)'
+def frame(no, label, ph, color, last=False):
+    """필름 한 칸 — 홈 필름 띠처럼 남색 띠 위 흰 칸, 위에 프레임 번호"""
+    heart = f'<span style="margin-left:4px;{FT}font-size:10px;line-height:10px;color:{EVE};">♥</span>' if last else ''
+    return f'''<div style="{'' if last else 'margin-bottom:8px;'}">
+              <div style="display:flex;justify-content:space-between;align-items:center;height:14px;padding:0 2px;">
+                {cap('▶ ' + no + 'A', 8, .16, '#c9cfd6', 600)}{cap('YJHM 400', 8, .16, '#6c7a8c', 600, 'margin-right:-.16em;')}
+              </div>
+              <div style="padding:10px 12px;border-radius:3px;background:#fff;{'box-shadow:inset 0 0 0 1.5px ' + EVE + ';' if last else ''}">
+                <div style="display:flex;align-items:center;line-height:10px;">{cap(label, 8.5, .16, color, 800)}{heart}</div>
+                <div style="margin-top:5px;{F}font-size:12px;line-height:19px;color:{INK};">{ph}</div>
+              </div>
+            </div>'''
+
+def ticket_row(label, ph):
+    return f'''<div style="padding:11px 14px;">
+              <div style="line-height:10px;">{cap(label, 8.5, .16, AC, 800)}</div>
               <div style="margin-top:5px;{F}font-size:12px;line-height:19px;color:{INK};">{ph}</div>
-            </div>
-          </div>'''
+            </div>'''
+
+NOTCH = lambda side: f'<span style="position:absolute;{side}:-7px;top:50%;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:{PAPER};box-shadow:inset 0 0 0 1px rgba(44,62,87,.14);clip-path:inset(0 {"0 0 50%" if side == "left" else "50% 0 0"});"></span>'
 
 S3 = slide(2, f'''
           {title('Schedule')}
           {sec('ROADMAP', 'roadmap', 4)}
-          {step('01', 'NEXT', '{{21}}', AC, True)}
-          {step('02', 'SOON', '{{22}}', AC)}
-          {step('03', 'SOMEDAY', '{{23}}', EVE)}
-          {sec('MEMO', 'memo', 14)}
-          <div style="padding:2px 12px;border-radius:4px;background:#f5f6f8;">
-            {kv('CALENDAR', '{{28}}', AC, True)}
-            {kv('REQUEST', '{{29}}', AC)}
+          <div style="position:relative;padding:4px 20px 12px;border-radius:4px;background:{INK};box-shadow:0 10px 20px -12px rgba(29,42,61,.6);">
+            <span style="position:absolute;left:7px;top:6px;bottom:6px;width:5px;background:{PERF_V};"></span>
+            <span style="position:absolute;right:7px;top:6px;bottom:6px;width:5px;background:{PERF_V};"></span>
+            {frame('01', 'NEXT', '{{21}}', AC)}
+            {frame('02', 'SOON', '{{22}}', AC)}
+            {frame('03', 'SOMEDAY', '{{23}}', EVE, True)}
           </div>
-          {sec('PROMISE', 'promise')}
-          <div style="position:relative;padding:12px 14px 12px 18px;border-radius:4px;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.14);overflow:hidden;">
-            <span style="position:absolute;left:0;top:0;bottom:0;width:4px;background:{EVE};"></span>
-            <div style="{FT}font-size:26px;font-weight:700;line-height:16px;height:12px;color:{AC};">“</div>
-            <div style="margin-top:4px;{F}font-size:12px;line-height:21px;color:{INK};">{{{{20}}}}</div>
+          {sec('TICKET', 'memo', 18)}
+          <div style="border-radius:6px;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.14);overflow:visible;">
+            <div data-r="tkh" style="display:flex;justify-content:space-between;align-items:center;height:28px;padding:0 14px;border-radius:6px 6px 0 0;background:{AC};">
+              {cap('ADMIT TWO', 8.5, .2, '#fff', 800)}{cap('LANE {{11}} · {{3}}', 8.5, .14, 'rgba(255,255,255,.8)', 600, 'margin-right:-.14em;')}
+            </div>
+            {ticket_row('CALENDAR', '{{28}}')}
+            <div style="position:relative;height:0;margin:0 14px;border-top:1.5px dashed rgba(44,62,87,.2);">
+              <span style="position:absolute;left:-21px;top:-7px;width:14px;height:14px;border-radius:50%;background:{PAPER};box-shadow:inset -1px 0 0 rgba(44,62,87,.14);"></span>
+              <span style="position:absolute;right:-21px;top:-7px;width:14px;height:14px;border-radius:50%;background:{PAPER};box-shadow:inset 1px 0 0 rgba(44,62,87,.14);"></span>
+            </div>
+            {ticket_row('REQUEST', '{{29}}')}
+          </div>
+          {sec('OUR RULES', 'rules', 18)}
+          <div style="padding:12px 14px 14px;border-radius:4px;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.14);">
+            <div data-r="pact" style="display:flex;align-items:center;gap:8px;padding-bottom:12px;border-bottom:1px solid {LINE};">
+              {tag('홍예준', 'p1', h=22, size=10.5, ls=0, pad=10, bg=AC, fg='#fff', radius=11, outline=False, w=700)}
+              <span style="position:relative;flex:1;height:1px;background:{RULE};"><span style="position:absolute;left:50%;top:50%;width:18px;height:14px;margin:-7px 0 0 -9px;background:#fff;text-align:center;{FT}font-size:11px;line-height:14px;color:{EVE};">♥</span></span>
+              {tag('전하민', 'p2', h=22, size=10.5, ls=0, pad=10, bg=EVE, fg='#fff', radius=11, outline=False, w=700)}
+            </div>
+            <div style="margin-top:10px;{F}font-size:12px;line-height:21px;color:{INK};">{{{{20}}}}</div>
           </div>''')
 
 S4 = slide(3, f'''
@@ -265,7 +291,7 @@ PAPER_BODY = f'''<div style="margin:0 8px;padding:6px 12px 4px;background:{PAPER
         </div>
         <div style="margin:0 8px;padding:0 14px 14px;background:{PAPER};box-shadow:inset 1.5px 0 0 {INK},inset -1.5px 0 0 {INK},inset 0 -1.5px 0 {INK},0 10px 18px -10px rgba(29,42,61,.4);border-radius:0 0 6px 6px;">
           <div data-r="foot" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:12px;border-top:1px solid {RULE};">
-            <div style="min-width:0;">
+            <div style="min-width:0;{K('_footblk')}">
               <div style="line-height:11px;{K('_printed')}">{cap('HONG YEJUN FAN ARCHIVE', 9, .2, INK, 700)}</div>
               <div style="margin-top:5px;{F}{NUM}font-size:11px;font-weight:600;letter-spacing:.16em;line-height:13px;color:{AC};">{{{{3}}}} · LANE {{{{11}}}}</div>
             </div>
