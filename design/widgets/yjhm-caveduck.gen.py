@@ -162,14 +162,13 @@ def target(sz=40):
 foot = lambda t: f'<div style="margin-top:12px;text-align:right;{F}font-size:9.5px;line-height:12px;color:{LN};">{t}</div>'
 
 S1 = slide(0, f'''
-          {title('Today', "TODAY'S YEJUN")}
+          {title('Today', right=tag('NSFW {{12}}', 'nsfw', h=20, size=8.5, ls=.14, pad=8, bg='#fff', fg=NV2, radius=10, outline=False, extra='box-shadow:0 0 0 1px ' + RULE + ';position:relative;top:' + str(A('_nsfw', 't', 0)) + 'px;margin-left:auto;align-self:center;'))}
           <div data-r="event" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:4px;background:#f5f6f8;">
             {target(40 + A('_target', 'd', 0))}
             <div style="flex:1;min-width:0;{K('_evblk')}">
               <div style="line-height:14px;">{cap('10M AIR PISTOL', 11, .1, INK, 800, 'line-height:14px;')}</div>
               <div style="{F}font-size:10.5px;color:{FAINT};margin-top:{A('_evdesc', 'mt', 5)}px;line-height:{A('_evdesc', 'lh', 13)}px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">국가대표 · 공기권총</div>
             </div>
-            {tag('NSFW {{12}}', 'nsfw', h=20, size=8.5, ls=.14, pad=8, bg='#fff', fg=NV2, radius=10, outline=False, extra='box-shadow:0 0 0 1px ' + RULE + ';position:relative;top:' + str(A('_nsfw', 't', 0)) + 'px;')}
           </div>
           {sec('REPORT', 'report')}
           <div style="display:flex;align-items:baseline;gap:12px;padding:0 0 9px;border-bottom:1px solid {LINE};margin-bottom:10px;">
@@ -181,58 +180,70 @@ S1 = slide(0, f'''
           {bubble('{{26}}', '')}
           {foot('* 무표정 뒤에 숨겨 둔 진짜 속마음 ♡')}''')
 
-def card(name, role, ph, color, fields):
-    rows = ''.join(row(lab, kr, p, color, i == 0) for i, (lab, kr, p) in enumerate(fields))
-    return f'''<div style="flex:1 1 0;min-width:0;padding:0 10px 2px;border-radius:4px;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.14),inset 0 3px 0 {color};">
-              <div style="padding:13px 0 10px;">
-                <div style="line-height:10px;">{cap(role, 8, .18, color, 700)}</div>
-                <div style="margin-top:6px;{F}font-size:16px;font-weight:800;letter-spacing:-.02em;line-height:19px;color:{INK};white-space:nowrap;">{name}</div>
-                <div style="margin-top:4px;{F}font-size:11px;font-weight:500;line-height:16px;color:{SUB};">{ph}</div>
+def kv(label, ph, color, first=False):
+    """왼쪽 머리글 칸 · 오른쪽 글 — 홈 SCRAP 리스트처럼 얇은 선으로 나눈 한 줄"""
+    return f'''<div data-r="kv" style="display:flex;align-items:center;gap:10px;padding:9px 0;{'' if first else 'border-top:1px solid ' + LINE + ';'}">
+                <span style="flex-shrink:0;width:56px;line-height:10px;{K('_kv')}">{cap(label, 8.5, .16, color, 700)}</span>
+                <span style="flex:1;min-width:0;{F}font-size:12px;line-height:19px;color:{INK};">{ph}</span>
+              </div>'''
+
+BARCODE = f'repeating-linear-gradient(90deg,{LN} 0 1px,transparent 1px 3px,{LN} 3px 5px,transparent 5px 6px,{LN} 6px 7px,transparent 7px 10px)'
+def pass_(name, role, no, ph, color, fields):
+    """출입증(AD 카드) — 왼쪽 색 띠 · 이름 · 한 줄 상태 · 아래 두 칸"""
+    rows = ''.join(kv(lab, p, color, i == 0) for i, (lab, p) in enumerate(fields))
+    return f'''<div style="position:relative;padding:12px 14px 4px 18px;border-radius:4px;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.14);overflow:hidden;">
+              <span style="position:absolute;left:0;top:0;bottom:0;width:4px;background:{color};"></span>
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+                <div style="min-width:0;">
+                  <div style="line-height:10px;">{cap(role, 8.5, .18, color, 700)}</div>
+                  <div style="margin-top:6px;{F}font-size:18px;font-weight:800;letter-spacing:-.02em;line-height:21px;color:{INK};white-space:nowrap;">{name}</div>
+                </div>
+                <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
+                  <span style="display:block;width:44px;height:14px;background:{BARCODE};"></span>
+                  <span style="line-height:10px;">{cap(no, 8.5, .16, LN, 700, 'margin-right:-.16em;')}</span>
+                </div>
               </div>
+              <div style="margin-top:4px;padding-bottom:10px;border-bottom:1px dashed rgba(44,62,87,.2);{F}font-size:11.5px;line-height:18px;color:{SUB};">{ph}</div>
               {rows}
             </div>'''
 
 S2 = slide(1, f'''
           {title('Profile')}
-          <div style="display:flex;gap:8px;">
-            {card('홍예준', 'PLAYER · NO.{{11}}', '{{13}}', AC, [('POSE', '자세', '{{16}}'), ('OUTFIT', '오늘의 착장', '{{15}}')])}
-            {card('전하민', 'INTERPRETER', '{{25}}', EVE, [('POSE', '자세', '{{19}}'), ('OUTFIT', '오늘의 착장', '{{18}}')])}
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            {pass_('홍예준', 'PLAYER', 'NO.{{11}}', '{{13}}', AC, [('POSE', '{{16}}'), ('OUTFIT', '{{15}}')])}
+            {pass_('전하민', 'INTERPRETER', 'STAFF', '{{25}}', EVE, [('POSE', '{{19}}'), ('OUTFIT', '{{18}}')])}
           </div>''')
 
-def step(no, label, ph, color, last=False):
-    """로드맵 한 칸 — 왼쪽 세로선 위 점 · 번호"""
-    line = '' if last else f'<span style="position:absolute;left:4px;top:14px;bottom:-12px;width:1px;background:{RULE};"></span>'
-    return f'''<div style="position:relative;display:flex;gap:12px;{'' if last else 'margin-bottom:12px;'}">
-            {line}<span style="flex-shrink:0;position:relative;top:3px;width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 2px {color};"></span>
+def step(no, label, ph, color, first=False):
+    """로드맵 한 줄 — 왼쪽 큰 번호 · 머리글 · 글"""
+    return f'''<div style="display:flex;gap:12px;padding:10px 0;{'' if first else 'border-top:1px solid ' + LINE + ';'}">
+            <span style="flex-shrink:0;width:26px;{FT}{NUM}font-size:20px;font-weight:700;letter-spacing:-.04em;line-height:20px;color:{color};">{no}</span>
             <div style="flex:1;min-width:0;">
-              <div style="line-height:10px;">{cap(no + ' ' + label, 8.5, .16, color, 700)}</div>
+              <div style="line-height:10px;">{cap(label, 8.5, .16, color, 700)}</div>
               <div style="margin-top:5px;{F}font-size:12px;line-height:19px;color:{INK};">{ph}</div>
             </div>
           </div>'''
 
-def note(label, ph):
-    return f'''<div style="flex:1 1 160px;padding:11px 12px;border-radius:4px;background:#f5f6f8;">
-              <div style="line-height:10px;">{cap(label, 8.5, .16, AC, 700)}</div>
-              <div style="margin-top:6px;{F}font-size:12px;line-height:19px;color:{INK};">{ph}</div>
-            </div>'''
-
 S3 = slide(2, f'''
           {title('Schedule')}
           {sec('ROADMAP', 'roadmap', 4)}
-          {step('01', 'NEXT', '{{21}}', AC)}
+          {step('01', 'NEXT', '{{21}}', AC, True)}
           {step('02', 'SOON', '{{22}}', AC)}
-          {step('03', 'SOMEDAY', '{{23}}', EVE, True)}
-          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;">
-            {note('CALENDAR', '{{28}}')}
-            {note('REQUEST', '{{29}}')}
+          {step('03', 'SOMEDAY', '{{23}}', EVE)}
+          {sec('MEMO', 'memo', 14)}
+          <div style="padding:2px 12px;border-radius:4px;background:#f5f6f8;">
+            {kv('CALENDAR', '{{28}}', AC, True)}
+            {kv('REQUEST', '{{29}}', AC)}
           </div>
           {sec('PROMISE', 'promise')}
-          <div style="padding:12px 14px;border-radius:4px;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.14);">
-            <div style="{F}font-size:12px;line-height:21px;color:{INK};">{{{{20}}}}</div>
+          <div style="position:relative;padding:12px 14px 12px 18px;border-radius:4px;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.14);overflow:hidden;">
+            <span style="position:absolute;left:0;top:0;bottom:0;width:4px;background:{EVE};"></span>
+            <div style="{FT}font-size:26px;font-weight:700;line-height:16px;height:12px;color:{AC};">“</div>
+            <div style="margin-top:4px;{F}font-size:12px;line-height:21px;color:{INK};">{{{{20}}}}</div>
           </div>''')
 
 S4 = slide(3, f'''
-          {title('Unsent', 'DRAFTS')}
+          {title('Unsent')}
           {sec('DRAFT', 'draft', 4)}
           <div style="padding:14px 12px;border-radius:4px;background:#f5f6f8;">
             <div style="text-align:center;line-height:10px;margin-bottom:12px;">{cap('홍예준 → 전하민 · 임시 저장', 8.5, .04, LN, 500)}</div>
