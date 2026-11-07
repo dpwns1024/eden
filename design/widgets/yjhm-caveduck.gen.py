@@ -133,7 +133,7 @@ def sec(label, key, top=20):
     return f'''<div style="display:flex;margin:{top}px 0 10px;">{tape(label, key)}</div>'''
 
 def slide(on, body):
-    return f'''<div data-s="{on}" style="flex:0 0 100%;min-width:0;scroll-snap-align:start;box-sizing:border-box;height:456px;overflow-y:auto;overscroll-behavior-y:contain;padding:0 8px 14px;scrollbar-width:thin;scrollbar-color:rgba(96,124,160,.35) transparent;">
+    return f'''<div data-s="{on}" style="flex:0 0 100%;min-width:0;scroll-snap-align:start;box-sizing:border-box;padding:0 8px 14px;">
           {strip(on)}
           {body}
         </div>'''
@@ -147,9 +147,9 @@ def row(label, kr, ph, color=AC, first=False):
 
 def bubble(ph, who, me=False, extra=''):
     """방명록 말풍선 — 흰 말풍선, me면 남색"""
-    bg, fg, sh = (INK, '#fff', 'none') if me else ('#fff', INK, f'0 0 0 1px {LINE}')
+    bg, fg, bd = (INK, '#fff', INK) if me else ('#fff', INK, 'rgba(44,62,87,.16)')
     return f'''<div style="display:flex;flex-direction:column;align-items:{'flex-end' if me else 'flex-start'};gap:5px;">
-              <div style="max-width:88%;padding:10px 13px;border-radius:{'14px 14px 4px 14px' if me else '14px 14px 14px 4px'};background:{bg};box-shadow:{sh};{F}font-size:12.5px;line-height:20px;color:{fg};">{ph}</div>
+              <div style="box-sizing:border-box;max-width:88%;padding:9px 12px;border-radius:{'14px 14px 4px 14px' if me else '14px 14px 14px 4px'};background:{bg};border:1px solid {bd};{F}font-size:12.5px;line-height:20px;color:{fg};">{ph}</div>
               {who}
             </div>'''
 
@@ -162,7 +162,7 @@ def target(sz=40):
 foot = lambda t: f'<div style="margin-top:12px;text-align:right;{F}font-size:9.5px;line-height:12px;color:{LN};">{t}</div>'
 
 S1 = slide(0, f'''
-          {title('Today', right=tag('NSFW {{12}}', 'nsfw', h=16, size=8, ls=.12, pad=7, bg='#fff', fg=NV2, radius=10, outline=False, extra='box-shadow:0 0 0 1px ' + RULE + ';position:relative;top:' + str(A('_nsfw', 't', 0)) + 'px;margin-left:auto;align-self:center;'))}
+          {title('Today', right=tag('NSFW {{12}}', 'nsfw', h=16, size=8, ls=.12, pad=7, bg='#fff', fg=NV2, radius=10, outline=False, extra='border:1px solid ' + RULE + ';position:relative;top:' + str(A('_nsfw', 't', 0)) + 'px;margin-left:auto;align-self:center;'))}
           <div data-r="event" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:4px;background:#f5f6f8;">
             {target(40 + A('_target', 'd', 0))}
             <div style="flex:1;min-width:0;{K('_evblk')}">
@@ -191,7 +191,7 @@ BARCODE = f'repeating-linear-gradient(90deg,{LN} 0 1px,transparent 1px 3px,{LN} 
 def pass_(name, ph, color, fields):
     """출입증(AD 카드) — 왼쪽 색 띠 · 이름 · 한 줄 상태 · 아래 두 칸"""
     rows = ''.join(kv(lab, p, color, i == 0) for i, (lab, p) in enumerate(fields))
-    return f'''<div style="position:relative;padding:14px 14px 4px 18px;border-radius:4px;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.14);overflow:hidden;">
+    return f'''<div style="position:relative;box-sizing:border-box;padding:13px 13px 3px 17px;border-radius:4px;background:#fff;border:1px solid rgba(44,62,87,.14);overflow:hidden;">
               <span style="position:absolute;left:0;top:0;bottom:0;width:4px;background:{color};"></span>
               <div data-r="pass" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
                 <div style="min-width:0;{F}font-size:18px;font-weight:800;letter-spacing:-.02em;line-height:21px;color:{INK};white-space:nowrap;">{name}</div>
@@ -223,7 +223,7 @@ def frame(no, label, ph, color, last=False):
             </div>'''
 
 def ticket_row(label, ph):
-    return f'''<div style="padding:11px 14px;">
+    return f'''<div style="padding:11px 13px;">
               <div style="line-height:10px;">{cap(label, 8.5, .16, AC, 800)}</div>
               <div style="margin-top:5px;{F}font-size:12px;line-height:19px;color:{INK};">{ph}</div>
             </div>'''
@@ -241,19 +241,19 @@ S3 = slide(2, f'''
             {frame('03', 'SOMEDAY', '{{23}}', EVE, True)}
           </div>
           {sec('TICKET', 'memo', 18)}
-          <div style="border-radius:6px;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.14);overflow:visible;">
-            <div data-r="tkh" style="display:flex;justify-content:space-between;align-items:center;height:28px;padding:0 14px;border-radius:6px 6px 0 0;background:{AC};">
+          <div style="border-radius:6px;background:#fff;border:1px solid rgba(44,62,87,.14);">
+            <div data-r="tkh" style="display:flex;justify-content:space-between;align-items:center;height:28px;padding:0 13px;border-radius:5px 5px 0 0;background:{AC};">
               {cap('ADMIT TWO', 8.5, .2, '#fff', 800)}
             </div>
             {ticket_row('CALENDAR', '{{28}}')}
-            <div style="position:relative;height:0;margin:0 14px;border-top:1.5px dashed rgba(44,62,87,.2);">
-              <span style="position:absolute;left:-21px;top:-7px;width:14px;height:14px;border-radius:50%;background:{PAPER};box-shadow:inset -1px 0 0 rgba(44,62,87,.14);"></span>
-              <span style="position:absolute;right:-21px;top:-7px;width:14px;height:14px;border-radius:50%;background:{PAPER};box-shadow:inset 1px 0 0 rgba(44,62,87,.14);"></span>
+            <div style="position:relative;height:0;margin:0 13px;border-top:1.5px dashed rgba(44,62,87,.2);">
+              <span style="position:absolute;left:-20px;top:-7px;width:14px;height:14px;border-radius:50%;background:{PAPER};box-shadow:inset -1px 0 0 rgba(44,62,87,.14);"></span>
+              <span style="position:absolute;right:-20px;top:-7px;width:14px;height:14px;border-radius:50%;background:{PAPER};box-shadow:inset 1px 0 0 rgba(44,62,87,.14);"></span>
             </div>
             {ticket_row('REQUEST', '{{29}}')}
           </div>
           {sec('OUR RULES', 'rules', 18)}
-          <div style="padding:12px 14px 14px;border-radius:4px;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.14);">
+          <div style="padding:11px 13px 13px;border-radius:4px;background:#fff;border:1px solid rgba(44,62,87,.14);">
             <div data-r="pact" style="display:flex;align-items:center;gap:8px;padding-bottom:12px;border-bottom:1px solid {LINE};">
               {tag('홍예준', 'p1', h=22, size=10.5, ls=0, pad=10, bg=AC, fg='#fff', radius=11, outline=False, w=700)}
               <span style="position:relative;flex:1;height:1px;background:{RULE};"><span style="position:absolute;left:50%;top:50%;width:18px;height:14px;margin:-7px 0 0 -9px;background:#fff;text-align:center;{FT}font-size:11px;line-height:14px;color:{EVE};">♥</span></span>
