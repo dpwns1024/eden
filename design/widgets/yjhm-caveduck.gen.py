@@ -162,7 +162,7 @@ def target(sz=40):
 foot = lambda t: f'<div style="margin-top:12px;text-align:right;{F}font-size:9.5px;line-height:12px;color:{LN};">{t}</div>'
 
 S1 = slide(0, f'''
-          {title('Today', right=tag('NSFW {{12}}', 'nsfw', h=20, size=8.5, ls=.14, pad=8, bg='#fff', fg=NV2, radius=10, outline=False, extra='box-shadow:0 0 0 1px ' + RULE + ';position:relative;top:' + str(A('_nsfw', 't', 0)) + 'px;margin-left:auto;align-self:center;'))}
+          {title('Today', right=tag('NSFW {{12}}', 'nsfw', h=16, size=8, ls=.12, pad=7, bg='#fff', fg=NV2, radius=10, outline=False, extra='box-shadow:0 0 0 1px ' + RULE + ';position:relative;top:' + str(A('_nsfw', 't', 0)) + 'px;margin-left:auto;align-self:center;'))}
           <div data-r="event" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:4px;background:#f5f6f8;">
             {target(40 + A('_target', 'd', 0))}
             <div style="flex:1;min-width:0;{K('_evblk')}">
