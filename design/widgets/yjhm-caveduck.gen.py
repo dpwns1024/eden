@@ -1,7 +1,7 @@
 # YJHM 케이브덕 위젯 생성기 — python3 design/widgets/yjhm-caveduck.gen.py 로 yjhm-caveduck.html을 다시 만든다.
 # 확정 디자인: 첫 화면 = 귀여운 셀카 필카(YEJUN FILM) 뷰파인더 · 아래 프린터 투입구에서 나온 「인화하기」 사진 한 장(= 펼치기 · 접기)
-#   → 펼치면 그 사진 아래로 같은 폭의 긴 인화지가 이어지고, 그 안에 4장(BRIEFING · ROSTER · PLAN · MISFIRE)이 필름 띠 탭으로 넘어간다.
-# 색: 남색 #1d2a3d · #2c3e57 · 포인트 #607ca0 · 이브(EVEDEN) 붉은색 #d11c20 · 하늘 · 분홍 · 버터 스티커
+#   → 펼치면 그 사진 아래로 같은 폭의 흰 인화지가 이어지고, 그 안에 팬페이지 4장(TODAY · PROFILE · SCHEDULE · UNSENT)이 홈 메뉴 같은 테이프 탭으로 넘어간다.
+# 색: 남색 #1d2a3d · #2c3e57 · 포인트 #607ca0 · 이브(EVEDEN) 붉은색 #d11c20 (첫 화면만 하늘 · 테이프 장식, 펼친 창 안은 두 포인트 색만)
 # 정렬 보정값(너비 · 위아래 · 높이)은 yjhm-caveduck.adj.json — 100% 배율에서 글자 잉크를 픽셀 단위로 재서 맞춘 값
 import json, os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -13,7 +13,7 @@ F = "font-family:'Pretendard Variable','Pretendard','Noto Sans KR',-apple-system
 FT = "font-family:'Inter','Pretendard Variable','Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"
 NUM = "font-variant-numeric:tabular-nums;"
 INK, NV2, AC, SUB, FAINT, LN, BG = '#1d2a3d', '#2c3e57', '#607ca0', '#4a5a70', '#6c7a8c', '#9fb0c6', '#eef0f3'
-SKY, PINK, BUTTER = '#cfe0f5', '#f6c9d4', '#fbe7a6'
+SKY = '#cfe0f5'
 EVE = '#d11c20'                       # 이브(EVEDEN) 테마 붉은색
 EVE_RGB = '209,28,32'
 PAPER = '#fffdf8'
@@ -34,7 +34,7 @@ def tag(text, key, h=20, size=9.5, ls=.12, pad=8, bg=SKY, fg=INK, radius=4, outl
     W, T, H = A(key, 'w'), A(key, 't'), h + A(key, 'h')
     L = A(key, 'l')
     box = (f'width:{W}px;padding:{max(T,0)}px {max(-L,0)}px {max(-T,0)}px calc({ls}em + {max(L,0)}px);' if W else
-           f'padding:{max(T,0)}px calc({pad}px - {ls}em) {max(-T,0)}px {pad}px;')
+           f'padding:{max(T,0)}px calc({pad}px - {ls}em + {max(-L,0)}px) {max(-T,0)}px {pad + max(L,0)}px;')
     ol = f'box-shadow:0 0 0 1.5px {INK},2px 2px 0 1.5px {INK};' if outline else ''
     return (f'<span data-c="{key}" style="flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;height:{H}px;{box}'
             f'border-radius:{radius}px;background:{bg};color:{fg};{F}font-size:{size}px;font-weight:{w};letter-spacing:{ls}em;line-height:{round(size)+1}px;white-space:nowrap;{ol}{extra}">{text}</span>')
@@ -92,157 +92,169 @@ PRINT = f'''<div style="display:flex;justify-content:space-between;align-items:c
           <div data-c="print" style="position:absolute;left:24px;right:24px;top:5px;bottom:0;display:flex;align-items:center;justify-content:center;padding:{max(A('print','t'),0)}px 0 {max(-A('print','t'),0)}px {A('print','l')}px;{F}font-size:14px;font-weight:900;letter-spacing:.02em;line-height:17px;color:{NV2};">인화하기</div>
         </div>'''
 
-# ═════════ 펼친 인화지 — 4장 ═════════
-FRAMES = [('01', 'BRIEFING'), ('02', 'ROSTER'), ('03', 'PLAN'), ('04', 'MISFIRE')]
+# ═════════ 펼친 인화지 — 4장 (홈 「필름」 1면 말투: 남색 라벨 테이프 · Inter 제목 + 점 · 얇은 선 리스트 · 방명록 말풍선) ═════════
+# 안쪽 포인트 색은 #607ca0(AC) · #d11c20(EVE) 두 가지만 — 나머지는 남색 글자 · 회색 선 · 흰 종이
+PAPER = '#fff'
+LINE = 'rgba(44,62,87,.1)'
+RULE = 'rgba(96,124,160,.3)'
+TAPE_SH = 'box-shadow:0 1px 3px rgba(20,30,48,.25),inset 0 1px 0 rgba(255,255,255,.12);'
+FRAMES = [('01', 'TODAY'), ('02', 'PROFILE'), ('03', 'SCHEDULE'), ('04', 'UNSENT')]
+
+def tape(text, key, h=20, size=9, ls=.2, pad=9, bg=NV2, fg='#f2f4f7', extra=''):
+    """홈의 라벨 테이프 — 남색 바탕 · 흰 글자 · 넓은 글자 간격"""
+    return tag(text, key, h=h, size=A('_tape', 'fs', size) if h == 20 else size, ls=ls, pad=pad, bg=bg, fg=fg, radius=2, outline=False, extra=TAPE_SH + extra, w=700)
+
 def strip(on):
-    """필름 띠 탭 — 지금 장만 흰 프레임 + 붉은 테두리"""
+    """머리 메뉴 — 홈 메뉴처럼 지금 장만 남색 테이프, 나머지는 #607ca0 글자"""
     cells = []
     for i, (n, name) in enumerate(FRAMES):
         if i == on:
-            cells.append(tag(f'<span style="color:{EVE};margin-right:6px;">{n}</span>{name}', f'fr-{name}', h=20, size=9, ls=.14, pad=8, bg='#fff', fg=INK, radius=2, outline=False, extra=f'box-shadow:0 0 0 1.5px {EVE};'))
+            cells.append(tape(f'<span style="color:{LN};margin-right:6px;">{n}</span>{name}', f'fr-{name}', h=22))
         else:
-            cells.append(tag(n, f'fr-{n}', h=20, size=9, ls=.14, pad=7, bg='rgba(255,255,255,.1)', fg=LN, radius=2, outline=False))
-    perf = 'background:repeating-linear-gradient(90deg,transparent 0 3px,rgba(255,253,248,.85) 3px 7px,transparent 7px 10px);'
+            cells.append(tag(n, f'fr-{n}', h=22, size=9, ls=.2, pad=7, bg='transparent', fg=AC, radius=2, outline=False, w=700))
     hint = '‹ BACK' if on == 3 else 'SWIPE ›'
-    return f'''<div style="position:sticky;top:0;z-index:3;padding-bottom:10px;background:{PAPER};">
-            <div style="position:relative;display:flex;align-items:center;gap:4px;height:40px;padding:0 10px;border-radius:4px;background:{INK};">
-              <span style="position:absolute;left:0;right:0;top:3px;height:3px;{perf}"></span>
-              <span style="position:absolute;left:0;right:0;bottom:3px;height:3px;{perf}"></span>
+    return f'''<div style="position:sticky;top:0;z-index:3;background:{PAPER};">
+            <div data-r="strip" style="display:flex;align-items:center;gap:2px;height:38px;border-bottom:1px solid {RULE};">
               {''.join(cells)}
-              <span style="margin-left:auto;display:flex;">{cap(hint, 8.5, .14, LN, 700, K('_hint'))}</span>
+              <span style="margin-left:auto;display:flex;">{cap(hint, A('_hint', 'fs', 8.5), .18, LN, 700, 'margin-right:-.18em;' + K('_hint'))}</span>
             </div>
           </div>'''
 
-def title(en, kr, right=''):
-    return f'''<div style="display:flex;align-items:baseline;gap:8px;padding:2px 0 10px;border-bottom:1.5px dashed rgba(44,62,87,.25);">
-            <span style="{FT}font-size:20px;font-weight:800;letter-spacing:-.05em;line-height:20px;color:{INK};">{en}<span style="color:{EVE};">.</span></span>
-            <span style="{F}font-size:11px;font-weight:700;color:{SUB};line-height:13px;">{kr}</span>{right}
+def title(en, kicker, right=''):
+    """홈 제호처럼 — 작은 머리글(#607ca0) 위에 Inter 굵은 이름 + 점"""
+    return f'''<div style="display:flex;align-items:flex-end;gap:8px;padding:16px 0 12px;">
+            <div style="min-width:0;">
+              <div style="line-height:10px;">{cap(kicker[0], 9, .24, AC, 600)} {cap(kicker[1], 9.5, 0, LN, 500)}</div>
+              <div style="margin-top:6px;{FT}font-size:24px;font-weight:700;letter-spacing:-.05em;line-height:24px;color:{INK};white-space:nowrap;">{en}<span style="color:{AC};">.</span></div>
+            </div>{right}
           </div>'''
 
-def sec(label, key, sub, bg=SKY, top=18):
-    return f'''<div style="display:flex;align-items:center;gap:8px;margin:{top}px 0 10px;">
-            {tag(label, key, bg=bg)}
-            <span style="position:relative;top:{A('_sec_sub_top', 0)}px;min-width:0;overflow:hidden;text-overflow:ellipsis;{F}font-size:10px;font-weight:600;color:{FAINT};line-height:12px;white-space:nowrap;">{sub}</span>
-            <span style="flex:1;min-width:8px;height:1px;background:rgba(44,62,87,.15);"></span>
+def sec(label, key, sub, top=20):
+    return f'''<div data-r="sec-{key}" style="display:flex;align-items:center;gap:8px;margin:{top}px 0 10px;">
+            {tape(label, key)}
+            <span style="{K('_sec_sub')}min-width:0;overflow:hidden;text-overflow:ellipsis;{F}font-size:{A('_sec_sub', 'fs', 10.5)}px;font-weight:500;color:{FAINT};line-height:{A('_sec_sub', 'lh', 12)}px;white-space:nowrap;">{sub}</span>
           </div>'''
 
 def slide(on, body):
-    return f'''<div style="flex:0 0 100%;min-width:0;scroll-snap-align:start;box-sizing:border-box;height:456px;overflow-y:auto;overscroll-behavior-y:contain;padding-right:4px;scrollbar-width:thin;scrollbar-color:rgba(96,124,160,.35) transparent;">
+    return f'''<div data-s="{on}" style="flex:0 0 100%;min-width:0;scroll-snap-align:start;box-sizing:border-box;height:456px;overflow-y:auto;overscroll-behavior-y:contain;padding-right:4px;scrollbar-width:thin;scrollbar-color:rgba(96,124,160,.35) transparent;">
           {strip(on)}
           {body}
         </div>'''
 
-PISTOL = 'polygon(0 12%,3% 12%,3% 2%,7% 2%,7% 12%,80% 12%,80% 0,86% 0,86% 12%,100% 12%,100% 40%,96% 42%,100% 100%,77% 100%,71% 46%,64% 46%,64% 64%,52% 64%,50% 46%,40% 46%,40% 32%,0 32%)'
+def row(label, kr, ph, color=AC, first=False):
+    """홈 SCRAP 리스트 한 줄 — 왼쪽 작은 머리글 · 오른쪽 글 · 아래 얇은 선"""
+    return f'''<div style="padding:9px 0;border-bottom:1px solid {LINE};{'border-top:1px solid ' + LINE + ';' if first else ''}">
+              <div style="line-height:10px;">{cap(label, 8.5, .16, color, 700)} {cap(kr, 8.5, 0, LN, 500)}</div>
+              <div style="margin-top:5px;{F}font-size:12px;line-height:19px;color:{INK};">{ph}</div>
+            </div>'''
+
+def bubble(ph, who, me=False, extra=''):
+    """방명록 말풍선 — 흰 말풍선, me면 남색"""
+    bg, fg, sh = (INK, '#fff', 'none') if me else ('#fff', INK, f'0 0 0 1px {LINE}')
+    return f'''<div style="display:flex;flex-direction:column;align-items:{'flex-end' if me else 'flex-start'};gap:5px;">
+              <div style="max-width:88%;padding:10px 13px;border-radius:{'14px 14px 4px 14px' if me else '14px 14px 14px 4px'};background:{bg};box-shadow:{sh};{F}font-size:12.5px;line-height:20px;color:{fg};">{ph}</div>
+              {who}
+            </div>'''
+
+def target(sz=40):
+    """과녁 — 홈 바탕의 은은한 링 · 한가운데 붉은 점"""
+    return (f'<span style="flex-shrink:0;position:relative;width:{sz}px;height:{sz}px;border-radius:50%;'
+            f'background:repeating-radial-gradient(circle,transparent 0 4px,rgba(96,124,160,.45) 4px 5px);box-shadow:inset 0 0 0 1px {AC};">'
+            f'<span style="position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:{EVE};"></span></span>')
+
+foot = lambda t: f'<div style="margin-top:12px;text-align:right;{F}font-size:9.5px;line-height:12px;color:{LN};">{t}</div>'
+
 S1 = slide(0, f'''
-          {title('Briefing', '사선 개요')}
-          <div style="display:flex;align-items:center;gap:12px;margin-top:12px;padding:10px 12px;border-radius:6px;background:#f3f5f9;box-shadow:inset 3px 0 0 {EVE};">
-            <div style="flex-shrink:0;width:44px;height:18px;background:linear-gradient(180deg,#9fb0c6,{AC} 45%,{NV2});clip-path:{PISTOL};-webkit-clip-path:{PISTOL};"></div>
-            <div style="flex:1;min-width:0;">
+          {title('Today', ("TODAY'S YEJUN", '· 오늘의 예준'))}
+          <div data-r="event" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:4px;background:#f5f6f8;">
+            {target(40 + A('_target', 'd', 0))}
+            <div style="flex:1;min-width:0;{K('_evblk')}">
               <div style="line-height:14px;">{cap('10M AIR PISTOL', 11, .1, INK, 800, 'line-height:14px;')}</div>
-              <div style="{F}font-size:10px;color:{FAINT};margin-top:5px;line-height:12px;">10m 공기권총 · 4.5mm 펠릿 · 60발</div>
+              <div style="{F}font-size:10.5px;color:{FAINT};margin-top:{A('_evdesc', 'mt', 5)}px;line-height:{A('_evdesc', 'lh', 13)}px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">국가대표 · 공기권총</div>
             </div>
-            {tag('NSFW {{12}}', 'nsfw', h=20, size=8.5, ls=.12, pad=7, bg='#fff', fg=NV2, radius=10, outline=False, extra='box-shadow:0 0 0 1.5px ' + INK + ';align-self:flex-start;margin-top:' + str(A('_nsfw', 'mt', 6)) + 'px;')}
+            {tag('NSFW {{12}}', 'nsfw', h=20, size=8.5, ls=.14, pad=8, bg='#fff', fg=NV2, radius=10, outline=False, extra='box-shadow:0 0 0 1px ' + RULE + ';position:relative;top:' + str(A('_nsfw', 't', 0)) + 'px;')}
           </div>
-          {sec('SPOTTER NOTE', 'spotter', '관측수 기록')}
-          <div style="display:flex;align-items:baseline;gap:12px;padding:2px 0 8px;border-bottom:1px solid {LINE};margin-bottom:10px;">
-            {cap('RELATION', 9, .14, EVE, 800)}
-            <span style="min-width:0;{F}font-size:11.5px;font-weight:700;line-height:18px;color:{INK};">{{{{30}}}}</span>
+          {sec('REPORT', 'report', '오늘의 현장 리포트')}
+          <div style="display:flex;align-items:baseline;gap:12px;padding:0 0 9px;border-bottom:1px solid {LINE};margin-bottom:10px;">
+            {cap('RELATION', 8.5, .16, AC, 700)}
+            <span style="min-width:0;{F}font-size:12px;font-weight:700;line-height:18px;color:{INK};">{{{{30}}}}</span>
           </div>
           <div style="{F}font-size:12px;line-height:21px;color:{NV2};">{{{{5}}}}</div>
-          {sec('BREATH HOLD', 'breath', '한 손 조준 · 숨을 멈춘 사이의 의식 흐름', BUTTER, 22)}
-          <div style="position:relative;margin-top:14px;padding:16px 14px 12px;background:#fff;box-shadow:0 0 0 1px {LINE},3px 4px 10px -6px rgba(29,42,61,.35);transform:rotate(-.6deg);">
-            {tape_piece('left:50%;top:-8px;margin-left:-28px;', 2)}
-            <div style="{F}font-size:12.5px;line-height:21px;color:{INK};font-style:italic;">{{{{26}}}}</div>
-            <div style="margin-top:6px;text-align:right;{F}font-size:11px;font-weight:800;line-height:14px;color:{EVE};">— 홍예준</div>
-          </div>
-          <div style="margin-top:10px;text-align:right;{F}font-size:9px;line-height:12px;color:{LN};">* 방아쇠 1차 압력 ~ 격발 사이 · 원문 그대로 기록</div>''')
+          {sec('BEHIND', 'behind', '숨을 고르는 몇 초 · 예준의 속마음', 22)}
+          {bubble('{{26}}', '<span style="margin-left:4px;line-height:10px;">' + cap('HONG YEJUN', 8.5, .16, AC, 700) + ' ' + cap('· 속마음 자막', 8.5, 0, LN, 500) + '</span>')}
+          {foot('* 무표정 뒤에 숨겨 둔 진짜 속마음 ♡')}''')
 
-def field(label, kr, ph, color):
-    return f'''<div style="padding:8px 0;border-top:1px solid {LINE};">
-                <div style="line-height:10px;">{cap(label, 8.5, .14, color, 800)} {cap(kr, 8.5, 0, LN, 600)}</div>
-                <div style="margin-top:5px;{F}font-size:11.5px;line-height:18px;color:{INK};">{ph}</div>
-              </div>'''
-
-def idcard(name, en, ph, color, fields):
-    fs = ''.join(field(*f, color) for f in fields)
-    return f'''<div style="position:relative;flex:1 1 0;min-width:0;background:#fff;border-radius:6px;box-shadow:0 0 0 1.5px {INK},3px 3px 0 1.5px {INK};overflow:hidden;">
-              <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;padding:9px 10px;background:{color};">
-                <span style="{F}font-size:14px;font-weight:900;letter-spacing:.02em;line-height:16px;color:#fff;white-space:nowrap;">{name}</span>
-                <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;{F}font-size:10.5px;font-weight:700;line-height:14px;{K('_idph')}color:rgba(255,255,255,.9);white-space:nowrap;">{ph}</span>
+def card(name, role, ph, color, fields):
+    rows = ''.join(row(lab, kr, p, color, i == 0) for i, (lab, kr, p) in enumerate(fields))
+    return f'''<div style="flex:1 1 0;min-width:0;padding:0 10px 2px;border-radius:4px;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.14),inset 0 3px 0 {color};">
+              <div style="padding:13px 0 10px;">
+                <div style="line-height:10px;">{cap(role, 8, .18, color, 700)}</div>
+                <div style="margin-top:6px;{F}font-size:16px;font-weight:800;letter-spacing:-.02em;line-height:19px;color:{INK};white-space:nowrap;">{name}</div>
+                <div style="margin-top:4px;{F}font-size:11px;font-weight:500;line-height:16px;color:{SUB};">{ph}</div>
               </div>
-              <div style="padding:2px 10px 2px;">
-                <div style="padding:6px 0 7px;line-height:10px;">{cap(en, 8, .2, LN, 800)}</div>
-                {fs}
-              </div>
+              {rows}
             </div>'''
 
 S2 = slide(1, f'''
-          {title('Roster', '사선 인원', '<span style="margin-left:auto;">' + cap('MIXED TEAM ♡', 8.5, .16, LN, 800, 'margin-right:-.16em;') + '</span>')}
-          <div style="display:flex;gap:10px;margin-top:14px;padding:0 3px 4px 0;">
-            {idcard('홍예준', 'MARKSMAN · NO.{{11}}', '{{13}}', AC, [('POSITION', '위치', '{{14}}'), ('STANCE', '자세', '{{16}}'), ('GEAR', '복장', '{{15}}')])}
-            {idcard('전하민', 'INTERPRETER', '{{25}}', EVE, [('POSITION', '위치', '{{17}}'), ('STANCE', '자세', '{{19}}'), ('GEAR', '복장', '{{18}}')])}
-          </div>''')
+          {title('Profile', ('PLAYER × INTERPRETER', '· 프로필'))}
+          <div style="display:flex;gap:8px;">
+            {card('홍예준', 'PLAYER · NO.{{11}}', '{{13}}', AC, [('NOW', '지금 위치', '{{14}}'), ('POSE', '자세', '{{16}}'), ('OUTFIT', '오늘의 착장', '{{15}}')])}
+            {card('전하민', 'INTERPRETER', '{{25}}', EVE, [('NOW', '지금 위치', '{{17}}'), ('POSE', '자세', '{{19}}'), ('OUTFIT', '오늘의 착장', '{{18}}')])}
+          </div>
+          {foot('* 공식 프로필이 아닌 팬 기록 · 사진 대신 글로 남긴 오늘의 모습')}''')
 
-def shot(no, label, kr, ph, color, last=False):
-    return f'''<div style="display:flex;gap:10px;{'' if last else 'margin-bottom:8px;'}">
-            <div style="flex-shrink:0;position:relative;width:44px;border-radius:3px;background:{INK};">
-              <span style="position:absolute;left:3px;top:0;bottom:0;width:3px;background:repeating-linear-gradient(180deg,transparent 0 3px,rgba(255,253,248,.85) 3px 7px,transparent 7px 10px);"></span>
-              <span style="position:absolute;right:3px;top:0;bottom:0;width:3px;background:repeating-linear-gradient(180deg,transparent 0 3px,rgba(255,253,248,.85) 3px 7px,transparent 7px 10px);"></span>
-              <div style="position:absolute;left:9px;right:9px;top:50%;margin-top:-6px;text-align:center;line-height:12px;">{cap(no, 9, .02, color, 900, 'line-height:12px;')}</div>
-            </div>
-            <div style="flex:1;min-width:0;padding:8px 10px;border-radius:4px;background:#fff;box-shadow:0 0 0 1px {LINE};">
-              <div style="line-height:10px;">{cap(label, 8.5, .16, color, 800)} {cap('· ' + kr, 8.5, 0, LN, 600)}</div>
-              <div style="margin-top:4px;{F}font-size:11.5px;line-height:18px;color:{INK};">{ph}</div>
+def step(no, label, kr, ph, color, last=False):
+    """로드맵 한 칸 — 왼쪽 세로선 위 점 · 번호"""
+    line = '' if last else f'<span style="position:absolute;left:4px;top:14px;bottom:-12px;width:1px;background:{RULE};"></span>'
+    return f'''<div style="position:relative;display:flex;gap:12px;{'' if last else 'margin-bottom:12px;'}">
+            {line}<span style="flex-shrink:0;position:relative;top:3px;width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 2px {color};"></span>
+            <div style="flex:1;min-width:0;">
+              <div style="line-height:10px;">{cap(no + ' ' + label, 8.5, .16, color, 700)} {cap('· ' + kr, 8.5, 0, LN, 500)}</div>
+              <div style="margin-top:5px;{F}font-size:12px;line-height:19px;color:{INK};">{ph}</div>
             </div>
           </div>'''
 
 def note(label, kr, ph):
-    return f'''<div style="flex:1 1 160px;padding:10px 12px;border-radius:4px;background:#f3f5f9;box-shadow:inset 0 0 0 1px {LINE};">
-              <div style="line-height:10px;">{cap(label, 8.5, .14, AC, 800)} {cap(kr, 8.5, 0, LN, 600)}</div>
-              <div style="margin-top:6px;{F}font-size:11.5px;line-height:18px;color:{INK};">{ph}</div>
+    return f'''<div style="flex:1 1 160px;padding:11px 12px;border-radius:4px;background:#f5f6f8;">
+              <div style="line-height:10px;">{cap(label, 8.5, .16, AC, 700)} {cap(kr, 8.5, 0, LN, 500)}</div>
+              <div style="margin-top:6px;{F}font-size:12px;line-height:19px;color:{INK};">{ph}</div>
             </div>'''
 
-name_tag = lambda n, bg, key: tag(n, key, h=20, size=9.5, ls=0, pad=0, bg=bg, fg='#fff', radius=10, outline=False, extra=f'width:{A(key, "w") or 48}px;')
+name_tag = lambda n, bg, key: tag(n, key, h=20, size=9.5, ls=0, pad=0, bg=bg, fg='#fff', radius=2, outline=False, extra=f'width:{A(key, "w") or 48}px;', w=700)
 S3 = slide(2, f'''
-          {title('Series Plan', '훈련 계획')}
-          {sec('COURSE OF FIRE', 'course', '관계 사격 순서 · 밀착 인화', SKY, 14)}
-          {shot('01A', 'SERIES 1', '단기', '{{21}}', AC)}
-          {shot('02A', 'SERIES 2', '중기', '{{22}}', AC)}
-          {shot('03A', 'FINAL', '장기', '{{23}}', EVE, True)}
-          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;">
-            {note('RANGE TIME', '사선 일정', '{{28}}')}
-            {note('REQUEST', '홍예준 요청 사항', '{{29}}')}
+          {title('Schedule', ('ROADMAP', '· 둘의 스케줄'))}
+          {sec('ROADMAP', 'roadmap', '앞으로의 둘 · 가까운 날부터', 4)}
+          {step('01', 'NEXT', '가까운 날', '{{21}}', AC)}
+          {step('02', 'SOON', '머지않아', '{{22}}', AC)}
+          {step('03', 'SOMEDAY', '언젠가', '{{23}}', EVE, True)}
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;">
+            {note('CALENDAR', '일정', '{{28}}')}
+            {note('REQUEST', '예준의 부탁', '{{29}}')}
           </div>
-          {sec('RANGE RULES', 'rules', '사선 수칙 · 양측 합의', BUTTER, 20)}
-          <div style="position:relative;margin-top:12px;padding:16px 14px 12px;background:#fff;box-shadow:0 0 0 1px {LINE},3px 4px 10px -6px rgba(29,42,61,.35);">
-            {tape_piece('left:16px;top:-8px;', -6, 48)}{tape_piece('right:16px;top:-8px;', 6, 48)}
-            <div style="{F}font-size:11.5px;line-height:21px;color:{INK};">{{{{20}}}}</div>
-            <div style="display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:9px;border-top:1.5px dashed rgba(44,62,87,.25);">
-              <span style="margin-right:auto;display:flex;{K('_conf')}">{cap('CONFIRMED', 9, .16, LN, 800)}</span>
+          {sec('PROMISE', 'promise', '둘이 정한 약속')}
+          <div style="padding:12px 14px;border-radius:4px;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.14);">
+            <div style="{F}font-size:12px;line-height:21px;color:{INK};">{{{{20}}}}</div>
+            <div data-r="signed" style="display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid {LINE};">
+              <span style="margin-right:auto;display:flex;{K('_conf')}">{cap('SIGNED', 8.5, .2, LN, 700)}</span>
               {name_tag('홍예준', AC, 'n1')}{name_tag('전하민', EVE, 'n2')}
             </div>
           </div>''')
 
 S4 = slide(3, f'''
-          {title('Misfire', '불발 기록')}
-          {sec('UNFIRED PELLET', 'pellet', '장전만 되고 격발되지 않은 한마디', PINK, 14)}
-          <div style="position:relative;margin-top:4px;padding:22px 14px;border-radius:4px;background:{INK};">
-            <span style="position:absolute;left:0;right:0;top:6px;height:4px;background:repeating-linear-gradient(90deg,transparent 0 4px,rgba(255,253,248,.85) 4px 9px,transparent 9px 13px);"></span>
-            <span style="position:absolute;left:0;right:0;bottom:6px;height:4px;background:repeating-linear-gradient(90deg,transparent 0 4px,rgba(255,253,248,.85) 4px 9px,transparent 9px 13px);"></span>
-            <div style="position:relative;padding:14px 14px 12px;border-radius:3px;background:#0b111a;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);">
-              <div style="display:flex;justify-content:space-between;align-items:center;line-height:10px;">{cap('▶ 00 · NO IMAGE', 8.5, .14, LN, 800)}{cap('미노출', 8.5, .06, EVE, 800, K('_mino'))}</div>
-              <div style="margin-top:12px;{F}font-size:13px;line-height:22px;color:#f2f4f7;font-style:italic;">{{{{24}}}}</div>
-              <div style="margin-top:10px;text-align:right;line-height:10px;">{cap('SCORE 0.0', 8.5, .14, '#ff8c8f', 800)}</div>
-            </div>
+          {title('Unsent', ('DRAFTS', '· 보내지 못한 말'))}
+          {sec('DRAFT', 'draft', '쓰고 지우기를 반복한 메시지', 4)}
+          <div style="padding:14px 12px;border-radius:4px;background:#f5f6f8;">
+            <div style="text-align:center;line-height:10px;margin-bottom:12px;">{cap('홍예준 → 전하민 · 임시 저장', 8.5, .04, LN, 500)}</div>
+            {bubble('{{24}}', '<span data-r="fail" style="display:flex;align-items:center;gap:5px;margin-right:2px;"><span style="display:block;width:' + str(6 + A('_dot', 'd', 0)) + 'px;height:' + str(6 + A('_dot', 'd', 0)) + 'px;border-radius:50%;background:' + EVE + ';"></span>' + cap('전송 안 됨', 8.5, .02, EVE, 700, K('_mino')) + '</span>', True)}
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
-            <span style="line-height:11px;position:relative;top:{A('_st_top', 0)}px;">{cap('STATUS', 9, .14, LN, 800)} {cap('· 격발 보류', 9, 0, SUB, 600)}</span>
-            {tag('MISFIRE', 'misfire', h=20, size=9, ls=.14, pad=8, bg=EVE, fg='#fff', radius=3, outline=False)}
+          <div data-r="status" style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid {LINE};">
+            <span style="line-height:11px;position:relative;top:{A('_st_top', 't')}px;">{cap('STATUS', 9, .16, AC, 700)} {cap('· 아직 못 보냄', 9, 0, SUB, 500)}</span>
+            {tag('UNSENT', 'unsent', h=20, size=9, ls=.2, pad=9, bg=EVE, fg='#fff', radius=2, outline=False, w=700)}
           </div>
-          <div style="margin-top:10px;text-align:right;{F}font-size:9px;line-height:12px;color:{LN};">* 방아쇠에 손가락만 걸린 채 · 사선 밖으로 반출 금지</div>''')
+          {foot('* 예준의 휴대폰 임시 보관함에만 남아 있는 한 줄')}''')
 
 STAMP_SZ = 40 + A('stamp', 'h')
-PAPER_BODY = f'''<div style="margin:0 8px;padding:14px 12px 4px;background:{PAPER};box-shadow:inset 1.5px 0 0 {INK},inset -1.5px 0 0 {INK};">
+PAPER_BODY = f'''<div style="margin:0 8px;padding:6px 12px 4px;background:{PAPER};box-shadow:inset 1.5px 0 0 {INK},inset -1.5px 0 0 {INK};">
           <div style="display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:rgba(96,124,160,.35) transparent;align-items:flex-start;">
             {S1}
             {S2}
@@ -250,11 +262,11 @@ PAPER_BODY = f'''<div style="margin:0 8px;padding:14px 12px 4px;background:{PAPE
             {S4}
           </div>
         </div>
-        <div style="margin:0 8px;padding:12px 14px 14px;background:{PAPER};box-shadow:inset 1.5px 0 0 {INK},inset -1.5px 0 0 {INK},inset 0 -1.5px 0 {INK},0 10px 18px -10px rgba(29,42,61,.4);border-radius:0 0 6px 6px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:12px;border-top:1.5px dashed rgba(44,62,87,.25);">
+        <div style="margin:0 8px;padding:0 14px 14px;background:{PAPER};box-shadow:inset 1.5px 0 0 {INK},inset -1.5px 0 0 {INK},inset 0 -1.5px 0 {INK},0 10px 18px -10px rgba(29,42,61,.4);border-radius:0 0 6px 6px;">
+          <div data-r="foot" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:12px;border-top:1px solid {RULE};">
             <div style="min-width:0;">
-              <div style="line-height:11px;{K('_printed')}">{cap('PRINTED AT TEN RING LAB', 9, .16, INK, 900)}</div>
-              <div style="margin-top:5px;{F}{NUM}font-size:12px;font-weight:700;letter-spacing:.1em;line-height:14px;color:{EVE};text-shadow:0 0 5px rgba({EVE_RGB},.35);">{{{{3}}}} · {{{{11}}}}A</div>
+              <div style="line-height:11px;{K('_printed')}">{cap('HONG YEJUN FAN ARCHIVE', 9, .2, INK, 700)}</div>
+              <div style="margin-top:5px;{F}{NUM}font-size:11px;font-weight:600;letter-spacing:.16em;line-height:13px;color:{AC};">{{{{3}}}} · LANE {{{{11}}}}</div>
             </div>
             <span data-c="stamp" style="flex-shrink:0;display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:{STAMP_SZ}px;height:{STAMP_SZ}px;padding:{max(A('stamp','t'),0)}px 0 {max(-A('stamp','t'),0)}px;border-radius:50%;border:1.5px solid {EVE};box-shadow:inset 0 0 0 3px {PAPER},inset 0 0 0 4px rgba({EVE_RGB},.5);color:{EVE};{FT}{NUM}font-size:11px;font-weight:900;line-height:12px;transform:rotate(-12deg);">10.9</span>
           </div>
