@@ -133,7 +133,7 @@ def sec(label, key, top=20):
     return f'''<div style="display:flex;margin:{top}px 0 10px;">{tape(label, key)}</div>'''
 
 def slide(on, body):
-    return f'''<div data-s="{on}" style="flex:0 0 100%;min-width:0;scroll-snap-align:start;box-sizing:border-box;padding:0 8px 14px;">
+    return f'''<div data-s="{on}" style="flex:0 0 100%;min-width:0;scroll-snap-align:start;box-sizing:border-box;height:456px;overflow-y:auto;overscroll-behavior-y:contain;padding:0 8px 14px;scrollbar-width:thin;scrollbar-color:rgba(96,124,160,.35) transparent;">
           {strip(on)}
           {body}
         </div>'''
