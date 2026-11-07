@@ -133,7 +133,7 @@ def sec(label, key, top=20):
     return f'''<div style="display:flex;margin:{top}px 0 10px;">{tape(label, key)}</div>'''
 
 def slide(on, body):
-    return f'''<div data-s="{on}" style="flex:0 0 100%;min-width:0;scroll-snap-align:start;box-sizing:border-box;height:456px;overflow-y:auto;overscroll-behavior-y:contain;padding-right:4px;scrollbar-width:thin;scrollbar-color:rgba(96,124,160,.35) transparent;">
+    return f'''<div data-s="{on}" style="flex:0 0 100%;min-width:0;scroll-snap-align:start;box-sizing:border-box;height:456px;overflow-y:auto;overscroll-behavior-y:contain;padding:0 8px 14px;scrollbar-width:thin;scrollbar-color:rgba(96,124,160,.35) transparent;">
           {strip(on)}
           {body}
         </div>'''
@@ -182,8 +182,8 @@ S1 = slide(0, f'''
 
 def kv(label, ph, color, first=False):
     """왼쪽 머리글 칸 · 오른쪽 글 — 홈 SCRAP 리스트처럼 얇은 선으로 나눈 한 줄"""
-    return f'''<div data-r="kv" style="display:flex;align-items:center;gap:10px;padding:9px 0;{'' if first else 'border-top:1px solid ' + LINE + ';'}">
-                <span style="flex-shrink:0;width:56px;line-height:10px;{K('_kv')}">{cap(label, 8.5, .16, color, 700)}</span>
+    return f'''<div data-r="kv" style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;{'' if first else 'border-top:1px solid ' + LINE + ';'}">
+                <span style="flex-shrink:0;width:56px;display:flex;height:19px;align-items:center;{K('_kv')}">{cap(label, 8.5, .16, color, 700)}</span>
                 <span style="flex:1;min-width:0;{F}font-size:12px;line-height:19px;color:{INK};">{ph}</span>
               </div>'''
 
@@ -274,7 +274,7 @@ S4 = slide(3, f'''
           </div>''')
 
 STAMP_SZ = 40 + A('stamp', 'h')
-PAPER_BODY = f'''<div style="margin:0 8px;padding:6px 12px 4px;background:{PAPER};box-shadow:inset 1.5px 0 0 {INK},inset -1.5px 0 0 {INK};">
+PAPER_BODY = f'''<div style="margin:0 8px;padding:6px 4px 4px;background:{PAPER};box-shadow:inset 1.5px 0 0 {INK},inset -1.5px 0 0 {INK};">
           <div style="display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:rgba(96,124,160,.35) transparent;align-items:flex-start;">
             {S1}
             {S2}
