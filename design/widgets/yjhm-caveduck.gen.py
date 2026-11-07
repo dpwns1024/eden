@@ -188,30 +188,24 @@ def kv(label, ph, color, first=False):
               </div>'''
 
 BARCODE = f'repeating-linear-gradient(90deg,{LN} 0 1px,transparent 1px 3px,{LN} 3px 5px,transparent 5px 6px,{LN} 6px 7px,transparent 7px 10px)'
-def pass_(name, role, no, ph, color, fields):
+def pass_(name, ph, color, fields):
     """출입증(AD 카드) — 왼쪽 색 띠 · 이름 · 한 줄 상태 · 아래 두 칸"""
     rows = ''.join(kv(lab, p, color, i == 0) for i, (lab, p) in enumerate(fields))
-    return f'''<div style="position:relative;padding:12px 14px 4px 18px;border-radius:4px;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.14);overflow:hidden;">
+    return f'''<div style="position:relative;padding:14px 14px 4px 18px;border-radius:4px;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.14);overflow:hidden;">
               <span style="position:absolute;left:0;top:0;bottom:0;width:4px;background:{color};"></span>
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
-                <div style="min-width:0;">
-                  <div style="line-height:10px;">{cap(role, 8.5, .18, color, 700)}</div>
-                  <div style="margin-top:6px;{F}font-size:18px;font-weight:800;letter-spacing:-.02em;line-height:21px;color:{INK};white-space:nowrap;">{name}</div>
-                </div>
-                <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
-                  <span style="display:block;width:44px;height:14px;background:{BARCODE};"></span>
-                  <span style="line-height:10px;">{cap(no, 8.5, .16, LN, 700, 'margin-right:-.16em;')}</span>
-                </div>
+              <div data-r="pass" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+                <div style="min-width:0;{F}font-size:18px;font-weight:800;letter-spacing:-.02em;line-height:21px;color:{INK};white-space:nowrap;">{name}</div>
+                <span style="flex-shrink:0;display:block;position:relative;top:1px;width:44px;height:15px;background:{BARCODE};"></span>
               </div>
-              <div style="margin-top:4px;padding-bottom:10px;border-bottom:1px dashed rgba(44,62,87,.2);{F}font-size:11.5px;line-height:18px;color:{SUB};">{ph}</div>
+              <div style="margin-top:6px;padding-bottom:10px;border-bottom:1px dashed rgba(44,62,87,.2);{F}font-size:11.5px;line-height:18px;color:{SUB};">{ph}</div>
               {rows}
             </div>'''
 
 S2 = slide(1, f'''
           {title('Profile')}
           <div style="display:flex;flex-direction:column;gap:10px;">
-            {pass_('홍예준', 'PLAYER', 'NO.{{11}}', '{{13}}', AC, [('POSE', '{{16}}'), ('OUTFIT', '{{15}}')])}
-            {pass_('전하민', 'INTERPRETER', 'STAFF', '{{25}}', EVE, [('POSE', '{{19}}'), ('OUTFIT', '{{18}}')])}
+            {pass_('홍예준', '{{13}}', AC, [('POSE', '{{16}}'), ('OUTFIT', '{{15}}')])}
+            {pass_('전하민', '{{25}}', EVE, [('POSE', '{{19}}'), ('OUTFIT', '{{18}}')])}
           </div>''')
 
 PERF_V = 'repeating-linear-gradient(180deg,transparent 0 4px,rgba(238,240,243,.9) 4px 9px,transparent 9px 13px)'
@@ -249,7 +243,7 @@ S3 = slide(2, f'''
           {sec('TICKET', 'memo', 18)}
           <div style="border-radius:6px;background:#fff;box-shadow:0 0 0 1px rgba(44,62,87,.14);overflow:visible;">
             <div data-r="tkh" style="display:flex;justify-content:space-between;align-items:center;height:28px;padding:0 14px;border-radius:6px 6px 0 0;background:{AC};">
-              {cap('ADMIT TWO', 8.5, .2, '#fff', 800)}{cap('LANE {{11}} · {{3}}', 8.5, .14, 'rgba(255,255,255,.8)', 600, 'margin-right:-.14em;')}
+              {cap('ADMIT TWO', 8.5, .2, '#fff', 800)}
             </div>
             {ticket_row('CALENDAR', '{{28}}')}
             <div style="position:relative;height:0;margin:0 14px;border-top:1.5px dashed rgba(44,62,87,.2);">
@@ -270,7 +264,6 @@ S3 = slide(2, f'''
 
 S4 = slide(3, f'''
           {title('Unsent')}
-          {sec('DRAFT', 'draft', 4)}
           <div style="padding:14px 12px;border-radius:4px;background:#f5f6f8;">
             <div style="text-align:center;line-height:10px;margin-bottom:12px;">{cap('홍예준 → 전하민 · 임시 저장', 8.5, .04, LN, 500)}</div>
             {bubble('{{24}}', '<span data-r="fail" style="display:flex;align-items:center;gap:5px;margin-right:2px;"><span style="display:block;width:' + str(6 + A('_dot', 'd', 0)) + 'px;height:' + str(6 + A('_dot', 'd', 0)) + 'px;border-radius:50%;background:' + EVE + ';"></span>' + cap('전송 안 됨', 8.5, .02, EVE, 700, K('_mino')) + '</span>', True)}
