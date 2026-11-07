@@ -10,6 +10,7 @@ FT = "font-family:'Inter','Pretendard Variable','Pretendard',-apple-system,Blink
 NUM = "font-variant-numeric:tabular-nums;"
 INK, NV2, AC, SUB, FAINT, LN, BG = '#1d2a3d', '#2c3e57', '#607ca0', '#4a5a70', '#6c7a8c', '#9fb0c6', '#eef0f3'
 SKY, PINK, BUTTER, STAMP = '#cfe0f5', '#f6c9d4', '#fbe7a6', '#ff8a3d'
+EVE = '#ff5a64'   # 이브(EVEDEN) 테마 붉은색 — archdoc.css --red
 BTN = '기사 전문 보기♡'
 
 def cap(text, size=9, ls=.16, color=AC, w=700, extra=''):
@@ -30,29 +31,36 @@ heart = lambda pos, size, rot, color=PINK: f'<span style="position:absolute;{pos
 spark = lambda pos, size, color='#fff': f'<span style="position:absolute;{pos}z-index:2;{FT}font-size:{size}px;line-height:{size}px;color:{color};text-shadow:0 0 6px rgba(255,255,255,.9);">✦</span>'
 tape_piece = lambda pos, rot, w=56: f'<span style="position:absolute;{pos}z-index:4;width:{w}px;height:18px;background:rgba(207,224,245,.82);box-shadow:0 1px 2px rgba(29,42,61,.15);transform:rotate({rot}deg);"></span>'
 
-def screen(h, radius=14, square=False):
-    """파인더 화면 — 볼거리로 채운다: 과녁 링 · 빛샘 · 반짝이 · 하트 초점 · 프레임 번호 · 날짜 각인"""
+def screen(h, radius=14, square=False, red=False):
+    """파인더 화면 — 볼거리로 채운다: 과녁 링 · 빛샘 · 반짝이 · 하트 초점 · 프레임 번호 · 날짜 각인
+    red — 포인트 색을 #607ca0 · 이브 붉은색(#ff5a64)으로 (시안 4)"""
+    leak1 = 'rgba(255,90,100,.42),rgba(255,140,150,.18) 45%' if red else 'rgba(255,150,90,.55),rgba(255,190,140,.25) 45%'
+    leak2 = 'rgba(96,124,160,.42)' if red else 'rgba(246,201,212,.75)'
+    fb = EVE if red else PINK
+    ht = EVE if red else '#e98aa2'
+    sp3 = EVE if red else BUTTER
+    stp, glow = (EVE, 'rgba(255,90,100,.5)') if red else (STAMP, 'rgba(255,138,61,.55)')
     return f'''<div style="position:relative;height:{h}px;border-radius:{radius}px;overflow:hidden;background:linear-gradient(160deg,#fdfbf5,#e4ecf6 55%,#c9d7ea);box-shadow:inset 0 0 0 1px rgba(29,42,61,.12),inset 0 0 26px rgba(29,42,61,.18);">
           <div style="position:absolute;left:50%;top:50%;width:420px;height:420px;margin:-210px 0 0 -210px;border-radius:50%;background:repeating-radial-gradient(circle,transparent 0 22px,rgba(96,124,160,.16) 22px 23.5px);"></div>
-          <div style="position:absolute;right:-40px;top:-50px;width:190px;height:170px;border-radius:50%;background:radial-gradient(circle,rgba(255,150,90,.55),rgba(255,190,140,.25) 45%,transparent 70%);"></div>
-          <div style="position:absolute;left:-30px;bottom:-40px;width:150px;height:130px;border-radius:50%;background:radial-gradient(circle,rgba(246,201,212,.75),transparent 70%);"></div>
+          <div style="position:absolute;right:-40px;top:-50px;width:190px;height:170px;border-radius:50%;background:radial-gradient(circle,{leak1},transparent 70%);"></div>
+          <div style="position:absolute;left:-30px;bottom:-40px;width:150px;height:130px;border-radius:50%;background:radial-gradient(circle,{leak2},transparent 70%);"></div>
           <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(29,42,61,.22) 30%,transparent 36%);background-size:3px 3px;opacity:.22;"></div>
           <div style="position:absolute;left:16px;right:16px;top:14px;bottom:14px;border:1.5px solid rgba(255,255,255,.95);border-radius:6px;box-shadow:0 0 0 1px rgba(96,124,160,.18);"></div>
           <span style="position:absolute;left:24px;top:22px;z-index:2;{F}{NUM}font-size:9px;font-weight:800;letter-spacing:.14em;line-height:10px;color:{AC};">▶ {{{{11}}}}A</span>
           <span style="position:absolute;right:24px;top:22px;z-index:2;display:flex;gap:3px;align-items:flex-end;">{''.join(f'<span style="width:3px;height:{x}px;border-radius:1px;background:{AC};"></span>' for x in (4, 7, 10))}</span>
-          {spark('left:26%;top:26%;', 12)}{spark('right:18%;top:40%;', 9)}{spark('left:16%;bottom:30%;', 10, BUTTER)}
+          {spark('left:26%;top:26%;', 12)}{spark('right:18%;top:40%;', 9)}{spark('left:16%;bottom:30%;', 10, sp3)}
           <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;text-align:center;">
             <div style="position:relative;display:inline-block;padding:10px 18px;">
-              <span style="position:absolute;left:0;top:0;width:12px;height:12px;border:2px solid {PINK};border-width:2px 0 0 2px;border-radius:4px 0 0 0;"></span>
-              <span style="position:absolute;right:0;top:0;width:12px;height:12px;border:2px solid {PINK};border-width:2px 2px 0 0;border-radius:0 4px 0 0;"></span>
-              <span style="position:absolute;left:0;bottom:0;width:12px;height:12px;border:2px solid {PINK};border-width:0 0 2px 2px;border-radius:0 0 0 4px;"></span>
-              <span style="position:absolute;right:0;bottom:0;width:12px;height:12px;border:2px solid {PINK};border-width:0 2px 2px 0;border-radius:0 0 4px 0;"></span>
-              <span style="position:absolute;left:50%;top:-12px;margin-left:-7px;{FT}font-size:14px;line-height:14px;color:#e98aa2;">♥</span>
+              <span style="position:absolute;left:0;top:0;width:12px;height:12px;border:2px solid {fb};border-width:2px 0 0 2px;border-radius:4px 0 0 0;"></span>
+              <span style="position:absolute;right:0;top:0;width:12px;height:12px;border:2px solid {fb};border-width:2px 2px 0 0;border-radius:0 4px 0 0;"></span>
+              <span style="position:absolute;left:0;bottom:0;width:12px;height:12px;border:2px solid {fb};border-width:0 0 2px 2px;border-radius:0 0 0 4px;"></span>
+              <span style="position:absolute;right:0;bottom:0;width:12px;height:12px;border:2px solid {fb};border-width:0 2px 2px 0;border-radius:0 0 4px 0;"></span>
+              <span style="position:absolute;left:50%;top:-12px;margin-left:-7px;{FT}font-size:14px;line-height:14px;color:{ht};">♥</span>
               <div style="{F}font-size:17px;font-weight:900;letter-spacing:-.03em;line-height:23px;color:{INK};white-space:nowrap;">{{{{1}}}}</div>
               <div style="{F}font-size:11px;font-weight:600;line-height:16px;color:{SUB};white-space:nowrap;">{{{{2}}}}</div>
             </div>
           </div>
-          <span style="position:absolute;right:24px;bottom:20px;z-index:2;{F}{NUM}font-size:13px;font-weight:700;letter-spacing:.1em;line-height:14px;color:{STAMP};text-shadow:0 0 5px rgba(255,138,61,.55);">{{{{3}}}}</span>
+          <span style="position:absolute;right:24px;bottom:20px;z-index:2;{F}{NUM}font-size:13px;font-weight:700;letter-spacing:.1em;line-height:14px;color:{stp};text-shadow:0 0 5px {glow};">{{{{3}}}}</span>
           <span style="position:absolute;left:24px;bottom:20px;z-index:2;{F}font-size:9px;font-weight:800;letter-spacing:.14em;line-height:10px;color:{AC};">ISO 400 · ☀</span>
         </div>'''
 
@@ -135,28 +143,32 @@ D3 = wrap(f'''
     </div>''', bg='#fbf7f9')
 
 # ───────── 시안 4 · 셀카 필카 — 버튼: 당기는 필름 감기 레버 ─────────
-lever_btn = f'''<div style="position:relative;height:50px;">
-      <div style="position:absolute;left:0;top:50%;z-index:2;margin-top:-23px;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#dfe6ef 60%,#b9c4d3);box-shadow:0 0 0 2px {INK},3px 3px 0 2px {INK};"></div>
-      <span style="position:absolute;left:17px;top:50%;z-index:3;margin-top:-6px;width:12px;height:12px;border-radius:50%;background:{INK};"></span>
-      <div style="position:absolute;left:22px;right:0;top:50%;margin-top:-20px;height:40px;border-radius:0 20px 20px 0;background:{NV2};box-shadow:0 0 0 2px {INK},3px 3px 0 2px {INK};transform:rotate(-2deg);transform-origin:left center;display:flex;align-items:center;justify-content:center;padding-left:26px;{F}font-size:14px;font-weight:900;line-height:16px;color:#fff;">{BTN}
-        <span style="position:absolute;right:12px;{FT}font-size:12px;font-weight:900;line-height:12px;color:{PINK};">⟳</span>
+print_btn = f'''<div style="display:flex;align-items:center;gap:12px;">
+      <div style="flex-shrink:0;display:flex;align-items:center;gap:6px;">
+        <span style="display:block;width:8px;height:8px;border-radius:50%;background:{EVE};box-shadow:0 0 6px {EVE};"></span>
+        {cap('PRINT', 9, .2, AC, 800)}
+      </div>
+      <div style="position:relative;flex:1;min-width:0;height:42px;">
+        <div style="position:absolute;left:0;right:0;top:0;z-index:2;height:10px;border-radius:5px;background:{INK};box-shadow:inset 0 2px 3px rgba(0,0,0,.55);"></div>
+        <div style="position:absolute;left:10%;right:10%;top:5px;height:36px;background:#fff;box-shadow:0 0 0 1.5px {INK},2px 2px 0 1.5px {INK};transform:rotate(-1deg);display:flex;align-items:center;justify-content:center;gap:8px;padding-top:5px;box-sizing:border-box;">
+          <span style="position:absolute;left:6px;top:8px;bottom:4px;width:4px;background:linear-gradient(180deg,{AC} 50%,{EVE} 50%);"></span>
+          <span style="{F}font-size:13px;font-weight:900;line-height:16px;color:{NV2};">{BTN}</span>
+        </div>
       </div>
     </div>'''
 D4 = wrap(f'''
     <div style="padding:20px 18px 18px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <span style="display:flex;align-items:center;gap:6px;">{cap('SELFIE FILM', 10, .16, INK, 900)}<span style="display:inline-flex;align-items:center;height:18px;padding:0 7px;border-radius:9px;background:{PINK};box-shadow:0 0 0 1.5px {INK};{F}font-size:9px;font-weight:900;line-height:10px;color:{INK};">REC ♡</span></span>
+        <span style="display:flex;align-items:center;gap:6px;">{cap('SELFIE FILM', 10, .16, INK, 900)}<span style="display:inline-flex;align-items:center;height:18px;padding:0 7px;border-radius:9px;background:{AC};box-shadow:0 0 0 1.5px {INK};{F}font-size:9px;font-weight:900;line-height:10px;color:#fff;">REC ♡</span></span>
         {cap('LANE {{11}} · {{4}}', 9.5, .1, AC, 700)}
       </div>
       <div style="position:relative;padding:10px;border-radius:22px;background:{SKY};box-shadow:0 0 0 2px {INK},4px 4px 0 2px {INK};">
         <div style="position:absolute;left:50%;top:-9px;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:radial-gradient(circle,#3a4a60 0 35%,{INK} 36%);box-shadow:0 0 0 2px #fff,0 0 0 3.5px {INK};z-index:3;"></div>
-        {screen(200, 14)}
+        {screen(200, 14, red=True)}
         {tape_piece('left:24px;top:-8px;', -12)}
         {tape_piece('right:24px;bottom:-8px;', 10)}
-        {heart('left:-10px;bottom:24px;', 24, -18)}
-        {sticker('예준 최고 ♡', 'right:-10px;top:30px;', 9, '#fff', NV2, 10, '4px 9px', 10)}
       </div>
-      <div style="margin-top:20px;">{lever_btn}</div>
+      <div style="margin-top:20px;">{print_btn}</div>
     </div>''')
 
 DRAFTS = [('1', '화이트 토이 카메라', D1), ('2', '즉석 카메라', D2), ('3', '일회용 카메라 스티커판', D3), ('4', '셀카 필카', D4)]
