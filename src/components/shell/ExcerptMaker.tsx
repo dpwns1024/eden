@@ -38,6 +38,69 @@ const PR = 2;   // toPng pixelRatio
 const SANS = `'Pretendard Variable', 'Pretendard', sans-serif`;
 const MONO = /mono|consol|courier|menlo|monaco|code|d2coding|che\b|체|typewriter|fixed/i;
 
+/* ── 그림에 실을 글꼴은 카드에 실제로 나오는 글자의 조각만 (v2.0 사용자 제보 — 발췌 글자가 군데군데 빠짐) ──
+   html-to-image는 페이지의 @font-face를 전부(Pretendard 92조각 + 구글 글꼴 조각 수백 개) 그림 안에 넣는데,
+   그림이 너무 커지면 사파리 등에서 일부 조각을 다 읽기 전에 그려 버려 그 조각 글자만 빈칸으로 찍혔다 (font-display: block).
+   카드에 쓰인 글꼴 이름 + 글자가 걸치는 unicode-range 조각만 골라 넣는다 */
+const fontData = new Map<string, Promise<string>>();
+const toDataUrl = (url: string) => {
+  let p = fontData.get(url);
+  if (!p) {
+    p = fetch(url).then(r => { if (!r.ok) throw new Error(String(r.status)); return r.blob(); })
+      .then(b => new Promise<string>((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result)); fr.onerror = no; fr.readAsDataURL(b); }));
+    p.catch(() => fontData.delete(url));
+    fontData.set(url, p);
+  }
+  return p;
+};
+const famKey = (f: string) => f.trim().replace(/^["']|["']$/g, '').toLowerCase();
+function inRange(range: string, cps: number[]) {
+  if (!range) return true;
+  const rs = range.split(',').map(t => {
+    const m = t.trim().replace(/^u\+/i, '');
+    if (m.includes('?')) return [parseInt(m.replace(/\?/g, '0'), 16), parseInt(m.replace(/\?/g, 'f'), 16)];
+    const [a, b] = m.split('-');
+    return [parseInt(a, 16), parseInt(b ?? a, 16)];
+  });
+  return cps.some(c => rs.some(([a, b]) => c >= a && c <= b));
+}
+async function buildFontCSS(card: HTMLElement): Promise<string> {
+  const fams = new Set<string>();
+  const chars = new Set<number>();
+  [card, ...Array.from(card.querySelectorAll<HTMLElement>('*'))].forEach(el => {
+    getComputedStyle(el).fontFamily.split(',').forEach(f => fams.add(famKey(f)));
+    ['::before', '::after'].forEach(ps => {
+      const c = getComputedStyle(el, ps).content;
+      if (c && c !== 'none' && c !== 'normal') for (const ch of c) chars.add(ch.codePointAt(0)!);
+    });
+  });
+  for (const ch of card.textContent ?? '') chars.add(ch.codePointAt(0)!);
+  const cps = Array.from(chars);
+  const rules: CSSFontFaceRule[] = [];
+  const walk = (list: CSSRuleList) => {
+    for (const r of Array.from(list)) {
+      if (r instanceof CSSFontFaceRule) rules.push(r);
+      else if ('cssRules' in r && (r as CSSGroupingRule).cssRules) walk((r as CSSGroupingRule).cssRules);
+    }
+  };
+  for (const sh of Array.from(document.styleSheets)) { try { walk(sh.cssRules); } catch { /* 다른 곳 글꼴표는 못 읽음 — 건너뜀 */ } }
+  const out = await Promise.all(rules.map(async r => {
+    if (!fams.has(famKey(r.style.getPropertyValue('font-family')))) return '';
+    if (!inRange(r.style.getPropertyValue('unicode-range'), cps)) return '';
+    const base = r.parentStyleSheet?.href ?? location.href;
+    let css = r.cssText;
+    const urls = Array.from(css.matchAll(/url\((['"]?)([^'")]+)\1\)/g)).map(m => m[2]).filter(u => !u.startsWith('data:'));
+    try {
+      for (const u of new Set(urls)) {
+        const d = await toDataUrl(new URL(u, base).href);
+        css = css.split(u).join(d);
+      }
+    } catch { return ''; }
+    return css;
+  }));
+  return out.filter(Boolean).join('\n');
+}
+
 /** 카드 안 인용구 딱지 자리 · 색 · 이름 (카드 왼쪽 위 기준 CSS px) */
 function collectTags(card: HTMLElement): QuoteTag[] {
   const cr = card.getBoundingClientRect();
@@ -672,8 +735,15 @@ export function ExcerptMaker() {
       const glows = collectGlows(card);
       const boxTags = collectBoxTags(card);   // 번짐을 읽은 뒤에 비운다
       card.classList.add('ex-tags-later');
+      let fontEmbedCSS: string | undefined;
+      try { fontEmbedCSS = await buildFontCSS(card); } catch { /* 못 고르면 html-to-image가 알아서 */ }
+      const o = fontEmbedCSS ? { ...opts, fontEmbedCSS } : opts;
       let url: string;
-      try { url = await toPng(card, opts); }
+      /* 사파리는 그림 속 글꼴을 처음 한 번은 다 읽기 전에 그려 버리기도 해, 한 번 먼저 그려 글꼴을 깨워 둔다 */
+      if (/AppleWebKit/.test(navigator.userAgent) && !/Chrome|Chromium|Android/.test(navigator.userAgent)) {
+        try { await toPng(card, o); } catch { /* 본 찍기에서 다시 */ }
+      }
+      try { url = await toPng(card, o); }
       catch { url = await toPng(card, { ...opts, skipFonts: true }); }   // 글꼴을 못 받아 오면 글꼴 없이라도
       try { url = await drawTags(url, tags, glows, boxTags); } catch { /* 못 그리면 딱지 없는 그림이라도 */ }
       if (photoEl && photoRect) {
