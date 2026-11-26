@@ -150,30 +150,39 @@ export function LetterSpacingFix() {
     let timer = 0;
     const later = () => { clearTimeout(timer); timer = window.setTimeout(scan, 120); };
     // 화면 폭이 바뀌면 자간(em 단위)도 바뀔 수 있다 — 붙였던 보정을 걷고 다시 잰다
+    let lastW = window.innerWidth;
     const reset = () => {
       document.querySelectorAll<HTMLElement>('[data-lsfix]').forEach(el => { undo(el); seen.delete(el); });
       later();
     };
+    // 딱지 맞춤(TagAlign)이 글자를 재려고 잠깐 감쌌다 푸는 태그 — 화면이 바뀐 게 아니다
+    const probe = (n: Node) => n.nodeName === 'TAG-ALIGN-W' || n.nodeName === 'TAG-ALIGN-P';
     const mo = new MutationObserver(recs => {
       const roots = new Set<Element>();
+      let real = false;
       for (const r of recs) {
+        if (probe(r.target) || [...r.addedNodes].some(probe) || [...r.removedNodes].some(probe)) continue;
+        real = true;
         if (r.type === 'childList') r.addedNodes.forEach(n => {
           if (n.nodeType === 1) roots.add(n as Element);
           else if (n.parentElement) roots.add(n.parentElement);
         });
         else { const t = r.target.nodeType === 1 ? r.target as Element : r.target.parentElement; if (t) roots.add(t); }
       }
+      if (!real) return;
       roots.forEach(el => { if (el.isConnected) markKo(el); });
       later();
     });
     markKo();
     mo.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class'] });
-    window.addEventListener('resize', reset);
+    // 폭이 바뀔 때만 — 아이패드 · 아이폰 사파리는 스크롤하며 주소창이 접힐 때마다 높이만 바뀌는 resize를 보낸다
+    const onResize = () => { if (window.innerWidth === lastW) return; lastW = window.innerWidth; reset(); };
+    window.addEventListener('resize', onResize);
     // 디자인(스킨)이 늦게 붙으며 자간이 transition으로 커지는 버튼 — 다 커진 뒤 다시 잰다
     document.addEventListener('transitionend', later, true);
     document.fonts?.ready.then(reset).catch(() => {});
     later();
-    return () => { mo.disconnect(); window.removeEventListener('resize', reset); document.removeEventListener('transitionend', later, true); clearTimeout(timer); };
+    return () => { mo.disconnect(); window.removeEventListener('resize', onResize); document.removeEventListener('transitionend', later, true); clearTimeout(timer); };
   }, []);
   return null;
 }

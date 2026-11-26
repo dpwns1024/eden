@@ -47,11 +47,20 @@ function useDevtoolsTrap(active: boolean) {
   useEffect(() => {
     if (!active) return;
     let dead = false;
-    const tick = () => {
-      if (dead) return;
+    /** debugger 문에서 멈춘 시간 */
+    const stall = () => {
       const t0 = performance.now();
       try { (new Function('debugger'))(); } catch { /* 무시 */ }
-      if (performance.now() - t0 > 200) {
+      return performance.now() - t0;
+    };
+    const tick = () => {
+      if (dead) return;
+      // 화면에 안 보이는 탭(다른 앱 · 다른 탭으로 옮김)은 기기가 멈춰 둘 수 있다 — 재지 않는다
+      if (document.visibilityState !== 'visible') return;
+      // 한 번 느린 것은 개발자 도구가 아니라 기기가 바빴던 것일 수 있다 (아이패드 사파리 — 세계를 바꾸는 순간 · 메모리 정리로
+      // 0.2초 넘게 멈춰 방문자가 「개발자 도구 감지」 화면으로 쫓겨났다, 사용자 제보). 개발자 도구가 열려 있으면 매번 멈추므로
+      // 바로 한 번 더 재서 또 멈출 때만 막는다
+      if (stall() > 200 && stall() > 200) {
         dead = true;
         try { window.stop(); } catch { /* 무시 */ }
         window.location.replace('/blocked.html');

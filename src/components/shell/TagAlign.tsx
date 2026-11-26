@@ -413,10 +413,15 @@ export function TagAlign() {
       });
       void document.body.offsetWidth;
       snaps.forEach((el, i) => el.style.setProperty('transition', trans[i][0], trans[i][1]));
+      // 방금 잰다고 내가 바꾼 것(글자를 잠깐 감싼 태그 · 여백 · 자리)은 「화면이 바뀌었다」가 아니다 — 버린다.
+      // 예전엔 이걸 다시 알아채 0.15초마다 끝없이 다시 재서, 가만히 둔 YJHM 메인도 CPU를 계속 썼다
+      // (사용자 제보 — 아이패드 사파리에서 엄청 느리고, 탭이 메모리 부족으로 다시 떠 오류 페이지가 났다)
+      mo.takeRecords();
     };
     let timer = 0;
     const later = () => { clearTimeout(timer); timer = window.setTimeout(scan, 150); };
     // 화면 폭 · 글꼴이 바뀌면 처음부터 다시 잰다 (잰 기록도 지운다 — 남겨 두면 되돌린 채로 건너뛰었다)
+    let lastW = window.innerWidth;
     const reset = () => {
       seen = new WeakMap();
       document.querySelectorAll<HTMLElement>(`${SEL},${BTN}`).forEach(el => restore(el));
@@ -425,13 +430,16 @@ export function TagAlign() {
     };
     const mo = new MutationObserver(later);
     mo.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class'] });
-    window.addEventListener('resize', reset);
+    // 폭이 바뀔 때만 — 아이패드 · 아이폰 사파리는 스크롤하며 주소창이 접힐 때마다 높이만 바뀌는 resize를 보내,
+    // 스크롤할 때마다 모든 딱지를 되돌렸다가 다시 재서 버벅이고 글자가 들썩였다
+    const onResize = () => { if (window.innerWidth === lastW) return; lastW = window.innerWidth; reset(); };
+    window.addEventListener('resize', onResize);
     // 화면이 움직이며 들어오는 동안(페이지 · 창 등장 애니메이션) 잰 자리는 끝나면 달라진다 — 끝나면 다시
     document.addEventListener('animationend', later);
     document.fonts?.ready.then(reset).catch(() => {});
     document.fonts?.addEventListener?.('loadingdone', reset);   // 늦게 붙는 글꼴(ARCH 웹폰트)이 도착하면 다시 잰다
     later();
-    return () => { mo.disconnect(); window.removeEventListener('resize', reset); document.removeEventListener('animationend', later); document.fonts?.removeEventListener?.('loadingdone', reset); clearTimeout(timer); };
+    return () => { mo.disconnect(); window.removeEventListener('resize', onResize); document.removeEventListener('animationend', later); document.fonts?.removeEventListener?.('loadingdone', reset); clearTimeout(timer); };
   }, []);
   return null;
 }
