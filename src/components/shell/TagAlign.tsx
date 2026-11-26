@@ -17,6 +17,8 @@ const SEL = [
   'html.ui-yjhm .yj-quote .yj-tape', 'html.ui-yjhm .by-it em',
   // YJHM 메인 SCRAP · GUESTBOOK 테이프 — 폰에서 작게 줄이자 글자가 1px 넘게 위로 떴다
   'html.ui-yjhm .yj-sec-h .yj-tape',
+  // YJHM 오류 화면의 PAGE ERROR 테이프 (components/shell/ErrorScreen.tsx)
+  'html.ui-yjhm .yj-err .yj-tape',
   // YJHM 한마디 흰 띠 — 끝 글자(마침표 등) 옆 여백만큼 글자가 왼쪽으로 쏠렸다. 잘린(…) 글은 건드리지 않는다
   'html.ui-yjhm .yj-quote > span',
   // YJHM 목록 위 탭(ALL 1 · YJHM 1 — 안에 작은 숫자 <small>) — 사용자 제보
@@ -98,7 +100,8 @@ const textOnly = (el: Element): boolean => [...el.children].every(c =>
 
 /** JS 맞춤에서 뺀 상자 — CSS만으로 가운데에 둔다. YJHM 바인더 책갈피: canvas 글자 치수가 브라우저(아이폰 사파리)마다 달라
  *  크롬에선 맞던 것이 폰에서 0.5~1px 쏠렸다 (사용자 제보). 대칭 여백 + 고정 기준선 보정이 어느 브라우저에서나 같다 */
-const SKIP = (el: HTMLElement) => !!el.closest('.yj-bm');
+/*  오류 화면 버튼(components/shell/ErrorScreen.tsx)도 — 크기 · 자리를 정수 px로 박고 글자 자리를 화면에서 재 맞춰 두었다. 여기서 또 옮기면 1px씩 어긋났다 */
+const SKIP = (el: HTMLElement) => !!el.closest('.yj-bm, .yj-err-act');
 
 function fix(el: HTMLElement, guard = false) {
   if (!el.offsetWidth || SKIP(el)) return;
