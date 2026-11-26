@@ -47,6 +47,10 @@ export async function generateMetadata(): Promise<Metadata> {
     ...(favicon ? { icons: { icon: favicon, apple: favicon } } : {}),
     // 홈 화면에 추가 → 앱처럼(주소창 없이) 열기 (v2.0 사용자 요청). 아이폰 위쪽 상태 표시줄은 검게
     appleWebApp: { capable: true, title, statusBarStyle: 'black' },
+    // 아이폰 · 아이패드 사파리가 숫자(NO.0267 · 2026.03.05 · ISO 200 …)를 전화번호 · 날짜로 짐작해 글자를 몰래 링크로 감싸지 않게.
+    // 감싼 글자는 React가 고치거나 지울 때 「제자리에 없다」(NotFoundError: removeChild)로 화면이 통째로 멈췄다
+    // (사용자 제보 — 아이패드에서 YJHM으로 넘어가면 오류 화면)
+    formatDetection: { telephone: false, date: false, address: false, email: false, url: false },
     openGraph: { title, description, type: 'website' },
     twitter: { card: 'summary', title, description },
   };
@@ -60,6 +64,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* 아이폰 「홈 화면에 추가」로 연 경우 사파리가 아니라 앱처럼 — Next는 mobile-web-app-capable만 넣어 줘서
             예전 iOS를 위해 애플 이름으로도 직접 둔다 */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
+        {/* 안전장치 — React가 지우려는 노드가 그 부모에 없으면(브라우저 · 확장 기능이 글자를 옮겨 놓은 경우) 실제 있는 자리에서 지우고,
+            끼워 넣을 기준 노드가 없으면 맨 뒤에 붙인다. 예전엔 이때 화면이 통째로 오류 화면으로 바뀌었다.
+            어떤 노드였는지 남겨 두면 오류 화면(components/shell/ErrorScreen.tsx)이 함께 보여 준다 */}
+        <script dangerouslySetInnerHTML={{
+          __html: `(function(){var P=Node.prototype,rc=P.removeChild,ib=P.insertBefore;function d(n){if(!n)return'null';if(n.nodeType===3)return'#text "'+String(n.nodeValue).slice(0,24)+'"';var c=n.getAttribute&&n.getAttribute('class');return n.nodeName.toLowerCase()+(c?'.'+String(c).split(/\s+/).slice(0,3).join('.'):'');}function log(k,c,p){try{var a=JSON.parse(sessionStorage.getItem('ohome.domFix')||'[]');a.push(k+' '+d(c)+' in '+d(p)+' (now in '+d(c&&c.parentNode)+')');sessionStorage.setItem('ohome.domFix',JSON.stringify(a.slice(-5)));}catch(e){}}P.removeChild=function(c){if(c&&c.parentNode!==this){log('remove',c,this);if(c.parentNode)return rc.call(c.parentNode,c);return c;}return rc.call(this,c);};P.insertBefore=function(n,r){if(r&&r.parentNode!==this){log('insert',r,this);return P.appendChild.call(this,n);}return ib.call(this,n,r);};})();`,
+        }} />
         <script dangerouslySetInnerHTML={{
           __html: `(function(){try{var m=JSON.parse(localStorage.getItem('ohome.themeCss.v1'));if(m){var s=document.documentElement.style;for(var k in m)s.setProperty(k,m[k]);}}catch(e){}})();`,
         }} />

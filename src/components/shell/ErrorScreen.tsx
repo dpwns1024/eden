@@ -30,7 +30,11 @@ const describe = (e: Error & { digest?: string }) => {
 export function ErrorScreen({ error }: { error: Error & { digest?: string } }) {
   const [show, setShow] = useState(false);
   const [yj, setYj] = useState(false);
-  const { head, stack } = describe(error);
+  const desc = describe(error);
+  const head = desc.head;
+  // 안전장치(app/layout.tsx)가 남긴 「제자리에 없던 노드」 기록 — 어떤 글자 · 상자가 옮겨졌는지
+  const fixes = (() => { try { return (JSON.parse(ss.get('ohome.domFix') || '[]') as string[]).slice(-3); } catch { return []; } })();
+  const stack = [desc.stack, ...fixes.map(f => `[dom] ${f}`)].filter(Boolean).join('\n');
 
   useEffect(() => {
     let y = false;
