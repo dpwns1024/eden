@@ -17,6 +17,7 @@ import { EditableDesc, PageTitle } from '@/components/ui/PageText';
 import { pairIdOf, pairNameOf, pairTabs, inPairTab, NO_PAIR } from '@/lib/pairLink';
 import { useWorldFilter } from '@/lib/worldStore';
 import { useBoardCats, useCatMode, catTabs, inCatTab, catOf, NO_CAT } from '@/lib/boardCats';
+import { useBoardSkin } from '@/lib/boardSkin';
 
 const PER_PAGE = 10;
 
@@ -44,7 +45,10 @@ function BoardInner() {
   // 'all' · 'notice'(공지) · 페어링 id · NO_PAIR(페어링 없음)
   const [cat, setCat] = useState('all');
   // 페어별 홈 (lib/worldStore.ts) — 다른 세계 페어의 글은 숨긴다
-  const { rels, show } = useWorldFilter();
+  const { rels, show, world } = useWorldFilter();
+  const yj = world === 'yjhm';
+  // ARCH 디자인이면 FIELD REPORT와 같은 단말기(TERMINAL)형 목록 · 위 탭 줄 (v2.0 사용자 요청 — 「리포트 스킨 그대로 LOG 게시판에」)
+  const arch = useBoardSkin() === 'arch';
   // EVEDEN 세계는 페어링 대신 환경설정의 말머리(모든 게시판 공통)로 나눈다 (v2.0 사용자 요청 — lib/boardCats.ts)
   const catMode = useCatMode();
   const cats = useBoardCats();
@@ -108,10 +112,77 @@ function BoardInner() {
     ...(noPair > 0 && pairs.length > 0 ? [{ k: catMode ? NO_CAT : NO_PAIR, label: '기타' }] : []),
   ];
 
+  /* ── 단말기형 (ARCH) — FIELD REPORT 목록과 같은 줄 모양 ── */
+  // 탭별 글 수 · 영어 이름 (FIELD REPORT 탭과 같은 말)
+  const tabCount = (k: string) => k === 'all' ? inBoard.length : k === 'notice' ? inBoard.filter(p => p.notice).length
+    : inBoard.filter(p => catMode ? inCatTab(k, p, cats) : inPairTab(k, pairIdOf(p, rels))).length;
+  const tabLabel = (t: { k: string; label: string }) =>
+    t.k === 'all' ? 'ALL' : t.k === 'notice' ? 'NOTICE' : t.k === NO_CAT || t.k === NO_PAIR ? 'ETC' : t.label;
+  // 글 번호 — 이 게시판에 올라온 차례(오래된 글이 001). 앞머리는 말머리(없으면 ETC) · 공지는 NOTICE
+  const order = new Map([...inBoard].sort((a, b) => a.date.localeCompare(b.date)).map((p, i) => [p.id, i + 1]));
+  const termHead = (p: Post) => {
+    if (p.notice) return 'NOTICE';
+    const name = catMode ? catOf(p, cats)?.label : pairNameOf(p, rels);
+    return name ? name.trim().replace(/\s+/g, '_').toUpperCase() : catMode && cats.length ? 'ETC' : 'LOG';
+  };
+  const termId = (p: Post) => `${termHead(p)}_${String(order.get(p.id) ?? 0).padStart(3, '0')}`;
+  const boardTitle = board.id === MAIN_BOARD_ID ? 'BOARD' : board.name;
+  const termKey = boardTitle.trim().replace(/\s+/g, '_').toUpperCase();
+  const writeBtn = allow(board.permWrite) && !!user && (
+    <button className="btn btn-dark" style={{ whiteSpace: 'nowrap' }} onClick={() => router.push(`/board/write?b=${board.id}`)}>✎ WRITE</button>
+  );
+
+  if (arch) return (
+    <section className="page page-arch page-board page-board-term">
+      <div className="page-head">
+        <PageTitle href={boardHref(board.id)}>{boardTitle}</PageTitle>
+        <EditableDesc k={board.id === MAIN_BOARD_ID ? 'board-desc' : `board-desc-${board.id}`} def={board.desc} />
+        <div className="head-actions">
+          <SearchBar onSearch={v => { setQ(v); setPage(1); }} />
+          {writeBtn}
+        </div>
+      </div>
+      <div className="trpg-layout tabs">
+        <div>
+          <div className="panel fr-term">
+            <div className="fr-top">
+              <span>{yj ? `THE SHOOTING DAILY · ${termKey} — ${visible.length}건 수록` : `ARCH://${termKey} — ${visible.length} RECORD${visible.length === 1 ? '' : 'S'} FOUND`}</span>
+              <span>{yj ? `PRESS PASS: ${isAdmin ? 'EDITOR' : user ? 'REPORTER' : 'READER'}` : `ACCESS LEVEL: ${isAdmin ? 'COMMAND' : user ? 'AGENT' : 'GUEST'}`}</span>
+            </div>
+            {pageList.map(p => (
+              <div className="fr-ln" key={p.id} onClick={() => { if (canRead(p)) router.push(`/board/${p.id}`); }}>
+                <span className="fr-id">{termId(p)}</span>
+                <span className="fr-tt">
+                  {canRead(p) ? p.title : (yj ? '비공개 원고입니다' : '비밀글입니다')}
+                  {p.secret && <em className={`fr-st${canRead(p) ? '' : ' lock'}`}>[SECRET]</em>}
+                  {canRead(p) && p.fold && <em className="fr-st">[FOLD]</em>}
+                  {canRead(p) && cmtCount(p) > 0 && <em className="fr-st fr-cm">[{cmtCount(p)}]</em>}
+                  {canRead(p) && (p.tags ?? []).length > 0 && <small>{(p.tags ?? []).map(t => `#${t}`).join(' ')}</small>}
+                </span>
+                <span className="fr-who">{p.author}</span>
+                <span className="fr-dt">{fmtDate(p.date)}</span>
+              </div>
+            ))}
+            {pageList.length === 0 && <div className="fr-ln fr-empty"><span>NO RECORDS</span></div>}
+            <div className="fr-cur">&gt; <i /></div>
+          </div>
+          {totalPages > 1 && <Pager page={page} total={totalPages} onChange={setPage} />}
+        </div>
+        <div className="panel tagside arch-tabbar">
+          {tabList.map(t => (
+            <div key={t.k} className={`tag ${cat === t.k ? 'on' : ''}`} onClick={() => { setCat(t.k); setPage(1); }}>
+              {tabLabel(t)} <small>{tabCount(t.k)}</small>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+
   return (
     <section className="page page-arch page-board">
       <div className="page-head">
-        <PageTitle href={boardHref(board.id)}>{board.id === MAIN_BOARD_ID ? 'BOARD' : board.name}</PageTitle>
+        <PageTitle href={boardHref(board.id)}>{boardTitle}</PageTitle>
         <EditableDesc k={board.id === MAIN_BOARD_ID ? 'board-desc' : `board-desc-${board.id}`} def={board.desc} />
       </div>
       <div className="toolrow">
@@ -122,9 +193,7 @@ function BoardInner() {
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <SearchBar onSearch={v => { setQ(v); setPage(1); }} />
-          {allow(board.permWrite) && !!user && (
-            <button className="btn btn-dark" onClick={() => router.push(`/board/write?b=${board.id}`)}>✎ WRITE</button>
-          )}
+          {writeBtn}
         </div>
       </div>
 

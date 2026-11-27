@@ -10,7 +10,7 @@ import { sectionHref, MAIN_SEC, secStamp, useSectionTitle } from '@/lib/sectionS
 import { useAuth } from '@/lib/auth';
 import { useLocalList, newId } from '@/lib/postStore';
 import { MEMO_SEED } from '@/lib/memoStore';
-import { TrpgLog, TRPG_SEED, TrpgLogBody, TRPG_BODY_SEED, bodyVisibility, bodyPwLock, showAsHtml, decodeLogText, logNo, saveLogBody , textToEditorHtml } from '@/lib/galleryStore';
+import { TrpgLog, TRPG_SEED, TrpgLogBody, TRPG_BODY_SEED, bodyVisibility, bodyPwLock, showAsHtml, decodeLogText, saveLogBody , textToEditorHtml } from '@/lib/galleryStore';
 import { Relation, REL_SEED, Character, CHAR_SEED, charGrant } from '@/lib/charStore';
 import { Modal, ConfirmModal } from '@/components/ui/Modal';
 import { getBlob, putBlob, useBlobUrl } from '@/lib/blobStore';
@@ -451,7 +451,8 @@ html,body{margin:0!important;padding:0!important;height:auto!important;min-heigh
     <section className="page page-arch page-trpg-detail">
       <div className="page-head">
         <PageTitle href={tt.href}>{tt.title}</PageTitle>
-        <p>{logNo(l)}{[l.writer, l.withText].filter(Boolean).map(x => ` · ${x}`).join('')}{l.date ? ` · ${l.date.replace(/-/g, '.')}` : ''}</p>
+        {/* № 번호 표시는 뺐다 (v2.0 사용자 요청) — 라이터 · 동행 · 날짜만 */}
+        <p>{[l.writer, l.withText, l.date?.replace(/-/g, '.')].filter(Boolean).join(' · ')}</p>
         <div className="head-actions">
           {rel && <button className="btn btn-dark" onClick={() => router.push(`/rels/${rel.id}`)}>{rel.name} ›</button>}
           {isAdmin && <button className="btn btn-dark" onClick={() => {
