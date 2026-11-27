@@ -864,6 +864,11 @@ html.ui-arch .page-arch .fr-dt{text-align:right;white-space:nowrap}
 html.ui-arch .page-arch .fr-cur{padding:12px 6px 0;font-size:11px;color:#6f7b89}
 html.ui-arch .page-arch .fr-cur i{display:inline-block;width:8px;height:14px;margin-left:2px;background:var(--a-ac);vertical-align:-2px;animation:frBlink 1s steps(1) infinite}
 @keyframes frBlink{50%{opacity:0}}
+/* LOG 게시판(일반 게시판)도 같은 단말기형 (v2.0 사용자 요청) — 댓글 수 · 빈 목록 · 아래 쪽 번호 */
+html.ui-arch .page-arch .fr-st.fr-cm{color:var(--a-ac)}
+html.ui-arch .page-arch .fr-ln.fr-empty{display:block;text-align:center;cursor:default;letter-spacing:.2em;color:var(--a-mu)}
+html.ui-arch .page-arch .fr-ln.fr-empty:hover{background:none}
+html.ui-arch .page-board-term .pager{margin-top:12px}
 @media (max-width:960px){
   html.ui-arch .page-arch .fr-ln{grid-template-columns:minmax(0,1fr) auto;gap:4px 12px}
   html.ui-arch .page-arch .fr-id{grid-column:1}
