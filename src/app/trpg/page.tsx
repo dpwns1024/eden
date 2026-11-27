@@ -27,7 +27,7 @@ import { useBoardSkin } from '@/lib/boardSkin';
 import { hasLogPw, logPwOnServer, setLogPassword } from '@/lib/logLock';
 import { logPath, normalizeLogSlug } from '@/lib/logPath';
 import { useWorldFilter } from '@/lib/worldStore';
-import { useBoardCats, useCatMode, catTabs, inCatTab, catOptions, NO_CAT } from '@/lib/boardCats';
+import { useBoardCats, useCatMode, catTabs, inCatTab, catOptions, catOf, NO_CAT } from '@/lib/boardCats';
 
 function TrpgPageInner() {
   const router = useRouter();
@@ -289,7 +289,13 @@ function TrpgPageInner() {
 
   /* FIELD REPORT 단말기형 (v2.0 사용자 선택 D) — 고정폭 글씨로 한 줄씩. 티켓과 같은 동작:
      클릭 열람 · 우클릭 순서 · 편집모드 드래그 · 숨김/열람 제한 표시 */
-  const termId = (l: TrpgLog) => l.noText || `REPORT_${String(l.no).padStart(3, '0')}`;
+  // 앞머리는 말머리를 따른다 (v2.0 사용자 요청 — ORIGINAL_028 · ETC_028). 말머리를 안 쓰는 게시판은 REPORT_ 그대로
+  const termHead = (l: TrpgLog) => {
+    if (!catMode || !cats.length) return 'REPORT';
+    const c = catOf(l, cats);
+    return c ? c.label.trim().replace(/\s+/g, '_').toUpperCase() : 'ETC';
+  };
+  const termId = (l: TrpgLog) => l.noText || `${termHead(l)}_${String(l.no).padStart(3, '0')}`;
   const TermRow = ({ l }: { l: TrpgLog }) => (
     <div className="fr-ln"
       onContextMenu={e => openOrder(e, l.id)}
@@ -302,7 +308,7 @@ function TrpgPageInner() {
         {l.catchphrase && <small>{l.catchphrase}</small>}
       </span>
       <span className="fr-who">{[l.writer, l.withText].filter(Boolean).join(' / ')}</span>
-      <span className="fr-dt">{l.date ? l.date.replace(/-/g, '.') : '—'}</span>
+      <span className="fr-dt">{l.date ? l.date.replace(/-/g, '.') : ''}</span>
     </div>
   );
 
